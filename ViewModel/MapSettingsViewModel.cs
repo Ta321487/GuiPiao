@@ -117,6 +117,7 @@ public partial class MapSettingsViewModel : ObservableObject, ISettingsViewModel
             ShowDateLabels = _originalConfig.ShowDateLabels;
             HighlightSelectedTrip = _originalConfig.HighlightSelectedTrip;
             ShowHoverCard = _originalConfig.ShowHoverCard;
+            DirectionFilter = _originalConfig.DirectionFilter;
 
             EnableMouseWheelZoom = _originalConfig.EnableMouseWheelZoom;
             EnableLeftDragPan = _originalConfig.EnableLeftDragPan;
@@ -168,6 +169,7 @@ public partial class MapSettingsViewModel : ObservableObject, ISettingsViewModel
             ShowDateLabels = ShowDateLabels,
             HighlightSelectedTrip = HighlightSelectedTrip,
             ShowHoverCard = ShowHoverCard,
+            DirectionFilter = DirectionFilter,
             EnableMouseWheelZoom = EnableMouseWheelZoom,
             EnableLeftDragPan = EnableLeftDragPan,
             EnableRightClickReset = EnableRightClickReset,
@@ -208,6 +210,7 @@ public partial class MapSettingsViewModel : ObservableObject, ISettingsViewModel
                a.ShowDateLabels == b.ShowDateLabels &&
                a.HighlightSelectedTrip == b.HighlightSelectedTrip &&
                a.ShowHoverCard == b.ShowHoverCard &&
+               a.DirectionFilter == b.DirectionFilter &&
                a.EnableMouseWheelZoom == b.EnableMouseWheelZoom &&
                a.EnableLeftDragPan == b.EnableLeftDragPan &&
                a.EnableRightClickReset == b.EnableRightClickReset &&
@@ -639,6 +642,11 @@ public partial class MapSettingsViewModel : ObservableObject, ISettingsViewModel
     [ObservableProperty] private bool _highlightSelectedTrip = true;
 
     [ObservableProperty] private bool _showHoverCard = true;
+
+    /// <summary>
+    ///     方向过滤：All(全部), Up(上行/偶数车次), Down(下行/奇数车次)
+    /// </summary>
+    [ObservableProperty] private string _directionFilter = "All";
 
     #endregion
 

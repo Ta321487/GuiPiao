@@ -282,9 +282,20 @@
                             <CheckBox Content="显示车站名称标签" IsChecked="{Binding ShowStationLabels}" Margin="0,0,20,5" />
                             <CheckBox Content="显示行程出发/到达日期标注" IsChecked="{Binding ShowDateLabels}" Margin="0,0,20,5" />
                         </WrapPanel>
-                        <WrapPanel>
+                        <WrapPanel Margin="0,0,0,5">
                             <CheckBox Content="选中行程高亮置顶" IsChecked="{Binding HighlightSelectedTrip}" Margin="0,0,20,5" />
-                            <CheckBox Content="鼠标悬停显示车票信息卡片" IsChecked="{Binding ShowHoverCard}" Margin="0,0,0,5" />
+                            <CheckBox Content="鼠标悬停显示车票信息卡片" IsChecked="{Binding ShowHoverCard}" Margin="0,0,20,5" />
+                        </WrapPanel>
+                        <!-- 方向过滤 -->
+                        <WrapPanel>
+                            <TextBlock Text="方向过滤：" VerticalAlignment="Center" Margin="0,0,5,5"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <ComboBox MinWidth="120" SelectedValue="{Binding DirectionFilter, Mode=TwoWay}"
+                                      SelectedValuePath="Tag" Margin="0,0,0,5">
+                                <ComboBoxItem Content="全部显示" Tag="All" />
+                                <ComboBoxItem Content="仅上行（偶数车次）" Tag="Up" />
+                                <ComboBoxItem Content="仅下行（奇数车次）" Tag="Down" />
+                            </ComboBox>
                         </WrapPanel>
                     </StackPanel>
                 </Border>

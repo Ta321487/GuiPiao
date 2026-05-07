@@ -45,16 +45,15 @@
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
         }
 
-        /* 日期标注样式 */
-        .date-label {
+        /* 日期标注简单样式 */
+        .date-label-simple {
             background: rgba(0, 0, 0, 0.75);
             color: white;
-            padding: 1px 4px;
-            border-radius: 2px;
-            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
             white-space: nowrap;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-            pointer-events: none;
             line-height: 1.2;
         }
 
@@ -571,7 +570,8 @@
         showStationLabels: true,
         showDateLabels: true,
         highlightSelectedTrip: true,
-        showHoverCard: true
+        showHoverCard: true,
+        directionFilter: 'All' // All(全部), Up(上行/偶数), Down(下行/奇数)
     };
 
     // 地图交互设置
@@ -616,7 +616,7 @@
             dragging: mapInteractions.enableLeftDragPan,
             inertia: mapInteractions.enablePanInertia,
             doubleClickZoom: false,  // 禁用默认双击缩放，由我们自己处理
-            maxZoom: 16,  // 限制最大缩放级别，刚好能看清一个火车站
+            maxZoom: 16,  // 恢复最大缩放级别
             minZoom: 4,   // 限制最小缩放级别
             maxBounds: [[10, 60], [60, 145]],  // 限制地图显示范围在中国及周边
             maxBoundsViscosity: 1.0
@@ -815,9 +815,13 @@
         if (styleSettings.showHoverCard !== undefined) {
             currentTheme.showHoverCard = styleSettings.showHoverCard;
         }
+        if (styleSettings.directionFilter !== undefined) {
+            currentTheme.directionFilter = styleSettings.directionFilter;
+        }
 
-        // 更新现有行程的样式
+        // 更新现有行程的样式和过滤
         updateTripStyles();
+        updateDirectionFilter();
 
         // 更新车站标记样式
         updateStationMarkerStyles();
@@ -921,6 +925,48 @@
         document.querySelectorAll('.legend').forEach(el => el.remove());
         // 添加新图例
         addLegend();
+    }
+
+    // 判断车次方向：偶数为上行，奇数为下行
+    function getTrainDirection(trainNo) {
+        // 提取车次号中的数字部分
+        const match = trainNo.match(/\d+/);
+        if (!match) return 'unknown';
+        const num = parseInt(match[0], 10);
+        // 偶数为上行，奇数为下行
+        return num % 2 === 0 ? 'up' : 'down';
+    }
+
+    // 更新方向过滤
+    function updateDirectionFilter() {
+        const filter = currentTheme.directionFilter;
+        if (filter === 'All') {
+            // 显示所有线路
+            tripLayers.forEach(item => {
+                item.layer.addTo(map);
+                if (item.dateLabelMarker) {
+                    item.dateLabelMarker.addTo(map);
+                }
+            });
+        } else {
+            // 根据方向过滤
+            tripLayers.forEach(item => {
+                const direction = getTrainDirection(item.ticket.trainNo);
+                const shouldShow = (filter === 'Up' && direction === 'up') ||
+                                   (filter === 'Down' && direction === 'down');
+                if (shouldShow) {
+                    item.layer.addTo(map);
+                    if (item.dateLabelMarker) {
+                        item.dateLabelMarker.addTo(map);
+                    }
+                } else {
+                    map.removeLayer(item.layer);
+                    if (item.dateLabelMarker) {
+                        map.removeLayer(item.dateLabelMarker);
+                    }
+                }
+            });
+        }
     }
 
     // 添加图例
@@ -1081,8 +1127,19 @@
         initTimeline(tickets);
         const stationMap = new Map();
 
+        // 根据方向过滤车票
+        const filter = currentTheme.directionFilter;
+        if (filter !== 'All') {
+            tickets = tickets.filter(ticket => {
+                const direction = getTrainDirection(ticket.trainNo);
+                return (filter === 'Up' && direction === 'up') ||
+                       (filter === 'Down' && direction === 'down');
+            });
+        }
+
         // 收集所有车站，并把相同线路的车票分组
-        const routeGroups = new Map(); // key: 线路key, value: 车票数组
+        const routeGroups = new Map(); // key: 线路key(含车次), value: 车票数组
+        const stationPairGroups = new Map(); // key: 出发站-到达站, value: 车次列表（用于偏移计算）
 
         tickets.forEach(ticket => {
             if (!stationMap.has(ticket.departStation)) {
@@ -1106,6 +1163,15 @@
                 routeGroups.set(routeKey, []);
             }
             routeGroups.get(routeKey).push(ticket);
+
+            // 按出发站-到达站分组，用于计算偏移（不同车次分开显示）
+            const pairKey = `${ticket.departStation}-${ticket.arriveStation}`;
+            if (!stationPairGroups.has(pairKey)) {
+                stationPairGroups.set(pairKey, []);
+            }
+            if (!stationPairGroups.get(pairKey).includes(ticket.trainNo)) {
+                stationPairGroups.get(pairKey).push(ticket.trainNo);
+            }
         });
 
         // 给每个车票添加分组信息
@@ -1113,14 +1179,25 @@
             const routeKey = `${ticket.departStation}-${ticket.arriveStation}-${ticket.trainNo}`;
             const group = routeGroups.get(routeKey);
             const index = group.indexOf(ticket);
-            ticket.routeGroup = group; // 整个分组
+            ticket.routeGroup = group; // 整个分组（相同车次不同日期）
             ticket.routeIndex = index; // 在分组中的索引
             ticket.routeTotal = group.length; // 分组总数
+
+            // 计算在相同出发站-到达站的所有车次中的索引（用于偏移显示）
+            const pairKey = `${ticket.departStation}-${ticket.arriveStation}`;
+            const pairGroup = stationPairGroups.get(pairKey);
+            ticket.pairIndex = pairGroup.indexOf(ticket.trainNo);
+            ticket.pairTotal = pairGroup.length;
         });
 
-        // 绘制行程线路
+        // 绘制行程线路 - 只绘制每个分组的第一条线路，避免重复绘制
+        const drawnRouteKeys = new Set();
         tickets.forEach(ticket => {
-            drawTrip(ticket);
+            const routeKey = `${ticket.departStation}-${ticket.arriveStation}-${ticket.trainNo}`;
+            if (!drawnRouteKeys.has(routeKey)) {
+                drawnRouteKeys.add(routeKey);
+                drawTrip(ticket);
+            }
         });
 
         // 添加车站标记
@@ -1230,12 +1307,12 @@
             console.warn('[Map] ⚠️ 经度异常:', ticket.trainNo, '起点:', start, '终点:', end);
         }
 
-        // 计算路径 - 暂时禁用偏移，确保坐标准确
-        // const routeIndex = ticket.routeIndex || 0;
-        // const routeTotal = ticket.routeTotal || 1;
+        // 计算路径 - 使用偏移让相同出发站-到达站的不同车次分开显示
+        const pairIndex = ticket.pairIndex || 0;
+        const pairTotal = ticket.pairTotal || 1;
 
-        // 直接画直线，确保坐标准确
-        const latlngs = [start, end];
+        // 生成贝塞尔曲线路径，带偏移
+        const latlngs = calculateBezierPoints(start, end, pairIndex, pairTotal);
 
         // 调试：打印贝塞尔曲线的第一个和最后一个点
         if (latlngs.length > 0) {
@@ -1273,26 +1350,104 @@
                 closeButton: false,
                 offset: [0, -5],
                 keepInView: false,
-                autoPan: false
+                autoPan: false,
+                className: 'hover-popup'
             });
 
             polyline.bindPopup(popup);
 
             polyline.on('mouseover', function (e) {
+                // 如果当前有打开的 popup 且鼠标在其中，不处理
+                if (currentPopup && currentPopupTicket) {
+                    const popupElement = currentPopup.getElement();
+                    if (popupElement) {
+                        const rect = popupElement.getBoundingClientRect();
+                        const mouseX = e.originalEvent?.clientX;
+                        const mouseY = e.originalEvent?.clientY;
+                        if (mouseX >= rect.left && mouseX <= rect.right &&
+                            mouseY >= rect.top && mouseY <= rect.bottom) {
+                            return;
+                        }
+                    }
+                }
+
+                // 清除全局关闭计时器
+                if (window.popupCloseTimer) {
+                    clearTimeout(window.popupCloseTimer);
+                    window.popupCloseTimer = null;
+                }
+
                 currentPopupTicket = ticket;
                 currentPopup = popup;
                 popup.setContent(createPopupContent(ticket));
                 popup.setLatLng(e.latlng);
                 this.openPopup();
+
+                // 绑定 popup 事件
+                setTimeout(() => {
+                    bindPopupEvents(polyline, popup);
+                }, 0);
             });
 
             polyline.on('mousemove', function (e) {
-                popup.setLatLng(e.latlng);
+                // 只有在没有打开其他 popup 时才跟随鼠标
+                if (currentPopup === popup) {
+                    popup.setLatLng(e.latlng);
+                }
             });
 
             polyline.on('mouseout', function (e) {
-                this.closePopup();
+                // 延迟关闭，给用户足够时间移动到 popup 上
+                window.popupCloseTimer = setTimeout(() => {
+                    // 再次检查鼠标是否在 popup 内
+                    const popupElement = popup.getElement();
+                    if (popupElement) {
+                        const rect = popupElement.getBoundingClientRect();
+                        const mouseX = e.originalEvent?.clientX;
+                        const mouseY = e.originalEvent?.clientY;
+                        // 预测鼠标移动方向，给更大的容错空间
+                        if (mouseX >= rect.left - 10 && mouseX <= rect.right + 10 &&
+                            mouseY >= rect.top - 10 && mouseY <= rect.bottom + 10) {
+                            return;
+                        }
+                    }
+                    if (currentPopup === popup) {
+                        this.closePopup();
+                        if (currentPopup === popup) {
+                            currentPopup = null;
+                            currentPopupTicket = null;
+                        }
+                    }
+                }, 500); // 增加到500ms，给更多时间
             });
+
+            // 绑定 popup 鼠标事件
+            function bindPopupEvents(polylineLayer, popupInstance) {
+                const popupElement = popupInstance.getElement();
+                if (!popupElement || popupElement._hoverEventsBound) return;
+                
+                popupElement._hoverEventsBound = true;
+
+                // 鼠标进入 popup 时清除关闭计时器
+                popupElement.addEventListener('mouseenter', function() {
+                    if (window.popupCloseTimer) {
+                        clearTimeout(window.popupCloseTimer);
+                        window.popupCloseTimer = null;
+                    }
+                });
+                
+                // 鼠标离开 popup 时关闭
+                popupElement.addEventListener('mouseleave', function() {
+                    window.popupCloseTimer = setTimeout(() => {
+                        polylineLayer.closePopup();
+                        popupElement._hoverEventsBound = false;
+                        if (currentPopup === popupInstance) {
+                            currentPopup = null;
+                            currentPopupTicket = null;
+                        }
+                    }, 100);
+                });
+            }
         }
 
         // 点击事件 - 在用户点击位置显示卡片并高亮线路
@@ -1388,103 +1543,73 @@
     }
 
     // 存储已使用的标注位置，用于碰撞检测
-    let usedLabelPositions = [];
+    // 存储日期标签数据，用于缩放时重新计算位置
+    let dateLabelData = [];
 
-    // 添加日期标注
+    // 添加日期标注 - 放在线路上，使用屏幕坐标计算中点再转回地理坐标
     function addDateLabel(ticket, latlngs) {
-        const start = latlngs[0];
-        const end = latlngs[1];
-
-        // 计算线路方向向量
-        const dx = end[1] - start[1];
-        const dy = end[0] - start[0];
-        const length = Math.sqrt(dx * dx + dy * dy);
-
-        // 计算垂直于线路的偏移方向（单位向量）
-        const perpX = -dy / length;
-        const perpY = dx / length;
-
-        // 根据线路长度决定偏移距离
-        const offsetDistance = 0.008; // 约 800 米
-
-        // 尝试多个位置点，找到不重叠的位置
-        let bestPosition = null;
-        let minOverlap = Infinity;
-
-        // 尝试的位置：30%、40%、50%、60%、70% 处
-        const tryPositions = [0.3, 0.4, 0.5, 0.6, 0.7];
-
-        for (const ratio of tryPositions) {
-            // 在线路上的基础位置
-            const baseLat = start[0] + dy * ratio;
-            const baseLng = start[1] + dx * ratio;
-
-            // 尝试正负两个方向的偏移
-            for (const sign of [1, -1]) {
-                const offsetLat = baseLat + perpY * offsetDistance * sign;
-                const offsetLng = baseLng + perpX * offsetDistance * sign;
-
-                // 计算与已使用位置的重叠程度
-                let overlap = 0;
-                for (const pos of usedLabelPositions) {
-                    const dist = Math.sqrt(
-                        Math.pow(offsetLat - pos.lat, 2) +
-                        Math.pow(offsetLng - pos.lng, 2)
-                    );
-                    if (dist < 0.015) { // 如果距离小于约 1.5 公里
-                        overlap += (0.015 - dist);
-                    }
-                }
-
-                if (overlap < minOverlap) {
-                    minOverlap = overlap;
-                    bestPosition = {
-                        lat: offsetLat,
-                        lng: offsetLng,
-                        baseLat: baseLat,
-                        baseLng: baseLng,
-                        offsetSign: sign
-                    };
-                }
-
-                // 如果找到完全没有重叠的位置，直接使用
-                if (overlap === 0) break;
-            }
-
-            if (minOverlap === 0) break;
-        }
-
-        if (!bestPosition) return;
-
-        // 记录使用的位置
-        usedLabelPositions.push({
-            lat: bestPosition.lat,
-            lng: bestPosition.lng
+        // 存储标签数据，用于后续重新计算
+        dateLabelData.push({
+            ticket: ticket,
+            start: L.latLng(latlngs[0]),
+            end: L.latLng(latlngs[1])
         });
 
-        // 创建日期标注
+        // 计算并创建标签
+        createDateLabelMarker(ticket, latlngs);
+    }
+
+    // 创建日期标签 marker
+    function createDateLabelMarker(ticket, latlngs) {
+        const start = L.latLng(latlngs[0]);
+        const end = L.latLng(latlngs[1]);
+        
+        // 将地理坐标转为屏幕像素坐标
+        const startPoint = map.latLngToContainerPoint(start);
+        const endPoint = map.latLngToContainerPoint(end);
+        
+        // 在屏幕坐标上计算中点
+        const midX = (startPoint.x + endPoint.x) / 2;
+        const midY = (startPoint.y + endPoint.y) / 2;
+        
+        // 将屏幕中点转回地理坐标
+        const midLatLng = map.containerPointToLatLng([midX, midY]);
+
+        // 创建日期标注 - 使用简单的 divIcon
         const dateLabelIcon = L.divIcon({
-            className: 'date-label-container',
-            html: `<div class="date-label">${ticket.departDate}</div>`,
-            iconSize: [60, 14],
-            iconAnchor: [30, 7]
+            className: 'date-label-simple',
+            html: ticket.departDate,
+            iconSize: null,
+            iconAnchor: null
         });
 
         const dateLabelMarker = L.marker(
-            [bestPosition.lat, bestPosition.lng],
+            [midLatLng.lat, midLatLng.lng],
             {icon: dateLabelIcon, interactive: false}
         ).addTo(map);
 
         // 将日期标注存储到对应的行程图层中
         const tripLayer = tripLayers.find(t => t.id === ticket.id);
         if (tripLayer) {
+            // 如果已有标签，先移除
+            if (tripLayer.dateLabelMarker) {
+                map.removeLayer(tripLayer.dateLabelMarker);
+            }
             tripLayer.dateLabelMarker = dateLabelMarker;
         }
     }
 
+    // 重新计算所有日期标签位置
+    function updateAllDateLabels() {
+        dateLabelData.forEach(data => {
+            const latlngs = [[data.start.lat, data.start.lng], [data.end.lat, data.end.lng]];
+            createDateLabelMarker(data.ticket, latlngs);
+        });
+    }
+
     // 清除已使用的标注位置
     function clearUsedLabelPositions() {
-        usedLabelPositions = [];
+        dateLabelData = [];
     }
 
     // 添加车站标记
@@ -2364,9 +2489,26 @@
         }
     }
 
-    // 监听地图缩放事件，动态更新聚合
+    // 监听地图缩放事件，动态更新聚合和日期标签位置
     function setupClusterListener() {
         map.on('zoomend', function () {
+            const zoom = map.getZoom();
+            
+            // 在高缩放级别（>13）隐藏日期标签，避免偏移和重叠
+            // 在低缩放级别重新计算并显示标签
+            if (currentTheme.showDateLabels && dateLabelData.length > 0) {
+                if (zoom <= 13) {
+                    updateAllDateLabels();
+                } else {
+                    // 高缩放级别隐藏所有日期标签
+                    tripLayers.forEach(item => {
+                        if (item.dateLabelMarker) {
+                            map.removeLayer(item.dateLabelMarker);
+                        }
+                    });
+                }
+            }
+
             // 重新渲染以更新聚合状态
             if (currentTickets.length > 0) {
                 // 先清除聚合
@@ -2379,7 +2521,8 @@
 
                     if (shouldShow) {
                         item.layer.addTo(map);
-                        if (item.dateLabelMarker) {
+                        // 只在低缩放级别显示日期标签
+                        if (zoom <= 13 && item.dateLabelMarker) {
                             item.dateLabelMarker.addTo(map);
                         }
                     }

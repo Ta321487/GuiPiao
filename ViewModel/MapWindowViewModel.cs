@@ -26,6 +26,7 @@ public partial class MapWindowViewModel : ObservableObject
     private List<TicketData> _allTickets = new();
 
     private bool _isDataLoaded;
+    private string _currentDirectionFilter = "All"; // 当前方向过滤值
 
     [ObservableProperty] private bool _isMapReady;
 
@@ -63,10 +64,31 @@ public partial class MapWindowViewModel : ObservableObject
     /// <summary>
     ///     地图设置已保存事件处理
     /// </summary>
-    private void OnMapSettingsSaved(object? sender, EventArgs e)
+    private async void OnMapSettingsSaved(object? sender, EventArgs e)
     {
-        // 在UI线程上应用新的地图设置
-        Application.Current.Dispatcher.Invoke(() => { ApplyAllMapSettings(); });
+        if (!IsMapReady || _webView?.CoreWebView2 == null) return;
+        
+        var settingsService = new MapSettingsService();
+        settingsService.RefreshConfig();
+        var newDirectionFilter = settingsService.Config.DirectionFilter;
+        
+        if (_currentDirectionFilter != newDirectionFilter)
+        {
+            _currentDirectionFilter = newDirectionFilter;
+            StatusMessage = "方向过滤已更改，正在重新加载数据...";
+            
+            // 应用新设置后重新加载数据
+            ApplyAllMapSettings();
+            if (_isDataLoaded && _allTickets.Count > 0)
+            {
+                SendTicketsToMap(_allTickets);
+            }
+            StatusMessage = "数据已重新加载";
+        }
+        else
+        {
+            ApplyAllMapSettings();
+        }
     }
 
     /// <summary>
@@ -115,6 +137,10 @@ public partial class MapWindowViewModel : ObservableObject
     {
         IsMapReady = true;
         StatusMessage = "地图就绪，正在加载数据...";
+
+        // 初始化当前方向过滤值
+        var settingsService = new MapSettingsService();
+        _currentDirectionFilter = settingsService.Config.DirectionFilter;
 
         // 应用主题设置
         ApplyThemeToMap();
@@ -309,7 +335,8 @@ public partial class MapWindowViewModel : ObservableObject
                 showStationLabels = config.ShowStationLabels,
                 showDateLabels = config.ShowDateLabels,
                 highlightSelectedTrip = config.HighlightSelectedTrip,
-                showHoverCard = config.ShowHoverCard
+                showHoverCard = config.ShowHoverCard,
+                directionFilter = config.DirectionFilter
             };
 
             var script = $"setMapStyles({JsonSerializer.Serialize(styleSettings)});";
@@ -688,13 +715,32 @@ public partial class MapWindowViewModel : ObservableObject
             .OfType<Window>()
             .FirstOrDefault(w => w.DataContext == this);
 
-        var settingsWindow = new SettingsWindow(SettingsPageType.Map);
-        // 不设置 Owner，避免最小化时影响主窗口
+        // 检查是否已有设置窗口打开
+        var existingSettingsWindow = Application.Current.Windows
+            .OfType<SettingsWindow>()
+            .FirstOrDefault();
+        
+        if (existingSettingsWindow != null)
+        {
+            // 如果已有设置窗口，将其激活并前置
+            existingSettingsWindow.Activate();
+            existingSettingsWindow.Focus();
+            return;
+        }
 
-        // 使用 ShowDialog() 以模态方式显示，阻止与父窗口的交互
+        var settingsWindow = new SettingsWindow(SettingsPageType.Map);
+        
+        // 设置 Owner 为地图窗口，保持窗口关联
+        // 但使用 ShowDialog 模态显示，符合对话框行为
+        if (mapWindow != null)
+        {
+            settingsWindow.Owner = mapWindow;
+        }
+
+        // 使用 ShowDialog 模态方式显示，统一行为
         settingsWindow.ShowDialog();
 
-        // 窗口关闭后重新应用所有地图设置
+        // 窗口关闭后应用设置
         ApplyAllMapSettings();
     }
 

@@ -46,6 +46,7 @@ public partial class SettingsWindow : Window
         _isShowing = true;
 
         // 确保设置 Owner，使窗口与主窗口关联
+        // 如果已经设置了 Owner（如从地图窗口打开），则保持原设置
         if (Owner == null) Owner = Application.Current.MainWindow;
 
         // 使用 base.ShowDialog() 显示真正的模态对话框

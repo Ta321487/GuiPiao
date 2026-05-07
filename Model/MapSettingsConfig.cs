@@ -106,6 +106,11 @@ public class MapSettingsConfig
     /// </summary>
     public bool ShowHoverCard { get; set; } = true;
 
+    /// <summary>
+    ///     方向过滤：All(全部), Up(上行/偶数车次), Down(下行/奇数车次)
+    /// </summary>
+    public string DirectionFilter { get; set; } = "All";
+
     #endregion
 
     #region 地图交互行为设置
