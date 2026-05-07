@@ -1,0 +1,355 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:local="clr-namespace:GuiPiao.View">
+
+    <!-- 时间调整按钮样式（上下箭头按钮） -->
+    <Style x:Key="TimeAdjustButtonStyle" TargetType="Button">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Border"
+                            Background="{TemplateBinding Background}"
+                            BorderThickness="0">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Border" Property="Background" Value="{DynamicResource ControlHoverBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Border" Property="Background" Value="{DynamicResource AccentPressedBrush}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- 快速选择按钮样式 -->
+    <Style x:Key="TimeQuickButtonStyle" TargetType="Button">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Height" Value="32" />
+        <Setter Property="FontSize" Value="{DynamicResource SmallFontSize}" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Border"
+                            Background="{TemplateBinding Background}"
+                            BorderThickness="0"
+                            CornerRadius="4"
+                            Padding="2,0">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Border" Property="Background" Value="{DynamicResource ControlHoverBrush}" />
+                            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Border" Property="Background" Value="{DynamicResource AccentPressedBrush}" />
+                            <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- 主操作按钮样式（确定/现在） -->
+    <Style x:Key="TimePrimaryButtonStyle" TargetType="Button">
+        <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FontSize" Value="{DynamicResource BaseFontSize}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderThickness="0"
+                            CornerRadius="4"
+                            Padding="12,6">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter Property="Background" Value="{DynamicResource AccentPressedBrush}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- 次要按钮样式（取消） -->
+    <Style x:Key="TimeSecondaryButtonStyle" TargetType="Button">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FontSize" Value="{DynamicResource BaseFontSize}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="4"
+                            Padding="12,6">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="{DynamicResource ControlHoverBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter Property="Background" Value="{DynamicResource AccentPressedBrush}" />
+                            <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- 时间选择器主样式 -->
+    <Style TargetType="local:ThemedTimePicker">
+        <Setter Property="Background" Value="{DynamicResource ControlBackgroundBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Height" Value="Auto" />
+        <Setter Property="MinWidth" Value="100" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="local:ThemedTimePicker">
+                    <Grid>
+                        <!-- 主输入框区域 - 整个区域可点击 -->
+                        <Border x:Name="Border"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="2"
+                                Cursor="Hand">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <!-- 时间显示文本框 -->
+                                <TextBox x:Name="PART_TextBox"
+                                         Grid.Column="0"
+                                         Background="Transparent"
+                                         BorderThickness="0"
+                                         Foreground="{TemplateBinding Foreground}"
+                                         CaretBrush="{TemplateBinding Foreground}"
+                                         FontSize="{DynamicResource BaseFontSize}"
+                                         Padding="6,0"
+                                         VerticalContentAlignment="Center"
+                                         HorizontalContentAlignment="Left"
+                                         IsReadOnly="True"
+                                         IsReadOnlyCaretVisible="False"
+                                         Focusable="False"
+                                         IsHitTestVisible="False" />
+
+                                <!-- 下拉箭头图标 -->
+                                <Path Grid.Column="1"
+                                      x:Name="PART_DropDownArrow"
+                                      Data="M0,0 L4,4 L8,0 Z"
+                                      Fill="{DynamicResource TextSecondaryBrush}"
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"
+                                      Stretch="Uniform"
+                                      Width="8"
+                                      Height="4"
+                                      Margin="0,0,8,0"
+                                      IsHitTestVisible="False" />
+                            </Grid>
+                        </Border>
+
+                        <!-- 下拉时间弹窗 -->
+                        <Popup x:Name="PART_Popup"
+                               Placement="Bottom"
+                               PlacementTarget="{Binding ElementName=Border}"
+                               IsOpen="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
+                               StaysOpen="False"
+                               AllowsTransparency="True"
+                               PopupAnimation="Fade">
+                            <Border Background="{DynamicResource ControlBackgroundBrush}"
+                                    BorderBrush="{DynamicResource BorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="4"
+                                    Margin="4"
+                                    Effect="{DynamicResource PopupShadowEffect}"
+                                    Padding="12">
+                                <Grid MinWidth="260">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+
+                                    <!-- 时间选择区域 -->
+                                    <Grid Grid.Row="0" Margin="0,0,0,12">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="50" />
+                                            <ColumnDefinition Width="16" />
+                                            <ColumnDefinition Width="50" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- 小时 -->
+                                        <Border Grid.Column="0"
+                                                Background="{DynamicResource ControlBackgroundBrush}"
+                                                BorderBrush="{DynamicResource BorderBrush}"
+                                                BorderThickness="1"
+                                                CornerRadius="4">
+                                            <Grid>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="28" />
+                                                    <RowDefinition Height="40" />
+                                                    <RowDefinition Height="28" />
+                                                </Grid.RowDefinitions>
+                                                <Button x:Name="PART_HourUp"
+                                                        Grid.Row="0"
+                                                        Style="{StaticResource TimeAdjustButtonStyle}">
+                                                    <Path Data="M0,6 L6,0 L12,6"
+                                                          Stroke="{DynamicResource TextSecondaryBrush}"
+                                                          StrokeThickness="1.5"
+                                                          HorizontalAlignment="Center"
+                                                          VerticalAlignment="Center"/>
+                                                </Button>
+                                                <TextBlock x:Name="PART_HourText"
+                                                           Grid.Row="1"
+                                                           Text="{Binding SelectedHour, RelativeSource={RelativeSource TemplatedParent}, StringFormat='{}{0:D2}'}"
+                                                           Foreground="{DynamicResource TextPrimaryBrush}"
+                                                           FontSize="24"
+                                                           FontWeight="SemiBold"
+                                                           HorizontalAlignment="Center"
+                                                           VerticalAlignment="Center" />
+                                                <Button x:Name="PART_HourDown"
+                                                        Grid.Row="2"
+                                                        Style="{StaticResource TimeAdjustButtonStyle}">
+                                                    <Path Data="M0,0 L6,6 L12,0"
+                                                          Stroke="{DynamicResource TextSecondaryBrush}"
+                                                          StrokeThickness="1.5"
+                                                          HorizontalAlignment="Center"
+                                                          VerticalAlignment="Center"/>
+                                                </Button>
+                                            </Grid>
+                                        </Border>
+
+                                        <!-- 分隔符 -->
+                                        <TextBlock Grid.Column="1"
+                                                   Text=":"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                                   FontSize="24"
+                                                   FontWeight="Bold"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center" />
+
+                                        <!-- 分钟 -->
+                                        <Border Grid.Column="2"
+                                                Background="{DynamicResource ControlBackgroundBrush}"
+                                                BorderBrush="{DynamicResource BorderBrush}"
+                                                BorderThickness="1"
+                                                CornerRadius="4">
+                                            <Grid>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="28" />
+                                                    <RowDefinition Height="40" />
+                                                    <RowDefinition Height="28" />
+                                                </Grid.RowDefinitions>
+                                                <Button x:Name="PART_MinuteUp"
+                                                        Grid.Row="0"
+                                                        Style="{StaticResource TimeAdjustButtonStyle}">
+                                                    <Path Data="M0,6 L6,0 L12,6"
+                                                          Stroke="{DynamicResource TextSecondaryBrush}"
+                                                          StrokeThickness="1.5"
+                                                          HorizontalAlignment="Center"
+                                                          VerticalAlignment="Center"/>
+                                                </Button>
+                                                <TextBlock x:Name="PART_MinuteText"
+                                                           Grid.Row="1"
+                                                           Text="{Binding SelectedMinute, RelativeSource={RelativeSource TemplatedParent}, StringFormat='{}{0:D2}'}"
+                                                           Foreground="{DynamicResource TextPrimaryBrush}"
+                                                           FontSize="24"
+                                                           FontWeight="SemiBold"
+                                                           HorizontalAlignment="Center"
+                                                           VerticalAlignment="Center" />
+                                                <Button x:Name="PART_MinuteDown"
+                                                        Grid.Row="2"
+                                                        Style="{StaticResource TimeAdjustButtonStyle}">
+                                                    <Path Data="M0,0 L6,6 L12,0"
+                                                          Stroke="{DynamicResource TextSecondaryBrush}"
+                                                          StrokeThickness="1.5"
+                                                          HorizontalAlignment="Center"
+                                                          VerticalAlignment="Center"/>
+                                                </Button>
+                                            </Grid>
+                                        </Border>
+
+                                        <!-- 现在按钮 -->
+                                        <Button x:Name="PART_Now"
+                                                Grid.Column="3"
+                                                Margin="4,0,0,0"
+                                                HorizontalAlignment="Right"
+                                                Style="{StaticResource TimePrimaryButtonStyle}"
+                                                VerticalAlignment="Center">
+                                            <TextBlock Text="现在" />
+                                        </Button>
+                                    </Grid>
+
+                                    <!-- 快速选择按钮 - 网格布局 -->
+                                    <UniformGrid Grid.Row="1" Columns="4" Rows="3" Margin="0,0,0,12">
+                                        <Button x:Name="PART_Time00" Style="{StaticResource TimeQuickButtonStyle}" Content="00:00" Tag="0" />
+                                        <Button x:Name="PART_Time06" Style="{StaticResource TimeQuickButtonStyle}" Content="06:00" Tag="6" />
+                                        <Button x:Name="PART_Time08" Style="{StaticResource TimeQuickButtonStyle}" Content="08:00" Tag="8" />
+                                        <Button x:Name="PART_Time09" Style="{StaticResource TimeQuickButtonStyle}" Content="09:00" Tag="9" />
+                                        <Button x:Name="PART_Time12" Style="{StaticResource TimeQuickButtonStyle}" Content="12:00" Tag="12" />
+                                        <Button x:Name="PART_Time14" Style="{StaticResource TimeQuickButtonStyle}" Content="14:00" Tag="14" />
+                                        <Button x:Name="PART_Time18" Style="{StaticResource TimeQuickButtonStyle}" Content="18:00" Tag="18" />
+                                        <Button x:Name="PART_Time20" Style="{StaticResource TimeQuickButtonStyle}" Content="20:00" Tag="20" />
+                                        <Button x:Name="PART_Time22" Style="{StaticResource TimeQuickButtonStyle}" Content="22:00" Tag="22" />
+                                        <Button x:Name="PART_Time23" Style="{StaticResource TimeQuickButtonStyle}" Content="23:00" Tag="23" />
+                                    </UniformGrid>
+
+                                    <!-- 确定和取消按钮 -->
+                                    <Grid Grid.Row="2">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <Button x:Name="PART_Cancel"
+                                                Grid.Column="1"
+                                                Margin="0,0,8,0"
+                                                Style="{StaticResource TimeSecondaryButtonStyle}"
+                                                Content="取消" />
+                                        <Button x:Name="PART_Confirm"
+                                                Grid.Column="2"
+                                                Style="{StaticResource TimePrimaryButtonStyle}"
+                                                Content="确定" />
+                                    </Grid>
+                                </Grid>
+                            </Border>
+                        </Popup>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+</ResourceDictionary>

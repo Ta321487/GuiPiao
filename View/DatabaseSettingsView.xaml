@@ -1,0 +1,189 @@
+<UserControl x:Class="GuiPiao.View.DatabaseSettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             FontSize="{DynamicResource BaseFontSize}">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- 可滚动内容区 -->
+        <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <Grid Margin="10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <!-- 数据库基础信息 -->
+                <Border Grid.Row="0" Background="{DynamicResource PanelBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
+                    <StackPanel>
+                        <TextBlock Text="📌 数据库基础信息" FontWeight="Bold" Margin="0,0,0,10" Foreground="{DynamicResource TextPrimaryBrush}" />
+                        
+                        <!-- 当前路径 -->
+                        <Grid Margin="0,0,0,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="当前路径：" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <TextBlock Grid.Column="1" Text="{Binding DatabasePath}" VerticalAlignment="Center" Margin="0,0,10,0" Foreground="{DynamicResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis" ToolTip="{Binding DatabasePath}" />
+                            <Button Grid.Column="2" Content="📂 打开目录" Command="{Binding OpenDirectoryCommand}" Style="{StaticResource StandardButtonStyle}" Padding="10,5" Margin="0,0,10,0" />
+<Button Grid.Column="3" Content="修改存储路径" Command="{Binding ChangePathCommand}" Style="{StaticResource StandardButtonStyle}" Padding="10,5" />
+                        </Grid>
+                        
+                        <!-- 文件信息 -->
+                        <WrapPanel Margin="0,0,0,8">
+                            <TextBlock Text="文件大小：" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <TextBlock Text="{Binding FileSize}" VerticalAlignment="Center" Margin="0,0,20,0" Foreground="{DynamicResource TextSecondaryBrush}" />
+                            <TextBlock Text="创建时间：" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <TextBlock Text="{Binding CreateTime}" VerticalAlignment="Center" Margin="0,0,20,0" Foreground="{DynamicResource TextSecondaryBrush}" />
+                            <TextBlock Text="最近备份：" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <TextBlock Text="{Binding LastBackupTime}" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryBrush}" />
+                        </WrapPanel>
+                        
+                        <!-- 票务记录数 -->
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                            <TextBlock Text="票务记录总数：" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <TextBlock Text="{Binding TicketCount}" VerticalAlignment="Center" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}" />
+                            <TextBlock Text=" 条" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
+                        </StackPanel>
+                        
+                        <!-- 打开已有数据库 -->
+                        <WrapPanel>
+                            <Button Content="📂 打开已有数据库" Command="{Binding OpenExistingDatabaseCommand}" Style="{StaticResource StandardButtonStyle}" Padding="10,5" />
+                        </WrapPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- 自动备份策略配置 -->
+                <Border Grid.Row="1" Background="{DynamicResource PanelBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
+                    <StackPanel>
+                        <TextBlock Text="📌 自动备份策略配置" FontWeight="Bold" Margin="0,0,0,10" Foreground="{DynamicResource TextPrimaryBrush}" />
+                        
+                        <CheckBox Content="启用自动数据库备份" IsChecked="{Binding AutoBackupEnabled}" Margin="0,0,0,10" />
+                        
+                        <!-- 备份类型选择 -->
+                        <WrapPanel Margin="20,0,0,10" IsEnabled="{Binding AutoBackupEnabled}">
+                            <TextBlock Text="备份类型：" VerticalAlignment="Center" Margin="0,0,10,0" Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <RadioButton Content="全量备份" IsChecked="{Binding IsFullBackup}" Margin="0,0,15,0" />
+                            <RadioButton Content="增量备份" IsChecked="{Binding IsIncrementalBackup}" Margin="0,0,15,0" />
+                            <RadioButton Content="智能混合" IsChecked="{Binding IsSmartBackup}" />
+                        </WrapPanel>
+                        
+                        <!-- 全量备份设置（仅全量或智能混合模式显示） -->
+                        <WrapPanel Margin="20,0,0,10" IsEnabled="{Binding AutoBackupEnabled}" Visibility="{Binding ShowFullBackupSettings, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <TextBlock Text="全量备份频率：" VerticalAlignment="Center" Margin="0,0,10,0" Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <ComboBox MinWidth="100" SelectedValue="{Binding FullBackupFrequency}" SelectedValuePath="Tag" Margin="0,0,20,5">
+                                <ComboBoxItem Content="每周一" Tag="Weekly" />
+                                <ComboBoxItem Content="每月1号" Tag="Monthly" />
+                            </ComboBox>
+                            <TextBlock Text="保留：" VerticalAlignment="Center" Margin="0,0,10,0" Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <TextBox MinWidth="40" Text="{Binding MaxFullBackupCount}" Margin="0,0,5,5" />
+                            <TextBlock Text="个" VerticalAlignment="Center" Margin="0,0,0,5" Foreground="{DynamicResource TextPrimaryBrush}" />
+                        </WrapPanel>
+                        
+                        <!-- 增量备份设置（仅增量或智能混合模式显示） -->
+                        <WrapPanel Margin="20,0,0,10" IsEnabled="{Binding AutoBackupEnabled}" Visibility="{Binding ShowIncrementalSettings, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <TextBlock Text="增量备份频率：" VerticalAlignment="Center" Margin="0,0,10,0" Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <ComboBox MinWidth="100" SelectedValue="{Binding IncrementalBackupFrequency}" SelectedValuePath="Tag" Margin="0,0,20,5">
+                                <ComboBoxItem Content="每天" Tag="Daily" />
+                                <ComboBoxItem Content="每次退出" Tag="OnExit" />
+                            </ComboBox>
+                            <TextBlock Text="保留：" VerticalAlignment="Center" Margin="0,0,10,0" Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <TextBox MinWidth="40" Text="{Binding MaxIncrementalBackupCount}" Margin="0,0,5,5" />
+                            <TextBlock Text="个" VerticalAlignment="Center" Margin="0,0,0,5" Foreground="{DynamicResource TextPrimaryBrush}" />
+                        </WrapPanel>
+                        
+                        <!-- 传统设置（仅全量备份模式显示） -->
+                        <WrapPanel Margin="20,0,0,10" IsEnabled="{Binding AutoBackupEnabled}" Visibility="{Binding ShowTraditionalSettings, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <TextBlock Text="备份时机：" VerticalAlignment="Center" Margin="0,0,10,0" Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <ComboBox MinWidth="140" SelectedValue="{Binding BackupTiming}" SelectedValuePath="Tag" Margin="0,0,20,5">
+                                <ComboBoxItem Content="每次程序退出时" Tag="OnExit" />
+                                <ComboBoxItem Content="每天首次启动时" Tag="OnStartup" />
+                                <ComboBoxItem Content="每周一启动时" Tag="Weekly" />
+                                <ComboBoxItem Content="每月1号启动时" Tag="Monthly" />
+                            </ComboBox>
+                            <TextBlock Text="最多保留：" VerticalAlignment="Center" Margin="0,0,10,0" Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <TextBox MinWidth="50" Text="{Binding MaxBackupCount}" Margin="0,0,5,5" />
+                            <TextBlock Text="个备份" VerticalAlignment="Center" Margin="0,0,0,5" Foreground="{DynamicResource TextPrimaryBrush}" />
+                        </WrapPanel>
+                        
+                        <WrapPanel Margin="20,0,0,10" IsEnabled="{Binding AutoBackupEnabled}">
+                            <TextBlock Text="备份路径：" VerticalAlignment="Center" Margin="0,0,10,5" Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <TextBox Width="280" Text="{Binding BackupPath}" IsReadOnly="True" Margin="0,0,10,5" />
+                            <Button Content="📂 选择路径" Command="{Binding SelectBackupPathCommand}" Style="{StaticResource StandardButtonStyle}" Padding="8,4" Margin="0,0,0,5" />
+                        </WrapPanel>
+                        
+                        <WrapPanel Margin="20,0,0,0" IsEnabled="{Binding AutoBackupEnabled}">
+                            <CheckBox Content="备份后自动压缩" IsChecked="{Binding AutoCompress}" Margin="0,0,20,5" />
+                            <CheckBox Content="备份失败弹出提示" IsChecked="{Binding ShowErrorOnFail}" Margin="0,0,20,5" />
+                            <Button Content="⚡ 全量备份" Command="{Binding ImmediateBackupCommand}" Style="{StaticResource PrimaryButtonStyle}" Padding="10,5" Margin="0,0,10,5" />
+                            <Button Content="⚡ 增量备份" Command="{Binding ImmediateIncrementalBackupCommand}" Style="{StaticResource StandardButtonStyle}" Padding="10,5" Margin="0,0,0,5" />
+                        </WrapPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- 手动备份与恢复 -->
+                <Border Grid.Row="2" Background="{DynamicResource PanelBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
+                    <StackPanel>
+                        <TextBlock Text="📌 手动备份与恢复" FontWeight="Bold" Margin="0,0,0,10" Foreground="{DynamicResource TextPrimaryBrush}" />
+                        
+                        <WrapPanel Margin="0,0,0,10">
+                            <Button Content="📥 从备份文件恢复" Command="{Binding RestoreFromBackupCommand}" Style="{StaticResource StandardButtonStyle}" Padding="10,5" Margin="0,0,10,5" />
+                            <Button Content="📂 打开备份目录" Command="{Binding OpenBackupFolderCommand}" Style="{StaticResource StandardButtonStyle}" Padding="10,5" Margin="0,0,0,5" />
+                        </WrapPanel>
+                        
+                        <TextBlock Text="⚠ 恢复操作将完全覆盖当前所有数据，覆盖后无法恢复，请谨慎操作" Foreground="{DynamicResource WarningBrush}" FontSize="{DynamicResource SmallFontSize}" TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+
+                <!-- 数据库维护与优化 -->
+                <Border Grid.Row="3" Background="{DynamicResource PanelBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
+                    <StackPanel>
+                        <TextBlock Text="📌 数据库维护与优化" FontWeight="Bold" Margin="0,0,0,10" Foreground="{DynamicResource TextPrimaryBrush}" />
+                        
+                        <WrapPanel Margin="0,0,0,10">
+                            <Button Content="🔍 执行数据完整性校验" Command="{Binding VerifyIntegrityCommand}" Style="{StaticResource StandardButtonStyle}" Padding="10,5" Margin="0,0,10,5" />
+                            <Button Content="🧹 执行数据库碎片整理" Command="{Binding DefragmentCommand}" Style="{StaticResource StandardButtonStyle}" Padding="10,5" Margin="0,0,0,5" />
+                        </WrapPanel>
+                        
+                        <WrapPanel>
+                            <CheckBox Content="每次程序退出时自动执行数据完整性校验" IsChecked="{Binding AutoVerifyOnExit}" Margin="0,0,20,5" />
+                            <CheckBox Content="每月自动执行一次碎片整理" IsChecked="{Binding AutoDefragmentMonthly}" Margin="0,0,0,5" />
+                        </WrapPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- 高危操作区（不可逆） -->
+                <Border Grid.Row="4" Background="{DynamicResource PanelBackgroundBrush}" BorderBrush="{DynamicResource ErrorBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
+                    <StackPanel>
+                        <TextBlock Text="⚠ 高危操作区（操作不可逆，请谨慎操作）" FontWeight="Bold" Margin="0,0,0,10" Foreground="{DynamicResource ErrorBrush}" />
+                        
+                        <WrapPanel>
+                            <Button Content="🗑️ 清空全部票务记录" Command="{Binding ClearAllTicketsCommand}" Style="{StaticResource StandardButtonStyle}" Padding="10,5" Margin="0,0,10,5" />
+                            <Button Content="🔄 重置数据库到初始状态" Command="{Binding ResetDatabaseCommand}" Style="{StaticResource StandardButtonStyle}" Padding="10,5" Margin="0,0,10,5" />
+                            <Button Content="📋 导出表结构SQL" Command="{Binding ExportSchemaCommand}" Style="{StaticResource StandardButtonStyle}" Padding="10,5" Margin="0,0,0,5" />
+                        </WrapPanel>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </ScrollViewer>
+
+        <!-- 底部按钮 -->
+        <Border Grid.Row="1" Background="{DynamicResource ContentBackgroundBrush}" Padding="10" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="💾 保存设置" Command="{Binding SaveSettingsCommand}" 
+                        Padding="15,8" Margin="0,0,10,0" Style="{StaticResource StandardButtonStyle}" />
+                <Button Content="🔄 恢复默认" Command="{Binding RestoreDefaultsCommand}" 
+                        Padding="15,8" Style="{StaticResource StandardButtonStyle}" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

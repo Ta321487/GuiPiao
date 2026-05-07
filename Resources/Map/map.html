@@ -1,0 +1,2398 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>车票地图</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+            background: #f5f5f5;
+            overflow: hidden; /* 防止抽屉动画导致滚动条 */
+        }
+
+        #map {
+            width: 100%;
+            height: 100vh;
+        }
+        
+        /* 自定义标记样式 */
+        .station-marker {
+            background: #D32F2F;
+            border: 3px solid white;
+            border-radius: 50%;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+        
+        .station-label {
+            background: rgba(255,255,255,0.9);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: bold;
+            white-space: nowrap;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        /* 日期标注样式 */
+        .date-label {
+            background: rgba(0,0,0,0.75);
+            color: white;
+            padding: 1px 4px;
+            border-radius: 2px;
+            font-size: 9px;
+            white-space: nowrap;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+            pointer-events: none;
+            line-height: 1.2;
+        }
+        
+        /* 信息卡片样式 */
+        .trip-popup {
+            min-width: 200px;
+        }
+
+        /* 导航按钮样式 */
+        .nav-btn {
+            cursor: pointer;
+            padding: 2px 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background: white;
+            color: #333;
+        }
+
+        .nav-btn:hover {
+            background: #f0f0f0;
+        }
+        
+        .trip-popup h3 {
+            margin: 0 0 8px 0;
+            font-size: 14px;
+            color: #333;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+        }
+        
+        .trip-popup .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 4px 0;
+            font-size: 12px;
+        }
+        
+        .trip-popup .label {
+            color: #666;
+        }
+        
+        .trip-popup .value {
+            color: #333;
+            font-weight: 500;
+        }
+        
+        .trip-popup .status-completed {
+            color: #2E7D32;
+        }
+        
+        .trip-popup .status-pending {
+            color: #1976D2;
+        }
+
+        .trip-popup .status-rescheduled {
+            color: #FF9800;
+        }
+
+        .trip-popup .status-refunded {
+            color: #616161;
+        }
+
+        /* 图例 */
+        .legend {
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            line-height: 1.8;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 3px;
+            margin-right: 8px;
+        }
+
+        /* 时间轴抽屉样式 */
+        .timeline-drawer {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%) translateY(calc(100% - 36px));
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 8px 8px 0 0;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+            min-width: 320px;
+            transition: transform 0.3s ease;
+        }
+
+        .timeline-drawer.expanded {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .timeline-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 20px;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 8px 8px 0 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .timeline-toggle:hover {
+            background: #f5f5f5;
+        }
+
+        .timeline-toggle-text {
+            font-size: 13px;
+            font-weight: bold;
+            color: #333;
+            margin-right: 8px;
+        }
+
+        .timeline-toggle-icon {
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-top: 5px solid #666;
+            transition: transform 0.3s ease;
+        }
+
+        .timeline-drawer.expanded .timeline-toggle-icon {
+            transform: rotate(180deg);
+        }
+
+        .timeline-content {
+            padding: 15px 25px;
+            min-width: 300px;
+        }
+
+        .timeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .timeline-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .timeline-reset {
+            font-size: 12px;
+            color: #1976D2;
+            cursor: pointer;
+            padding: 2px 8px;
+            border-radius: 3px;
+        }
+
+        .timeline-reset:hover {
+            background: #E3F2FD;
+        }
+
+        .timeline-slider {
+            width: 100%;
+            height: 6px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: #ddd;
+            border-radius: 3px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .timeline-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            background: #1976D2;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .timeline-slider::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            background: #1976D2;
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .timeline-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .timeline-current {
+            text-align: center;
+            margin-top: 8px;
+            font-size: 13px;
+            font-weight: bold;
+            color: #1976D2;
+        }
+
+        /* 聚合标记样式 */
+        .cluster-marker {
+            background: rgba(25, 118, 210, 0.8);
+            border: 2px solid white;
+            border-radius: 50%;
+            color: white;
+            font-weight: bold;
+            text-align: center;
+            line-height: 40px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .cluster-marker:hover {
+            background: rgba(25, 118, 210, 1);
+            transform: scale(1.1);
+        }
+
+        .cluster-marker.small {
+            width: 30px;
+            height: 30px;
+            line-height: 26px;
+            font-size: 12px;
+        }
+
+        .cluster-marker.medium {
+            width: 40px;
+            height: 40px;
+            line-height: 36px;
+            font-size: 14px;
+        }
+
+        .cluster-marker.large {
+            width: 50px;
+            height: 50px;
+            line-height: 46px;
+            font-size: 16px;
+        }
+
+        /* 缺少经纬度车站警告提示 */
+        .missing-coords-warning {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 243, 224, 0.95);
+            border: 1px solid #FF9800;
+            border-radius: 8px;
+            padding: 12px 15px;
+            max-width: 300px;
+            max-height: 200px;
+            overflow-y: auto;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+            display: none;
+        }
+
+        .missing-coords-warning.visible {
+            display: block;
+        }
+
+        .missing-coords-warning .warning-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #E65100;
+        }
+
+        .missing-coords-warning .warning-icon {
+            margin-right: 6px;
+            font-size: 16px;
+        }
+
+        .missing-coords-warning .warning-title {
+            font-size: 13px;
+        }
+
+        .missing-coords-warning .warning-content {
+            font-size: 12px;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .missing-coords-warning .station-list {
+            margin-top: 6px;
+            padding-left: 16px;
+        }
+
+        .missing-coords-warning .station-list li {
+            margin: 2px 0;
+            color: #555;
+        }
+
+        .missing-coords-warning .close-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: none;
+            border: none;
+            font-size: 16px;
+            color: #999;
+            cursor: pointer;
+            padding: 0;
+            width: 20px;
+            height: 20px;
+            line-height: 20px;
+            text-align: center;
+        }
+
+        .missing-coords-warning .close-btn:hover {
+            color: #666;
+        }
+
+        /* 深色模式样式 - 统一使用 #333 背景 */
+        body.dark-mode .nav-btn {
+            background: #444;
+            color: #fff;
+            border: 1px solid #666;
+        }
+
+        body.dark-mode .nav-btn:hover {
+            background: #555;
+        }
+
+        body.dark-mode .trip-popup {
+            background: #333;
+            color: #fff;
+        }
+
+        body.dark-mode .trip-popup h3 {
+            color: #fff;
+            border-bottom: 1px solid #555;
+        }
+
+        body.dark-mode .trip-popup .label {
+            color: #aaa;
+        }
+
+        body.dark-mode .trip-popup .value {
+            color: #fff;
+        }
+
+        body.dark-mode .legend {
+            background: #333;
+            color: #fff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        }
+
+        body.dark-mode .timeline-drawer {
+            background: #333;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.5);
+        }
+
+        body.dark-mode .timeline-toggle {
+            background: #333;
+            border-bottom: 1px solid #555;
+        }
+
+        body.dark-mode .timeline-toggle:hover {
+            background: #444;
+        }
+
+        body.dark-mode .timeline-toggle-text {
+            color: #fff;
+        }
+
+        body.dark-mode .missing-coords-warning {
+            background: #333;
+            border: 1px solid #FF9800;
+        }
+
+        body.dark-mode .missing-coords-warning .warning-header {
+            color: #FFB74D;
+        }
+
+        body.dark-mode .missing-coords-warning .warning-content {
+            color: #ccc;
+        }
+
+        body.dark-mode .missing-coords-warning .station-list li {
+            color: #bbb;
+        }
+
+        body.dark-mode .missing-coords-warning .close-btn {
+            color: #999;
+        }
+
+        body.dark-mode .missing-coords-warning .close-btn:hover {
+            color: #ccc;
+        }
+
+        /* 深色模式下的标签样式 */
+        body.dark-mode .station-label {
+            background: #333;
+            color: #fff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+        }
+
+        body.dark-mode .date-label {
+            background: #ccc;
+            color: #333;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+        }
+
+        /* Leaflet Popup 深色模式样式 */
+        body.dark-mode .leaflet-popup-content-wrapper {
+            background: #333;
+            color: #fff;
+        }
+
+        body.dark-mode .leaflet-popup-tip {
+            background: #333;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+
+    <!-- 缺少经纬度车站警告提示 -->
+    <div class="missing-coords-warning" id="missingCoordsWarning">
+        <button class="close-btn" onclick="hideMissingCoordsWarning()">×</button>
+        <div class="warning-header">
+            <span class="warning-icon">⚠️</span>
+            <span class="warning-title">部分车站无法显示</span>
+        </div>
+        <div class="warning-content">
+            <div>以下车站缺少经纬度信息，无法在地图上显示：</div>
+            <ul class="station-list" id="missingStationsList"></ul>
+        </div>
+    </div>
+
+    <!-- 时间轴抽屉 -->
+    <div class="timeline-drawer" id="timelineContainer" style="display: none;">
+        <div class="timeline-toggle" onclick="toggleTimelineDrawer()">
+            <span class="timeline-toggle-text">按年份筛选</span>
+            <span class="timeline-toggle-icon"></span>
+        </div>
+        <div class="timeline-content">
+            <div class="timeline-header">
+                <span class="timeline-title">选择年份</span>
+                <span class="timeline-reset" onclick="resetTimeline()">显示全部</span>
+            </div>
+            <input type="range" class="timeline-slider" id="timelineSlider" min="0" max="0" value="0" step="1">
+            <div class="timeline-labels" id="timelineLabels"></div>
+            <div class="timeline-current" id="timelineCurrent">全部年份</div>
+        </div>
+    </div>
+    
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    
+    <script>
+        // 全局变量
+        let map;
+        let tileLayer;
+        let tripLayers = [];
+        let stationMarkers = [];
+        let currentTickets = [];
+
+        // 时间轴相关变量
+        let timelineYears = [];
+        let currentYearFilter = null;
+
+        // 聚合相关变量
+        let clusterMarkers = [];
+        let clusterEnabled = true;
+        let clusterZoomThreshold = 6; // 缩放级别低于此值时启用聚合
+
+        // 当前popup状态
+        let currentPopupTicket = null;
+        let currentPopup = null;
+
+        // 双击检测相关变量
+        let clickTimer = null;
+        let isDoubleClick = false;
+        const DOUBLE_CLICK_DELAY = 250; // 毫秒，双击检测延迟
+
+        // 当前主题设置
+        let currentTheme = {
+            isDarkMode: false,
+            fontSize: 14,
+            colors: {
+                completed: '#2E7D32',
+                pending: '#1976D2',
+                rescheduled: '#FF9800',
+                refunded: '#616161',
+                selected: '#FF5722',
+                station: '#D32F2F'
+            },
+            lineWidth: {
+                completed: 3,
+                pending: 4,
+                rescheduled: 3,
+                refunded: 3,
+                selected: 6
+            },
+            markerSize: 12,
+            showStationLabels: true,
+            showDateLabels: true,
+            highlightSelectedTrip: true,
+            showHoverCard: true
+        };
+
+        // 地图交互设置
+        let mapInteractions = {
+            enableMouseWheelZoom: true,
+            enableLeftDragPan: true,
+            enableRightClickReset: true,
+            zoomSensitivity: 120,
+            enablePanInertia: true,
+            doubleClickTripAction: 'OpenTicketEdit',
+            doubleClickStationAction: 'ShowStationTickets',
+            doubleClickBlankAction: 'ZoomInMap'
+        };
+        
+
+        
+        // 地图源配置
+        const tileSources = {
+            osm: {
+                url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                attribution: '&copy; OpenStreetMap contributors'
+            },
+            dark: {
+                url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+            },
+            amap: {
+                url: 'https://webrd01.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}',
+                attribution: '&copy; 高德地图'
+            },
+            satellite: {
+                url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+                attribution: '&copy; Esri'
+            }
+        };
+        
+        // 初始化地图
+        function initMap() {
+            // 创建地图，以中国为中心，适当缩放级别显示中国主要区域
+            // 根据交互设置初始化地图选项
+            const mapOptions = {
+                scrollWheelZoom: mapInteractions.enableMouseWheelZoom,
+                dragging: mapInteractions.enableLeftDragPan,
+                inertia: mapInteractions.enablePanInertia,
+                doubleClickZoom: false,  // 禁用默认双击缩放，由我们自己处理
+                maxZoom: 16,  // 限制最大缩放级别，刚好能看清一个火车站
+                minZoom: 4,   // 限制最小缩放级别
+                maxBounds: [[10, 60], [60, 145]],  // 限制地图显示范围在中国及周边
+                maxBoundsViscosity: 1.0
+            };
+
+            map = L.map('map', mapOptions).setView([35.0, 105.0], 5);
+
+            // 应用滚轮缩放灵敏度
+            if (mapInteractions.enableMouseWheelZoom) {
+                map.options.wheelPxPerZoomLevel = 60 * (100 / mapInteractions.zoomSensitivity);
+            }
+
+            // 添加默认底图
+            setMapSource('osm');
+
+            // 添加图例
+            addLegend();
+
+            // 添加地图空白处点击事件（取消选中）
+            map.on('click', function(e) {
+                // 发送取消选中消息
+                if (window.chrome?.webview) {
+                    window.chrome.webview.postMessage(JSON.stringify({
+                        type: 'clearSelection'
+                    }));
+                }
+            });
+
+            // 添加地图空白处双击事件
+            map.on('dblclick', function(e) {
+                // 检查是否点击在行程或车站上
+                // Leaflet 的事件冒泡机制会自动处理，如果点击在行程或车站上，
+                // 会触发对应元素的双击事件，不会执行到这里
+                handleBlankDoubleClick(e);
+            });
+
+            // 添加右键点击事件（重置视角）
+            map.on('contextmenu', function(e) {
+                if (mapInteractions.enableRightClickReset) {
+                    resetMapView();
+                }
+            });
+
+            // 通知WPF地图已就绪
+            if (window.chrome?.webview) {
+                window.chrome.webview.postMessage(JSON.stringify({
+                    type: 'mapReady'
+                }));
+            }
+        }
+
+        // 重置地图视角
+        function resetMapView() {
+            if (tripLayers.length > 0) {
+                fitAllTrips();
+            } else {
+                map.setView([35.0, 105.0], 5);
+            }
+            StatusMessage = '视角已重置';
+        }
+        
+        // 切换地图源
+        function setMapSource(sourceKey) {
+            const source = tileSources[sourceKey];
+            if (!source) return;
+            
+            // 移除现有底图
+            if (tileLayer) {
+                map.removeLayer(tileLayer);
+            }
+            
+            // 根据不同地图源设置不同选项
+            const tileOptions = {
+                attribution: source.attribution,
+                maxZoom: 18
+            };
+            
+            // 高德地图不需要子域
+            if (sourceKey !== 'amap') {
+                tileOptions.subdomains = 'abc';
+            }
+            
+            // 添加新底图
+            tileLayer = L.tileLayer(source.url, tileOptions).addTo(map);
+            
+            // 强制刷新地图
+            map.invalidateSize();
+        }
+        
+        // 设置主题
+        function setTheme(themeSettings) {
+            currentTheme.isDarkMode = themeSettings.isDarkMode || false;
+            currentTheme.fontSize = themeSettings.fontSize || 14;
+
+            // 应用主题到地图容器背景
+            const mapContainer = document.getElementById('map');
+            if (currentTheme.isDarkMode) {
+                mapContainer.style.backgroundColor = '#1e1e1e';
+                document.body.classList.add('dark-mode');
+            } else {
+                mapContainer.style.backgroundColor = '#f5f5f5';
+                document.body.classList.remove('dark-mode');
+            }
+
+            // 更新图例样式（只更新背景和文字颜色，不更新线条/站点颜色）
+            updateLegend();
+        }
+
+        // 设置地图交互
+        function setMapInteractions(interactionSettings) {
+            // 更新交互设置
+            if (interactionSettings.enableMouseWheelZoom !== undefined) {
+                mapInteractions.enableMouseWheelZoom = interactionSettings.enableMouseWheelZoom;
+                if (mapInteractions.enableMouseWheelZoom) {
+                    map.scrollWheelZoom.enable();
+                    map.options.wheelPxPerZoomLevel = 60 * (100 / mapInteractions.zoomSensitivity);
+                } else {
+                    map.scrollWheelZoom.disable();
+                }
+            }
+
+            if (interactionSettings.enableLeftDragPan !== undefined) {
+                mapInteractions.enableLeftDragPan = interactionSettings.enableLeftDragPan;
+                if (mapInteractions.enableLeftDragPan) {
+                    map.dragging.enable();
+                } else {
+                    map.dragging.disable();
+                }
+            }
+
+            if (interactionSettings.enableRightClickReset !== undefined) {
+                mapInteractions.enableRightClickReset = interactionSettings.enableRightClickReset;
+            }
+
+            if (interactionSettings.zoomSensitivity !== undefined) {
+                mapInteractions.zoomSensitivity = interactionSettings.zoomSensitivity;
+                if (mapInteractions.enableMouseWheelZoom) {
+                    map.options.wheelPxPerZoomLevel = 60 * (100 / mapInteractions.zoomSensitivity);
+                }
+            }
+
+            if (interactionSettings.enablePanInertia !== undefined) {
+                mapInteractions.enablePanInertia = interactionSettings.enablePanInertia;
+                map.options.inertia = mapInteractions.enablePanInertia;
+            }
+
+            if (interactionSettings.doubleClickTripAction !== undefined) {
+                mapInteractions.doubleClickTripAction = interactionSettings.doubleClickTripAction;
+            }
+
+            if (interactionSettings.doubleClickStationAction !== undefined) {
+                mapInteractions.doubleClickStationAction = interactionSettings.doubleClickStationAction;
+            }
+
+            if (interactionSettings.doubleClickBlankAction !== undefined) {
+                mapInteractions.doubleClickBlankAction = interactionSettings.doubleClickBlankAction;
+            }
+        }
+
+        // 设置地图样式（颜色、线宽、标记大小等）
+        function setMapStyles(styleSettings) {
+            // 更新颜色设置
+            if (styleSettings.colors) {
+                currentTheme.colors.completed = styleSettings.colors.completed || currentTheme.colors.completed;
+                currentTheme.colors.pending = styleSettings.colors.pending || currentTheme.colors.pending;
+                currentTheme.colors.rescheduled = styleSettings.colors.rescheduled || currentTheme.colors.rescheduled;
+                currentTheme.colors.refunded = styleSettings.colors.refunded || currentTheme.colors.refunded;
+                currentTheme.colors.selected = styleSettings.colors.selected || currentTheme.colors.selected;
+                currentTheme.colors.station = styleSettings.colors.station || currentTheme.colors.station;
+            }
+
+            // 更新线宽设置
+            if (styleSettings.lineWidth) {
+                currentTheme.lineWidth.completed = styleSettings.lineWidth.completed || currentTheme.lineWidth.completed;
+                currentTheme.lineWidth.pending = styleSettings.lineWidth.pending || currentTheme.lineWidth.pending;
+                currentTheme.lineWidth.rescheduled = styleSettings.lineWidth.rescheduled || currentTheme.lineWidth.rescheduled;
+                currentTheme.lineWidth.refunded = styleSettings.lineWidth.refunded || currentTheme.lineWidth.refunded;
+                currentTheme.lineWidth.selected = styleSettings.lineWidth.selected || currentTheme.lineWidth.selected;
+            }
+
+            // 更新标记大小
+            if (styleSettings.markerSize) {
+                currentTheme.markerSize = styleSettings.markerSize;
+            }
+
+            // 更新显示选项
+            if (styleSettings.showStationLabels !== undefined) {
+                currentTheme.showStationLabels = styleSettings.showStationLabels;
+            }
+            if (styleSettings.showDateLabels !== undefined) {
+                currentTheme.showDateLabels = styleSettings.showDateLabels;
+            }
+            if (styleSettings.highlightSelectedTrip !== undefined) {
+                currentTheme.highlightSelectedTrip = styleSettings.highlightSelectedTrip;
+            }
+            if (styleSettings.showHoverCard !== undefined) {
+                currentTheme.showHoverCard = styleSettings.showHoverCard;
+            }
+
+            // 更新现有行程的样式
+            updateTripStyles();
+
+            // 更新车站标记样式
+            updateStationMarkerStyles();
+
+            // 更新日期标注显示
+            updateDateLabels();
+
+            // 更新悬停卡片显示
+            updateHoverCards();
+
+            // 更新图例
+            updateLegend();
+        }
+
+        // 更新所有行程的样式
+        function updateTripStyles() {
+            tripLayers.forEach(item => {
+                const color = getTripColor(item.ticket.status);
+                const weight = getTripWeight(item.ticket.status);
+                item.layer.setStyle({
+                    color: color,
+                    weight: weight,
+                    opacity: 0.8
+                });
+            });
+        }
+
+        // 更新日期标注显示
+        function updateDateLabels() {
+            tripLayers.forEach(item => {
+                if (item.dateLabelMarker) {
+                    // 已有标注，控制显示/隐藏
+                    if (currentTheme.showDateLabels) {
+                        item.dateLabelMarker.addTo(map);
+                    } else {
+                        map.removeLayer(item.dateLabelMarker);
+                    }
+                } else if (currentTheme.showDateLabels) {
+                    // 没有标注且需要显示，创建新标注
+                    const latlngs = [
+                        [item.ticket.departLat, item.ticket.departLng],
+                        [item.ticket.arriveLat, item.ticket.arriveLng]
+                    ];
+                    addDateLabel(item.ticket, latlngs);
+                }
+            });
+        }
+
+        // 更新悬停卡片显示
+        function updateHoverCards() {
+            tripLayers.forEach(item => {
+                // 先移除之前的事件监听
+                item.layer.off('mouseover');
+                item.layer.off('mouseout');
+
+                if (currentTheme.showHoverCard) {
+                    const popupContent = createPopupContent(item.ticket);
+                    item.layer.bindPopup(popupContent, {
+                        closeButton: false,
+                        offset: [0, -5]
+                    });
+                    // 添加鼠标悬停事件
+                    item.layer.on('mouseover', function(e) {
+                        this.openPopup();
+                    });
+                    item.layer.on('mouseout', function(e) {
+                        this.closePopup();
+                    });
+                } else {
+                    item.layer.unbindPopup();
+                }
+            });
+        }
+
+        // 更新车站标记样式
+        function updateStationMarkerStyles() {
+            stationMarkers.forEach(item => {
+                // 更新标记大小和颜色
+                const markerElement = item.marker.getElement();
+                if (markerElement) {
+                    const markerDiv = markerElement.querySelector('.station-marker');
+                    if (markerDiv) {
+                        markerDiv.style.width = currentTheme.markerSize + 'px';
+                        markerDiv.style.height = currentTheme.markerSize + 'px';
+                        markerDiv.style.background = currentTheme.colors.station;
+                    }
+                }
+
+                // 更新标签显示状态
+                if (currentTheme.showStationLabels) {
+                    item.labelMarker.addTo(map);
+                } else {
+                    map.removeLayer(item.labelMarker);
+                }
+            });
+        }
+        
+        // 更新图例
+        function updateLegend() {
+            // 移除旧图例
+            document.querySelectorAll('.legend').forEach(el => el.remove());
+            // 添加新图例
+            addLegend();
+        }
+        
+        // 添加图例
+        function addLegend() {
+            const legend = L.control({position: 'bottomright'});
+            
+            legend.onAdd = function(map) {
+                const div = L.DomUtil.create('div', 'legend');
+                
+                // 根据主题设置背景色和文字颜色
+                if (currentTheme.isDarkMode) {
+                    div.style.backgroundColor = 'rgba(30,30,30,0.9)';
+                    div.style.color = '#ffffff';
+                } else {
+                    div.style.backgroundColor = 'rgba(255,255,255,0.9)';
+                    div.style.color = '#333333';
+                }
+                
+                // 根据字体大小调整
+                const fontSize = Math.max(10, currentTheme.fontSize - 2);
+                div.style.fontSize = fontSize + 'px';
+                
+                div.innerHTML = `
+                    <div style="font-weight:bold;margin-bottom:5px;">图例</div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background:${currentTheme.colors.completed}"></div>
+                        <span>已完成行程</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background:${currentTheme.colors.pending}"></div>
+                        <span>未出行行程</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background:${currentTheme.colors.rescheduled}"></div>
+                        <span>已改签行程</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background:${currentTheme.colors.refunded}"></div>
+                        <span>已退票行程</span>
+                    </div>
+                    <div class="legend-item">
+                        <div style="width:10px;height:10px;background:${currentTheme.colors.station};border-radius:50%;margin-right:8px;margin-left:5px;"></div>
+                        <span>车站</span>
+                    </div>
+                `;
+                return div;
+            };
+            
+            legend.addTo(map);
+        }
+        
+        // 接收WPF发送的数据
+        window.receiveData = function(data) {
+            try {
+                if (typeof data === 'string') {
+                    data = JSON.parse(data);
+                }
+
+                switch(data.type) {
+                    case 'loadTickets':
+                        loadTickets(data.tickets);
+                        // 显示缺少经纬度的车站警告
+                        if (data.missingStations && data.missingStations.length > 0) {
+                            showMissingCoordsWarning(data.missingStations);
+                        } else {
+                            hideMissingCoordsWarning();
+                        }
+                        break;
+                    case 'highlightTrips':
+                        highlightTrips(data.tripIds);
+                        break;
+                }
+            } catch(e) {
+                console.error('处理数据失败:', e);
+                sendError(e.message);
+            }
+        };
+
+        // 显示缺少经纬度车站警告
+        function showMissingCoordsWarning(stations) {
+            const warningEl = document.getElementById('missingCoordsWarning');
+            const listEl = document.getElementById('missingStationsList');
+
+            if (!warningEl || !listEl || !stations || stations.length === 0) return;
+
+            // 清空列表
+            listEl.innerHTML = '';
+
+            // 添加车站列表（最多显示10个）
+            const displayStations = stations.slice(0, 10);
+            displayStations.forEach(station => {
+                const li = document.createElement('li');
+                li.textContent = station;
+                listEl.appendChild(li);
+            });
+
+            // 如果还有更多，显示省略号
+            if (stations.length > 10) {
+                const li = document.createElement('li');
+                li.textContent = `... 等共 ${stations.length} 个车站`;
+                li.style.fontStyle = 'italic';
+                li.style.color = '#999';
+                listEl.appendChild(li);
+            }
+
+            // 显示警告
+            warningEl.classList.add('visible');
+        }
+
+        // 隐藏缺少经纬度车站警告
+        function hideMissingCoordsWarning() {
+            const warningEl = document.getElementById('missingCoordsWarning');
+            if (warningEl) {
+                warningEl.classList.remove('visible');
+            }
+        }
+        
+        // 记录同一路径上的行程
+        let routeTripCounts = new Map();
+
+        // 加载车票数据
+        function loadTickets(tickets) {
+            console.log('[Map] 加载车票数据:', tickets.length, '条');
+            if (tickets.length > 0) {
+                console.log('[Map] 第一条数据样例:', tickets[0]);
+            }
+            
+            // 打印前20条车票的详细信息
+            console.log('[Map] 前20条车票的坐标详情:');
+            for (let i = 0; i < Math.min(20, tickets.length); i++) {
+                const ticket = tickets[i];
+                console.log(`  ${i+1}. ${ticket.trainNo}: ${ticket.departStation}(${ticket.departLat},${ticket.departLng}) -> ${ticket.arriveStation}(${ticket.arriveLat},${ticket.arriveLng})`);
+                
+                // 检查是否在日本或太平洋区域（东经130°-180°或西经）
+                if (ticket.departLng > 130 || ticket.departLng < 70 || ticket.arriveLng > 130 || ticket.arriveLng < 70) {
+                    console.warn(`  ⚠️ 可能异常: ${ticket.trainNo} 不在中国经度范围内!`);
+                }
+                if (ticket.departLat > 55 || ticket.departLat < 15 || ticket.arriveLat > 55 || ticket.arriveLat < 15) {
+                    console.warn(`  ⚠️ 可能异常: ${ticket.trainNo} 不在中国纬度范围内!`);
+                }
+            }
+
+            // 清除现有图层
+            clearLayers();
+
+            // 清除已使用的标注位置
+            clearUsedLabelPositions();
+
+            // 清除路径计数
+            routeTripCounts.clear();
+
+            // 重置时间轴筛选
+            currentYearFilter = null;
+
+            currentTickets = tickets;
+
+            // 初始化时间轴
+            initTimeline(tickets);
+            const stationMap = new Map();
+
+            // 收集所有车站，并把相同线路的车票分组
+            const routeGroups = new Map(); // key: 线路key, value: 车票数组
+            
+            tickets.forEach(ticket => {
+                if (!stationMap.has(ticket.departStation)) {
+                    stationMap.set(ticket.departStation, {
+                        name: ticket.departStation,
+                        lat: ticket.departLat,
+                        lng: ticket.departLng
+                    });
+                }
+                if (!stationMap.has(ticket.arriveStation)) {
+                    stationMap.set(ticket.arriveStation, {
+                        name: ticket.arriveStation,
+                        lat: ticket.arriveLat,
+                        lng: ticket.arriveLng
+                    });
+                }
+
+                // 分组相同线路（出发站-到达站-车次号）
+                const routeKey = `${ticket.departStation}-${ticket.arriveStation}-${ticket.trainNo}`;
+                if (!routeGroups.has(routeKey)) {
+                    routeGroups.set(routeKey, []);
+                }
+                routeGroups.get(routeKey).push(ticket);
+            });
+
+            // 给每个车票添加分组信息
+            tickets.forEach(ticket => {
+                const routeKey = `${ticket.departStation}-${ticket.arriveStation}-${ticket.trainNo}`;
+                const group = routeGroups.get(routeKey);
+                const index = group.indexOf(ticket);
+                ticket.routeGroup = group; // 整个分组
+                ticket.routeIndex = index; // 在分组中的索引
+                ticket.routeTotal = group.length; // 分组总数
+            });
+
+            // 绘制行程线路
+            tickets.forEach(ticket => {
+                drawTrip(ticket);
+            });
+
+            // 添加车站标记
+            stationMap.forEach(station => {
+                addStationMarker(station);
+            });
+
+            // 调整视野以显示所有行程
+            if (tickets.length > 0) {
+                fitAllTrips();
+            }
+
+            // 应用聚合（数据量大时自动聚合）
+            setTimeout(() => {
+                updateClusters();
+            }, 100);
+        }
+        
+        // 计算贝塞尔曲线点（简化安全版）
+        function calculateBezierPoints(start, end, index, total) {
+            // 检查起点和终点是否相同
+            if (start[0] === end[0] && start[1] === end[1]) {
+                return [start, end];
+            }
+
+            // 如果只有一条线路，直接返回直线
+            if (total <= 1) {
+                return [start, end];
+            }
+
+            // 计算中点（直接用原始坐标，不调整经度）
+            const midLat = (start[0] + end[0]) / 2;
+            const midLng = (start[1] + end[1]) / 2;
+
+            // 计算垂直方向（用于弯曲）
+            const dx = end[1] - start[1];
+            const dy = end[0] - start[0];
+            const length = Math.sqrt(dx * dx + dy * dy);
+
+            // 检查长度是否为0
+            if (length === 0) {
+                return [start, end];
+            }
+
+            // 垂直单位向量
+            const perpX = -dy / length;
+            const perpY = dx / length;
+
+            // 计算弯曲偏移量
+            const curveAmount = 0.05;
+            let offsetMultiplier;
+
+            if (total % 2 === 0) {
+                offsetMultiplier = (index < total / 2) ?
+                    -(total / 2 - index) + 0.5 :
+                    (index - total / 2) + 0.5;
+            } else {
+                const middleIndex = Math.floor(total / 2);
+                if (index === middleIndex) {
+                    offsetMultiplier = 0;
+                } else if (index < middleIndex) {
+                    offsetMultiplier = -(middleIndex - index);
+                } else {
+                    offsetMultiplier = index - middleIndex;
+                }
+            }
+
+            const controlLat = midLat + perpY * curveAmount * offsetMultiplier;
+            const controlLng = midLng + perpX * curveAmount * offsetMultiplier;
+
+            // 生成贝塞尔曲线点
+            const points = [];
+            const segments = 20;
+            for (let i = 0; i <= segments; i++) {
+                const t = i / segments;
+                const lat = (1 - t) * (1 - t) * start[0] + 2 * (1 - t) * t * controlLat + t * t * end[0];
+                const lng = (1 - t) * (1 - t) * start[1] + 2 * (1 - t) * t * controlLng + t * t * end[1];
+                points.push([lat, lng]);
+            }
+
+            return points;
+        }
+
+        // 绘制单个行程
+        function drawTrip(ticket) {
+            const color = getTripColor(ticket.status);
+            const weight = getTripWeight(ticket.status);
+
+            // 起点和终点
+            const start = [ticket.departLat, ticket.departLng];
+            const end = [ticket.arriveLat, ticket.arriveLng];
+
+            // 调试：打印所有车票的坐标
+            console.log(`[Map] 绘制: ${ticket.trainNo} ${ticket.departStation}(${start}) -> ${ticket.arriveStation}(${end})`);
+
+            // 调试：检查坐标是否合理
+            if (Math.abs(start[0]) > 90 || Math.abs(start[1]) > 180 || Math.abs(end[0]) > 90 || Math.abs(end[1]) > 180) {
+                console.warn('[Map] ⚠️ 异常坐标:', ticket.trainNo, '起点:', start, '终点:', end);
+            }
+            // 检查是否为0或NaN
+            if (start[0] === 0 || start[1] === 0 || end[0] === 0 || end[1] === 0 ||
+                isNaN(start[0]) || isNaN(start[1]) || isNaN(end[0]) || isNaN(end[1])) {
+                console.warn('[Map] ⚠️ 无效坐标:', ticket.trainNo, '起点:', start, '终点:', end, '原始数据:', ticket);
+            }
+            // 特别检查经度是否过大（东经140度以上可能有问题）
+            if (start[1] > 140 || end[1] > 140 || start[1] < 60 || end[1] < 60) {
+                console.warn('[Map] ⚠️ 经度异常:', ticket.trainNo, '起点:', start, '终点:', end);
+            }
+
+            // 计算路径 - 暂时禁用偏移，确保坐标准确
+            // const routeIndex = ticket.routeIndex || 0;
+            // const routeTotal = ticket.routeTotal || 1;
+            
+            // 直接画直线，确保坐标准确
+            const latlngs = [start, end];
+            
+            // 调试：打印贝塞尔曲线的第一个和最后一个点
+            if (latlngs.length > 0) {
+                const first = latlngs[0];
+                const last = latlngs[latlngs.length - 1];
+                console.log(`[Map] 曲线: ${ticket.trainNo} 起点:${first} 终点:${last} 点数:${latlngs.length}`);
+                
+                // 特别检查：如果曲线点的经度异常
+                if (Math.abs(first[1]) > 150 || Math.abs(last[1]) > 150 || first[1] < 60 || last[1] < 60) {
+                    console.warn('[Map] ⚠️ 曲线点异常!', latlngs);
+                }
+            }
+
+            const polyline = L.polyline(latlngs, {
+                color: color,
+                weight: weight,
+                opacity: 0.8,
+                smoothFactor: 1,
+                noWrap: true
+            }).addTo(map);
+
+            // 添加鼠标悬停事件 - 只高亮，不显示卡片
+            polyline.on('mouseover', function(e) {
+                this.setStyle({ weight: weight * 2, opacity: 1 });
+            });
+            
+            polyline.on('mouseout', function(e) {
+                this.setStyle({ weight: weight, opacity: 0.8 });
+            });
+
+            // 根据设置决定是否悬停显示卡片
+            if (currentTheme.showHoverCard) {
+                // 悬停显示卡片
+                const popup = L.popup({
+                    closeButton: false,
+                    offset: [0, -5],
+                    keepInView: false,
+                    autoPan: false
+                });
+                
+                polyline.bindPopup(popup);
+                
+                polyline.on('mouseover', function(e) {
+                    currentPopupTicket = ticket;
+                    currentPopup = popup;
+                    popup.setContent(createPopupContent(ticket));
+                    popup.setLatLng(e.latlng);
+                    this.openPopup();
+                });
+                
+                polyline.on('mousemove', function(e) {
+                    popup.setLatLng(e.latlng);
+                });
+                
+                polyline.on('mouseout', function(e) {
+                    this.closePopup();
+                });
+            }
+            
+            // 点击事件 - 在用户点击位置显示卡片并高亮线路
+            polyline.on('click', function(e) {
+                L.DomEvent.stopPropagation(e);
+
+                // 如果正在等待双击检测，忽略此次单击
+                if (clickTimer) {
+                    clearTimeout(clickTimer);
+                    clickTimer = null;
+                    return;
+                }
+
+                // 设置双击检测定时器
+                clickTimer = setTimeout(() => {
+                    clickTimer = null;
+                    // 执行单击逻辑
+                    executeTripClick(e, ticket, start, end);
+                }, DOUBLE_CLICK_DELAY);
+            });
+
+            // 添加双击事件
+            polyline.on('dblclick', function(e) {
+                L.DomEvent.stopPropagation(e);
+
+                // 清除单击定时器，防止单击逻辑执行
+                if (clickTimer) {
+                    clearTimeout(clickTimer);
+                    clickTimer = null;
+                }
+
+                // 双击时先高亮行程但不重置视野(isFromDoubleClick=true)
+                highlightTrips([ticket.id], true, true);
+                handleTripDoubleClick(ticket);
+            });
+
+            // 执行行程单击逻辑的函数
+            function executeTripClick(e, ticket, start, end) {
+                sendTripClick(ticket.id);
+
+                // 高亮显示选中的行程（保持持久高亮）
+                highlightTrips([ticket.id]);
+
+                // 关闭之前的卡片
+                if (currentPopup) {
+                    map.closePopup();
+                }
+
+                // 创建并打开新卡片（显示在用户点击位置）
+                currentPopupTicket = ticket;
+
+                // 获取点击位置（如果点击位置不在可视区域，则使用线路中点）
+                const clickLatLng = e.latlng;
+                const bounds = map.getBounds();
+                let popupLatLng;
+
+                if (bounds.contains(clickLatLng)) {
+                    // 点击位置在可视区域内，使用点击位置
+                    popupLatLng = clickLatLng;
+                } else {
+                    // 点击位置不在可视区域，使用线路中点
+                    const midLat = (start[0] + end[0]) / 2;
+                    const midLng = (start[1] + end[1]) / 2;
+                    popupLatLng = L.latLng(midLat, midLng);
+                }
+
+                const popup = L.popup({
+                    closeButton: true,  // 启用关闭按钮
+                    offset: [0, -10],
+                    keepInView: true,   // 确保卡片在可视区域内
+                    autoPan: true,      // 自动平移以确保卡片可见
+                    autoPanPadding: [50, 50]  // 自动平移时的边距
+                });
+
+                popup.setContent(createPopupContent(ticket));
+                popup.setLatLng(popupLatLng);
+                popup.openOn(map);
+                currentPopup = popup;
+            }
+
+            // 存储图层引用
+            const tripLayer = {
+                id: ticket.id,
+                layer: polyline,
+                ticket: ticket
+            };
+            tripLayers.push(tripLayer);
+
+            // 添加日期标注（如果开启）
+            if (currentTheme.showDateLabels) {
+                addDateLabel(ticket, latlngs);
+            }
+        }
+
+        // 存储已使用的标注位置，用于碰撞检测
+        let usedLabelPositions = [];
+
+        // 添加日期标注
+        function addDateLabel(ticket, latlngs) {
+            const start = latlngs[0];
+            const end = latlngs[1];
+
+            // 计算线路方向向量
+            const dx = end[1] - start[1];
+            const dy = end[0] - start[0];
+            const length = Math.sqrt(dx * dx + dy * dy);
+
+            // 计算垂直于线路的偏移方向（单位向量）
+            const perpX = -dy / length;
+            const perpY = dx / length;
+
+            // 根据线路长度决定偏移距离
+            const offsetDistance = 0.008; // 约 800 米
+
+            // 尝试多个位置点，找到不重叠的位置
+            let bestPosition = null;
+            let minOverlap = Infinity;
+
+            // 尝试的位置：30%、40%、50%、60%、70% 处
+            const tryPositions = [0.3, 0.4, 0.5, 0.6, 0.7];
+
+            for (const ratio of tryPositions) {
+                // 在线路上的基础位置
+                const baseLat = start[0] + dy * ratio;
+                const baseLng = start[1] + dx * ratio;
+
+                // 尝试正负两个方向的偏移
+                for (const sign of [1, -1]) {
+                    const offsetLat = baseLat + perpY * offsetDistance * sign;
+                    const offsetLng = baseLng + perpX * offsetDistance * sign;
+
+                    // 计算与已使用位置的重叠程度
+                    let overlap = 0;
+                    for (const pos of usedLabelPositions) {
+                        const dist = Math.sqrt(
+                            Math.pow(offsetLat - pos.lat, 2) +
+                            Math.pow(offsetLng - pos.lng, 2)
+                        );
+                        if (dist < 0.015) { // 如果距离小于约 1.5 公里
+                            overlap += (0.015 - dist);
+                        }
+                    }
+
+                    if (overlap < minOverlap) {
+                        minOverlap = overlap;
+                        bestPosition = {
+                            lat: offsetLat,
+                            lng: offsetLng,
+                            baseLat: baseLat,
+                            baseLng: baseLng,
+                            offsetSign: sign
+                        };
+                    }
+
+                    // 如果找到完全没有重叠的位置，直接使用
+                    if (overlap === 0) break;
+                }
+
+                if (minOverlap === 0) break;
+            }
+
+            if (!bestPosition) return;
+
+            // 记录使用的位置
+            usedLabelPositions.push({
+                lat: bestPosition.lat,
+                lng: bestPosition.lng
+            });
+
+            // 创建日期标注
+            const dateLabelIcon = L.divIcon({
+                className: 'date-label-container',
+                html: `<div class="date-label">${ticket.departDate}</div>`,
+                iconSize: [60, 14],
+                iconAnchor: [30, 7]
+            });
+
+            const dateLabelMarker = L.marker(
+                [bestPosition.lat, bestPosition.lng],
+                {icon: dateLabelIcon, interactive: false}
+            ).addTo(map);
+
+            // 将日期标注存储到对应的行程图层中
+            const tripLayer = tripLayers.find(t => t.id === ticket.id);
+            if (tripLayer) {
+                tripLayer.dateLabelMarker = dateLabelMarker;
+            }
+        }
+
+        // 清除已使用的标注位置
+        function clearUsedLabelPositions() {
+            usedLabelPositions = [];
+        }
+        
+        // 添加车站标记
+        function addStationMarker(station) {
+            const size = currentTheme.markerSize || 12;
+            const halfSize = size / 2;
+
+            // 创建自定义图标
+            const icon = L.divIcon({
+                className: 'station-marker-container',
+                html: `<div class="station-marker" style="width:${size}px;height:${size}px;background:${currentTheme.colors.station};border:2px solid white;border-radius:50%;box-shadow:0 2px 5px rgba(0,0,0,0.3);"></div>`,
+                iconSize: [size, size],
+                iconAnchor: [halfSize, halfSize]
+            });
+
+            const marker = L.marker([station.lat, station.lng], {icon: icon}).addTo(map);
+
+            // 添加标签
+            const labelIcon = L.divIcon({
+                className: 'station-label-container',
+                html: `<div class="station-label">${station.name}</div>`,
+                iconSize: [80, 20],
+                iconAnchor: [40, -10]
+            });
+
+            const labelMarker = L.marker([station.lat, station.lng], {icon: labelIcon, interactive: false});
+
+            // 根据设置决定是否显示标签
+            if (currentTheme.showStationLabels) {
+                labelMarker.addTo(map);
+            }
+
+            // 点击事件
+            marker.on('click', function(e) {
+                L.DomEvent.stopPropagation(e);
+                sendStationClick(station.name);
+            });
+
+            // 双击事件
+            marker.on('dblclick', function(e) {
+                L.DomEvent.stopPropagation(e);
+                handleStationDoubleClick(station.name);
+            });
+
+            stationMarkers.push({
+                name: station.name,
+                lat: station.lat,
+                lng: station.lng,
+                marker: marker,
+                labelMarker: labelMarker
+            });
+        }
+        
+        // 切换到上一张车票
+        function switchToPrevTicket() {
+            if (!currentPopupTicket || !currentPopupTicket.routeGroup) return;
+            const group = currentPopupTicket.routeGroup;
+            let newIndex = currentPopupTicket.routeIndex - 1;
+            if (newIndex < 0) newIndex = group.length - 1;
+            const newTicket = group[newIndex];
+            updatePopupContent(newTicket);
+        }
+
+        // 切换到下一张车票
+        function switchToNextTicket() {
+            if (!currentPopupTicket || !currentPopupTicket.routeGroup) return;
+            const group = currentPopupTicket.routeGroup;
+            let newIndex = currentPopupTicket.routeIndex + 1;
+            if (newIndex >= group.length) newIndex = 0;
+            const newTicket = group[newIndex];
+            updatePopupContent(newTicket);
+        }
+
+        // 更新popup内容
+        function updatePopupContent(ticket) {
+            if (!currentPopup) return;
+            currentPopupTicket = ticket;
+            currentPopup.setContent(createPopupContent(ticket));
+        }
+
+        // 创建弹出内容
+        function createPopupContent(ticket) {
+            let statusClass = 'status-completed';
+            if (ticket.status === '未出行') statusClass = 'status-pending';
+            else if (ticket.status === '已改签') statusClass = 'status-rescheduled';
+            else if (ticket.status === '已退票') statusClass = 'status-refunded';
+            
+            // 构建标题和导航按钮
+            let titleHtml = `<h3>${ticket.trainNo}</h3>`;
+            if (ticket.routeTotal > 1) {
+                titleHtml = `
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+                        <button class="nav-btn" onclick="event.stopPropagation(); switchToPrevTicket();">◀</button>
+                        <h3 style="margin: 0; flex: 1; text-align: center;">${ticket.trainNo} (${ticket.routeIndex + 1}/${ticket.routeTotal})</h3>
+                        <button class="nav-btn" onclick="event.stopPropagation(); switchToNextTicket();">▶</button>
+                    </div>
+                `;
+            }
+            
+            return `
+                <div class="trip-popup">
+                    ${titleHtml}
+                    <div class="info-row">
+                        <span class="label">出发站</span>
+                        <span class="value">${ticket.departStation}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">到达站</span>
+                        <span class="value">${ticket.arriveStation}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">出发时间</span>
+                        <span class="value">${ticket.departDate} ${ticket.departTime}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">到达时间</span>
+                        <span class="value">${ticket.arriveTime}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">座位类型</span>
+                        <span class="value">${ticket.seatType}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">票价</span>
+                        <span class="value">¥${ticket.price}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">状态</span>
+                        <span class="value ${statusClass}">${ticket.status}</span>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // 获取行程颜色
+        function getTripColor(status) {
+            switch(status) {
+                case '已完成': return currentTheme.colors.completed;
+                case '未出行': return currentTheme.colors.pending;
+                case '已改签': return currentTheme.colors.rescheduled;
+                case '已退票': return currentTheme.colors.refunded;
+                default: return currentTheme.colors.completed;
+            }
+        }
+
+        // 获取行程线宽
+        function getTripWeight(status) {
+            switch(status) {
+                case '已完成': return currentTheme.lineWidth.completed;
+                case '未出行': return currentTheme.lineWidth.pending;
+                case '已改签': return currentTheme.lineWidth.rescheduled;
+                case '已退票': return currentTheme.lineWidth.refunded;
+                default: return currentTheme.lineWidth.completed;
+            }
+        }
+        
+        // 处理行程双击事件
+        function handleTripDoubleClick(ticket) {
+            const action = mapInteractions.doubleClickTripAction || 'OpenTicketEdit';
+
+            switch(action) {
+                case 'OpenTicketEdit':
+                    // 打开对应车票编辑
+                    sendOpenTicketEdit(ticket.id);
+                    break;
+                case 'PreviewTicket':
+                    // 打开车票票面预览
+                    sendPreviewTicket(ticket.id);
+                    break;
+                case 'None':
+                default:
+                    // 不执行任何操作
+                    break;
+            }
+        }
+
+        // 处理车站双击事件
+        function handleStationDoubleClick(stationName) {
+            const action = mapInteractions.doubleClickStationAction || 'ShowStationTickets';
+
+            switch(action) {
+                case 'ShowStationTickets':
+                    // 显示该站所有车票列表
+                    sendShowStationTickets(stationName);
+                    break;
+                case 'LocateStation':
+                    // 地图定位到该车站视野
+                    zoomToStation(stationName);
+                    break;
+                case 'ShowStationStats':
+                    // 统计该站出行数据
+                    sendShowStationStats(stationName);
+                    break;
+                case 'CreateTicketFromStation':
+                    // 新建以该站为出发站的车票
+                    sendCreateTicketFromStation(stationName);
+                    break;
+                case 'None':
+                default:
+                    // 不执行任何操作
+                    break;
+            }
+        }
+
+        // 处理地图空白处双击事件
+        function handleBlankDoubleClick(e) {
+            // 阻止 Leaflet 默认的双击缩放行为
+            L.DomEvent.stopPropagation(e);
+            L.DomEvent.preventDefault(e);
+
+            const action = mapInteractions.doubleClickBlankAction || 'ZoomInMap';
+
+            switch(action) {
+                case 'ZoomInMap':
+                    // 双击放大地图
+                    map.zoomIn();
+                    break;
+                case 'ResetToChinaView':
+                    // 重置到全国默认视野
+                    map.setView([35.0, 105.0], 5);
+                    break;
+                case 'FitAllTrips':
+                    // 适配所有行程到当前视野
+                    fitAllTrips();
+                    break;
+                case 'CreateNewTicket':
+                    // 新建车票录入
+                    sendCreateNewTicket();
+                    break;
+                case 'ClearSelection':
+                    // 清空当前选中的行程
+                    clearSelection();
+                    break;
+                case 'None':
+                default:
+                    // 不执行任何操作
+                    break;
+            }
+        }
+
+        // 缩放到指定行程
+        function zoomToTrip(ticket) {
+            const latlngs = [
+                [ticket.departLat, ticket.departLng],
+                [ticket.arriveLat, ticket.arriveLng]
+            ];
+            const bounds = L.latLngBounds(latlngs);
+            map.fitBounds(bounds.pad(0.2));
+        }
+
+        // 缩放到指定车站
+        function zoomToStation(stationName) {
+            const stationItem = stationMarkers.find(item => item.name === stationName);
+            if (stationItem) {
+                map.setView([stationItem.lat, stationItem.lng], 10);
+            }
+        }
+
+        // 高亮显示指定行程
+        // @param tripIds: 要高亮的行程ID数组
+        // @param fitView: 是否调整视野（默认true），鼠标悬停时传入false避免视野乱跑
+        // @param isFromDoubleClick: 是否来自双击事件（默认false），双击时不应重置视野
+        function highlightTrips(tripIds, fitView = true, isFromDoubleClick = false) {
+            // 如果未开启高亮置顶功能，则不执行高亮
+            if (!currentTheme.highlightSelectedTrip) {
+                return;
+            }
+
+            // 重置所有线路样式
+            tripLayers.forEach(item => {
+                const color = getTripColor(item.ticket.status);
+                const weight = getTripWeight(item.ticket.status);
+                item.layer.setStyle({
+                    color: color,
+                    weight: weight,
+                    opacity: 0.8
+                });
+            });
+
+            // 收集要高亮的行程图层
+            const highlightedLayers = [];
+            tripLayers.forEach(item => {
+                if (tripIds.includes(item.id)) {
+                    item.layer.setStyle({
+                        color: currentTheme.colors.selected,
+                        weight: currentTheme.lineWidth.selected,
+                        opacity: 1
+                    });
+                    item.layer.bringToFront();
+                    highlightedLayers.push(item);
+                }
+            });
+
+            // 自动调整视野到选中的行程（仅在fitView为true且不是来自双击事件时）
+            // 双击时不应重置视野，让用户定义的双击操作正常执行
+            if (fitView && !isFromDoubleClick && highlightedLayers.length > 0) {
+                fitHighlightedTrips(highlightedLayers);
+            }
+        }
+
+        // 调整视野显示选中的行程
+        function fitHighlightedTrips(highlightedItems) {
+            if (highlightedItems.length === 0) return;
+            
+            // 创建边界框
+            const bounds = L.latLngBounds([]);
+            highlightedItems.forEach(item => {
+                const ticket = item.ticket;
+                bounds.extend([ticket.departLat, ticket.departLng]);
+                bounds.extend([ticket.arriveLat, ticket.arriveLng]);
+            });
+            
+            // 使用飞入动画调整到合适视野
+            map.flyToBounds(bounds.pad(0.3), {
+                duration: 1.5,
+                easeLinearity: 0.25
+            });
+            
+            // 添加脉冲动画标记到起点和终点
+            highlightedItems.forEach((item, index) => {
+                const ticket = item.ticket;
+                // 延迟添加脉冲效果，等待飞入动画完成
+                setTimeout(() => {
+                    addPulseMarker(ticket.departLat, ticket.departLng, ticket.departStation, 'start');
+                    addPulseMarker(ticket.arriveLat, ticket.arriveLng, ticket.arriveStation, 'end');
+                }, 1600 + (index * 200));
+            });
+        }
+
+        // 添加脉冲动画标记
+        let pulseMarkers = [];
+        function addPulseMarker(lat, lng, title, type) {
+            // 清除之前的脉冲标记
+            clearPulseMarkers();
+            
+            const color = type === 'start' ? '#4CAF50' : '#F44336';
+            
+            // 创建脉冲圆圈
+            const pulseCircle = L.circleMarker([lat, lng], {
+                radius: 15,
+                fillColor: color,
+                color: color,
+                weight: 2,
+                opacity: 0.8,
+                fillOpacity: 0.3
+            }).addTo(map);
+            
+            // 创建中心点
+            const centerDot = L.circleMarker([lat, lng], {
+                radius: 6,
+                fillColor: color,
+                color: '#fff',
+                weight: 2,
+                opacity: 1,
+                fillOpacity: 1
+            }).addTo(map).bindPopup(title, { autoClose: false });
+            
+            // 添加脉冲动画效果
+            let radius = 15;
+            let opacity = 0.8;
+            let growing = false;
+            
+            const animate = () => {
+                if (growing) {
+                    radius += 0.5;
+                    opacity += 0.02;
+                    if (radius >= 25) growing = false;
+                } else {
+                    radius -= 0.5;
+                    opacity -= 0.02;
+                    if (radius <= 15) growing = true;
+                }
+                
+                pulseCircle.setStyle({
+                    radius: radius,
+                    opacity: Math.max(0.3, opacity),
+                    fillOpacity: Math.max(0.1, opacity * 0.3)
+                });
+            };
+            
+            const animationId = setInterval(animate, 50);
+            
+            // 保存标记和动画ID
+            pulseMarkers.push({
+                pulseCircle: pulseCircle,
+                centerDot: centerDot,
+                animationId: animationId
+            });
+            
+            // 3秒后自动清除脉冲标记
+            setTimeout(() => {
+                clearPulseMarkers();
+            }, 5000);
+        }
+        
+        // 清除脉冲标记
+        function clearPulseMarkers() {
+            pulseMarkers.forEach(marker => {
+                clearInterval(marker.animationId);
+                map.removeLayer(marker.pulseCircle);
+                map.removeLayer(marker.centerDot);
+            });
+            pulseMarkers = [];
+        }
+        
+        // 调整视野显示所有行程
+        function fitAllTrips() {
+            if (tripLayers.length === 0) return;
+            
+            const group = new L.featureGroup(tripLayers.map(item => item.layer));
+            map.fitBounds(group.getBounds().pad(0.1));
+        }
+        
+        // 清除所有图层
+        function clearLayers() {
+            tripLayers.forEach(item => {
+                map.removeLayer(item.layer);
+                // 同时移除日期标注
+                if (item.dateLabelMarker) {
+                    map.removeLayer(item.dateLabelMarker);
+                }
+            });
+            tripLayers = [];
+
+            stationMarkers.forEach(item => {
+                map.removeLayer(item.marker);
+                map.removeLayer(item.labelMarker);
+            });
+            stationMarkers = [];
+
+            // 清除聚合标记
+            clearClusterMarkers();
+        }
+
+        // 清除聚合标记
+        function clearClusterMarkers() {
+            clusterMarkers.forEach(marker => {
+                map.removeLayer(marker);
+            });
+            clusterMarkers = [];
+        }
+        
+        // 发送消息到WPF
+        function sendStationClick(stationName) {
+            if (window.chrome?.webview) {
+                window.chrome.webview.postMessage(JSON.stringify({
+                    type: 'stationClick',
+                    data: { stationName: stationName }
+                }));
+            }
+        }
+        
+        function sendTripClick(tripId) {
+            if (window.chrome?.webview) {
+                window.chrome.webview.postMessage(JSON.stringify({
+                    type: 'tripClick',
+                    data: { tripId: tripId }
+                }));
+            }
+        }
+        
+        function sendError(message) {
+            if (window.chrome?.webview) {
+                window.chrome.webview.postMessage(JSON.stringify({
+                    type: 'error',
+                    data: { message: message }
+                }));
+            }
+        }
+
+        // 发送打开车票编辑消息
+        function sendOpenTicketEdit(tripId) {
+            if (window.chrome?.webview) {
+                window.chrome.webview.postMessage(JSON.stringify({
+                    type: 'openTicketEdit',
+                    data: { tripId: tripId }
+                }));
+            }
+        }
+
+        // 发送显示车票详情消息
+        function sendShowTicketDetails(tripId) {
+            if (window.chrome?.webview) {
+                window.chrome.webview.postMessage(JSON.stringify({
+                    type: 'showTicketDetails',
+                    data: { tripId: tripId }
+                }));
+            }
+        }
+
+        // 发送显示车站车票列表消息
+        function sendShowStationTickets(stationName) {
+            if (window.chrome?.webview) {
+                window.chrome.webview.postMessage(JSON.stringify({
+                    type: 'showStationTickets',
+                    data: { stationName: stationName }
+                }));
+            }
+        }
+
+        // 发送车票票面预览消息
+        function sendPreviewTicket(tripId) {
+            if (window.chrome?.webview) {
+                window.chrome.webview.postMessage(JSON.stringify({
+                    type: 'previewTicket',
+                    data: { tripId: tripId }
+                }));
+            }
+        }
+
+        // 发送显示车站统计消息
+        function sendShowStationStats(stationName) {
+            if (window.chrome?.webview) {
+                window.chrome.webview.postMessage(JSON.stringify({
+                    type: 'showStationStats',
+                    data: { stationName: stationName }
+                }));
+            }
+        }
+
+        // 发送从车站创建车票消息
+        function sendCreateTicketFromStation(stationName) {
+            if (window.chrome?.webview) {
+                window.chrome.webview.postMessage(JSON.stringify({
+                    type: 'createTicketFromStation',
+                    data: { stationName: stationName }
+                }));
+            }
+        }
+
+        // 发送创建新车票消息
+        function sendCreateNewTicket() {
+            if (window.chrome?.webview) {
+                window.chrome.webview.postMessage(JSON.stringify({
+                    type: 'createNewTicket',
+                    data: {}
+                }));
+            }
+        }
+
+        // 清空选中状态
+        function clearSelection() {
+            // 重置所有线路样式
+            tripLayers.forEach(item => {
+                const color = getTripColor(item.ticket.status);
+                const weight = getTripWeight(item.ticket.status);
+                item.layer.setStyle({
+                    color: color,
+                    weight: weight,
+                    opacity: 0.8
+                });
+            });
+            
+            // 清除脉冲标记
+            clearPulseMarkers();
+            
+            // 发送消息到WPF
+            if (window.chrome?.webview) {
+                window.chrome.webview.postMessage(JSON.stringify({
+                    type: 'clearSelection',
+                    data: {}
+                }));
+            }
+        }
+
+        // 切换时间轴抽屉
+        function toggleTimelineDrawer() {
+            const drawer = document.getElementById('timelineContainer');
+            drawer.classList.toggle('expanded');
+        }
+
+        // 初始化时间轴
+        function initTimeline(tickets) {
+            // 提取所有年份（改进版，避免NaN）
+            const years = [...new Set(tickets.map(t => {
+                let year = null;
+                
+                // 方法1：尝试直接从字符串提取年份（前4位数字）
+                const yearMatch = t.departDate.match(/^\d{4}/);
+                if (yearMatch) {
+                    year = parseInt(yearMatch[0], 10);
+                }
+                
+                // 方法2：如果方法1失败，尝试用Date解析
+                if (!year || isNaN(year)) {
+                    const date = new Date(t.departDate);
+                    if (!isNaN(date.getTime())) {
+                        year = date.getFullYear();
+                    }
+                }
+                
+                // 如果都失败，返回当前年份作为后备
+                if (!year || isNaN(year)) {
+                    console.warn('[Map] 年份解析失败，使用当前年份:', t.departDate);
+                    year = new Date().getFullYear();
+                }
+                
+                return year;
+            }))].sort((a, b) => a - b);
+
+            if (years.length === 0) {
+                document.getElementById('timelineContainer').style.display = 'none';
+                return;
+            }
+
+            timelineYears = years;
+            const slider = document.getElementById('timelineSlider');
+            const labelsContainer = document.getElementById('timelineLabels');
+
+            // 设置滑块范围（0表示全部，1开始对应年份）
+            slider.min = 0;
+            slider.max = years.length;
+            slider.value = 0;
+
+            // 创建标签
+            labelsContainer.innerHTML = '';
+            const allLabel = document.createElement('span');
+            allLabel.textContent = '全部';
+            labelsContainer.appendChild(allLabel);
+
+            years.forEach(year => {
+                const label = document.createElement('span');
+                label.textContent = year;
+                labelsContainer.appendChild(label);
+            });
+
+            // 显示时间轴
+            document.getElementById('timelineContainer').style.display = 'block';
+
+            // 绑定滑块事件
+            slider.oninput = function() {
+                const index = parseInt(this.value);
+                if (index === 0) {
+                    currentYearFilter = null;
+                    document.getElementById('timelineCurrent').textContent = '全部年份';
+                } else {
+                    currentYearFilter = timelineYears[index - 1];
+                    document.getElementById('timelineCurrent').textContent = currentYearFilter + '年';
+                }
+                applyYearFilter();
+            };
+        }
+
+        // 安全解析年份
+        function safeGetYear(dateStr) {
+            let year = null;
+            
+            // 方法1：尝试直接从字符串提取年份（前4位数字）
+            const yearMatch = dateStr.match(/^\d{4}/);
+            if (yearMatch) {
+                year = parseInt(yearMatch[0], 10);
+            }
+            
+            // 方法2：如果方法1失败，尝试用Date解析
+            if (!year || isNaN(year)) {
+                const date = new Date(dateStr);
+                if (!isNaN(date.getTime())) {
+                    year = date.getFullYear();
+                }
+            }
+            
+            // 如果都失败，返回当前年份作为后备
+            if (!year || isNaN(year)) {
+                year = new Date().getFullYear();
+            }
+            
+            return year;
+        }
+
+        // 应用年份筛选
+        function applyYearFilter() {
+            tripLayers.forEach(item => {
+                const ticketYear = safeGetYear(item.ticket.departDate);
+                const shouldShow = currentYearFilter === null || ticketYear === currentYearFilter;
+
+                if (shouldShow) {
+                    item.layer.addTo(map);
+                    if (item.dateLabelMarker) {
+                        item.dateLabelMarker.addTo(map);
+                    }
+                } else {
+                    map.removeLayer(item.layer);
+                    if (item.dateLabelMarker) {
+                        map.removeLayer(item.dateLabelMarker);
+                    }
+                }
+            });
+
+            // 重新计算车站（只显示可见行程的车站）
+            updateStationsVisibility();
+            
+            // 重新计算聚合标记
+            updateClusters();
+        }
+
+        // 更新车站可见性
+        function updateStationsVisibility() {
+            // 获取当前可见的行程
+            const visibleStations = new Set();
+            tripLayers.forEach(item => {
+                const ticketYear = safeGetYear(item.ticket.departDate);
+                if (currentYearFilter === null || ticketYear === currentYearFilter) {
+                    visibleStations.add(item.ticket.departStation);
+                    visibleStations.add(item.ticket.arriveStation);
+                }
+            });
+
+            // 更新车站标记显示
+            stationMarkers.forEach(item => {
+                if (visibleStations.has(item.stationName)) {
+                    item.marker.addTo(map);
+                    item.labelMarker.addTo(map);
+                } else {
+                    map.removeLayer(item.marker);
+                    map.removeLayer(item.labelMarker);
+                }
+            });
+        }
+
+        // 重置时间轴
+        function resetTimeline() {
+            const slider = document.getElementById('timelineSlider');
+            slider.value = 0;
+            currentYearFilter = null;
+            document.getElementById('timelineCurrent').textContent = '全部年份';
+            applyYearFilter();
+        }
+
+        // ==================== 聚合功能 ====================
+
+        // 创建聚合标记
+        function createClusterMarker(trips, centerLat, centerLng) {
+            const count = trips.length;
+            const sizeClass = count < 5 ? 'small' : count < 15 ? 'medium' : 'large';
+
+            const icon = L.divIcon({
+                className: 'cluster-marker ' + sizeClass,
+                html: `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;">${count}</div>`,
+                iconSize: null // 使用CSS定义的尺寸
+            });
+
+            const marker = L.marker([centerLat, centerLng], { icon: icon });
+
+            // 点击聚合标记，缩放到该区域
+            marker.on('click', function() {
+                // 计算这些行程的边界
+                const bounds = L.latLngBounds();
+                trips.forEach(trip => {
+                    bounds.extend([trip.departLat, trip.departLng]);
+                    bounds.extend([trip.arriveLat, trip.arriveLng]);
+                });
+                map.fitBounds(bounds.pad(0.2));
+            });
+
+            // 悬停提示
+            const statusCounts = {};
+            trips.forEach(t => {
+                statusCounts[t.status] = (statusCounts[t.status] || 0) + 1;
+            });
+            let tooltipContent = `<strong>${count} 条行程</strong><br/>`;
+            for (const [status, cnt] of Object.entries(statusCounts)) {
+                tooltipContent += `${status}: ${cnt}条<br/>`;
+            }
+            marker.bindTooltip(tooltipContent, {
+                direction: 'top',
+                offset: [0, -10],
+                className: 'trip-hover-card'
+            });
+
+            return marker;
+        }
+
+        // 执行聚合
+        function clusterTrips(trips) {
+            if (!clusterEnabled || trips.length < 10) {
+                return null; // 数据量小，不聚合
+            }
+
+            const zoom = map.getZoom();
+            if (zoom >= clusterZoomThreshold) {
+                return null; // 缩放级别足够大，不聚合
+            }
+
+            // 使用简单的网格聚合算法
+            const gridSize = 2.0; // 网格大小（度）
+            const clusters = new Map();
+
+            trips.forEach(trip => {
+                // 计算行程中心点
+                const centerLat = (trip.departLat + trip.arriveLat) / 2;
+                const centerLng = (trip.departLng + trip.arriveLng) / 2;
+
+                // 计算网格键
+                const gridX = Math.floor(centerLng / gridSize);
+                const gridY = Math.floor(centerLat / gridSize);
+                const key = `${gridX},${gridY}`;
+
+                if (!clusters.has(key)) {
+                    clusters.set(key, {
+                        trips: [],
+                        totalLat: 0,
+                        totalLng: 0
+                    });
+                }
+
+                const cluster = clusters.get(key);
+                cluster.trips.push(trip);
+                cluster.totalLat += centerLat;
+                cluster.totalLng += centerLng;
+            });
+
+            // 创建聚合标记
+            const result = [];
+            clusters.forEach((cluster, key) => {
+                if (cluster.trips.length >= 2) { // 至少2条行程才聚合
+                    const avgLat = cluster.totalLat / cluster.trips.length;
+                    const avgLng = cluster.totalLng / cluster.trips.length;
+                    result.push({
+                        marker: createClusterMarker(cluster.trips, avgLat, avgLng),
+                        trips: cluster.trips
+                    });
+                }
+            });
+
+            return result;
+        }
+
+        // 更新聚合显示
+        function updateClusters() {
+            // 清除现有聚合标记
+            clearClusterMarkers();
+
+            // 获取当前可见的行程
+            const visibleTrips = [];
+            tripLayers.forEach(item => {
+                const ticketYear = safeGetYear(item.ticket.departDate);
+                if (currentYearFilter === null || ticketYear === currentYearFilter) {
+                    visibleTrips.push(item.ticket);
+                }
+            });
+
+            // 执行聚合
+            const clusters = clusterTrips(visibleTrips);
+
+            if (clusters && clusters.length > 0) {
+                // 隐藏被聚合的行程线路
+                const clusteredTripIds = new Set();
+                clusters.forEach(c => {
+                    c.trips.forEach(t => clusteredTripIds.add(t.id));
+                });
+
+                tripLayers.forEach(item => {
+                    if (clusteredTripIds.has(item.ticket.id)) {
+                        map.removeLayer(item.layer);
+                        if (item.dateLabelMarker) {
+                            map.removeLayer(item.dateLabelMarker);
+                        }
+                    }
+                });
+
+                // 显示聚合标记
+                clusters.forEach(c => {
+                    c.marker.addTo(map);
+                    clusterMarkers.push(c.marker);
+                });
+            }
+        }
+
+        // 监听地图缩放事件，动态更新聚合
+        function setupClusterListener() {
+            map.on('zoomend', function() {
+                // 重新渲染以更新聚合状态
+                if (currentTickets.length > 0) {
+                    // 先清除聚合
+                    clearClusterMarkers();
+
+                    // 恢复所有行程显示
+                    tripLayers.forEach(item => {
+                        const ticketYear = safeGetYear(item.ticket.departDate);
+                        const shouldShow = currentYearFilter === null || ticketYear === currentYearFilter;
+
+                        if (shouldShow) {
+                            item.layer.addTo(map);
+                            if (item.dateLabelMarker) {
+                                item.dateLabelMarker.addTo(map);
+                            }
+                        }
+                    });
+
+                    // 重新计算聚合
+                    updateClusters();
+                }
+            });
+        }
+
+        // 页面加载完成后初始化地图
+        document.addEventListener('DOMContentLoaded', function() {
+            initMap();
+            setupClusterListener();
+            
+            // 初始化主题类
+            if (currentTheme.isDarkMode) {
+                document.body.classList.add('dark-mode');
+            } else {
+                document.body.classList.remove('dark-mode');
+            }
+        });
+    </script>
+</body>
+</html>

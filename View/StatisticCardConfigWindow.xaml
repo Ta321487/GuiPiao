@@ -1,0 +1,430 @@
+<Window x:Class="GuiPiao.View.StatisticCardConfigWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:model="clr-namespace:GuiPiao.Model"
+        xmlns:local="clr-namespace:GuiPiao.View"
+        Title="{Binding WindowTitle}"
+        Height="500"
+        Width="500"
+        WindowStyle="SingleBorderWindow"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource WindowBackgroundBrush}"
+        FontSize="{DynamicResource BaseFontSize}">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- 内容区 -->
+        <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" Margin="15">
+            <StackPanel>
+                <!-- 统计维度配置 -->
+                <Border Background="{DynamicResource PanelBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
+                    <StackPanel>
+                        <TextBlock Text="🔍 统计维度配置" FontWeight="Bold" Margin="0,0,0,10" Foreground="{DynamicResource TextPrimaryBrush}" />
+
+                        <!-- 时间粒度（仅月度出行统计显示） -->
+                        <WrapPanel Margin="0,0,0,8">
+                            <WrapPanel.Style>
+                                <Style TargetType="WrapPanel">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Config.StatisticType}" Value="MonthlyTripStats">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </WrapPanel.Style>
+                            <TextBlock Text="时间粒度：" VerticalAlignment="Center" Margin="0,0,5,5" MinWidth="80" Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <ComboBox MinWidth="150" SelectedItem="{Binding Config.TimeGranularity, Mode=TwoWay}" ItemsSource="{Binding TimeGranularityOptions}" Margin="0,0,0,5" />
+                        </WrapPanel>
+
+                        <!-- 分类依据（仅车次/席别占比显示） -->
+                        <WrapPanel Margin="0,0,0,8">
+                            <WrapPanel.Style>
+                                <Style TargetType="WrapPanel">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Config.StatisticType}" Value="TrainTypeRatio">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Config.StatisticType}" Value="SeatTypeRatio">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </WrapPanel.Style>
+                            <TextBlock Text="分类依据：" VerticalAlignment="Center" Margin="0,0,5,5" MinWidth="80" Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <ComboBox MinWidth="150" SelectedItem="{Binding Config.ClassificationBasis, Mode=TwoWay}" ItemsSource="{Binding RatioClassificationBasisOptions}" Margin="0,0,0,5" />
+                        </WrapPanel>
+
+                        <!-- 统计依据（仅站点/线路TOP排行显示） -->
+                        <WrapPanel Margin="0,0,0,8">
+                            <WrapPanel.Style>
+                                <Style TargetType="WrapPanel">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Config.StatisticType}" Value="StationTopRanking">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Config.StatisticType}" Value="PopularRouteStats">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </WrapPanel.Style>
+                            <TextBlock Text="统计依据：" VerticalAlignment="Center" Margin="0,0,5,5" MinWidth="80" Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <ComboBox MinWidth="150" SelectedItem="{Binding Config.ClassificationBasis, Mode=TwoWay}" ItemsSource="{Binding CurrentClassificationBasisOptions}" Margin="0,0,0,5" />
+                        </WrapPanel>
+
+                        <!-- 统计维度（仅出行花费分析显示） -->
+                        <WrapPanel Margin="0,0,0,8">
+                            <WrapPanel.Style>
+                                <Style TargetType="WrapPanel">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Config.StatisticType}" Value="TripCostAnalysis">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </WrapPanel.Style>
+                            <TextBlock Text="统计维度：" VerticalAlignment="Center" Margin="0,0,5,5" MinWidth="80" Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <ComboBox MinWidth="150" SelectedItem="{Binding Config.ClassificationBasis, Mode=TwoWay}" ItemsSource="{Binding CostAnalysisDimensionOptions}" Margin="0,0,0,5" />
+                        </WrapPanel>
+
+                        <!-- 对比维度（仅年度出行总结显示） -->
+                        <WrapPanel Margin="0,0,0,8">
+                            <WrapPanel.Style>
+                                <Style TargetType="WrapPanel">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Config.StatisticType}" Value="AnnualTripSummary">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </WrapPanel.Style>
+                            <TextBlock Text="对比维度：" VerticalAlignment="Center" Margin="0,0,5,5" MinWidth="80" Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <ComboBox MinWidth="150" SelectedItem="{Binding Config.ClassificationBasis, Mode=TwoWay}" ItemsSource="{Binding AnnualCompareDimensionOptions}" Margin="0,0,0,5" />
+                        </WrapPanel>
+
+                        <!-- 时段划分（仅出行时段分布显示） -->
+                        <WrapPanel Margin="0,0,0,8">
+                            <WrapPanel.Style>
+                                <Style TargetType="WrapPanel">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Config.StatisticType}" Value="TripTimeDistribution">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </WrapPanel.Style>
+                            <TextBlock Text="时段划分：" VerticalAlignment="Center" Margin="0,0,5,5" MinWidth="80" Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <ComboBox x:Name="TimePeriodDivisionComboBox" MinWidth="150" SelectedItem="{Binding Config.ClassificationBasis, Mode=TwoWay}" ItemsSource="{Binding TimePeriodDivisionOptions}" Margin="0,0,0,5" />
+                        </WrapPanel>
+
+                        <!-- 自定义时段编辑器（仅当选择"自定义时段"时显示） -->
+                        <StackPanel Margin="0,0,0,8">
+                            <StackPanel.Style>
+                                <Style TargetType="StackPanel">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <MultiDataTrigger>
+                                            <MultiDataTrigger.Conditions>
+                                                <Condition Binding="{Binding Config.StatisticType}" Value="TripTimeDistribution" />
+                                                <Condition Binding="{Binding Config.ClassificationBasis}" Value="自定义时段" />
+                                            </MultiDataTrigger.Conditions>
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </MultiDataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </StackPanel.Style>
+                            <local:CustomTimePeriodEditor x:Name="CustomTimePeriodEditor" Margin="80,5,0,0"
+                                                          ShowColorIndicator="{Binding IsActualPieChart}" />
+                        </StackPanel>
+
+                        <!-- 统计指标 -->
+                        <WrapPanel Margin="0,0,0,8">
+                            <TextBlock Text="统计指标：" VerticalAlignment="Center" Margin="0,0,5,5" MinWidth="80" Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <ComboBox x:Name="StatisticIndicatorComboBox" MinWidth="150" 
+                                      SelectedItem="{Binding Config.StatisticIndicator, Mode=TwoWay}" 
+                                      ItemsSource="{Binding CurrentStatisticIndicatorOptions}"
+                                      Margin="0,0,0,5" />
+                        </WrapPanel>
+
+                        <!-- 显示阈值（仅车次/席别占比显示） -->
+                        <WrapPanel Margin="0,0,0,8">
+                            <WrapPanel.Style>
+                                <Style TargetType="WrapPanel">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Config.StatisticType}" Value="TrainTypeRatio">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Config.StatisticType}" Value="SeatTypeRatio">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </WrapPanel.Style>
+                            <TextBlock Text="显示阈值：" VerticalAlignment="Center" Margin="0,0,5,5" MinWidth="80" Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <ComboBox MinWidth="80" SelectedItem="{Binding Config.DisplayThreshold, Mode=TwoWay}" ItemsSource="{Binding DisplayThresholdOptions}" Margin="0,0,0,5" />
+                        </WrapPanel>
+
+                        <!-- 排序方式（仅月度出行统计和TOP排行显示） -->
+                        <WrapPanel Margin="0,0,0,8">
+                            <WrapPanel.Style>
+                                <Style TargetType="WrapPanel">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Config.StatisticType}" Value="MonthlyTripStats">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Config.StatisticType}" Value="StationTopRanking">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Config.StatisticType}" Value="PopularRouteStats">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </WrapPanel.Style>
+                            <TextBlock Text="排序方式：" VerticalAlignment="Center" Margin="0,0,5,5" MinWidth="80" Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <ComboBox x:Name="SortOrderComboBox" MinWidth="150" 
+                                      SelectedItem="{Binding Config.SortOrder, Mode=TwoWay}" 
+                                      ItemsSource="{Binding CurrentSortOrderOptions}"
+                                      Margin="0,0,0,5" />
+                        </WrapPanel>
+
+                        <!-- 显示数量（仅TOP排行显示） -->
+                        <WrapPanel Margin="0,0,0,0">
+                            <WrapPanel.Style>
+                                <Style TargetType="WrapPanel">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Config.StatisticType}" Value="StationTopRanking">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Config.StatisticType}" Value="PopularRouteStats">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </WrapPanel.Style>
+                            <TextBlock Text="显示数量：" VerticalAlignment="Center" Margin="0,0,5,5" MinWidth="80" Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <ComboBox MinWidth="60" SelectedItem="{Binding Config.TopCount, Mode=TwoWay}" ItemsSource="{Binding TopCountOptions}" Margin="0,0,0,5" />
+                        </WrapPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- 显示样式配置 -->
+                <Border Background="{DynamicResource PanelBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
+                    <StackPanel>
+                        <TextBlock Text="📈 显示样式配置" FontWeight="Bold" Margin="0,0,0,10" Foreground="{DynamicResource TextPrimaryBrush}" />
+
+                        <!-- 图表类型（带单独配置复选框） -->
+                        <Grid Margin="0,0,0,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <CheckBox Grid.Column="0" Content="自定义图表类型" IsChecked="{Binding UseCustomChartType, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,10,0" />
+                            <ComboBox Grid.Column="1" x:Name="ChartTypeComboBox" MinWidth="120"
+                                      ItemsSource="{Binding ChartTypeOptionsForDisplay}"
+                                      SelectedItem="{Binding ChartTypeDisplay, Mode=TwoWay}"
+                                      IsEnabled="{Binding IsChartTypeEditable}">
+                                <ComboBox.Style>
+                                    <Style TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
+                                        <Style.Triggers>
+                                            <Trigger Property="IsEnabled" Value="False">
+                                                <Setter Property="Opacity" Value="{DynamicResource DisabledOpacity}" />
+                                                <Setter Property="Foreground" Value="{DynamicResource TextDisabledBrush}" />
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ComboBox.Style>
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Converter={StaticResource EnumToDescriptionConverter}}" />
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </Grid>
+
+                        <!-- 图表颜色（始终是卡片自己的设置，但饼图不使用单一颜色） -->
+                        <WrapPanel Margin="0,0,0,8">
+                            <WrapPanel.Style>
+                                <Style TargetType="WrapPanel">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                    <Style.Triggers>
+                                        <!-- 当实际显示为饼图时隐藏（包括全局Auto适配为饼图的情况） -->
+                                        <DataTrigger Binding="{Binding IsActualPieChart}" Value="True">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </WrapPanel.Style>
+                            <TextBlock Text="图表颜色：" VerticalAlignment="Center" Margin="0,0,5,5" MinWidth="80" Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <ComboBox MinWidth="100" SelectedItem="{Binding Config.ChartColor, Mode=TwoWay}" ItemsSource="{Binding ChartColorOptions}" Margin="0,0,0,5">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Border Width="16" Height="16" Background="{Binding}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,5,0" />
+                                            <TextBlock Text="{Binding}" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </WrapPanel>
+
+                        <!-- 复选框选项（始终是卡片自己的设置） -->
+                        <WrapPanel Margin="0,0,0,0">
+                            <!-- 显示数值 -->
+                            <CheckBox Margin="0,0,15,0" IsChecked="{Binding Config.ShowValue, Mode=TwoWay}">
+                                <CheckBox.Style>
+                                    <Style TargetType="CheckBox" BasedOn="{StaticResource {x:Type CheckBox}}">
+                                        <Setter Property="Content" Value="显示数值" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Config.StatisticType}" Value="AnnualTripSummary">
+                                                <Setter Property="Content" Value="显示年度数值" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Config.StatisticType}" Value="TripTimeDistribution">
+                                                <Setter Property="Content" Value="显示时段名称" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Config.StatisticType}" Value="PopularRouteStats">
+                                                <Setter Property="Content" Value="显示线路名称（出发-到达）" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Config.StatisticType}" Value="TripCostAnalysis">
+                                                <Setter Property="Content" Value="显示花费数值" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </CheckBox.Style>
+                            </CheckBox>
+                            <!-- 显示占比百分比（仅饼图支持） -->
+                            <CheckBox Margin="0,0,15,0" IsChecked="{Binding Config.ShowPercentage, Mode=TwoWay}">
+                                <CheckBox.Style>
+                                    <Style TargetType="CheckBox" BasedOn="{StaticResource {x:Type CheckBox}}">
+                                        <Setter Property="Content" Value="显示占比百分比" />
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <!-- 只有实际显示饼图时显示此选项 -->
+                                            <DataTrigger Binding="{Binding IsActualPieChart}" Value="True">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Config.StatisticType}" Value="AnnualTripSummary">
+                                                <Setter Property="Content" Value="显示对比差值" />
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Config.StatisticType}" Value="TripCostAnalysis">
+                                                <Setter Property="Content" Value="显示占比" />
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </CheckBox.Style>
+                            </CheckBox>
+                            <CheckBox Content="鼠标悬停显示详情" IsChecked="{Binding Config.ShowTooltip, Mode=TwoWay}" Margin="0,0,0,5" />
+                        </WrapPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- 数据过滤配置 -->
+                <Border Background="{DynamicResource PanelBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Padding="10">
+                    <StackPanel>
+                        <TextBlock Text="🧹 时间范围与数据过滤" FontWeight="Bold" Margin="0,0,0,10" Foreground="{DynamicResource TextPrimaryBrush}" />
+
+                        <!-- 时间范围（带自定义复选框） -->
+                        <Grid Margin="0,0,0,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <CheckBox Grid.Column="0" Content="自定义时间范围" IsChecked="{Binding UseCustomFilter, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,10,0" />
+                            <ComboBox Grid.Column="1" x:Name="TimeRangeComboBox" MinWidth="120" VerticalAlignment="Center"
+                                      ItemsSource="{Binding TimeRangeOptionsWithFollowGlobal}"
+                                      SelectedItem="{Binding TimeRangeDisplay, Mode=TwoWay}"
+                                      IsEnabled="{Binding UseCustomFilter}"
+                                      DropDownClosed="TimeRangeComboBox_DropDownClosed">
+                                <ComboBox.Style>
+                                    <Style TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
+                                        <Style.Triggers>
+                                            <Trigger Property="IsEnabled" Value="False">
+                                                <Setter Property="Opacity" Value="{DynamicResource DisabledOpacity}" />
+                                                <Setter Property="Foreground" Value="{DynamicResource TextDisabledBrush}" />
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ComboBox.Style>
+                            </ComboBox>
+                        </Grid>
+
+                        <WrapPanel>
+                            <!-- 排除已退票/改签车票 -->
+                            <CheckBox Margin="0,0,20,5" Content="排除已退票/改签车票">
+                                <CheckBox.Style>
+                                    <Style TargetType="CheckBox" BasedOn="{StaticResource {x:Type CheckBox}}">
+                                        <!-- 默认：跟随全局，禁用并显示全局状态 -->
+                                        <Setter Property="IsEnabled" Value="False" />
+                                        <Setter Property="IsChecked" Value="{Binding GlobalExcludeRefundedTickets}" />
+                                        <Style.Triggers>
+                                            <!-- 单独配置时：启用并绑定到卡片配置 -->
+                                            <DataTrigger Binding="{Binding UseCustomFilter}" Value="True">
+                                                <Setter Property="IsEnabled" Value="True" />
+                                                <Setter Property="IsChecked" Value="{Binding Config.ExcludeRefundedTickets, Mode=TwoWay}" />
+                                            </DataTrigger>
+                                            <!-- 禁用状态：灰色显示 -->
+                                            <Trigger Property="IsEnabled" Value="False">
+                                                <Setter Property="Opacity" Value="{DynamicResource DisabledOpacity}" />
+                                                <Setter Property="Foreground" Value="{DynamicResource TextDisabledBrush}" />
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </CheckBox.Style>
+                            </CheckBox>
+
+                            <!-- 排除重复录入车票 -->
+                            <CheckBox Content="排除重复录入车票" Margin="0,0,0,5">
+                                <CheckBox.Style>
+                                    <Style TargetType="CheckBox" BasedOn="{StaticResource {x:Type CheckBox}}">
+                                        <!-- 默认：跟随全局，禁用并显示全局状态 -->
+                                        <Setter Property="IsEnabled" Value="False" />
+                                        <Setter Property="IsChecked" Value="{Binding GlobalExcludeDuplicateTickets}" />
+                                        <Style.Triggers>
+                                            <!-- 单独配置时：启用并绑定到卡片配置 -->
+                                            <DataTrigger Binding="{Binding UseCustomFilter}" Value="True">
+                                                <Setter Property="IsEnabled" Value="True" />
+                                                <Setter Property="IsChecked" Value="{Binding Config.ExcludeDuplicateTickets, Mode=TwoWay}" />
+                                            </DataTrigger>
+                                            <!-- 禁用状态：灰色显示 -->
+                                            <Trigger Property="IsEnabled" Value="False">
+                                                <Setter Property="Opacity" Value="{DynamicResource DisabledOpacity}" />
+                                                <Setter Property="Foreground" Value="{DynamicResource TextDisabledBrush}" />
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </CheckBox.Style>
+                            </CheckBox>
+                        </WrapPanel>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- 底部按钮 -->
+        <Border Grid.Row="1" Background="{DynamicResource ContentBackgroundBrush}" Padding="15" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0">
+            <WrapPanel HorizontalAlignment="Center">
+                <Button Content="💾 保存配置" Command="{Binding SaveConfigCommand}"
+                        Padding="15,8" Margin="0,0,10,0" Style="{StaticResource StandardButtonStyle}" />
+                <Button Content="🔄 恢复默认" Command="{Binding RestoreDefaultsCommand}"
+                        Padding="15,8" Margin="0,0,10,0" Style="{StaticResource StandardButtonStyle}" />
+                <Button Content="❌ 取消" Command="{Binding CancelCommand}"
+                        Padding="15,8" Style="{StaticResource StandardButtonStyle}" />
+            </WrapPanel>
+        </Border>
+    </Grid>
+</Window>

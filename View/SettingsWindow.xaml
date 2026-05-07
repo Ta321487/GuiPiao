@@ -1,0 +1,155 @@
+<Window x:Class="GuiPiao.View.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:GuiPiao.ViewModel"
+        Title="系统设置"
+        Height="600"
+        Width="900"
+        WindowStyle="SingleBorderWindow"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource WindowBackgroundBrush}"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True">
+    <Window.DataContext>
+        <vm:SettingsViewModel />
+    </Window.DataContext>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="200" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- 左侧导航栏 -->
+        <Border Grid.Column="0" Background="{DynamicResource PanelBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <!-- 标题 -->
+                <Border Grid.Row="0" Background="{DynamicResource ContentBackgroundBrush}" Padding="15,12">
+                    <TextBlock Text="⚙️ 系统设置" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" />
+                </Border>
+
+                <!-- 导航按钮列表 -->
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="5,10">
+                        <!-- 常规 -->
+                        <Button Content="📊 常规"
+                                Style="{Binding CurrentPage, Converter={StaticResource PageToStyleConverter}, ConverterParameter=General}"
+                                Command="{Binding NavigateCommand}"
+                                CommandParameter="General" />
+
+                        <!-- 日志 -->
+                        <Button Content="📝 日志"
+                                Style="{Binding CurrentPage, Converter={StaticResource PageToStyleConverter}, ConverterParameter=Log}"
+                                Command="{Binding NavigateCommand}"
+                                CommandParameter="Log" />
+
+                        <!-- 数据库 -->
+                        <Button Content="🗄️ 数据库"
+                                Style="{Binding CurrentPage, Converter={StaticResource PageToStyleConverter}, ConverterParameter=Database}"
+                                Command="{Binding NavigateCommand}"
+                                CommandParameter="Database" />
+
+                        <!-- 地图 -->
+                        <Button Content="🗺️ 地图"
+                                Style="{Binding CurrentPage, Converter={StaticResource PageToStyleConverter}, ConverterParameter=Map}"
+                                Command="{Binding NavigateCommand}"
+                                CommandParameter="Map" />
+
+                        <!-- 界面 -->
+                        <Button Content="🎨 界面"
+                                Style="{Binding CurrentPage, Converter={StaticResource PageToStyleConverter}, ConverterParameter=UI}"
+                                Command="{Binding NavigateCommand}"
+                                CommandParameter="UI" />
+
+                        <!-- 仪表盘 -->
+                        <Button Content="📊 仪表盘"
+                                Style="{Binding CurrentPage, Converter={StaticResource PageToStyleConverter}, ConverterParameter=Dashboard}"
+                                Command="{Binding NavigateCommand}"
+                                CommandParameter="Dashboard" />
+
+                        <!-- OCR -->
+                        <Button Content="🔧 OCR"
+                                Style="{Binding CurrentPage, Converter={StaticResource PageToStyleConverter}, ConverterParameter=OCR}"
+                                Command="{Binding NavigateCommand}"
+                                CommandParameter="OCR" />
+
+                        <!-- 导出 -->
+                        <Button Content="📤 导出"
+                                Style="{Binding CurrentPage, Converter={StaticResource PageToStyleConverter}, ConverterParameter=Export}"
+                                Command="{Binding NavigateCommand}"
+                                CommandParameter="Export" />
+
+                        <!-- 快捷键 -->
+                        <Button Content="📋 快捷键"
+                                Style="{Binding CurrentPage, Converter={StaticResource PageToStyleConverter}, ConverterParameter=Shortcut}"
+                                Command="{Binding NavigateCommand}"
+                                CommandParameter="Shortcut" />
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- 底部按钮 -->
+                <Border Grid.Row="2" Background="{DynamicResource ContentBackgroundBrush}" Padding="10,8" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="5" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <!-- 导入导出按钮 -->
+                        <UniformGrid Grid.Row="0" Columns="2">
+                            <Button Command="{Binding ImportSettingsCommand}"
+                                    Style="{StaticResource StandardButtonStyle}"
+                                    Padding="8,8"
+                                    Margin="0,0,4,0"
+                                    HorizontalContentAlignment="Center"
+                                    ToolTip="从文件导入所有设置">
+                                <Viewbox Stretch="Uniform" StretchDirection="DownOnly">
+                                    <TextBlock Text="📥 导入" />
+                                </Viewbox>
+                            </Button>
+                            <Button Command="{Binding ExportSettingsCommand}"
+                                    Style="{StaticResource StandardButtonStyle}"
+                                    Padding="8,8"
+                                    Margin="4,0,0,0"
+                                    HorizontalContentAlignment="Center"
+                                    ToolTip="将所有设置导出到文件">
+                                <Viewbox Stretch="Uniform" StretchDirection="DownOnly">
+                                    <TextBlock Text="📤 导出" />
+                                </Viewbox>
+                            </Button>
+                        </UniformGrid>
+                        <!-- 保存所有设置按钮 -->
+                        <Button Grid.Row="2"
+                                Command="{Binding SaveAllCommand}"
+                                Style="{StaticResource StandardButtonStyle}"
+                                Padding="15,8">
+                            <Viewbox Stretch="Uniform" StretchDirection="DownOnly">
+                                <TextBlock Text="💾 保存所有设置" Margin="2,0" />
+                            </Viewbox>
+                        </Button>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- 右侧内容区 -->
+        <DockPanel Grid.Column="1" Background="{DynamicResource ContentBackgroundBrush}" LastChildFill="True">
+            <!-- 底部状态栏 -->
+            <Border DockPanel.Dock="Bottom" Background="{DynamicResource PanelBackgroundBrush}" Padding="15,8" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="当前页面：" Foreground="{DynamicResource TextSecondaryBrush}" />
+                    <TextBlock Text="{Binding CurrentPageTitle}" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" />
+                </StackPanel>
+            </Border>
+
+            <!-- 内容显示区 -->
+            <ContentControl Content="{Binding CurrentView}" />
+        </DockPanel>
+    </Grid>
+</Window>

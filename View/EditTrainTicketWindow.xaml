@@ -1,0 +1,78 @@
+<Window x:Class="GuiPiao.View.EditTrainTicketWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:GuiPiao.View"
+        mc:Ignorable="d"
+        Title="编辑火车票"
+        Height="650"
+        Width="850"
+        MinHeight="550"
+        MinWidth="700"
+        WindowStyle="SingleBorderWindow"
+        ResizeMode="CanResize"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource WindowBackgroundBrush}"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True">
+    <Grid Background="{DynamicResource ContentBackgroundBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- 标题区域 -->
+        <Border Grid.Row="0" Background="{DynamicResource ControlBackgroundBrush}" Padding="15,12">
+            <TextBlock x:Name="TitleTextBlock"
+                       FontSize="{DynamicResource TitleFontSize}" 
+                       FontWeight="Bold" 
+                       Foreground="{DynamicResource TextPrimaryBrush}" />
+        </Border>
+
+        <!-- 主内容区域 -->
+        <Grid Grid.Row="1" Margin="15">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto" MinWidth="100"/>
+            </Grid.ColumnDefinitions>
+            
+            <!-- 表单区域 - 使用共享的用户控件 -->
+            <local:TrainTicketFormView x:Name="FormView" Grid.Column="0" />
+            
+            <!-- 操作历史面板 -->
+            <local:OperationHistoryPanel x:Name="HistoryPanel" 
+                                         Grid.Column="1"
+                                         Margin="10,0,0,0"/>
+        </Grid>
+
+        <!-- 按钮区域 -->
+        <Border Grid.Row="2" Background="{DynamicResource ControlBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0" Padding="15">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button x:Name="UndoButton"
+                        Content="↩️ 撤销" 
+                        Style="{StaticResource StandardButtonStyle}" 
+                        MinWidth="80" 
+                        Margin="0,0,10,0"
+                        Command="{Binding UndoCommand}"
+                        IsEnabled="{Binding CanUndo}" />
+                <Button x:Name="RedoButton"
+                        Content="↪️ 重做" 
+                        Style="{StaticResource StandardButtonStyle}" 
+                        MinWidth="80" 
+                        Margin="0,0,20,0"
+                        Command="{Binding RedoCommand}"
+                        IsEnabled="{Binding CanRedo}" />
+                <Button x:Name="SaveButton"
+                        Style="{StaticResource PrimaryButtonStyle}" 
+                        MinWidth="100" 
+                        Margin="0,0,10,0" />
+                <Button x:Name="CancelButton"
+                        Content="❌ 关闭" 
+                        Style="{StaticResource StandardButtonStyle}" 
+                        MinWidth="100" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>
