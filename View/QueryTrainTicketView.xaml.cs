@@ -1,12 +1,11 @@
 using System.Windows.Controls;
 
-namespace GuiPiao.View
+namespace GuiPiao.View;
+
+public partial class QueryTrainTicketView : UserControl
 {
-    public partial class QueryTrainTicketView : UserControl
+    public QueryTrainTicketView()
     {
-        public QueryTrainTicketView()
-        {
-            InitializeComponent();
-        }
+        InitializeComponent();
     }
 }

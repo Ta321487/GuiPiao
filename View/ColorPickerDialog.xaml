@@ -11,46 +11,16 @@
     <Window.Resources>
         <!-- 滑块样式 -->
         <Style x:Key="ColorSliderStyle" TargetType="Slider">
-            <Setter Property="Minimum" Value="0"/>
-            <Setter Property="Maximum" Value="255"/>
-            <Setter Property="TickFrequency" Value="1"/>
-            <Setter Property="IsSnapToTickEnabled" Value="True"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="Margin" Value="5,0"/>
-            <Setter Property="Background" Value="{DynamicResource BorderBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="Minimum" Value="0" />
+            <Setter Property="Maximum" Value="255" />
+            <Setter Property="TickFrequency" Value="1" />
+            <Setter Property="IsSnapToTickEnabled" Value="True" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Margin" Value="5,0" />
+            <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
         </Style>
         <!-- 颜色按钮样式 -->
-        <Style x:Key="ColorButtonStyle" TargetType="Button">
-            <Setter Property="Width" Value="24"/>
-            <Setter Property="Height" Value="24"/>
-            <Setter Property="Margin" Value="2"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" 
-                                BorderBrush="{TemplateBinding BorderBrush}" 
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="2">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
-                                <Setter Property="BorderThickness" Value="2"/>
-                            </Trigger>
-                            <Trigger Property="IsPressed" Value="True">
-                                <Setter Property="BorderBrush" Value="{DynamicResource AccentPressedBrush}"/>
-                                <Setter Property="BorderThickness" Value="2"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
     </Window.Resources>
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
         <Grid Margin="15">
@@ -64,16 +34,19 @@
             </Grid.RowDefinitions>
 
             <!-- 标题 -->
-            <TextBlock Grid.Row="0" Text="🎨 选择自定义颜色" FontSize="{DynamicResource TitleFontSize}" FontWeight="Bold" Margin="0,0,0,15" Foreground="{DynamicResource TextPrimaryBrush}" />
+            <TextBlock Grid.Row="0" Text="🎨 选择自定义颜色" FontSize="{DynamicResource TitleFontSize}" FontWeight="Bold"
+                       Margin="0,0,0,15" Foreground="{DynamicResource TextPrimaryBrush}" />
 
             <!-- 预设颜色 -->
-            <TextBlock Grid.Row="1" Text="预设颜色" FontWeight="Bold" Margin="0,0,0,8" Foreground="{DynamicResource TextPrimaryBrush}" />
+            <TextBlock Grid.Row="1" Text="预设颜色" FontWeight="Bold" Margin="0,0,0,8"
+                       Foreground="{DynamicResource TextPrimaryBrush}" />
             <WrapPanel Grid.Row="2" x:Name="PresetColorsPanel" Margin="0,0,0,15">
                 <!-- 预设颜色将由代码生成 -->
             </WrapPanel>
 
             <!-- 标准颜色 -->
-            <TextBlock Grid.Row="3" Text="标准颜色" FontWeight="Bold" Margin="0,0,0,8" Foreground="{DynamicResource TextPrimaryBrush}" />
+            <TextBlock Grid.Row="3" Text="标准颜色" FontWeight="Bold" Margin="0,0,0,8"
+                       Foreground="{DynamicResource TextPrimaryBrush}" />
             <WrapPanel Grid.Row="4" x:Name="StandardColorsPanel" Margin="0,0,0,15">
                 <!-- 标准颜色将由代码生成 -->
             </WrapPanel>
@@ -88,8 +61,9 @@
                 </Grid.RowDefinitions>
 
                 <!-- RGB 滑块 -->
-                <TextBlock Grid.Row="0" Text="自定义颜色" FontWeight="Bold" Margin="0,0,0,8" Foreground="{DynamicResource TextPrimaryBrush}" />
-                
+                <TextBlock Grid.Row="0" Text="自定义颜色" FontWeight="Bold" Margin="0,0,0,8"
+                           Foreground="{DynamicResource TextPrimaryBrush}" />
+
                 <Grid Grid.Row="1" Margin="0,0,0,10">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
@@ -103,39 +77,53 @@
                     </Grid.ColumnDefinitions>
 
                     <!-- R -->
-                    <TextBlock Grid.Row="0" Grid.Column="0" Text="R:" VerticalAlignment="Center" Margin="0,0,10,0" Foreground="{DynamicResource TextPrimaryBrush}" />
-                    <Slider Grid.Row="0" Grid.Column="1" x:Name="RedSlider" Style="{StaticResource ColorSliderStyle}" ValueChanged="Slider_ValueChanged" />
-                    <TextBox Grid.Row="0" Grid.Column="2" x:Name="RedValue" Text="0" Width="40" Margin="5,0,0,0" TextAlignment="Center" TextChanged="ColorTextBox_TextChanged" />
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="R:" VerticalAlignment="Center" Margin="0,0,10,0"
+                               Foreground="{DynamicResource TextPrimaryBrush}" />
+                    <Slider Grid.Row="0" Grid.Column="1" x:Name="RedSlider" Style="{StaticResource ColorSliderStyle}"
+                            ValueChanged="Slider_ValueChanged" />
+                    <TextBox Grid.Row="0" Grid.Column="2" x:Name="RedValue" Text="0" Width="40" Margin="5,0,0,0"
+                             TextAlignment="Center" TextChanged="ColorTextBox_TextChanged" />
 
                     <!-- G -->
-                    <TextBlock Grid.Row="1" Grid.Column="0" Text="G:" VerticalAlignment="Center" Margin="0,0,10,0" Foreground="{DynamicResource TextPrimaryBrush}" />
-                    <Slider Grid.Row="1" Grid.Column="1" x:Name="GreenSlider" Style="{StaticResource ColorSliderStyle}" ValueChanged="Slider_ValueChanged" />
-                    <TextBox Grid.Row="1" Grid.Column="2" x:Name="GreenValue" Text="0" Width="40" Margin="5,0,0,0" TextAlignment="Center" TextChanged="ColorTextBox_TextChanged" />
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="G:" VerticalAlignment="Center" Margin="0,0,10,0"
+                               Foreground="{DynamicResource TextPrimaryBrush}" />
+                    <Slider Grid.Row="1" Grid.Column="1" x:Name="GreenSlider" Style="{StaticResource ColorSliderStyle}"
+                            ValueChanged="Slider_ValueChanged" />
+                    <TextBox Grid.Row="1" Grid.Column="2" x:Name="GreenValue" Text="0" Width="40" Margin="5,0,0,0"
+                             TextAlignment="Center" TextChanged="ColorTextBox_TextChanged" />
 
                     <!-- B -->
-                    <TextBlock Grid.Row="2" Grid.Column="0" Text="B:" VerticalAlignment="Center" Margin="0,0,10,0" Foreground="{DynamicResource TextPrimaryBrush}" />
-                    <Slider Grid.Row="2" Grid.Column="1" x:Name="BlueSlider" Style="{StaticResource ColorSliderStyle}" ValueChanged="Slider_ValueChanged" />
-                    <TextBox Grid.Row="2" Grid.Column="2" x:Name="BlueValue" Text="0" Width="40" Margin="5,0,0,0" TextAlignment="Center" TextChanged="ColorTextBox_TextChanged" />
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="B:" VerticalAlignment="Center" Margin="0,0,10,0"
+                               Foreground="{DynamicResource TextPrimaryBrush}" />
+                    <Slider Grid.Row="2" Grid.Column="1" x:Name="BlueSlider" Style="{StaticResource ColorSliderStyle}"
+                            ValueChanged="Slider_ValueChanged" />
+                    <TextBox Grid.Row="2" Grid.Column="2" x:Name="BlueValue" Text="0" Width="40" Margin="5,0,0,0"
+                             TextAlignment="Center" TextChanged="ColorTextBox_TextChanged" />
                 </Grid>
 
                 <!-- 当前颜色预览 -->
                 <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,10,0,0">
                     <TextBlock Text="当前选择：" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
-                    <Border Width="60" Height="30" 
+                    <Border Width="60" Height="30"
                             x:Name="ColorPreview"
-                            Background="Blue" 
-                            BorderBrush="{DynamicResource BorderBrush}" 
-                            BorderThickness="1" 
-                            CornerRadius="3" 
+                            Background="Blue"
+                            BorderBrush="{DynamicResource BorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="3"
                             Margin="10,0,10,0" />
-                    <TextBox x:Name="HexValue" Text="#0000FF" Width="80" VerticalAlignment="Center" TextChanged="HexTextBox_TextChanged" />
+                    <TextBox x:Name="HexValue" Text="#0000FF" Width="80" VerticalAlignment="Center"
+                             TextChanged="HexTextBox_TextChanged" />
                 </StackPanel>
 
                 <!-- 按钮 -->
                 <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,10">
-                    <Button x:Name="PreviewButton" Content="👁️ 预览" Click="PreviewButton_Click" Style="{StaticResource StandardButtonStyle}" Padding="20,12" Margin="0,0,10,0" MinHeight="40" />
-                    <Button Content="确定" Click="ConfirmButton_Click" Style="{StaticResource PrimaryButtonStyle}" Padding="30,12" Margin="0,0,10,0" MinHeight="40" />
-                    <Button Content="取消" Click="CancelButton_Click" Style="{StaticResource StandardButtonStyle}" Padding="30,12" MinHeight="40" />
+                    <Button x:Name="PreviewButton" Content="👁️ 预览" Click="PreviewButton_Click"
+                            Style="{StaticResource StandardButtonStyle}" Padding="20,12" Margin="0,0,10,0"
+                            MinHeight="40" />
+                    <Button Content="确定" Click="ConfirmButton_Click" Style="{StaticResource PrimaryButtonStyle}"
+                            Padding="30,12" Margin="0,0,10,0" MinHeight="40" />
+                    <Button Content="取消" Click="CancelButton_Click" Style="{StaticResource StandardButtonStyle}"
+                            Padding="30,12" MinHeight="40" />
                 </StackPanel>
             </Grid>
         </Grid>

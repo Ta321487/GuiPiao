@@ -17,10 +17,12 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Border" Property="Background" Value="{DynamicResource ControlHoverBrush}" />
+                            <Setter TargetName="Border" Property="Background"
+                                    Value="{DynamicResource ControlHoverBrush}" />
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="Border" Property="Background" Value="{DynamicResource AccentPressedBrush}" />
+                            <Setter TargetName="Border" Property="Background"
+                                    Value="{DynamicResource AccentPressedBrush}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -48,11 +50,13 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Border" Property="Background" Value="{DynamicResource ControlHoverBrush}" />
+                            <Setter TargetName="Border" Property="Background"
+                                    Value="{DynamicResource ControlHoverBrush}" />
                             <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="Border" Property="Background" Value="{DynamicResource AccentPressedBrush}" />
+                            <Setter TargetName="Border" Property="Background"
+                                    Value="{DynamicResource AccentPressedBrush}" />
                             <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
@@ -229,7 +233,7 @@
                                                           Stroke="{DynamicResource TextSecondaryBrush}"
                                                           StrokeThickness="1.5"
                                                           HorizontalAlignment="Center"
-                                                          VerticalAlignment="Center"/>
+                                                          VerticalAlignment="Center" />
                                                 </Button>
                                                 <TextBlock x:Name="PART_HourText"
                                                            Grid.Row="1"
@@ -246,7 +250,7 @@
                                                           Stroke="{DynamicResource TextSecondaryBrush}"
                                                           StrokeThickness="1.5"
                                                           HorizontalAlignment="Center"
-                                                          VerticalAlignment="Center"/>
+                                                          VerticalAlignment="Center" />
                                                 </Button>
                                             </Grid>
                                         </Border>
@@ -279,7 +283,7 @@
                                                           Stroke="{DynamicResource TextSecondaryBrush}"
                                                           StrokeThickness="1.5"
                                                           HorizontalAlignment="Center"
-                                                          VerticalAlignment="Center"/>
+                                                          VerticalAlignment="Center" />
                                                 </Button>
                                                 <TextBlock x:Name="PART_MinuteText"
                                                            Grid.Row="1"
@@ -296,7 +300,7 @@
                                                           Stroke="{DynamicResource TextSecondaryBrush}"
                                                           StrokeThickness="1.5"
                                                           HorizontalAlignment="Center"
-                                                          VerticalAlignment="Center"/>
+                                                          VerticalAlignment="Center" />
                                                 </Button>
                                             </Grid>
                                         </Border>
@@ -314,16 +318,26 @@
 
                                     <!-- 快速选择按钮 - 网格布局 -->
                                     <UniformGrid Grid.Row="1" Columns="4" Rows="3" Margin="0,0,0,12">
-                                        <Button x:Name="PART_Time00" Style="{StaticResource TimeQuickButtonStyle}" Content="00:00" Tag="0" />
-                                        <Button x:Name="PART_Time06" Style="{StaticResource TimeQuickButtonStyle}" Content="06:00" Tag="6" />
-                                        <Button x:Name="PART_Time08" Style="{StaticResource TimeQuickButtonStyle}" Content="08:00" Tag="8" />
-                                        <Button x:Name="PART_Time09" Style="{StaticResource TimeQuickButtonStyle}" Content="09:00" Tag="9" />
-                                        <Button x:Name="PART_Time12" Style="{StaticResource TimeQuickButtonStyle}" Content="12:00" Tag="12" />
-                                        <Button x:Name="PART_Time14" Style="{StaticResource TimeQuickButtonStyle}" Content="14:00" Tag="14" />
-                                        <Button x:Name="PART_Time18" Style="{StaticResource TimeQuickButtonStyle}" Content="18:00" Tag="18" />
-                                        <Button x:Name="PART_Time20" Style="{StaticResource TimeQuickButtonStyle}" Content="20:00" Tag="20" />
-                                        <Button x:Name="PART_Time22" Style="{StaticResource TimeQuickButtonStyle}" Content="22:00" Tag="22" />
-                                        <Button x:Name="PART_Time23" Style="{StaticResource TimeQuickButtonStyle}" Content="23:00" Tag="23" />
+                                        <Button x:Name="PART_Time00" Style="{StaticResource TimeQuickButtonStyle}"
+                                                Content="00:00" Tag="0" />
+                                        <Button x:Name="PART_Time06" Style="{StaticResource TimeQuickButtonStyle}"
+                                                Content="06:00" Tag="6" />
+                                        <Button x:Name="PART_Time08" Style="{StaticResource TimeQuickButtonStyle}"
+                                                Content="08:00" Tag="8" />
+                                        <Button x:Name="PART_Time09" Style="{StaticResource TimeQuickButtonStyle}"
+                                                Content="09:00" Tag="9" />
+                                        <Button x:Name="PART_Time12" Style="{StaticResource TimeQuickButtonStyle}"
+                                                Content="12:00" Tag="12" />
+                                        <Button x:Name="PART_Time14" Style="{StaticResource TimeQuickButtonStyle}"
+                                                Content="14:00" Tag="14" />
+                                        <Button x:Name="PART_Time18" Style="{StaticResource TimeQuickButtonStyle}"
+                                                Content="18:00" Tag="18" />
+                                        <Button x:Name="PART_Time20" Style="{StaticResource TimeQuickButtonStyle}"
+                                                Content="20:00" Tag="20" />
+                                        <Button x:Name="PART_Time22" Style="{StaticResource TimeQuickButtonStyle}"
+                                                Content="22:00" Tag="22" />
+                                        <Button x:Name="PART_Time23" Style="{StaticResource TimeQuickButtonStyle}"
+                                                Content="23:00" Tag="23" />
                                     </UniformGrid>
 
                                     <!-- 确定和取消按钮 -->

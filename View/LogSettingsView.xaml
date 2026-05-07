@@ -1,7 +1,6 @@
 <UserControl x:Class="GuiPiao.View.LogSettingsView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:vm="clr-namespace:GuiPiao.ViewModel"
              FontSize="{DynamicResource BaseFontSize}">
     <Grid>
         <Grid.RowDefinitions>
@@ -19,31 +18,49 @@
                 </Grid.RowDefinitions>
 
                 <!-- 日志记录级别 -->
-                <Border Grid.Row="0" Background="{DynamicResource PanelBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
+                <Border Grid.Row="0" Background="{DynamicResource PanelBackgroundBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
                     <StackPanel>
-                        <TextBlock Text="📌 日志记录级别" FontWeight="Bold" Margin="0,0,0,10" Foreground="{DynamicResource TextPrimaryBrush}" />
+                        <TextBlock Text="📌 日志记录级别" FontWeight="Bold" Margin="0,0,0,10"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" />
                         <TextBlock Text="记录以下级别的日志：" Margin="0,0,0,10" Foreground="{DynamicResource TextPrimaryBrush}" />
                         <StackPanel Margin="20,0,0,0">
-                            <RadioButton Content="ALL (全部)" GroupName="LogLevel" IsChecked="{Binding SelectedLogLevel, Converter={StaticResource LogLevelConverter}, ConverterParameter=ALL}" Margin="0,0,0,5" />
-                            <RadioButton Content="INFO (信息)" GroupName="LogLevel" IsChecked="{Binding SelectedLogLevel, Converter={StaticResource LogLevelConverter}, ConverterParameter=INFO}" Margin="0,0,0,5" />
-                            <RadioButton Content="WARN (警告)" GroupName="LogLevel" IsChecked="{Binding SelectedLogLevel, Converter={StaticResource LogLevelConverter}, ConverterParameter=WARN}" Margin="0,0,0,5" />
-                            <RadioButton Content="ERROR (错误)" GroupName="LogLevel" IsChecked="{Binding SelectedLogLevel, Converter={StaticResource LogLevelConverter}, ConverterParameter=ERROR}" Margin="0,0,0,5" />
-                            <RadioButton Content="FATAL (致命)" GroupName="LogLevel" IsChecked="{Binding SelectedLogLevel, Converter={StaticResource LogLevelConverter}, ConverterParameter=FATAL}" Margin="0,0,0,5" />
+                            <RadioButton Content="ALL (全部)" GroupName="LogLevel"
+                                         IsChecked="{Binding SelectedLogLevel, Converter={StaticResource LogLevelConverter}, ConverterParameter=ALL}"
+                                         Margin="0,0,0,5" />
+                            <RadioButton Content="INFO (信息)" GroupName="LogLevel"
+                                         IsChecked="{Binding SelectedLogLevel, Converter={StaticResource LogLevelConverter}, ConverterParameter=INFO}"
+                                         Margin="0,0,0,5" />
+                            <RadioButton Content="WARN (警告)" GroupName="LogLevel"
+                                         IsChecked="{Binding SelectedLogLevel, Converter={StaticResource LogLevelConverter}, ConverterParameter=WARN}"
+                                         Margin="0,0,0,5" />
+                            <RadioButton Content="ERROR (错误)" GroupName="LogLevel"
+                                         IsChecked="{Binding SelectedLogLevel, Converter={StaticResource LogLevelConverter}, ConverterParameter=ERROR}"
+                                         Margin="0,0,0,5" />
+                            <RadioButton Content="FATAL (致命)" GroupName="LogLevel"
+                                         IsChecked="{Binding SelectedLogLevel, Converter={StaticResource LogLevelConverter}, ConverterParameter=FATAL}"
+                                         Margin="0,0,0,5" />
                         </StackPanel>
-                        <TextBlock Text="(推荐选择 INFO 或 WARN，避免日志文件过大)" Foreground="{DynamicResource TextDisabledBrush}" Margin="0,5,0,0" />
+                        <TextBlock Text="(推荐选择 INFO 或 WARN，避免日志文件过大)" Foreground="{DynamicResource TextDisabledBrush}"
+                                   Margin="0,5,0,0" />
                     </StackPanel>
                 </Border>
 
                 <!-- 日志保留策略 -->
-                <Border Grid.Row="1" Background="{DynamicResource PanelBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
+                <Border Grid.Row="1" Background="{DynamicResource PanelBackgroundBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
                     <StackPanel>
-                        <TextBlock Text="📌 日志保留策略" FontWeight="Bold" Margin="0,0,0,10" Foreground="{DynamicResource TextPrimaryBrush}" />
+                        <TextBlock Text="📌 日志保留策略" FontWeight="Bold" Margin="0,0,0,10"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" />
                         <CheckBox Content="启用自动清理旧日志" IsChecked="{Binding AutoCleanup}" Margin="0,0,0,15" />
                         <StackPanel Margin="20,0,0,10" IsEnabled="{Binding AutoCleanup}">
-                            <TextBlock Text="清理条件（满足任一即触发）：" Margin="0,0,0,10" Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <TextBlock Text="清理条件（满足任一即触发）：" Margin="0,0,0,10"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
                             <WrapPanel Margin="0,0,0,10">
-                                <TextBlock Text="• 日志超过" VerticalAlignment="Center" Margin="0,0,10,5" Foreground="{DynamicResource TextPrimaryBrush}" />
-                                <ComboBox MinWidth="100" SelectedValue="{Binding RetentionDays}" SelectedValuePath="Tag" Margin="0,0,0,5">
+                                <TextBlock Text="• 日志超过" VerticalAlignment="Center" Margin="0,0,10,5"
+                                           Foreground="{DynamicResource TextPrimaryBrush}" />
+                                <ComboBox MinWidth="100" SelectedValue="{Binding RetentionDays}"
+                                          SelectedValuePath="Tag" Margin="0,0,0,5">
                                     <ComboBoxItem Content="1 天" Tag="1" />
                                     <ComboBoxItem Content="7 天" Tag="7" />
                                     <ComboBoxItem Content="30 天" Tag="30" />
@@ -51,21 +68,25 @@
                                 </ComboBox>
                             </WrapPanel>
                             <WrapPanel>
-                                <TextBlock Text="• 日志超过" VerticalAlignment="Center" Margin="0,0,10,5" Foreground="{DynamicResource TextPrimaryBrush}" />
+                                <TextBlock Text="• 日志超过" VerticalAlignment="Center" Margin="0,0,10,5"
+                                           Foreground="{DynamicResource TextPrimaryBrush}" />
                                 <TextBox MinWidth="80" Text="{Binding MaxLogCount}" Margin="0,0,5,5" />
-                                <TextBlock Text=" 条" VerticalAlignment="Center" Margin="0,0,0,5" Foreground="{DynamicResource TextPrimaryBrush}" />
+                                <TextBlock Text=" 条" VerticalAlignment="Center" Margin="0,0,0,5"
+                                           Foreground="{DynamicResource TextPrimaryBrush}" />
                             </WrapPanel>
                             <TextBlock Text="💡 勾选后保存设置，将立即执行一次清理，之后按条件自动清理"
                                        Foreground="{DynamicResource TextDisabledBrush}"
-                                       Margin="0,10,0,0" FontSize="{DynamicResource SmallFontSize}" TextWrapping="Wrap"/>
+                                       Margin="0,10,0,0" FontSize="{DynamicResource SmallFontSize}" TextWrapping="Wrap" />
                         </StackPanel>
                     </StackPanel>
                 </Border>
 
                 <!-- 存储信息 -->
-                <Border Grid.Row="2" Background="{DynamicResource PanelBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
+                <Border Grid.Row="2" Background="{DynamicResource PanelBackgroundBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
                     <StackPanel>
-                        <TextBlock Text="📌 存储信息" FontWeight="Bold" Margin="0,0,0,10" Foreground="{DynamicResource TextPrimaryBrush}" />
+                        <TextBlock Text="📌 存储信息" FontWeight="Bold" Margin="0,0,0,10"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" />
                         <TextBlock Text="日志文件路径：" Margin="0,0,0,5" Foreground="{DynamicResource TextPrimaryBrush}" />
                         <TextBox Text="{Binding LogFilePath, Mode=OneWay}" IsReadOnly="True" Margin="0,0,0,10" />
                         <WrapPanel>
@@ -73,8 +94,10 @@
                                     Style="{StaticResource StandardButtonStyle}" Padding="10,5" Margin="0,0,5,5" />
                         </WrapPanel>
                         <WrapPanel Margin="0,10,0,0">
-                            <TextBlock Text="当前日志文件大小：" Margin="0,0,5,5" Foreground="{DynamicResource TextPrimaryBrush}" />
-                            <TextBlock Text="{Binding CurrentLogFileSize}" Margin="0,0,0,5" Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <TextBlock Text="当前日志文件大小：" Margin="0,0,5,5"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <TextBlock Text="{Binding CurrentLogFileSize}" Margin="0,0,0,5"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
                         </WrapPanel>
                     </StackPanel>
                 </Border>
@@ -82,11 +105,12 @@
         </ScrollViewer>
 
         <!-- 底部按钮 -->
-        <Border Grid.Row="1" Background="{DynamicResource ContentBackgroundBrush}" Padding="10" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0">
+        <Border Grid.Row="1" Background="{DynamicResource ContentBackgroundBrush}" Padding="10"
+                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button Content="💾 保存设置" Command="{Binding SaveSettingsCommand}" 
+                <Button Content="💾 保存设置" Command="{Binding SaveSettingsCommand}"
                         Style="{StaticResource StandardButtonStyle}" Padding="15,8" Margin="0,0,10,0" />
-                <Button Content="🔄 恢复默认" Command="{Binding RestoreDefaultsCommand}" 
+                <Button Content="🔄 恢复默认" Command="{Binding RestoreDefaultsCommand}"
                         Style="{StaticResource StandardButtonStyle}" Padding="15,8" />
             </StackPanel>
         </Border>

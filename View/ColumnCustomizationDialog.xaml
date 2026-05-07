@@ -16,17 +16,17 @@
         </Grid.RowDefinitions>
 
         <!-- 标题 -->
-        <TextBlock Grid.Row="0" 
-                   Text="📋 自定义列表字段" 
-                   FontSize="{DynamicResource LargeFontSize}" 
-                   FontWeight="Bold" 
+        <TextBlock Grid.Row="0"
+                   Text="📋 自定义列表字段"
+                   FontSize="{DynamicResource LargeFontSize}"
+                   FontWeight="Bold"
                    Margin="0,0,0,15"
                    Foreground="{DynamicResource TextPrimaryBrush}" />
 
         <!-- 字段列表 -->
-        <Border Grid.Row="1" 
-                Background="{DynamicResource PanelBackgroundBrush}" 
-                BorderBrush="{DynamicResource BorderBrush}" 
+        <Border Grid.Row="1"
+                Background="{DynamicResource PanelBackgroundBrush}"
+                BorderBrush="{DynamicResource BorderBrush}"
                 BorderThickness="1">
             <ScrollViewer x:Name="ColumnsScrollViewer" VerticalScrollBarVisibility="Auto">
                 <ListBox x:Name="ColumnsListBox" Margin="10"
@@ -47,9 +47,9 @@
                     </ListBox.ItemContainerStyle>
                     <ListBox.ItemTemplate>
                         <DataTemplate>
-                            <Border Background="{DynamicResource ContentBackgroundBrush}" 
-                                    BorderBrush="{DynamicResource BorderBrush}" 
-                                    BorderThickness="1" 
+                            <Border Background="{DynamicResource ContentBackgroundBrush}"
+                                    BorderBrush="{DynamicResource BorderBrush}"
+                                    BorderThickness="1"
                                     Padding="10"
                                     AllowDrop="True"
                                     DragEnter="Border_DragEnter"
@@ -67,36 +67,36 @@
                                     </Grid.ColumnDefinitions>
 
                                     <!-- 拖拽手柄 -->
-                                    <TextBlock Grid.Column="0" 
-                                               Text="☰" 
+                                    <TextBlock Grid.Column="0"
+                                               Text="☰"
                                                VerticalAlignment="Center"
                                                Margin="0,0,10,0"
                                                Foreground="{DynamicResource TextSecondaryBrush}"
                                                Cursor="SizeAll" />
 
-                                    <CheckBox Grid.Column="1" 
-                                              IsChecked="{Binding IsVisible}" 
+                                    <CheckBox Grid.Column="1"
+                                              IsChecked="{Binding IsVisible}"
                                               VerticalAlignment="Center"
                                               Margin="0,0,10,0" />
 
                                     <StackPanel Grid.Column="2" VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding Header}" 
+                                        <TextBlock Text="{Binding Header}"
                                                    FontWeight="Bold"
                                                    Foreground="{DynamicResource TextPrimaryBrush}" />
-                                        <TextBlock Text="{Binding FieldName}" 
+                                        <TextBlock Text="{Binding FieldName}"
                                                    FontSize="{DynamicResource SmallFontSize}"
                                                    Foreground="{DynamicResource TextSecondaryBrush}" />
                                     </StackPanel>
 
-                                    <TextBlock Grid.Column="3" 
-                                               Text="宽度:" 
+                                    <TextBlock Grid.Column="3"
+                                               Text="宽度:"
                                                VerticalAlignment="Center"
                                                Margin="0,0,5,0"
                                                Foreground="{DynamicResource TextSecondaryBrush}" />
 
-                                    <TextBox Grid.Column="4" 
+                                    <TextBox Grid.Column="4"
                                              x:Name="WidthTextBox"
-                                             Text="{Binding Width, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                             Text="{Binding Width, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                              Width="50"
                                              VerticalAlignment="Center"
                                              IsEnabled="{Binding IsVisible}"
@@ -112,25 +112,25 @@
         </Border>
 
         <!-- 说明文字 -->
-        <TextBlock Grid.Row="2" 
-                   Text="提示：勾选字段以显示，拖拽 ☰ 可调整顺序；宽度输入数字(像素)或*(自动填充剩余空间)" 
+        <TextBlock Grid.Row="2"
+                   Text="提示：勾选字段以显示，拖拽 ☰ 可调整顺序；宽度输入数字(像素)或*(自动填充剩余空间)"
                    FontSize="{DynamicResource SmallFontSize}"
                    Foreground="{DynamicResource TextSecondaryBrush}"
                    Margin="0,10,0,10"
                    TextWrapping="Wrap" />
 
         <!-- 按钮 -->
-        <StackPanel Grid.Row="3" 
-                    Orientation="Horizontal" 
+        <StackPanel Grid.Row="3"
+                    Orientation="Horizontal"
                     HorizontalAlignment="Right">
-            <Button Content="💾 确定" 
+            <Button Content="💾 确定"
                     Click="OkButton_Click"
-                    Style="{StaticResource StandardButtonStyle}" 
-                    Padding="15,8" 
+                    Style="{StaticResource StandardButtonStyle}"
+                    Padding="15,8"
                     Margin="0,0,10,0" />
-            <Button Content="❌ 取消" 
+            <Button Content="❌ 取消"
                     Click="CancelButton_Click"
-                    Style="{StaticResource StandardButtonStyle}" 
+                    Style="{StaticResource StandardButtonStyle}"
                     Padding="15,8" />
         </StackPanel>
     </Grid>

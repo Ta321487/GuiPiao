@@ -22,13 +22,17 @@
                 </Grid.RowDefinitions>
 
                 <!-- 票面预览显示设置 -->
-                <Border Grid.Row="0" Background="{DynamicResource PanelBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
+                <Border Grid.Row="0" Background="{DynamicResource PanelBackgroundBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
                     <StackPanel>
-                        <TextBlock Text="🎫 票面预览显示设置" FontWeight="Bold" Margin="0,0,0,10" Foreground="{DynamicResource TextPrimaryBrush}" />
-                        
+                        <TextBlock Text="🎫 票面预览显示设置" FontWeight="Bold" Margin="0,0,0,10"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                            <TextBlock Text="默认缩放：" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
-                            <ComboBox MinWidth="120" SelectedValue="{Binding DefaultZoom}" SelectedValuePath="Tag" Margin="0,0,20,0">
+                            <TextBlock Text="默认缩放：" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <ComboBox MinWidth="120" SelectedValue="{Binding DefaultZoom}" SelectedValuePath="Tag"
+                                      Margin="0,0,20,0">
                                 <ComboBoxItem Content="适应窗口" Tag="FitWindow" />
                                 <ComboBoxItem Content="50%" Tag="50" />
                                 <ComboBoxItem Content="75%" Tag="75" />
@@ -39,71 +43,121 @@
                                 <ComboBoxItem Content="300%" Tag="300" />
                                 <ComboBoxItem Content="400%" Tag="400" />
                             </ComboBox>
-                            <CheckBox Content="允许鼠标滚轮缩放" IsChecked="{Binding AllowMouseWheelZoom}" VerticalAlignment="Center" />
+                            <CheckBox Content="允许鼠标滚轮缩放" IsChecked="{Binding AllowMouseWheelZoom}"
+                                      VerticalAlignment="Center" />
                         </StackPanel>
-                        
+
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                            <TextBlock Text="显示亮度：" VerticalAlignment="Center" Margin="0,0,10,0" Foreground="{DynamicResource TextPrimaryBrush}" />
-                            <Slider Width="200" Minimum="50" Maximum="150" Value="{Binding DisplayBrightness}" TickFrequency="10" TickPlacement="BottomRight" IsSnapToTickEnabled="True" />
-                            <TextBlock Text="{Binding DisplayBrightness, StringFormat='{}{0}%'}" VerticalAlignment="Center" Margin="10,0,20,0" Foreground="{DynamicResource TextSecondaryBrush}" MinWidth="40" />
+                            <TextBlock Text="显示亮度：" VerticalAlignment="Center" Margin="0,0,10,0"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <Slider Width="200" Minimum="50" Maximum="150" Value="{Binding DisplayBrightness}"
+                                    TickFrequency="10" TickPlacement="BottomRight" IsSnapToTickEnabled="True" />
+                            <TextBlock Text="{Binding DisplayBrightness, StringFormat='{}{0}%'}"
+                                       VerticalAlignment="Center" Margin="10,0,20,0"
+                                       Foreground="{DynamicResource TextSecondaryBrush}" MinWidth="40" />
                             <CheckBox Content="票面居中显示" IsChecked="{Binding TicketCentered}" VerticalAlignment="Center" />
                         </StackPanel>
-                        
+
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,0">
-                            <Button Content="👁 测试预览效果" Command="{Binding TestTicketPreviewCommand}" Style="{StaticResource StandardButtonStyle}" Padding="10,5" />
+                            <Button Content="👁 测试预览效果" Command="{Binding TestTicketPreviewCommand}"
+                                    Style="{StaticResource StandardButtonStyle}" Padding="10,5" />
                         </StackPanel>
                     </StackPanel>
                 </Border>
 
                 <!-- 主界面布局配置 -->
-                <Border Grid.Row="1" Background="{DynamicResource PanelBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
+                <Border Grid.Row="1" Background="{DynamicResource PanelBackgroundBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
                     <StackPanel>
-                        <TextBlock Text="📐 主界面布局配置" FontWeight="Bold" Margin="0,0,0,10" Foreground="{DynamicResource TextPrimaryBrush}" />
-                        
+                        <TextBlock Text="📐 主界面布局配置" FontWeight="Bold" Margin="0,0,0,10"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+
                         <WrapPanel Margin="0,0,0,10">
-                            <TextBlock Text="左侧检索区宽度：" VerticalAlignment="Center" Margin="0,0,5,5" Foreground="{DynamicResource TextPrimaryBrush}" />
-                            <Slider Width="150" Minimum="120" Maximum="800" Value="{Binding LeftPanelWidth}" TickFrequency="10" TickPlacement="BottomRight" IsSnapToTickEnabled="True" IsEnabled="{Binding LeftPanelLocked, Converter={StaticResource InverseBooleanConverter}}" Margin="0,0,10,5" />
-                            <TextBox MinWidth="50" Text="{Binding LeftPanelWidth, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" Margin="0,0,5,5" VerticalAlignment="Center" IsEnabled="{Binding LeftPanelLocked, Converter={StaticResource InverseBooleanConverter}}" PreviewTextInput="NumericTextBox_PreviewTextInput" LostFocus="NumericTextBox_LostFocus" Tag="120,800" />
-                            <TextBlock Text="px" VerticalAlignment="Center" Margin="0,0,15,5" Foreground="{DynamicResource TextSecondaryBrush}" />
-                            <CheckBox Content="锁定宽度" IsChecked="{Binding LeftPanelLocked}" VerticalAlignment="Center" Margin="0,0,0,5" />
+                            <TextBlock Text="左侧检索区宽度：" VerticalAlignment="Center" Margin="0,0,5,5"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <Slider Width="150" Minimum="120" Maximum="800" Value="{Binding LeftPanelWidth}"
+                                    TickFrequency="10" TickPlacement="BottomRight" IsSnapToTickEnabled="True"
+                                    IsEnabled="{Binding LeftPanelLocked, Converter={StaticResource InverseBooleanConverter}}"
+                                    Margin="0,0,10,5" />
+                            <TextBox MinWidth="50"
+                                     Text="{Binding LeftPanelWidth, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                                     Margin="0,0,5,5" VerticalAlignment="Center"
+                                     IsEnabled="{Binding LeftPanelLocked, Converter={StaticResource InverseBooleanConverter}}"
+                                     PreviewTextInput="NumericTextBox_PreviewTextInput"
+                                     LostFocus="NumericTextBox_LostFocus" Tag="120,800" />
+                            <TextBlock Text="px" VerticalAlignment="Center" Margin="0,0,15,5"
+                                       Foreground="{DynamicResource TextSecondaryBrush}" />
+                            <CheckBox Content="锁定宽度" IsChecked="{Binding LeftPanelLocked}" VerticalAlignment="Center"
+                                      Margin="0,0,0,5" />
                         </WrapPanel>
 
                         <WrapPanel Margin="0,0,0,10">
-                            <TextBlock Text="右侧日志面板宽度：" VerticalAlignment="Center" Margin="0,0,5,5" Foreground="{DynamicResource TextPrimaryBrush}" />
-                            <Slider Width="150" Minimum="180" Maximum="800" Value="{Binding RightPanelWidth}" TickFrequency="10" TickPlacement="BottomRight" IsSnapToTickEnabled="True" IsEnabled="{Binding RightPanelLocked, Converter={StaticResource InverseBooleanConverter}}" Margin="0,0,10,5" />
-                            <TextBox MinWidth="50" Text="{Binding RightPanelWidth, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" Margin="0,0,5,5" VerticalAlignment="Center" IsEnabled="{Binding RightPanelLocked, Converter={StaticResource InverseBooleanConverter}}" PreviewTextInput="NumericTextBox_PreviewTextInput" LostFocus="NumericTextBox_LostFocus" Tag="180,800" />
-                            <TextBlock Text="px" VerticalAlignment="Center" Margin="0,0,15,5" Foreground="{DynamicResource TextSecondaryBrush}" />
-                            <CheckBox Content="锁定宽度" IsChecked="{Binding RightPanelLocked}" VerticalAlignment="Center" Margin="0,0,0,5" />
+                            <TextBlock Text="右侧日志面板宽度：" VerticalAlignment="Center" Margin="0,0,5,5"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <Slider Width="150" Minimum="180" Maximum="800" Value="{Binding RightPanelWidth}"
+                                    TickFrequency="10" TickPlacement="BottomRight" IsSnapToTickEnabled="True"
+                                    IsEnabled="{Binding RightPanelLocked, Converter={StaticResource InverseBooleanConverter}}"
+                                    Margin="0,0,10,5" />
+                            <TextBox MinWidth="50"
+                                     Text="{Binding RightPanelWidth, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                                     Margin="0,0,5,5" VerticalAlignment="Center"
+                                     IsEnabled="{Binding RightPanelLocked, Converter={StaticResource InverseBooleanConverter}}"
+                                     PreviewTextInput="NumericTextBox_PreviewTextInput"
+                                     LostFocus="NumericTextBox_LostFocus" Tag="180,800" />
+                            <TextBlock Text="px" VerticalAlignment="Center" Margin="0,0,15,5"
+                                       Foreground="{DynamicResource TextSecondaryBrush}" />
+                            <CheckBox Content="锁定宽度" IsChecked="{Binding RightPanelLocked}" VerticalAlignment="Center"
+                                      Margin="0,0,0,5" />
                         </WrapPanel>
 
                         <WrapPanel Margin="0,0,0,10">
-                            <TextBlock Text="底部行程列表高度：" VerticalAlignment="Center" Margin="0,0,5,5" Foreground="{DynamicResource TextPrimaryBrush}" />
-                            <Slider Width="150" Minimum="120" Maximum="400" Value="{Binding BottomPanelHeight}" TickFrequency="10" TickPlacement="BottomRight" IsSnapToTickEnabled="True" IsEnabled="{Binding BottomPanelLocked, Converter={StaticResource InverseBooleanConverter}}" Margin="0,0,10,5" />
-                            <TextBox MinWidth="50" Text="{Binding BottomPanelHeight, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" Margin="0,0,5,5" VerticalAlignment="Center" IsEnabled="{Binding BottomPanelLocked, Converter={StaticResource InverseBooleanConverter}}" PreviewTextInput="NumericTextBox_PreviewTextInput" LostFocus="NumericTextBox_LostFocus" Tag="120,400" />
-                            <TextBlock Text="px" VerticalAlignment="Center" Margin="0,0,15,5" Foreground="{DynamicResource TextSecondaryBrush}" />
-                            <CheckBox Content="锁定高度" IsChecked="{Binding BottomPanelLocked}" VerticalAlignment="Center" Margin="0,0,0,5" />
+                            <TextBlock Text="底部行程列表高度：" VerticalAlignment="Center" Margin="0,0,5,5"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <Slider Width="150" Minimum="120" Maximum="400" Value="{Binding BottomPanelHeight}"
+                                    TickFrequency="10" TickPlacement="BottomRight" IsSnapToTickEnabled="True"
+                                    IsEnabled="{Binding BottomPanelLocked, Converter={StaticResource InverseBooleanConverter}}"
+                                    Margin="0,0,10,5" />
+                            <TextBox MinWidth="50"
+                                     Text="{Binding BottomPanelHeight, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                                     Margin="0,0,5,5" VerticalAlignment="Center"
+                                     IsEnabled="{Binding BottomPanelLocked, Converter={StaticResource InverseBooleanConverter}}"
+                                     PreviewTextInput="NumericTextBox_PreviewTextInput"
+                                     LostFocus="NumericTextBox_LostFocus" Tag="120,400" />
+                            <TextBlock Text="px" VerticalAlignment="Center" Margin="0,0,15,5"
+                                       Foreground="{DynamicResource TextSecondaryBrush}" />
+                            <CheckBox Content="锁定高度" IsChecked="{Binding BottomPanelLocked}" VerticalAlignment="Center"
+                                      Margin="0,0,0,5" />
                         </WrapPanel>
-                        
+
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,0">
-                            <Button Content="💾 保存当前布局" Command="{Binding SaveLayoutCommand}" Style="{StaticResource StandardButtonStyle}" Padding="10,5" Margin="0,0,10,0" />
-                            <Button Content="🔄 重置布局默认" Command="{Binding ResetLayoutCommand}" Style="{StaticResource StandardButtonStyle}" Padding="10,5" />
+                            <Button Content="💾 保存当前布局" Command="{Binding SaveLayoutCommand}"
+                                    Style="{StaticResource StandardButtonStyle}" Padding="10,5" Margin="0,0,10,0" />
+                            <Button Content="🔄 重置布局默认" Command="{Binding ResetLayoutCommand}"
+                                    Style="{StaticResource StandardButtonStyle}" Padding="10,5" />
                         </StackPanel>
                     </StackPanel>
                 </Border>
 
                 <!-- 行程列表显示设置 -->
-                <Border Grid.Row="2" Background="{DynamicResource PanelBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
+                <Border Grid.Row="2" Background="{DynamicResource PanelBackgroundBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
                     <StackPanel>
-                        <TextBlock Text="📋 行程列表显示设置" FontWeight="Bold" Margin="0,0,0,10" Foreground="{DynamicResource TextPrimaryBrush}" />
-                        
+                        <TextBlock Text="📋 行程列表显示设置" FontWeight="Bold" Margin="0,0,0,10"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+
                         <WrapPanel Margin="0,0,0,10">
-                            <Button Content="⚙️ 自定义列表字段" Command="{Binding CustomizeFieldsCommand}" Style="{StaticResource StandardButtonStyle}" Padding="10,5" Margin="0,0,10,5" />
-                            <Button Content="🔄 重置列表默认" Command="{Binding ResetListDefaultsCommand}" Style="{StaticResource StandardButtonStyle}" Padding="10,5" Margin="0,0,0,5" />
+                            <Button Content="⚙️ 自定义列表字段" Command="{Binding CustomizeFieldsCommand}"
+                                    Style="{StaticResource StandardButtonStyle}" Padding="10,5" Margin="0,0,10,5" />
+                            <Button Content="🔄 重置列表默认" Command="{Binding ResetListDefaultsCommand}"
+                                    Style="{StaticResource StandardButtonStyle}" Padding="10,5" Margin="0,0,0,5" />
                         </WrapPanel>
-                        
+
                         <WrapPanel Margin="0,0,0,10">
-                            <TextBlock Text="默认分组：" VerticalAlignment="Center" Margin="0,0,5,5" Foreground="{DynamicResource TextPrimaryBrush}" />
-                            <ComboBox Width="140" SelectedValue="{Binding DefaultGroup, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" SelectedValuePath="Tag" Margin="0,0,20,5">
+                            <TextBlock Text="默认分组：" VerticalAlignment="Center" Margin="0,0,5,5"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <ComboBox Width="140"
+                                      SelectedValue="{Binding DefaultGroup, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                      SelectedValuePath="Tag" Margin="0,0,20,5">
                                 <ComboBoxItem Content="不分组">
                                     <ComboBoxItem.Tag>
                                         <model:GroupOption>None</model:GroupOption>
@@ -135,22 +189,28 @@
                                     </ComboBoxItem.Tag>
                                 </ComboBoxItem>
                             </ComboBox>
-                            <CheckBox Content="记住字段顺序" IsChecked="{Binding RememberColumnOrder}" VerticalAlignment="Center" Margin="0,0,20,5" />
-                            <CheckBox Content="记住数据排序" IsChecked="{Binding RememberDataSort}" VerticalAlignment="Center" Margin="0,0,0,5" />
+                            <CheckBox Content="记住字段顺序" IsChecked="{Binding RememberColumnOrder}"
+                                      VerticalAlignment="Center" Margin="0,0,20,5" />
+                            <CheckBox Content="记住数据排序" IsChecked="{Binding RememberDataSort}"
+                                      VerticalAlignment="Center" Margin="0,0,0,5" />
                         </WrapPanel>
 
                         <WrapPanel Margin="0,0,0,10">
-                            <TextBlock Text="滚动条样式：" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
-                            <ComboBox MinWidth="100" SelectedValue="{Binding ScrollbarStyle}" SelectedValuePath="Tag" Margin="0,0,0,5">
+                            <TextBlock Text="滚动条样式：" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <ComboBox MinWidth="100" SelectedValue="{Binding ScrollbarStyle}" SelectedValuePath="Tag"
+                                      Margin="0,0,0,5">
                                 <ComboBoxItem Content="正常" Tag="Normal" />
                                 <ComboBoxItem Content="精简" Tag="Minimal" />
                                 <ComboBoxItem Content="悬停显示" Tag="Hover" />
                             </ComboBox>
                         </WrapPanel>
 
-                        <CheckBox Content="鼠标悬停时显示操作按钮" IsChecked="{Binding ShowActionButtonsOnHover}" Margin="0,0,0,10" />
+                        <CheckBox Content="鼠标悬停时显示操作按钮" IsChecked="{Binding ShowActionButtonsOnHover}"
+                                  Margin="0,0,0,10" />
 
-                        <TextBlock Text="选择要显示的操作按钮：" FontWeight="Bold" Margin="0,0,0,5" Foreground="{DynamicResource TextPrimaryBrush}" />
+                        <TextBlock Text="选择要显示的操作按钮：" FontWeight="Bold" Margin="0,0,0,5"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" />
                         <WrapPanel Margin="0,0,0,5">
                             <CheckBox Content="👁 查看" IsChecked="{Binding ShowViewButton}" Margin="0,0,15,5" />
                             <CheckBox Content="✏️ 编辑" IsChecked="{Binding ShowEditButton}" Margin="0,0,15,5" />
@@ -164,57 +224,77 @@
                 </Border>
 
                 <!-- 日志面板显示设置 -->
-                <Border Grid.Row="3" Background="{DynamicResource PanelBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
+                <Border Grid.Row="3" Background="{DynamicResource PanelBackgroundBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
                     <StackPanel>
-                        <TextBlock Text="📄 日志面板显示设置" FontWeight="Bold" Margin="0,0,0,10" Foreground="{DynamicResource TextPrimaryBrush}" />
-                        
+                        <TextBlock Text="📄 日志面板显示设置" FontWeight="Bold" Margin="0,0,0,10"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+
                         <WrapPanel Margin="0,0,0,10">
-                            <TextBlock Text="日志行高：" VerticalAlignment="Center" Margin="0,0,5,5" Foreground="{DynamicResource TextPrimaryBrush}" />
-                            <ComboBox MinWidth="100" SelectedValue="{Binding LogRowHeight}" SelectedValuePath="Tag" Margin="0,0,0,5">
+                            <TextBlock Text="日志行高：" VerticalAlignment="Center" Margin="0,0,5,5"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <ComboBox MinWidth="100" SelectedValue="{Binding LogRowHeight}" SelectedValuePath="Tag"
+                                      Margin="0,0,0,5">
                                 <ComboBoxItem Content="紧凑" Tag="Compact" />
                                 <ComboBoxItem Content="标准" Tag="Standard" />
                                 <ComboBoxItem Content="宽松" Tag="Loose" />
                             </ComboBox>
                         </WrapPanel>
-                        
+
                         <WrapPanel Margin="0,0,0,10">
                             <StackPanel Orientation="Horizontal" Margin="0,0,15,5">
-                                <TextBlock Text="信息颜色：" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
-                                <Border Width="24" Height="16" Background="{Binding InfoColorBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="2" Margin="0,0,5,0" Cursor="Hand" MouseLeftButtonDown="InfoColorBorder_MouseLeftButtonDown">
+                                <TextBlock Text="信息颜色：" VerticalAlignment="Center"
+                                           Foreground="{DynamicResource TextPrimaryBrush}" />
+                                <Border Width="24" Height="16" Background="{Binding InfoColorBrush}"
+                                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                                        CornerRadius="2" Margin="0,0,5,0" Cursor="Hand"
+                                        MouseLeftButtonDown="InfoColorBorder_MouseLeftButtonDown">
                                     <Border.ToolTip>
                                         <TextBlock Text="点击选择颜色" />
                                     </Border.ToolTip>
                                 </Border>
                             </StackPanel>
-                            
+
                             <StackPanel Orientation="Horizontal" Margin="0,0,15,5">
-                                <TextBlock Text="警告颜色：" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
-                                <Border Width="24" Height="16" Background="{Binding WarningColorBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="2" Margin="0,0,5,0" Cursor="Hand" MouseLeftButtonDown="WarningColorBorder_MouseLeftButtonDown">
+                                <TextBlock Text="警告颜色：" VerticalAlignment="Center"
+                                           Foreground="{DynamicResource TextPrimaryBrush}" />
+                                <Border Width="24" Height="16" Background="{Binding WarningColorBrush}"
+                                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                                        CornerRadius="2" Margin="0,0,5,0" Cursor="Hand"
+                                        MouseLeftButtonDown="WarningColorBorder_MouseLeftButtonDown">
                                     <Border.ToolTip>
                                         <TextBlock Text="点击选择颜色" />
                                     </Border.ToolTip>
                                 </Border>
                             </StackPanel>
-                            
+
                             <StackPanel Orientation="Horizontal" Margin="0,0,15,5">
-                                <TextBlock Text="错误颜色：" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
-                                <Border Width="24" Height="16" Background="{Binding ErrorColorBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="2" Margin="0,0,5,0" Cursor="Hand" MouseLeftButtonDown="ErrorColorBorder_MouseLeftButtonDown">
+                                <TextBlock Text="错误颜色：" VerticalAlignment="Center"
+                                           Foreground="{DynamicResource TextPrimaryBrush}" />
+                                <Border Width="24" Height="16" Background="{Binding ErrorColorBrush}"
+                                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                                        CornerRadius="2" Margin="0,0,5,0" Cursor="Hand"
+                                        MouseLeftButtonDown="ErrorColorBorder_MouseLeftButtonDown">
                                     <Border.ToolTip>
                                         <TextBlock Text="点击选择颜色" />
                                     </Border.ToolTip>
                                 </Border>
                             </StackPanel>
-                            
+
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
-                                <TextBlock Text="致命颜色：" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
-                                <Border Width="24" Height="16" Background="{Binding FatalColorBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="2" Margin="0,0,5,0" Cursor="Hand" MouseLeftButtonDown="FatalColorBorder_MouseLeftButtonDown">
+                                <TextBlock Text="致命颜色：" VerticalAlignment="Center"
+                                           Foreground="{DynamicResource TextPrimaryBrush}" />
+                                <Border Width="24" Height="16" Background="{Binding FatalColorBrush}"
+                                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                                        CornerRadius="2" Margin="0,0,5,0" Cursor="Hand"
+                                        MouseLeftButtonDown="FatalColorBorder_MouseLeftButtonDown">
                                     <Border.ToolTip>
                                         <TextBlock Text="点击选择颜色" />
                                     </Border.ToolTip>
                                 </Border>
                             </StackPanel>
                         </WrapPanel>
-                        
+
                         <WrapPanel>
                             <CheckBox Content="显示时间戳" IsChecked="{Binding ShowTimestamp}" Margin="0,0,20,5" />
                             <CheckBox Content="显示模块来源" IsChecked="{Binding ShowModuleSource}" Margin="0,0,0,5" />
@@ -223,12 +303,15 @@
                 </Border>
 
                 <!-- 高级界面选项 -->
-                <Border Grid.Row="5" Background="{DynamicResource PanelBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
+                <Border Grid.Row="5" Background="{DynamicResource PanelBackgroundBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
                     <StackPanel>
-                        <TextBlock Text="🔧 高级界面选项" FontWeight="Bold" Margin="0,0,0,10" Foreground="{DynamicResource TextPrimaryBrush}" />
-                        
+                        <TextBlock Text="🔧 高级界面选项" FontWeight="Bold" Margin="0,0,0,10"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                            <TextBlock Text="DPI缩放适配：" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <TextBlock Text="DPI缩放适配：" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
                             <ComboBox MinWidth="120" SelectedValue="{Binding DpiScaling}" SelectedValuePath="Tag">
                                 <ComboBoxItem Content="跟随系统" Tag="System" />
                                 <ComboBoxItem Content="100%" Tag="100" />
@@ -242,11 +325,12 @@
         </ScrollViewer>
 
         <!-- 底部按钮 -->
-        <Border Grid.Row="1" Background="{DynamicResource ContentBackgroundBrush}" Padding="10" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0">
+        <Border Grid.Row="1" Background="{DynamicResource ContentBackgroundBrush}" Padding="10"
+                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button Content="💾 保存设置" Command="{Binding SaveSettingsCommand}" 
+                <Button Content="💾 保存设置" Command="{Binding SaveSettingsCommand}"
                         Padding="15,8" Margin="0,0,10,0" Style="{StaticResource StandardButtonStyle}" />
-                <Button Content="🔄 恢复默认" Command="{Binding RestoreDefaultsCommand}" 
+                <Button Content="🔄 恢复默认" Command="{Binding RestoreDefaultsCommand}"
                         Padding="15,8" Style="{StaticResource StandardButtonStyle}" />
             </StackPanel>
         </Border>

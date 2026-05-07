@@ -1,9 +1,9 @@
 <UserControl x:Class="GuiPiao.Controls.AutoCompleteTextBox"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             mc:Ignorable="d" 
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
              d:DesignHeight="30" d:DesignWidth="200">
     <Grid>
         <TextBox x:Name="InputTextBox"
@@ -11,7 +11,7 @@
                  FontSize="{DynamicResource BaseFontSize}"
                  Padding="4,2"
                  MinHeight="24"
-                 PreviewKeyDown="InputTextBox_PreviewKeyDown"/>
+                 PreviewKeyDown="InputTextBox_PreviewKeyDown" />
         <Popup IsOpen="{Binding IsDropDownOpen, RelativeSource={RelativeSource AncestorType=UserControl}, Mode=TwoWay}"
                PlacementTarget="{Binding ElementName=InputTextBox}"
                Placement="Bottom"
@@ -31,7 +31,7 @@
                         <DataTemplate>
                             <TextBlock Text="{Binding}"
                                        FontSize="{DynamicResource BaseFontSize}"
-                                       Padding="8,4"/>
+                                       Padding="8,4" />
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </ListBox>

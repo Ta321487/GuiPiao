@@ -3,7 +3,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:local="clr-namespace:GuiPiao.View"
              xmlns:vm="clr-namespace:GuiPiao.ViewModel"
              mc:Ignorable="d"
              d:DesignHeight="450"
@@ -18,21 +17,22 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        
+
         <Border Grid.Row="0" Background="{DynamicResource ControlBackgroundBrush}" Padding="10">
             <StackPanel Orientation="Horizontal">
-                <TextBlock Text="添加火车票" FontSize="{DynamicResource TitleFontSize}" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" />
+                <TextBlock Text="添加火车票" FontSize="{DynamicResource TitleFontSize}" FontWeight="Bold"
+                           Foreground="{DynamicResource TextPrimaryBrush}" />
             </StackPanel>
         </Border>
-        
+
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-            <StackPanel Margin="20" >
+            <StackPanel Margin="20">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
-                    
+
                     <!-- 左侧表单 -->
                     <StackPanel Grid.Column="0" Margin="0,0,20,0">
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
@@ -45,7 +45,8 @@
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
                             <TextBlock Text="出发车站:" Width="80" VerticalAlignment="Center" />
-                            <ComboBox ItemsSource="{Binding StationNames}" SelectedItem="{Binding DepartStation}" Width="200" />
+                            <ComboBox ItemsSource="{Binding StationNames}" SelectedItem="{Binding DepartStation}"
+                                      Width="200" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
                             <TextBlock Text="车次号:" Width="80" VerticalAlignment="Center" />
@@ -53,7 +54,8 @@
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
                             <TextBlock Text="到达车站:" Width="80" VerticalAlignment="Center" />
-                            <ComboBox ItemsSource="{Binding StationNames}" SelectedItem="{Binding ArriveStation}" Width="200" />
+                            <ComboBox ItemsSource="{Binding StationNames}" SelectedItem="{Binding ArriveStation}"
+                                      Width="200" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
                             <TextBlock Text="出发日期:" Width="80" VerticalAlignment="Center" />
@@ -64,7 +66,7 @@
                             <TextBox Text="{Binding DepartTime}" Width="200" />
                         </StackPanel>
                     </StackPanel>
-                    
+
                     <!-- 右侧表单 -->
                     <StackPanel Grid.Column="1">
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
@@ -97,9 +99,10 @@
                         </StackPanel>
                     </StackPanel>
                 </Grid>
-                
+
                 <StackPanel Margin="0,20,0,0">
-                    <TextBlock Text="其他信息" FontSize="{DynamicResource LargeFontSize}" FontWeight="Bold" Margin="0,0,0,10" />
+                    <TextBlock Text="其他信息" FontSize="{DynamicResource LargeFontSize}" FontWeight="Bold"
+                               Margin="0,0,0,10" />
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
                         <TextBlock Text="出发车站代码:" Width="120" VerticalAlignment="Center" />
                         <TextBox Text="{Binding DepartStationCode}" Width="200" />
@@ -115,8 +118,8 @@
                 </StackPanel>
             </StackPanel>
         </ScrollViewer>
-        
-        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="20" >
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="20">
             <Button Content="保存" Command="{Binding SaveTrainTicketCommand}" Width="100" Height="30" Margin="0,0,10,0" />
             <Button Content="取消" Command="{Binding CancelCommand}" Width="100" Height="30" />
         </StackPanel>

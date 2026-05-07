@@ -3,47 +3,45 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:local="clr-namespace:GuiPiao.View"
              xmlns:converters="clr-namespace:GuiPiao.Converters"
              mc:Ignorable="d"
              d:DesignHeight="500"
              d:DesignWidth="250">
     <UserControl.Resources>
-        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
         <converters:BooleanToBrushConverter x:Key="BooleanToBrushConverter" />
     </UserControl.Resources>
     <Grid x:Name="RootGrid">
         <!-- 主面板 -->
         <Border x:Name="MainPanel"
-                Background="{DynamicResource PanelBackgroundBrush}" 
-                BorderBrush="{DynamicResource BorderBrush}" 
-                BorderThickness="1" 
+                Background="{DynamicResource PanelBackgroundBrush}"
+                BorderBrush="{DynamicResource BorderBrush}"
+                BorderThickness="1"
                 CornerRadius="4"
                 Width="250"
                 Visibility="Collapsed">
             <Grid>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                
+
                 <!-- 标题栏 -->
-                <Border Grid.Row="0" 
-                        Background="{DynamicResource ControlBackgroundBrush}" 
-                        BorderBrush="{DynamicResource BorderBrush}" 
-                        BorderThickness="0,0,0,1" 
+                <Border Grid.Row="0"
+                        Background="{DynamicResource ControlBackgroundBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}"
+                        BorderThickness="0,0,0,1"
                         CornerRadius="4,4,0,0"
                         Padding="10">
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <TextBlock Text="操作历史" 
-                                   FontSize="{DynamicResource BaseFontSize}" 
-                                   FontWeight="Bold" 
+                        <TextBlock Text="操作历史"
+                                   FontSize="{DynamicResource BaseFontSize}"
+                                   FontWeight="Bold"
                                    Foreground="{DynamicResource TextPrimaryBrush}"
-                                   VerticalAlignment="Center"/>
+                                   VerticalAlignment="Center" />
                         <Button Grid.Column="1"
                                 Content="✕"
                                 Click="OnCollapseClick"
@@ -51,21 +49,21 @@
                                 Width="24"
                                 Height="24"
                                 FontSize="12"
-                                Padding="0"/>
+                                Padding="0" />
                     </Grid>
                 </Border>
-                
+
                 <!-- 操作列表 -->
                 <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                    <ItemsControl x:Name="HistoryItemsControl" 
+                    <ItemsControl x:Name="HistoryItemsControl"
                                   Margin="10">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Border BorderBrush="{DynamicResource BorderBrush}" 
-                                        BorderThickness="0,0,0,1" 
+                                <Border BorderBrush="{DynamicResource BorderBrush}"
+                                        BorderThickness="0,0,0,1"
                                         Padding="0,8">
                                     <StackPanel>
-                                        <TextBlock Text="{Binding Description}" 
+                                        <TextBlock Text="{Binding Description}"
                                                    FontSize="{DynamicResource BaseFontSize}"
                                                    Foreground="{Binding IsUndone, Converter={StaticResource BooleanToBrushConverter}, ConverterParameter=Undone}"
                                                    FontWeight="SemiBold">
@@ -73,13 +71,13 @@
                                                 <Style TargetType="TextBlock">
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding IsUndone}" Value="True">
-                                                            <Setter Property="FontStyle" Value="Italic"/>
+                                                            <Setter Property="FontStyle" Value="Italic" />
                                                         </DataTrigger>
                                                     </Style.Triggers>
                                                 </Style>
                                             </TextBlock.Style>
                                         </TextBlock>
-                                        <TextBlock Text="{Binding NewValue}" 
+                                        <TextBlock Text="{Binding NewValue}"
                                                    FontSize="{DynamicResource SmallFontSize}"
                                                    Foreground="{Binding IsUndone, Converter={StaticResource BooleanToBrushConverter}, ConverterParameter=Undone}"
                                                    TextTrimming="CharacterEllipsis"
@@ -88,13 +86,13 @@
                                                 <Style TargetType="TextBlock">
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding IsUndone}" Value="True">
-                                                            <Setter Property="FontStyle" Value="Italic"/>
+                                                            <Setter Property="FontStyle" Value="Italic" />
                                                         </DataTrigger>
                                                     </Style.Triggers>
                                                 </Style>
                                             </TextBlock.Style>
                                         </TextBlock>
-                                        <TextBlock Text="{Binding Timestamp, StringFormat='{}{0:HH:mm:ss}'}" 
+                                        <TextBlock Text="{Binding Timestamp, StringFormat='{}{0:HH:mm:ss}'}"
                                                    FontSize="{DynamicResource SmallFontSize}"
                                                    Foreground="{Binding IsUndone, Converter={StaticResource BooleanToBrushConverter}, ConverterParameter=UndoneTimestamp}"
                                                    HorizontalAlignment="Right">
@@ -102,7 +100,7 @@
                                                 <Style TargetType="TextBlock">
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding IsUndone}" Value="True">
-                                                            <Setter Property="FontStyle" Value="Italic"/>
+                                                            <Setter Property="FontStyle" Value="Italic" />
                                                         </DataTrigger>
                                                     </Style.Triggers>
                                                 </Style>
@@ -116,7 +114,7 @@
                 </ScrollViewer>
             </Grid>
         </Border>
-        
+
         <!-- 展开按钮（面板折叠时显示） -->
         <Button x:Name="ExpandButton"
                 Content="📋 历史"
@@ -125,7 +123,6 @@
                 VerticalAlignment="Top"
                 Padding="10,4"
                 Height="30"
-                Style="{StaticResource StandardButtonStyle}"
-                FontSize="{DynamicResource BaseFontSize}"/>
+                Style="{StaticResource StandardButtonStyle}" />
     </Grid>
 </UserControl>

@@ -5,52 +5,52 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
         mc:Ignorable="d"
-        Title="车票地图" 
+        Title="车票地图"
         Height="800" Width="1200"
         WindowStartupLocation="CenterScreen"
         Background="{DynamicResource WindowBackgroundBrush}">
     <Window.Resources>
         <!-- 地图窗口工具栏按钮样式 - 基于 StandardButtonStyle 但更适合工具栏 -->
         <Style x:Key="MapToolbarButtonStyle" BasedOn="{StaticResource StandardButtonStyle}" TargetType="Button">
-            <Setter Property="Padding" Value="10,5"/>
-            <Setter Property="Margin" Value="3,0"/>
-            <Setter Property="MinHeight" Value="28"/>
+            <Setter Property="Padding" Value="10,5" />
+            <Setter Property="Margin" Value="3,0" />
+            <Setter Property="MinHeight" Value="28" />
         </Style>
     </Window.Resources>
-    
+
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        
+
         <!-- 工具栏 -->
-        <Border Grid.Row="0" Background="{DynamicResource PanelBackgroundBrush}" 
+        <Border Grid.Row="0" Background="{DynamicResource PanelBackgroundBrush}"
                 BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1">
             <WrapPanel Margin="10">
-                <Button Content="🔄 刷新数据" Style="{StaticResource MapToolbarButtonStyle}" 
-                        Command="{Binding RefreshDataCommand}" Margin="0,0,5,5"/>
-                <Button Content="📊 显示全部" Style="{StaticResource MapToolbarButtonStyle}" 
-                        Command="{Binding ShowAllCommand}" Margin="0,0,5,5"/>
-                <Button Content="✅ 已完成行程" Style="{StaticResource MapToolbarButtonStyle}" 
-                        Command="{Binding FilterCompletedCommand}" Margin="0,0,5,5"/>
-                <Button Content="⏳ 未出行行程" Style="{StaticResource MapToolbarButtonStyle}" 
-                        Command="{Binding FilterPendingCommand}" Margin="0,0,5,5"/>
-                <Button Content="🚫 已退票/改签" Style="{StaticResource MapToolbarButtonStyle}" 
-                        Command="{Binding FilterRefundedCommand}" Margin="0,0,5,5"/>
-                <Separator Margin="5,0,10,5" Background="{DynamicResource BorderBrush}" Style="{x:Null}" Width="1"/>
-                <Button Content="🎨 打开设置" Style="{StaticResource MapToolbarButtonStyle}" 
-                        Command="{Binding OpenSettingsCommand}" Margin="0,0,0,5"/>
+                <Button Content="🔄 刷新数据" Style="{StaticResource MapToolbarButtonStyle}"
+                        Command="{Binding RefreshDataCommand}" Margin="0,0,5,5" />
+                <Button Content="📊 显示全部" Style="{StaticResource MapToolbarButtonStyle}"
+                        Command="{Binding ShowAllCommand}" Margin="0,0,5,5" />
+                <Button Content="✅ 已完成行程" Style="{StaticResource MapToolbarButtonStyle}"
+                        Command="{Binding FilterCompletedCommand}" Margin="0,0,5,5" />
+                <Button Content="⏳ 未出行行程" Style="{StaticResource MapToolbarButtonStyle}"
+                        Command="{Binding FilterPendingCommand}" Margin="0,0,5,5" />
+                <Button Content="🚫 已退票/改签" Style="{StaticResource MapToolbarButtonStyle}"
+                        Command="{Binding FilterRefundedCommand}" Margin="0,0,5,5" />
+                <Separator Margin="5,0,10,5" Background="{DynamicResource BorderBrush}" Style="{x:Null}" Width="1" />
+                <Button Content="🎨 打开设置" Style="{StaticResource MapToolbarButtonStyle}"
+                        Command="{Binding OpenSettingsCommand}" Margin="0,0,0,5" />
             </WrapPanel>
         </Border>
-        
+
         <!-- 地图区域 -->
         <Border Grid.Row="1" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0">
-            <wv2:WebView2 x:Name="MapWebView" 
-                          NavigationCompleted="MapWebView_NavigationCompleted"/>
+            <wv2:WebView2 x:Name="MapWebView"
+                          NavigationCompleted="MapWebView_NavigationCompleted" />
         </Border>
-        
+
         <!-- 状态栏 -->
         <StatusBar Grid.Row="2" Background="{DynamicResource StatusBarBackgroundBrush}">
             <StatusBarItem>

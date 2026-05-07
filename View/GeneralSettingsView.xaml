@@ -19,54 +19,72 @@
                 </Grid.RowDefinitions>
 
                 <!-- 外观与显示 -->
-                <Border Grid.Row="0" Background="{DynamicResource PanelBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
+                <Border Grid.Row="0" Background="{DynamicResource PanelBackgroundBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
                     <StackPanel>
-                        <TextBlock Text="📌 外观与显示" FontWeight="Bold" Margin="0,0,0,10" Foreground="{DynamicResource TextPrimaryBrush}" />
-                        
+                        <TextBlock Text="📌 外观与显示" FontWeight="Bold" Margin="0,0,0,10"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+
                         <!-- 主题模式 -->
                         <TextBlock Text="主题模式：" Margin="0,0,0,5" Foreground="{DynamicResource TextPrimaryBrush}" />
                         <WrapPanel Margin="20,0,0,10">
-                            <RadioButton Content="浅色模式" GroupName="ThemeMode" IsChecked="{Binding IsLightTheme}" Margin="0,0,15,5" />
-                            <RadioButton Content="深色模式" GroupName="ThemeMode" IsChecked="{Binding IsDarkTheme}" Margin="0,0,15,5" />
-                            <RadioButton Content="跟随系统" GroupName="ThemeMode" IsChecked="{Binding IsSystemTheme}" Margin="0,0,0,5" />
+                            <RadioButton Content="浅色模式" GroupName="ThemeMode" IsChecked="{Binding IsLightTheme}"
+                                         Margin="0,0,15,5" />
+                            <RadioButton Content="深色模式" GroupName="ThemeMode" IsChecked="{Binding IsDarkTheme}"
+                                         Margin="0,0,15,5" />
+                            <RadioButton Content="跟随系统" GroupName="ThemeMode" IsChecked="{Binding IsSystemTheme}"
+                                         Margin="0,0,0,5" />
                         </WrapPanel>
 
                         <!-- 强调色 -->
                         <TextBlock Text="强调色（主题色）：" Margin="0,0,0,5" Foreground="{DynamicResource TextPrimaryBrush}" />
                         <WrapPanel Margin="20,0,0,10">
-                            <RadioButton GroupName="AccentColor" IsChecked="{Binding IsMicrosoftBlue}" Margin="0,0,10,5">
+                            <RadioButton GroupName="AccentColor" IsChecked="{Binding IsMicrosoftBlue}"
+                                         Margin="0,0,10,5">
                                 <StackPanel Orientation="Horizontal">
-                                    <Border Width="16" Height="16" Background="#0078D4" CornerRadius="2" Margin="0,0,5,0" />
-                                    <TextBlock Text="微软蓝" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
+                                    <Border Width="16" Height="16" Background="#0078D4" CornerRadius="2"
+                                            Margin="0,0,5,0" />
+                                    <TextBlock Text="微软蓝" VerticalAlignment="Center"
+                                               Foreground="{DynamicResource TextPrimaryBrush}" />
                                 </StackPanel>
                             </RadioButton>
                             <RadioButton GroupName="AccentColor" IsChecked="{Binding IsFreshGreen}" Margin="0,0,10,5">
                                 <StackPanel Orientation="Horizontal">
-                                    <Border Width="16" Height="16" Background="#28A745" CornerRadius="2" Margin="0,0,5,0" />
-                                    <TextBlock Text="清新绿" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
+                                    <Border Width="16" Height="16" Background="#28A745" CornerRadius="2"
+                                            Margin="0,0,5,0" />
+                                    <TextBlock Text="清新绿" VerticalAlignment="Center"
+                                               Foreground="{DynamicResource TextPrimaryBrush}" />
                                 </StackPanel>
                             </RadioButton>
-                            <RadioButton GroupName="AccentColor" IsChecked="{Binding IsVitalityOrange}" Margin="0,0,10,5">
+                            <RadioButton GroupName="AccentColor" IsChecked="{Binding IsVitalityOrange}"
+                                         Margin="0,0,10,5">
                                 <StackPanel Orientation="Horizontal">
-                                    <Border Width="16" Height="16" Background="#FD7E14" CornerRadius="2" Margin="0,0,5,0" />
-                                    <TextBlock Text="活力橙" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
+                                    <Border Width="16" Height="16" Background="#FD7E14" CornerRadius="2"
+                                            Margin="0,0,5,0" />
+                                    <TextBlock Text="活力橙" VerticalAlignment="Center"
+                                               Foreground="{DynamicResource TextPrimaryBrush}" />
                                 </StackPanel>
                             </RadioButton>
                             <RadioButton GroupName="AccentColor" IsChecked="{Binding IsDarkPurple}" Margin="0,0,10,5">
                                 <StackPanel Orientation="Horizontal">
-                                    <Border Width="16" Height="16" Background="#6F42C1" CornerRadius="2" Margin="0,0,5,0" />
-                                    <TextBlock Text="暗夜紫" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
+                                    <Border Width="16" Height="16" Background="#6F42C1" CornerRadius="2"
+                                            Margin="0,0,5,0" />
+                                    <TextBlock Text="暗夜紫" VerticalAlignment="Center"
+                                               Foreground="{DynamicResource TextPrimaryBrush}" />
                                 </StackPanel>
                             </RadioButton>
                             <RadioButton GroupName="AccentColor" IsChecked="{Binding IsMinimalGray}" Margin="0,0,10,5">
                                 <StackPanel Orientation="Horizontal">
-                                    <Border Width="16" Height="16" Background="#6C757D" CornerRadius="2" Margin="0,0,5,0" />
-                                    <TextBlock Text="极简灰" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
+                                    <Border Width="16" Height="16" Background="#6C757D" CornerRadius="2"
+                                            Margin="0,0,5,0" />
+                                    <TextBlock Text="极简灰" VerticalAlignment="Center"
+                                               Foreground="{DynamicResource TextPrimaryBrush}" />
                                 </StackPanel>
                             </RadioButton>
                             <RadioButton GroupName="AccentColor" IsChecked="{Binding IsCustomColor}" Margin="0,0,10,5">
                                 <StackPanel Orientation="Horizontal" Cursor="Hand">
-                                    <TextBlock Text="🎨 自定义" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
+                                    <TextBlock Text="🎨 自定义" VerticalAlignment="Center"
+                                               Foreground="{DynamicResource TextPrimaryBrush}" />
                                     <Border Width="24" Height="16"
                                             Background="{Binding CustomColorBrush}"
                                             BorderBrush="{DynamicResource BorderBrush}"
@@ -74,23 +92,26 @@
                                             CornerRadius="2"
                                             Margin="8,0,0,0"
                                             ToolTip="点击选择颜色"
-                                            MouseLeftButtonDown="CustomColorBorder_MouseLeftButtonDown">
-                                    </Border>
+                                            MouseLeftButtonDown="CustomColorBorder_MouseLeftButtonDown" />
                                 </StackPanel>
                             </RadioButton>
                         </WrapPanel>
 
                         <!-- 全局字体大小和列表行高 -->
                         <WrapPanel Margin="0,0,0,5">
-                            <TextBlock Text="全局字体大小：" VerticalAlignment="Center" Margin="0,0,10,5" Foreground="{DynamicResource TextPrimaryBrush}" />
-                            <ComboBox MinWidth="120" SelectedValue="{Binding FontSize}" SelectedValuePath="Tag" Margin="0,0,20,5">
+                            <TextBlock Text="全局字体大小：" VerticalAlignment="Center" Margin="0,0,10,5"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <ComboBox MinWidth="120" SelectedValue="{Binding FontSize}" SelectedValuePath="Tag"
+                                      Margin="0,0,20,5">
                                 <ComboBoxItem Content="小 (12px)" Tag="Small" />
                                 <ComboBoxItem Content="中 (14px)" Tag="Medium" />
                                 <ComboBoxItem Content="大 (16px)" Tag="Large" />
                                 <ComboBoxItem Content="特大 (18px)" Tag="ExtraLarge" />
                             </ComboBox>
-                            <TextBlock Text="列表行高：" VerticalAlignment="Center" Margin="0,0,10,5" Foreground="{DynamicResource TextPrimaryBrush}" />
-                            <ComboBox MinWidth="100" SelectedValue="{Binding RowHeight}" SelectedValuePath="Tag" Margin="0,0,0,5">
+                            <TextBlock Text="列表行高：" VerticalAlignment="Center" Margin="0,0,10,5"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <ComboBox MinWidth="100" SelectedValue="{Binding RowHeight}" SelectedValuePath="Tag"
+                                      Margin="0,0,0,5">
                                 <ComboBoxItem Content="紧凑" Tag="Compact" />
                                 <ComboBoxItem Content="标准" Tag="Standard" />
                                 <ComboBoxItem Content="宽松" Tag="Loose" />
@@ -100,14 +121,19 @@
                 </Border>
 
                 <!-- 程序启动与运行设置 -->
-                <Border Grid.Row="1" Background="{DynamicResource PanelBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
+                <Border Grid.Row="1" Background="{DynamicResource PanelBackgroundBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
                     <StackPanel>
-                        <TextBlock Text="📌 程序启动与运行设置" FontWeight="Bold" Margin="0,0,0,10" Foreground="{DynamicResource TextPrimaryBrush}" />
-                        
+                        <TextBlock Text="📌 程序启动与运行设置" FontWeight="Bold" Margin="0,0,0,10"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+
                         <WrapPanel Margin="0,0,0,10">
-                            <CheckBox Content="禁止同时打开多个窗口" IsChecked="{Binding SingleInstance}" VerticalAlignment="Center" Margin="0,0,20,5" />
-                            <TextBlock Text="启动后打开：" VerticalAlignment="Center" Margin="0,0,10,5" Foreground="{DynamicResource TextPrimaryBrush}" />
-                            <ComboBox MinWidth="140" SelectedValue="{Binding StartupPage, Mode=TwoWay}" SelectedValuePath="Tag" Margin="0,0,0,5">
+                            <CheckBox Content="禁止同时打开多个窗口" IsChecked="{Binding SingleInstance}"
+                                      VerticalAlignment="Center" Margin="0,0,20,5" />
+                            <TextBlock Text="启动后打开：" VerticalAlignment="Center" Margin="0,0,10,5"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <ComboBox MinWidth="140" SelectedValue="{Binding StartupPage, Mode=TwoWay}"
+                                      SelectedValuePath="Tag" Margin="0,0,0,5">
                                 <ComboBoxItem Content="主界面行程列表" Tag="MainList" />
                                 <ComboBoxItem Content="车票地图" Tag="Map" />
                                 <ComboBoxItem Content="上次关闭页面" Tag="LastPage" />
@@ -116,11 +142,14 @@
 
                         <TextBlock Text="启动窗口状态：" Margin="0,0,0,5" Foreground="{DynamicResource TextPrimaryBrush}" />
                         <WrapPanel Margin="20,0,0,10">
-                            <RadioButton Content="正常窗口" GroupName="WindowState" IsChecked="{Binding IsNormalWindow}" Margin="0,0,15,5" />
-                            <RadioButton Content="最大化" GroupName="WindowState" IsChecked="{Binding IsMaximized}" Margin="0,0,15,5" />
-                            <RadioButton Content="最小化到系统托盘" GroupName="WindowState" IsChecked="{Binding IsMinimizedToTray}" Margin="0,0,0,5" />
+                            <RadioButton Content="正常窗口" GroupName="WindowState" IsChecked="{Binding IsNormalWindow}"
+                                         Margin="0,0,15,5" />
+                            <RadioButton Content="最大化" GroupName="WindowState" IsChecked="{Binding IsMaximized}"
+                                         Margin="0,0,15,5" />
+                            <RadioButton Content="最小化到系统托盘" GroupName="WindowState"
+                                         IsChecked="{Binding IsMinimizedToTray}" Margin="0,0,0,5" />
                         </WrapPanel>
-                        
+
                         <WrapPanel>
                             <CheckBox Content="启动时自动刷新行程列表" IsChecked="{Binding AutoRefreshOnStartup}" Margin="0,0,0,5" />
                         </WrapPanel>
@@ -128,37 +157,47 @@
                 </Border>
 
                 <!-- 核心业务默认设置 -->
-                <Border Grid.Row="2" Background="{DynamicResource PanelBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
+                <Border Grid.Row="2" Background="{DynamicResource PanelBackgroundBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
                     <StackPanel>
-                        <TextBlock Text="📌 核心业务默认设置" FontWeight="Bold" Margin="0,0,0,10" Foreground="{DynamicResource TextPrimaryBrush}" />
-                        
+                        <TextBlock Text="📌 核心业务默认设置" FontWeight="Bold" Margin="0,0,0,10"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+
                         <!-- 行程列表默认规则 -->
                         <TextBlock Text="行程列表默认规则：" Margin="0,0,0,5" Foreground="{DynamicResource TextPrimaryBrush}" />
                         <WrapPanel Margin="20,0,0,10">
-                            <TextBlock Text="每页显示：" VerticalAlignment="Center" Margin="0,0,5,5" Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <TextBlock Text="每页显示：" VerticalAlignment="Center" Margin="0,0,5,5"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
                             <TextBox MinWidth="50" Text="{Binding PageSize}" Margin="0,0,5,5" />
-                            <TextBlock Text="条" VerticalAlignment="Center" Margin="0,0,20,5" Foreground="{DynamicResource TextPrimaryBrush}" />
-                            <TextBlock Text="默认排序：" VerticalAlignment="Center" Margin="0,0,5,5" Foreground="{DynamicResource TextPrimaryBrush}" />
-                            <ComboBox MinWidth="140" SelectedValue="{Binding DefaultSort}" SelectedValuePath="Tag" Margin="0,0,20,5">
+                            <TextBlock Text="条" VerticalAlignment="Center" Margin="0,0,20,5"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <TextBlock Text="默认排序：" VerticalAlignment="Center" Margin="0,0,5,5"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <ComboBox MinWidth="140" SelectedValue="{Binding DefaultSort}" SelectedValuePath="Tag"
+                                      Margin="0,0,20,5">
                                 <ComboBoxItem Content="按出发日期降序" Tag="DateDesc" />
                                 <ComboBoxItem Content="按出发日期升序" Tag="DateAsc" />
                                 <ComboBoxItem Content="按车次号" Tag="TrainNo" />
                                 <ComboBoxItem Content="按出发站" Tag="Departure" />
                             </ComboBox>
-                            <TextBlock Text="加载范围：" VerticalAlignment="Center" Margin="0,0,5,5" Foreground="{DynamicResource TextPrimaryBrush}" />
-                            <ComboBox MinWidth="100" SelectedValue="{Binding LoadRange}" SelectedValuePath="Tag" Margin="0,0,0,5">
+                            <TextBlock Text="加载范围：" VerticalAlignment="Center" Margin="0,0,5,5"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <ComboBox MinWidth="100" SelectedValue="{Binding LoadRange}" SelectedValuePath="Tag"
+                                      Margin="0,0,0,5">
                                 <ComboBoxItem Content="本年度" Tag="ThisYear" />
                                 <ComboBoxItem Content="全部" Tag="All" />
                                 <ComboBoxItem Content="近3个月" Tag="Last3Months" />
                                 <ComboBoxItem Content="近6个月" Tag="Last6Months" />
                             </ComboBox>
                         </WrapPanel>
-                        
+
                         <!-- 车票录入默认配置 -->
                         <TextBlock Text="车票录入默认配置：" Margin="0,0,0,5" Foreground="{DynamicResource TextPrimaryBrush}" />
                         <WrapPanel Margin="20,0,0,10">
-                            <TextBlock Text="默认席别：" VerticalAlignment="Center" Margin="0,0,5,5" Foreground="{DynamicResource TextPrimaryBrush}" />
-                            <ComboBox MinWidth="120" SelectedValue="{Binding DefaultSeatType}" SelectedValuePath="Tag" Margin="0,0,20,5">
+                            <TextBlock Text="默认席别：" VerticalAlignment="Center" Margin="0,0,5,5"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <ComboBox MinWidth="120" SelectedValue="{Binding DefaultSeatType}" SelectedValuePath="Tag"
+                                      Margin="0,0,20,5">
                                 <ComboBoxItem Content="二等座" Tag="SecondClass" />
                                 <ComboBoxItem Content="一等座" Tag="FirstClass" />
                                 <ComboBoxItem Content="商务座" Tag="BusinessClass" />
@@ -169,22 +208,29 @@
                                 <ComboBoxItem Content="新空调软卧" Tag="NewACSoftSleeper" />
                                 <ComboBoxItem Content="硬卧代硬座" Tag="HardSleeperAsSeat" />
                             </ComboBox>
-                            <TextBlock Text="默认状态：" VerticalAlignment="Center" Margin="0,0,5,5" Foreground="{DynamicResource TextPrimaryBrush}" />
-                            <ComboBox MinWidth="100" SelectedValue="{Binding DefaultTicketStatus}" SelectedValuePath="Tag" Margin="0,0,0,5">
+                            <TextBlock Text="默认状态：" VerticalAlignment="Center" Margin="0,0,5,5"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <ComboBox MinWidth="100" SelectedValue="{Binding DefaultTicketStatus}"
+                                      SelectedValuePath="Tag" Margin="0,0,0,5">
                                 <ComboBoxItem Content="已完成" Tag="Completed" />
                                 <ComboBoxItem Content="未出行" Tag="NotTraveled" />
                             </ComboBox>
                         </WrapPanel>
 
                         <WrapPanel Margin="20,0,0,10">
-                            <TextBlock Text="OCR识别后行为：" VerticalAlignment="Center" Margin="0,0,10,5" Foreground="{DynamicResource TextPrimaryBrush}" />
-                            <RadioButton Content="直接保存" GroupName="OcrBehavior" IsChecked="{Binding OcrDirectSave}" Margin="0,0,15,5" />
-                            <RadioButton Content="弹出编辑窗口确认" GroupName="OcrBehavior" IsChecked="{Binding OcrEditConfirm}" Margin="0,0,0,5" />
+                            <TextBlock Text="OCR识别后行为：" VerticalAlignment="Center" Margin="0,0,10,5"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <RadioButton Content="直接保存" GroupName="OcrBehavior" IsChecked="{Binding OcrDirectSave}"
+                                         Margin="0,0,15,5" />
+                            <RadioButton Content="弹出编辑窗口确认" GroupName="OcrBehavior"
+                                         IsChecked="{Binding OcrEditConfirm}" Margin="0,0,0,5" />
                         </WrapPanel>
 
                         <WrapPanel Margin="20,0,0,0">
-                            <TextBlock Text="双击行程项时：" VerticalAlignment="Center" Margin="0,0,10,5" Foreground="{DynamicResource TextPrimaryBrush}" />
-                            <ComboBox MinWidth="120" SelectedValue="{Binding DoubleClickAction}" SelectedValuePath="Tag" Margin="0,0,0,5">
+                            <TextBlock Text="双击行程项时：" VerticalAlignment="Center" Margin="0,0,10,5"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <ComboBox MinWidth="120" SelectedValue="{Binding DoubleClickAction}"
+                                      SelectedValuePath="Tag" Margin="0,0,0,5">
                                 <ComboBoxItem Content="打开编辑窗口" Tag="Edit" />
                                 <ComboBoxItem Content="打开票面预览" Tag="Preview" />
                                 <ComboBoxItem Content="地图定位" Tag="Map" />
@@ -194,21 +240,27 @@
                 </Border>
 
                 <!-- 操作防护与确认设置 -->
-                <Border Grid.Row="3" Background="{DynamicResource PanelBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
+                <Border Grid.Row="3" Background="{DynamicResource PanelBackgroundBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
                     <StackPanel>
-                        <TextBlock Text="📌 操作防护与确认设置" FontWeight="Bold" Margin="0,0,0,10" Foreground="{DynamicResource TextPrimaryBrush}" />
-                        
+                        <TextBlock Text="📌 操作防护与确认设置" FontWeight="Bold" Margin="0,0,0,10"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+
                         <TextBlock Text="高危操作二次确认：" Margin="0,0,0,5" Foreground="{DynamicResource TextPrimaryBrush}" />
                         <WrapPanel Margin="20,0,0,10">
                             <CheckBox Content="删除车票时弹出确认窗口" IsChecked="{Binding ConfirmOnDelete}" Margin="0,0,20,5" />
-                            <CheckBox Content="批量删除/清空数据时弹出二次确认" IsChecked="{Binding ConfirmOnBatchDelete}" Margin="0,0,20,5" />
+                            <CheckBox Content="批量删除/清空数据时弹出二次确认" IsChecked="{Binding ConfirmOnBatchDelete}"
+                                      Margin="0,0,20,5" />
                             <CheckBox Content="恢复数据库备份时弹出确认" IsChecked="{Binding ConfirmOnRestore}" Margin="0,0,0,5" />
                         </WrapPanel>
 
                         <WrapPanel>
-                            <CheckBox Content="启用操作撤销功能" IsChecked="{Binding EnableUndo}" VerticalAlignment="Center" Margin="0,0,20,5" />
-                            <TextBlock Text="最多可撤销步数：" VerticalAlignment="Center" Margin="0,0,5,5" Foreground="{DynamicResource TextPrimaryBrush}" />
-                            <TextBox MinWidth="50" Text="{Binding MaxUndoSteps}" IsEnabled="{Binding EnableUndo}" Margin="0,0,0,5" />
+                            <CheckBox Content="启用操作撤销功能" IsChecked="{Binding EnableUndo}" VerticalAlignment="Center"
+                                      Margin="0,0,20,5" />
+                            <TextBlock Text="最多可撤销步数：" VerticalAlignment="Center" Margin="0,0,5,5"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <TextBox MinWidth="50" Text="{Binding MaxUndoSteps}" IsEnabled="{Binding EnableUndo}"
+                                     Margin="0,0,0,5" />
                         </WrapPanel>
                     </StackPanel>
                 </Border>
@@ -216,11 +268,12 @@
         </ScrollViewer>
 
         <!-- 底部按钮 -->
-        <Border Grid.Row="1" Background="{DynamicResource ContentBackgroundBrush}" Padding="10" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0">
+        <Border Grid.Row="1" Background="{DynamicResource ContentBackgroundBrush}" Padding="10"
+                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button Content="💾 保存设置" Command="{Binding SaveSettingsCommand}" 
+                <Button Content="💾 保存设置" Command="{Binding SaveSettingsCommand}"
                         Padding="15,8" Margin="0,0,10,0" Style="{StaticResource StandardButtonStyle}" />
-                <Button Content="🔄 恢复默认" Command="{Binding RestoreDefaultsCommand}" 
+                <Button Content="🔄 恢复默认" Command="{Binding RestoreDefaultsCommand}"
                         Padding="15,8" Style="{StaticResource StandardButtonStyle}" />
             </StackPanel>
         </Border>

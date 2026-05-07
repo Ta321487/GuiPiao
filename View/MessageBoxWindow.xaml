@@ -53,8 +53,8 @@
 
         <!-- 按钮区域 -->
         <WrapPanel Grid.Row="2"
-                    x:Name="ButtonPanel"
-                    HorizontalAlignment="Center">
+                   x:Name="ButtonPanel"
+                   HorizontalAlignment="Center">
             <Button x:Name="YesButton"
                     Style="{StaticResource PrimaryButtonStyle}"
                     MinWidth="80"

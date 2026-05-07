@@ -18,14 +18,18 @@
                 </Grid.RowDefinitions>
 
                 <!-- 行程显示与样式自定义 -->
-                <Border Grid.Row="0" Background="{DynamicResource PanelBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
+                <Border Grid.Row="0" Background="{DynamicResource PanelBackgroundBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
                     <StackPanel>
-                        <TextBlock Text="🗺️ 行程显示与样式自定义" FontWeight="Bold" Margin="0,0,0,10" Foreground="{DynamicResource TextPrimaryBrush}" />
+                        <TextBlock Text="🗺️ 行程显示与样式自定义" FontWeight="Bold" Margin="0,0,0,10"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" />
 
                         <!-- 地图底图源 -->
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                            <TextBlock Text="地图底图源：" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
-                            <ComboBox MinWidth="160" SelectedValue="{Binding MapTileSource, Mode=TwoWay}" SelectedValuePath="Tag">
+                            <TextBlock Text="地图底图源：" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <ComboBox MinWidth="160" SelectedValue="{Binding MapTileSource, Mode=TwoWay}"
+                                      SelectedValuePath="Tag">
                                 <ComboBoxItem Content="OpenStreetMap" Tag="osm" />
                                 <ComboBoxItem Content="高德地图" Tag="amap" />
                                 <ComboBoxItem Content="深色模式" Tag="dark" />
@@ -35,8 +39,10 @@
 
                         <!-- 打开地图默认显示 -->
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                            <TextBlock Text="打开地图默认显示：" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
-                            <ComboBox MinWidth="160" SelectedValue="{Binding DefaultMapDisplay, Mode=TwoWay}" SelectedValuePath="Tag">
+                            <TextBlock Text="打开地图默认显示：" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <ComboBox MinWidth="160" SelectedValue="{Binding DefaultMapDisplay, Mode=TwoWay}"
+                                      SelectedValuePath="Tag">
                                 <ComboBoxItem Content="所有已保存行程" Tag="AllSavedTrips" />
                                 <ComboBoxItem Content="仅当年内行程" Tag="ThisYearOnly" />
                                 <ComboBoxItem Content="仅已完成行程" Tag="CompletedOnly" />
@@ -63,123 +69,188 @@
                                 </Grid.ColumnDefinitions>
 
                                 <!-- 表头 -->
-                                <Border Grid.Row="0" Grid.Column="0" Background="{DynamicResource ContentBackgroundBrush}" Padding="8,5" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,1">
-                                    <TextBlock Text="行程状态" FontWeight="Bold" HorizontalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
+                                <Border Grid.Row="0" Grid.Column="0"
+                                        Background="{DynamicResource ContentBackgroundBrush}" Padding="8,5"
+                                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,1">
+                                    <TextBlock Text="行程状态" FontWeight="Bold" HorizontalAlignment="Center"
+                                               Foreground="{DynamicResource TextPrimaryBrush}" />
                                 </Border>
-                                <Border Grid.Row="0" Grid.Column="1" Background="{DynamicResource ContentBackgroundBrush}" Padding="8,5" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,1">
-                                    <TextBlock Text="线路颜色" FontWeight="Bold" HorizontalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
+                                <Border Grid.Row="0" Grid.Column="1"
+                                        Background="{DynamicResource ContentBackgroundBrush}" Padding="8,5"
+                                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,1">
+                                    <TextBlock Text="线路颜色" FontWeight="Bold" HorizontalAlignment="Center"
+                                               Foreground="{DynamicResource TextPrimaryBrush}" />
                                 </Border>
-                                <Border Grid.Row="0" Grid.Column="2" Background="{DynamicResource ContentBackgroundBrush}" Padding="8,5" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1">
-                                    <TextBlock Text="线条粗细" FontWeight="Bold" HorizontalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
+                                <Border Grid.Row="0" Grid.Column="2"
+                                        Background="{DynamicResource ContentBackgroundBrush}" Padding="8,5"
+                                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1">
+                                    <TextBlock Text="线条粗细" FontWeight="Bold" HorizontalAlignment="Center"
+                                               Foreground="{DynamicResource TextPrimaryBrush}" />
                                 </Border>
 
                                 <!-- 已完成历史行程 -->
-                                <Border Grid.Row="1" Grid.Column="0" Padding="8,5" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,1">
-                                    <TextBlock Text="已完成历史行程" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
+                                <Border Grid.Row="1" Grid.Column="0" Padding="8,5"
+                                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,1">
+                                    <TextBlock Text="已完成历史行程" VerticalAlignment="Center"
+                                               Foreground="{DynamicResource TextPrimaryBrush}" />
                                 </Border>
-                                <Border Grid.Row="1" Grid.Column="1" Padding="8,5" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,1">
+                                <Border Grid.Row="1" Grid.Column="1" Padding="8,5"
+                                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,1">
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                        <Border Width="20" Height="14" Background="{Binding CompletedTripColorBrush}" CornerRadius="2" Cursor="Hand"
+                                        <Border Width="20" Height="14" Background="{Binding CompletedTripColorBrush}"
+                                                CornerRadius="2" Cursor="Hand"
                                                 ToolTip="点击选择颜色"
                                                 MouseLeftButtonDown="CompletedColorBorder_MouseLeftButtonDown" />
-                                        <TextBlock Text="{Binding CompletedTripColor}" Margin="5,0,0,0" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryBrush}" />
+                                        <TextBlock Text="{Binding CompletedTripColor}" Margin="5,0,0,0"
+                                                   VerticalAlignment="Center"
+                                                   Foreground="{DynamicResource TextSecondaryBrush}" />
                                     </StackPanel>
                                 </Border>
-                                <Border Grid.Row="1" Grid.Column="2" Padding="8,5" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1">
+                                <Border Grid.Row="1" Grid.Column="2" Padding="8,5"
+                                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1">
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                        <TextBlock Text="[" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
-                                        <TextBlock Text="{Binding CompletedLineWidth}" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
-                                        <TextBlock Text="] px" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
-                                        <Slider Width="80" Minimum="1" Maximum="10" Value="{Binding CompletedLineWidth}" 
-                                                TickFrequency="1" TickPlacement="BottomRight" IsSnapToTickEnabled="True" Margin="5,0,0,0" />
+                                        <TextBlock Text="[" VerticalAlignment="Center"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+                                        <TextBlock Text="{Binding CompletedLineWidth}" VerticalAlignment="Center"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+                                        <TextBlock Text="] px" VerticalAlignment="Center"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+                                        <Slider Width="80" Minimum="1" Maximum="10"
+                                                Value="{Binding CompletedLineWidth}"
+                                                TickFrequency="1" TickPlacement="BottomRight"
+                                                IsSnapToTickEnabled="True" Margin="5,0,0,0" />
                                     </StackPanel>
                                 </Border>
 
                                 <!-- 未出行待乘行程 -->
-                                <Border Grid.Row="2" Grid.Column="0" Padding="8,5" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,1">
-                                    <TextBlock Text="未出行待乘行程" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
+                                <Border Grid.Row="2" Grid.Column="0" Padding="8,5"
+                                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,1">
+                                    <TextBlock Text="未出行待乘行程" VerticalAlignment="Center"
+                                               Foreground="{DynamicResource TextPrimaryBrush}" />
                                 </Border>
-                                <Border Grid.Row="2" Grid.Column="1" Padding="8,5" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,1">
+                                <Border Grid.Row="2" Grid.Column="1" Padding="8,5"
+                                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,1">
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                        <Border Width="20" Height="14" Background="{Binding PendingTripColorBrush}" CornerRadius="2" Cursor="Hand"
+                                        <Border Width="20" Height="14" Background="{Binding PendingTripColorBrush}"
+                                                CornerRadius="2" Cursor="Hand"
                                                 ToolTip="点击选择颜色"
                                                 MouseLeftButtonDown="PendingColorBorder_MouseLeftButtonDown" />
-                                        <TextBlock Text="{Binding PendingTripColor}" Margin="5,0,0,0" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryBrush}" />
+                                        <TextBlock Text="{Binding PendingTripColor}" Margin="5,0,0,0"
+                                                   VerticalAlignment="Center"
+                                                   Foreground="{DynamicResource TextSecondaryBrush}" />
                                     </StackPanel>
                                 </Border>
-                                <Border Grid.Row="2" Grid.Column="2" Padding="8,5" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1">
+                                <Border Grid.Row="2" Grid.Column="2" Padding="8,5"
+                                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1">
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                        <TextBlock Text="[" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
-                                        <TextBlock Text="{Binding PendingLineWidth}" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
-                                        <TextBlock Text="] px" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
-                                        <Slider Width="80" Minimum="1" Maximum="10" Value="{Binding PendingLineWidth}" 
-                                                TickFrequency="1" TickPlacement="BottomRight" IsSnapToTickEnabled="True" Margin="5,0,0,0" />
+                                        <TextBlock Text="[" VerticalAlignment="Center"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+                                        <TextBlock Text="{Binding PendingLineWidth}" VerticalAlignment="Center"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+                                        <TextBlock Text="] px" VerticalAlignment="Center"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+                                        <Slider Width="80" Minimum="1" Maximum="10" Value="{Binding PendingLineWidth}"
+                                                TickFrequency="1" TickPlacement="BottomRight"
+                                                IsSnapToTickEnabled="True" Margin="5,0,0,0" />
                                     </StackPanel>
                                 </Border>
 
                                 <!-- 已改签行程 -->
-                                <Border Grid.Row="3" Grid.Column="0" Padding="8,5" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,1">
-                                    <TextBlock Text="已改签行程" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
+                                <Border Grid.Row="3" Grid.Column="0" Padding="8,5"
+                                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,1">
+                                    <TextBlock Text="已改签行程" VerticalAlignment="Center"
+                                               Foreground="{DynamicResource TextPrimaryBrush}" />
                                 </Border>
-                                <Border Grid.Row="3" Grid.Column="1" Padding="8,5" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,1">
+                                <Border Grid.Row="3" Grid.Column="1" Padding="8,5"
+                                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,1">
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                        <Border Width="20" Height="14" Background="{Binding RescheduledTripColorBrush}" CornerRadius="2" Cursor="Hand"
+                                        <Border Width="20" Height="14" Background="{Binding RescheduledTripColorBrush}"
+                                                CornerRadius="2" Cursor="Hand"
                                                 ToolTip="点击选择颜色"
                                                 MouseLeftButtonDown="RescheduledColorBorder_MouseLeftButtonDown" />
-                                        <TextBlock Text="{Binding RescheduledTripColor}" Margin="5,0,0,0" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryBrush}" />
+                                        <TextBlock Text="{Binding RescheduledTripColor}" Margin="5,0,0,0"
+                                                   VerticalAlignment="Center"
+                                                   Foreground="{DynamicResource TextSecondaryBrush}" />
                                     </StackPanel>
                                 </Border>
-                                <Border Grid.Row="3" Grid.Column="2" Padding="8,5" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1">
+                                <Border Grid.Row="3" Grid.Column="2" Padding="8,5"
+                                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1">
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                        <TextBlock Text="[" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
-                                        <TextBlock Text="{Binding RescheduledLineWidth}" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
-                                        <TextBlock Text="] px" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
-                                        <Slider Width="80" Minimum="1" Maximum="10" Value="{Binding RescheduledLineWidth}" 
-                                                TickFrequency="1" TickPlacement="BottomRight" IsSnapToTickEnabled="True" Margin="5,0,0,0" />
+                                        <TextBlock Text="[" VerticalAlignment="Center"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+                                        <TextBlock Text="{Binding RescheduledLineWidth}" VerticalAlignment="Center"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+                                        <TextBlock Text="] px" VerticalAlignment="Center"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+                                        <Slider Width="80" Minimum="1" Maximum="10"
+                                                Value="{Binding RescheduledLineWidth}"
+                                                TickFrequency="1" TickPlacement="BottomRight"
+                                                IsSnapToTickEnabled="True" Margin="5,0,0,0" />
                                     </StackPanel>
                                 </Border>
 
                                 <!-- 已退票行程 -->
-                                <Border Grid.Row="4" Grid.Column="0" Padding="8,5" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,1">
-                                    <TextBlock Text="已退票行程" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
+                                <Border Grid.Row="4" Grid.Column="0" Padding="8,5"
+                                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,1">
+                                    <TextBlock Text="已退票行程" VerticalAlignment="Center"
+                                               Foreground="{DynamicResource TextPrimaryBrush}" />
                                 </Border>
-                                <Border Grid.Row="4" Grid.Column="1" Padding="8,5" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,1">
+                                <Border Grid.Row="4" Grid.Column="1" Padding="8,5"
+                                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,1">
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                        <Border Width="20" Height="14" Background="{Binding RefundedTripColorBrush}" CornerRadius="2" Cursor="Hand"
+                                        <Border Width="20" Height="14" Background="{Binding RefundedTripColorBrush}"
+                                                CornerRadius="2" Cursor="Hand"
                                                 ToolTip="点击选择颜色"
                                                 MouseLeftButtonDown="RefundedColorBorder_MouseLeftButtonDown" />
-                                        <TextBlock Text="{Binding RefundedTripColor}" Margin="5,0,0,0" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryBrush}" />
+                                        <TextBlock Text="{Binding RefundedTripColor}" Margin="5,0,0,0"
+                                                   VerticalAlignment="Center"
+                                                   Foreground="{DynamicResource TextSecondaryBrush}" />
                                     </StackPanel>
                                 </Border>
-                                <Border Grid.Row="4" Grid.Column="2" Padding="8,5" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1">
+                                <Border Grid.Row="4" Grid.Column="2" Padding="8,5"
+                                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1">
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                        <TextBlock Text="[" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
-                                        <TextBlock Text="{Binding RefundedLineWidth}" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
-                                        <TextBlock Text="] px" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
-                                        <Slider Width="80" Minimum="1" Maximum="10" Value="{Binding RefundedLineWidth}" 
-                                                TickFrequency="1" TickPlacement="BottomRight" IsSnapToTickEnabled="True" Margin="5,0,0,0" />
+                                        <TextBlock Text="[" VerticalAlignment="Center"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+                                        <TextBlock Text="{Binding RefundedLineWidth}" VerticalAlignment="Center"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+                                        <TextBlock Text="] px" VerticalAlignment="Center"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+                                        <Slider Width="80" Minimum="1" Maximum="10" Value="{Binding RefundedLineWidth}"
+                                                TickFrequency="1" TickPlacement="BottomRight"
+                                                IsSnapToTickEnabled="True" Margin="5,0,0,0" />
                                     </StackPanel>
                                 </Border>
 
                                 <!-- 选中行程 -->
-                                <Border Grid.Row="5" Grid.Column="0" Padding="8,5" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,0">
-                                    <TextBlock Text="选中行程高亮" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
+                                <Border Grid.Row="5" Grid.Column="0" Padding="8,5"
+                                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,0">
+                                    <TextBlock Text="选中行程高亮" VerticalAlignment="Center"
+                                               Foreground="{DynamicResource TextPrimaryBrush}" />
                                 </Border>
-                                <Border Grid.Row="5" Grid.Column="1" Padding="8,5" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,0">
+                                <Border Grid.Row="5" Grid.Column="1" Padding="8,5"
+                                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,0">
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                        <Border Width="20" Height="14" Background="{Binding SelectedTripColorBrush}" CornerRadius="2" Cursor="Hand"
+                                        <Border Width="20" Height="14" Background="{Binding SelectedTripColorBrush}"
+                                                CornerRadius="2" Cursor="Hand"
                                                 ToolTip="点击选择颜色"
                                                 MouseLeftButtonDown="SelectedColorBorder_MouseLeftButtonDown" />
-                                        <TextBlock Text="{Binding SelectedTripColor}" Margin="5,0,0,0" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryBrush}" />
+                                        <TextBlock Text="{Binding SelectedTripColor}" Margin="5,0,0,0"
+                                                   VerticalAlignment="Center"
+                                                   Foreground="{DynamicResource TextSecondaryBrush}" />
                                     </StackPanel>
                                 </Border>
                                 <Border Grid.Row="5" Grid.Column="2" Padding="8,5">
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                        <TextBlock Text="[" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
-                                        <TextBlock Text="{Binding SelectedLineWidth}" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
-                                        <TextBlock Text="] px" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
-                                        <Slider Width="80" Minimum="1" Maximum="10" Value="{Binding SelectedLineWidth}" 
-                                                TickFrequency="1" TickPlacement="BottomRight" IsSnapToTickEnabled="True" Margin="5,0,0,0" />
+                                        <TextBlock Text="[" VerticalAlignment="Center"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+                                        <TextBlock Text="{Binding SelectedLineWidth}" VerticalAlignment="Center"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+                                        <TextBlock Text="] px" VerticalAlignment="Center"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+                                        <Slider Width="80" Minimum="1" Maximum="10" Value="{Binding SelectedLineWidth}"
+                                                TickFrequency="1" TickPlacement="BottomRight"
+                                                IsSnapToTickEnabled="True" Margin="5,0,0,0" />
                                     </StackPanel>
                                 </Border>
                             </Grid>
@@ -187,16 +258,23 @@
 
                         <!-- 站点标记设置 -->
                         <WrapPanel Margin="0,0,0,10">
-                            <TextBlock Text="站点标记颜色：" VerticalAlignment="Center" Margin="0,0,5,5" Foreground="{DynamicResource TextPrimaryBrush}" />
-                            <Border Width="20" Height="14" Background="{Binding StationMarkerColorBrush}" CornerRadius="2" Cursor="Hand"
+                            <TextBlock Text="站点标记颜色：" VerticalAlignment="Center" Margin="0,0,5,5"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <Border Width="20" Height="14" Background="{Binding StationMarkerColorBrush}"
+                                    CornerRadius="2" Cursor="Hand"
                                     ToolTip="点击选择颜色" Margin="0,0,15,5"
                                     MouseLeftButtonDown="StationColorBorder_MouseLeftButtonDown" />
-                            <TextBlock Text="标记大小：" VerticalAlignment="Center" Margin="0,0,5,5" Foreground="{DynamicResource TextPrimaryBrush}" />
-                            <TextBlock Text="[" VerticalAlignment="Center" Margin="0,0,0,5" Foreground="{DynamicResource TextPrimaryBrush}" />
-                            <TextBlock Text="{Binding MarkerSize}" VerticalAlignment="Center" Margin="0,0,0,5" Foreground="{DynamicResource TextPrimaryBrush}" />
-                            <TextBlock Text="] px" VerticalAlignment="Center" Margin="0,0,5,5" Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <TextBlock Text="标记大小：" VerticalAlignment="Center" Margin="0,0,5,5"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <TextBlock Text="[" VerticalAlignment="Center" Margin="0,0,0,5"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <TextBlock Text="{Binding MarkerSize}" VerticalAlignment="Center" Margin="0,0,0,5"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <TextBlock Text="] px" VerticalAlignment="Center" Margin="0,0,5,5"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
                             <Slider Width="100" Minimum="5" Maximum="25" Value="{Binding MarkerSize}"
-                                    TickFrequency="1" TickPlacement="BottomRight" IsSnapToTickEnabled="True" Margin="0,0,0,5" />
+                                    TickFrequency="1" TickPlacement="BottomRight" IsSnapToTickEnabled="True"
+                                    Margin="0,0,0,5" />
                         </WrapPanel>
 
                         <!-- 复选框选项 -->
@@ -212,13 +290,16 @@
                 </Border>
 
                 <!-- 地图交互行为设置 -->
-                <Border Grid.Row="1" Background="{DynamicResource PanelBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
+                <Border Grid.Row="1" Background="{DynamicResource PanelBackgroundBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
                     <StackPanel>
-                        <TextBlock Text="🖱️ 地图交互行为设置" FontWeight="Bold" Margin="0,0,0,10" Foreground="{DynamicResource TextPrimaryBrush}" />
+                        <TextBlock Text="🖱️ 地图交互行为设置" FontWeight="Bold" Margin="0,0,0,10"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" />
 
                         <!-- 基础操作 -->
                         <WrapPanel Margin="0,0,0,10">
-                            <TextBlock Text="基础操作：" VerticalAlignment="Center" Margin="0,0,5,5" Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <TextBlock Text="基础操作：" VerticalAlignment="Center" Margin="0,0,5,5"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
                             <CheckBox Content="鼠标滚轮缩放" IsChecked="{Binding EnableMouseWheelZoom}" Margin="0,0,15,5" />
                             <CheckBox Content="左键拖拽平移" IsChecked="{Binding EnableLeftDragPan}" Margin="0,0,15,5" />
                             <CheckBox Content="右键重置视角" IsChecked="{Binding EnableRightClickReset}" Margin="0,0,0,5" />
@@ -226,19 +307,26 @@
 
                         <!-- 滚轮缩放灵敏度 -->
                         <WrapPanel Margin="0,0,0,10">
-                            <TextBlock Text="滚轮缩放灵敏度：" VerticalAlignment="Center" Margin="0,0,5,5" Foreground="{DynamicResource TextPrimaryBrush}" />
-                            <TextBlock Text="[" VerticalAlignment="Center" Margin="0,0,0,5" Foreground="{DynamicResource TextPrimaryBrush}" />
-                            <TextBlock Text="{Binding ZoomSensitivity}" VerticalAlignment="Center" Margin="0,0,0,5" Foreground="{DynamicResource TextPrimaryBrush}" />
-                            <TextBlock Text="%]" VerticalAlignment="Center" Margin="0,0,10,5" Foreground="{DynamicResource TextPrimaryBrush}" />
-                            <Slider Width="150" Minimum="50" Maximum="200" Value="{Binding ZoomSensitivity}" 
-                                    TickFrequency="10" TickPlacement="BottomRight" IsSnapToTickEnabled="True" Margin="0,0,20,5" />
+                            <TextBlock Text="滚轮缩放灵敏度：" VerticalAlignment="Center" Margin="0,0,5,5"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <TextBlock Text="[" VerticalAlignment="Center" Margin="0,0,0,5"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <TextBlock Text="{Binding ZoomSensitivity}" VerticalAlignment="Center" Margin="0,0,0,5"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <TextBlock Text="%]" VerticalAlignment="Center" Margin="0,0,10,5"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <Slider Width="150" Minimum="50" Maximum="200" Value="{Binding ZoomSensitivity}"
+                                    TickFrequency="10" TickPlacement="BottomRight" IsSnapToTickEnabled="True"
+                                    Margin="0,0,20,5" />
                             <CheckBox Content="开启平移惯性效果" IsChecked="{Binding EnablePanInertia}" Margin="0,0,0,5" />
                         </WrapPanel>
 
                         <!-- 双击行为设置 -->
                         <WrapPanel Margin="0,0,0,10">
-                            <TextBlock Text="左键双击行程线路：" VerticalAlignment="Center" Margin="0,0,5,5" Foreground="{DynamicResource TextPrimaryBrush}" />
-                            <ComboBox MinWidth="180" SelectedValue="{Binding DoubleClickTripAction, Mode=TwoWay}" SelectedValuePath="Tag" Margin="0,0,0,5">
+                            <TextBlock Text="左键双击行程线路：" VerticalAlignment="Center" Margin="0,0,5,5"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <ComboBox MinWidth="180" SelectedValue="{Binding DoubleClickTripAction, Mode=TwoWay}"
+                                      SelectedValuePath="Tag" Margin="0,0,0,5">
                                 <ComboBoxItem Content="打开对应车票编辑" Tag="OpenTicketEdit" />
                                 <ComboBoxItem Content="打开车票票面预览" Tag="PreviewTicket" />
                                 <ComboBoxItem Content="地图定位到该行程全程视野" Tag="FitTripView" />
@@ -247,8 +335,10 @@
                         </WrapPanel>
 
                         <WrapPanel Margin="0,0,0,10">
-                            <TextBlock Text="左键双击车站标记：" VerticalAlignment="Center" Margin="0,0,5,5" Foreground="{DynamicResource TextPrimaryBrush}" />
-                            <ComboBox MinWidth="180" SelectedValue="{Binding DoubleClickStationAction, Mode=TwoWay}" SelectedValuePath="Tag" Margin="0,0,0,5">
+                            <TextBlock Text="左键双击车站标记：" VerticalAlignment="Center" Margin="0,0,5,5"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <ComboBox MinWidth="180" SelectedValue="{Binding DoubleClickStationAction, Mode=TwoWay}"
+                                      SelectedValuePath="Tag" Margin="0,0,0,5">
                                 <ComboBoxItem Content="显示该站所有车票列表" Tag="ShowStationTickets" />
                                 <ComboBoxItem Content="地图定位到该车站视野" Tag="LocateStation" />
                                 <ComboBoxItem Content="统计该站出行数据" Tag="ShowStationStats" />
@@ -258,8 +348,10 @@
                         </WrapPanel>
 
                         <WrapPanel>
-                            <TextBlock Text="左键双击地图空白处（未命中行程/站点）：" VerticalAlignment="Center" Margin="0,0,5,5" Foreground="{DynamicResource TextPrimaryBrush}" />
-                            <ComboBox MinWidth="180" SelectedValue="{Binding DoubleClickBlankAction, Mode=TwoWay}" SelectedValuePath="Tag" Margin="0,0,0,5">
+                            <TextBlock Text="左键双击地图空白处（未命中行程/站点）：" VerticalAlignment="Center" Margin="0,0,5,5"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <ComboBox MinWidth="180" SelectedValue="{Binding DoubleClickBlankAction, Mode=TwoWay}"
+                                      SelectedValuePath="Tag" Margin="0,0,0,5">
                                 <ComboBoxItem Content="双击放大地图" Tag="ZoomInMap" />
                                 <ComboBoxItem Content="重置到全国默认视野" Tag="ResetToChinaView" />
                                 <ComboBoxItem Content="适配所有行程到当前视野" Tag="FitAllTrips" />
@@ -272,23 +364,30 @@
                 </Border>
 
                 <!-- WebView2性能与存储管理 -->
-                <Border Grid.Row="2" Background="{DynamicResource PanelBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
+                <Border Grid.Row="2" Background="{DynamicResource PanelBackgroundBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
                     <StackPanel>
-                        <TextBlock Text="⚡ WebView2性能与存储管理" FontWeight="Bold" Margin="0,0,0,10" Foreground="{DynamicResource TextPrimaryBrush}" />
+                        <TextBlock Text="⚡ WebView2性能与存储管理" FontWeight="Bold" Margin="0,0,0,10"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" />
 
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                            <CheckBox Content="启用WebView2硬件加速" IsChecked="{Binding EnableHardwareAcceleration}" Margin="0,0,20,0" />
+                            <CheckBox Content="启用WebView2硬件加速" IsChecked="{Binding EnableHardwareAcceleration}"
+                                      Margin="0,0,20,0" />
                             <CheckBox Content="预加载地图页面资源" IsChecked="{Binding PreloadMapResources}" />
                         </StackPanel>
 
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                            <TextBlock Text="当前WebView2缓存占用：" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
-                            <TextBlock Text="[" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
-                            <TextBlock Text="{Binding WebViewCacheSize}" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
-                            <TextBlock Text=" MB]" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
-                            <Button Content="🔄 刷新" Command="{Binding RefreshCacheSizeCommand}" 
+                            <TextBlock Text="当前WebView2缓存占用：" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <TextBlock Text="[" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <TextBlock Text="{Binding WebViewCacheSize}" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <TextBlock Text=" MB]" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <Button Content="🔄 刷新" Command="{Binding RefreshCacheSizeCommand}"
                                     Margin="10,0,0,0" Padding="10,5" Style="{StaticResource StandardButtonStyle}" />
-                            <Button Content="🗑️ 手动清理WebView2缓存" Command="{Binding ClearWebViewCacheCommand}" 
+                            <Button Content="🗑️ 手动清理WebView2缓存" Command="{Binding ClearWebViewCacheCommand}"
                                     Margin="10,0,0,0" Padding="10,5" Style="{StaticResource StandardButtonStyle}" />
                         </StackPanel>
 
@@ -297,9 +396,11 @@
                 </Border>
 
                 <!-- 开发者选项 -->
-                <Border Grid.Row="3" Background="{DynamicResource PanelBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
+                <Border Grid.Row="3" Background="{DynamicResource PanelBackgroundBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
                     <StackPanel>
-                        <TextBlock Text="🔧 开发者选项" FontWeight="Bold" Margin="0,0,0,10" Foreground="{DynamicResource TextPrimaryBrush}" />
+                        <TextBlock Text="🔧 开发者选项" FontWeight="Bold" Margin="0,0,0,10"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" />
                         <CheckBox Content="启用F12开发者工具（需重新打开地图窗口生效）" IsChecked="{Binding EnableDevTools}" />
                     </StackPanel>
                 </Border>
@@ -307,11 +408,12 @@
         </ScrollViewer>
 
         <!-- 底部按钮 -->
-        <Border Grid.Row="1" Background="{DynamicResource ContentBackgroundBrush}" Padding="10" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0">
+        <Border Grid.Row="1" Background="{DynamicResource ContentBackgroundBrush}" Padding="10"
+                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button Content="💾 保存设置" Command="{Binding SaveSettingsCommand}" 
+                <Button Content="💾 保存设置" Command="{Binding SaveSettingsCommand}"
                         Padding="15,8" Margin="0,0,10,0" Style="{StaticResource StandardButtonStyle}" />
-                <Button Content="🔄 恢复默认" Command="{Binding RestoreDefaultsCommand}" 
+                <Button Content="🔄 恢复默认" Command="{Binding RestoreDefaultsCommand}"
                         Padding="15,8" Style="{StaticResource StandardButtonStyle}" />
             </StackPanel>
         </Border>

@@ -3,7 +3,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:local="clr-namespace:GuiPiao.View"
              xmlns:vm="clr-namespace:GuiPiao.ViewModel"
              mc:Ignorable="d"
              d:DesignHeight="450"
@@ -17,46 +16,54 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        
+
         <Border Grid.Row="0" Background="{DynamicResource ControlBackgroundBrush}" Margin="10">
             <StackPanel Orientation="Horizontal">
-                <TextBlock Text="查询火车票" FontSize="{DynamicResource TitleFontSize}" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" />
+                <TextBlock Text="查询火车票" FontSize="{DynamicResource TitleFontSize}" FontWeight="Bold"
+                           Foreground="{DynamicResource TextPrimaryBrush}" />
             </StackPanel>
         </Border>
-        
+
         <!-- 查询条件 -->
-        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="20" >
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="20">
             <StackPanel Orientation="Horizontal" Margin="0,0,20,0">
                 <TextBlock Text="关键词:" VerticalAlignment="Center" Margin="0,0,8,0" />
                 <TextBox Text="{Binding QueryKeyword}" Width="150" />
-                <Button Content="查询" Command="{Binding QueryByKeywordCommand}" Style="{StaticResource StandardButtonStyle}" Margin="8,0,0,0" />
+                <Button Content="查询" Command="{Binding QueryByKeywordCommand}"
+                        Style="{StaticResource StandardButtonStyle}" Margin="8,0,0,0" />
             </StackPanel>
             <StackPanel Orientation="Horizontal" Margin="0,0,20,0">
                 <TextBlock Text="日期:" VerticalAlignment="Center" Margin="0,0,8,0" />
                 <TextBox Text="{Binding QueryDate}" Width="120" />
-                <Button Content="查询" Command="{Binding QueryByDateCommand}" Style="{StaticResource StandardButtonStyle}" Margin="8,0,0,0" />
+                <Button Content="查询" Command="{Binding QueryByDateCommand}"
+                        Style="{StaticResource StandardButtonStyle}" Margin="8,0,0,0" />
             </StackPanel>
             <StackPanel Orientation="Horizontal" Margin="0,0,20,0">
                 <TextBlock Text="车站:" VerticalAlignment="Center" Margin="0,0,8,0" />
                 <TextBox Text="{Binding QueryStation}" Width="120" />
-                <Button Content="查询" Command="{Binding QueryByStationCommand}" Style="{StaticResource StandardButtonStyle}" Margin="8,0,0,0" />
+                <Button Content="查询" Command="{Binding QueryByStationCommand}"
+                        Style="{StaticResource StandardButtonStyle}" Margin="8,0,0,0" />
             </StackPanel>
             <StackPanel Orientation="Horizontal" Margin="0,0,20,0">
                 <TextBlock Text="车次:" VerticalAlignment="Center" Margin="0,0,8,0" />
                 <TextBox Text="{Binding QueryTrainNo}" Width="100" />
-                <Button Content="查询" Command="{Binding QueryByTrainNoCommand}" Style="{StaticResource StandardButtonStyle}" Margin="8,0,0,0" />
+                <Button Content="查询" Command="{Binding QueryByTrainNoCommand}"
+                        Style="{StaticResource StandardButtonStyle}" Margin="8,0,0,0" />
             </StackPanel>
-            <Button Content="重置" Command="{Binding ResetQueryCommand}" Style="{StaticResource StandardButtonStyle}" Margin="20,0,0,0" />
+            <Button Content="重置" Command="{Binding ResetQueryCommand}" Style="{StaticResource StandardButtonStyle}"
+                    Margin="20,0,0,0" />
         </StackPanel>
-        
+
         <!-- 查询结果 -->
-        <DataGrid Grid.Row="2" ItemsSource="{Binding TrainRides}" AutoGenerateColumns="False" Margin="20" >
+        <DataGrid Grid.Row="2" ItemsSource="{Binding TrainRides}" AutoGenerateColumns="False" Margin="20">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="取票号" Binding="{Binding TicketNumber}" Width="100" />
                 <DataGridTextColumn Header="出发车站" Binding="{Binding DepartStation}" Width="100" />
                 <DataGridTextColumn Header="车次" Binding="{Binding TrainNo}" Width="80" />
                 <DataGridTextColumn Header="到达车站" Binding="{Binding ArriveStation}" Width="100" />
-                <DataGridTextColumn Header="出发日期" Binding="{Binding DepartDate, Converter={StaticResource DateFormatConverter}}" Width="100" />
+                <DataGridTextColumn Header="出发日期"
+                                    Binding="{Binding DepartDate, Converter={StaticResource DateFormatConverter}}"
+                                    Width="100" />
                 <DataGridTextColumn Header="出发时间" Binding="{Binding DepartTime}" Width="80" />
                 <DataGridTextColumn Header="车厢" Binding="{Binding CoachNo}" Width="60" />
                 <DataGridTextColumn Header="座位" Binding="{Binding SeatNo}" Width="60" />
@@ -64,7 +71,9 @@
                 <DataGridTemplateColumn Header="操作" Width="100">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <Button Content="删除" Command="{Binding DataContext.DeleteTrainRideCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}" Style="{StaticResource TableActionButtonStyle}" />
+                            <Button Content="删除"
+                                    Command="{Binding DataContext.DeleteTrainRideCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                    CommandParameter="{Binding}" Style="{StaticResource TableActionButtonStyle}" />
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>

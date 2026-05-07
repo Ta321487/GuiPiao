@@ -1,12 +1,11 @@
 using System.Windows.Controls;
 
-namespace GuiPiao.View
+namespace GuiPiao.View;
+
+public partial class ManageStationsView : UserControl
 {
-    public partial class ManageStationsView : UserControl
+    public ManageStationsView()
     {
-        public ManageStationsView()
-        {
-            InitializeComponent();
-        }
+        InitializeComponent();
     }
 }

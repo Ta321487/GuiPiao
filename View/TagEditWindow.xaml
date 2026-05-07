@@ -3,7 +3,6 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:GuiPiao.View"
         mc:Ignorable="d"
         Title="编辑标签"
         Width="400"
@@ -39,13 +38,13 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
-            
+
             <TextBlock Grid.Row="0"
                        Text="标签名称："
                        FontWeight="Bold"
                        Foreground="{DynamicResource TextPrimaryBrush}"
                        Margin="0,0,0,5" />
-            
+
             <TextBox Grid.Row="1"
                      x:Name="NameTextBox"
                      Padding="8,4"
@@ -61,13 +60,13 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
-            
+
             <TextBlock Grid.Row="0"
                        Text="背景颜色："
                        FontWeight="Bold"
                        Foreground="{DynamicResource TextPrimaryBrush}"
                        Margin="0,0,0,10" />
-            
+
             <WrapPanel Grid.Row="1" x:Name="ColorPanel">
                 <!-- 颜色选项将由代码动态生成 -->
             </WrapPanel>
@@ -79,13 +78,13 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
-            
+
             <TextBlock Grid.Row="0"
                        Text="文字颜色："
                        FontWeight="Bold"
                        Foreground="{DynamicResource TextPrimaryBrush}"
                        Margin="0,0,0,10" />
-            
+
             <StackPanel Grid.Row="1" Orientation="Horizontal">
                 <RadioButton x:Name="WhiteTextRadio"
                              Content="白色"
@@ -115,13 +114,13 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
-            
+
             <TextBlock Grid.Row="0"
                        Text="预览："
                        FontWeight="Bold"
                        Foreground="{DynamicResource TextPrimaryBrush}"
                        Margin="0,0,0,10" />
-            
+
             <Border Grid.Row="1"
                     x:Name="PreviewBorder"
                     CornerRadius="4"

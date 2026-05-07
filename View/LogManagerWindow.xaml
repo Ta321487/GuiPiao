@@ -47,8 +47,11 @@
                     <StackPanel>
                         <!-- 第一行：日志级别和时间区间 -->
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                            <TextBlock Text="日志级别：" VerticalAlignment="Center" Margin="0,0,10,0" Foreground="{DynamicResource TextPrimaryBrush}" Style="{StaticResource BaseTextStyle}" />
-                            <ComboBox MinWidth="100" SelectedItem="{Binding SelectedLogLevel}" Margin="0,0,20,0" FontSize="{DynamicResource BaseFontSize}">
+                            <TextBlock Text="日志级别：" VerticalAlignment="Center" Margin="0,0,10,0"
+                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                       Style="{StaticResource BaseTextStyle}" />
+                            <ComboBox MinWidth="100" SelectedItem="{Binding SelectedLogLevel}" Margin="0,0,20,0"
+                                      FontSize="{DynamicResource BaseFontSize}">
                                 <model:LogLevel>ALL</model:LogLevel>
                                 <model:LogLevel>INFO</model:LogLevel>
                                 <model:LogLevel>WARN</model:LogLevel>
@@ -56,18 +59,27 @@
                                 <model:LogLevel>FATAL</model:LogLevel>
                             </ComboBox>
 
-                            <TextBlock Text="时间区间：" VerticalAlignment="Center" Margin="0,0,10,0" Foreground="{DynamicResource TextPrimaryBrush}" Style="{StaticResource BaseTextStyle}" />
+                            <TextBlock Text="时间区间：" VerticalAlignment="Center" Margin="0,0,10,0"
+                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                       Style="{StaticResource BaseTextStyle}" />
                             <view:ThemedDatePicker MinWidth="120" SelectedDate="{Binding StartDate}" Margin="0,0,5,0" />
-                            <TextBlock Text="-" VerticalAlignment="Center" Margin="0,0,5,0" Foreground="{DynamicResource TextPrimaryBrush}" Style="{StaticResource BaseTextStyle}" />
+                            <TextBlock Text="-" VerticalAlignment="Center" Margin="0,0,5,0"
+                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                       Style="{StaticResource BaseTextStyle}" />
                             <view:ThemedDatePicker MinWidth="120" SelectedDate="{Binding EndDate}" Margin="0,0,0,0" />
                         </StackPanel>
 
                         <!-- 第二行：关键词检索和按钮 -->
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="关键词检索：" VerticalAlignment="Center" Margin="0,0,10,0" Foreground="{DynamicResource TextPrimaryBrush}" Style="{StaticResource BaseTextStyle}" />
-                            <TextBox MinWidth="200" Text="{Binding Keyword}" Margin="0,0,10,0" FontSize="{DynamicResource BaseFontSize}" />
-                            <Button Content="🔎 检索" Command="{Binding SearchCommand}" Style="{StaticResource StandardButtonStyle}" Margin="0,0,5,0" />
-                            <Button Content="🗑️ 清空条件" Command="{Binding ClearConditionsCommand}" Style="{StaticResource StandardButtonStyle}" Margin="0,0,0,0" />
+                            <TextBlock Text="关键词检索：" VerticalAlignment="Center" Margin="0,0,10,0"
+                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                       Style="{StaticResource BaseTextStyle}" />
+                            <TextBox MinWidth="200" Text="{Binding Keyword}" Margin="0,0,10,0"
+                                     FontSize="{DynamicResource BaseFontSize}" />
+                            <Button Content="🔎 检索" Command="{Binding SearchCommand}"
+                                    Style="{StaticResource StandardButtonStyle}" Margin="0,0,5,0" />
+                            <Button Content="🗑️ 清空条件" Command="{Binding ClearConditionsCommand}"
+                                    Style="{StaticResource StandardButtonStyle}" Margin="0,0,0,0" />
                         </StackPanel>
                     </StackPanel>
                 </StackPanel>
@@ -96,7 +108,8 @@
                             <DataGridTemplateColumn Header="级别" Width="Auto" MinWidth="70">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
-                                        <TextBlock Text="{Binding LevelDisplay}" Foreground="{Binding LevelColor}" FontWeight="Bold" />
+                                        <TextBlock Text="{Binding LevelDisplay}" Foreground="{Binding LevelColor}"
+                                                   FontWeight="Bold" />
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
@@ -111,14 +124,22 @@
                 <StackPanel>
                     <TextBlock Text="📌 日志操作" Style="{StaticResource HeaderTextStyle}" />
                     <WrapPanel>
-                        <Button Content="📤 导出选中日志" Command="{Binding ExportSelectedLogsCommand}" Style="{StaticResource StandardButtonStyle}" Margin="0,0,5,5" />
-                        <Button Content="📤 导出全部日志" Command="{Binding ExportAllLogsCommand}" Style="{StaticResource StandardButtonStyle}" Margin="0,0,5,5" />
-                        <Button Content="🗑️ 清空7天前日志" Command="{Binding DeleteOldLogsCommand}" Style="{StaticResource StandardButtonStyle}" Margin="0,0,5,5" />
-                        <Button Content="🗑️ 清空所有日志" Command="{Binding DeleteAllLogsCommand}" Style="{StaticResource StandardButtonStyle}" Margin="0,0,5,5" />
-                        <Button Content="🔄 刷新" Command="{Binding RefreshCommand}" Style="{StaticResource StandardButtonStyle}" Margin="0,0,5,5" />
-                        <Separator Margin="5,0,10,5" Background="{DynamicResource BorderBrush}" Width="1" Style="{x:Null}" />
-                        <Button Content="📋 日志设置" Click="OpenLogSettings_Click" Style="{StaticResource StandardButtonStyle}" Margin="0,0,5,5" />
-                        <Button Content="❌ 关闭" Click="Close_Click" Style="{StaticResource StandardButtonStyle}" Margin="0,0,0,5" />
+                        <Button Content="📤 导出选中日志" Command="{Binding ExportSelectedLogsCommand}"
+                                Style="{StaticResource StandardButtonStyle}" Margin="0,0,5,5" />
+                        <Button Content="📤 导出全部日志" Command="{Binding ExportAllLogsCommand}"
+                                Style="{StaticResource StandardButtonStyle}" Margin="0,0,5,5" />
+                        <Button Content="🗑️ 清空7天前日志" Command="{Binding DeleteOldLogsCommand}"
+                                Style="{StaticResource StandardButtonStyle}" Margin="0,0,5,5" />
+                        <Button Content="🗑️ 清空所有日志" Command="{Binding DeleteAllLogsCommand}"
+                                Style="{StaticResource StandardButtonStyle}" Margin="0,0,5,5" />
+                        <Button Content="🔄 刷新" Command="{Binding RefreshCommand}"
+                                Style="{StaticResource StandardButtonStyle}" Margin="0,0,5,5" />
+                        <Separator Margin="5,0,10,5" Background="{DynamicResource BorderBrush}" Width="1"
+                                   Style="{x:Null}" />
+                        <Button Content="📋 日志设置" Click="OpenLogSettings_Click"
+                                Style="{StaticResource StandardButtonStyle}" Margin="0,0,5,5" />
+                        <Button Content="❌ 关闭" Click="Close_Click" Style="{StaticResource StandardButtonStyle}"
+                                Margin="0,0,0,5" />
                     </WrapPanel>
                 </StackPanel>
             </Border>

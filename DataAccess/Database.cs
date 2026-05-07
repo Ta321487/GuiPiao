@@ -1,35 +1,35 @@
+using System;
+using System.IO;
 using GuiPiao.Services;
 using GuiPiao.Utils;
 using Microsoft.Data.Sqlite;
-using System;
-using System.IO;
 
-namespace GuiPiao.DataAccess
+namespace GuiPiao.DataAccess;
+
+public static class Database
 {
-    public static class Database
+    private static readonly LogService _logService = new();
+
+    public static void Initialize()
     {
-        private static readonly LogService _logService = new LogService();
-
-        public static void Initialize()
+        var dbPath = Path.Combine(Directory.GetCurrentDirectory(), "guipiao.db");
+        var dbDir = Path.GetDirectoryName(dbPath);
+        if (!Directory.Exists(dbDir))
         {
-            string dbPath = Path.Combine(Directory.GetCurrentDirectory(), "guipiao.db");
-            string dbDir = Path.GetDirectoryName(dbPath);
-            if (!Directory.Exists(dbDir))
-            {
-                Directory.CreateDirectory(dbDir);
-                _logService.Info("Database", $"创建数据库目录: {dbDir}");
-            }
-
-            CreateTables();
+            Directory.CreateDirectory(dbDir);
+            _logService.Info("Database", $"创建数据库目录: {dbDir}");
         }
 
-        private static void CreateTables()
-        {
-            using (var connection = new SqliteConnection(ConfigManager.Instance.DatabaseConnectionString))
-            {
-                connection.Open();
+        CreateTables();
+    }
 
-                string createStationTable = @"
+    private static void CreateTables()
+    {
+        using (var connection = new SqliteConnection(ConfigManager.Instance.DatabaseConnectionString))
+        {
+            connection.Open();
+
+            var createStationTable = @"
                     CREATE TABLE IF NOT EXISTS station_info (
                         id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                         station_name TEXT,
@@ -49,7 +49,7 @@ namespace GuiPiao.DataAccess
                     CREATE INDEX IF NOT EXISTS idx_station_pinyin ON station_info (station_pinyin);
                 ";
 
-                string createTrainTable = @"
+            var createTrainTable = @"
                     CREATE TABLE IF NOT EXISTS train_ride_info (
                         id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                         ticket_number TEXT,
@@ -84,17 +84,17 @@ namespace GuiPiao.DataAccess
                     CREATE INDEX IF NOT EXISTS idx_depart_station_date ON train_ride_info (depart_station, depart_date);
                 ";
 
-                using (var command = new SqliteCommand(createStationTable, connection))
-                {
-                    command.ExecuteNonQuery();
-                }
+            using (var command = new SqliteCommand(createStationTable, connection))
+            {
+                command.ExecuteNonQuery();
+            }
 
-                using (var command = new SqliteCommand(createTrainTable, connection))
-                {
-                    command.ExecuteNonQuery();
-                }
+            using (var command = new SqliteCommand(createTrainTable, connection))
+            {
+                command.ExecuteNonQuery();
+            }
 
-                string createLogTable = @"
+            var createLogTable = @"
                     CREATE TABLE IF NOT EXISTS system_log (
                         id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                         time TEXT NOT NULL,
@@ -110,12 +110,12 @@ namespace GuiPiao.DataAccess
                     CREATE INDEX IF NOT EXISTS idx_log_created_at ON system_log (created_at);
                 ";
 
-                using (var command = new SqliteCommand(createLogTable, connection))
-                {
-                    command.ExecuteNonQuery();
-                }
+            using (var command = new SqliteCommand(createLogTable, connection))
+            {
+                command.ExecuteNonQuery();
+            }
 
-                string createTagTable = @"
+            var createTagTable = @"
                     CREATE TABLE IF NOT EXISTS ticket_tag (
                         id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                         name TEXT NOT NULL,
@@ -128,12 +128,12 @@ namespace GuiPiao.DataAccess
                     CREATE INDEX IF NOT EXISTS idx_tag_sort_order ON ticket_tag (sort_order);
                 ";
 
-                using (var command = new SqliteCommand(createTagTable, connection))
-                {
-                    command.ExecuteNonQuery();
-                }
+            using (var command = new SqliteCommand(createTagTable, connection))
+            {
+                command.ExecuteNonQuery();
+            }
 
-                string createRideTagTable = @"
+            var createRideTagTable = @"
                     CREATE TABLE IF NOT EXISTS train_ride_tag (
                         id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                         train_ride_id INTEGER NOT NULL,
@@ -148,75 +148,76 @@ namespace GuiPiao.DataAccess
                     CREATE INDEX IF NOT EXISTS idx_ride_tag_tag_id ON train_ride_tag (tag_id);
                 ";
 
-                using (var command = new SqliteCommand(createRideTagTable, connection))
-                {
-                    command.ExecuteNonQuery();
-                }
-
-                // 迁移：为已存在的表添加新列
-                MigrateDatabase(connection);
-
-                _logService.Info("Database", "数据库表创建完成");
-            }
-        }
-
-        /// <summary>
-        /// 数据库迁移：为现有表添加新列
-        /// </summary>
-        private static void MigrateDatabase(SqliteConnection connection)
-        {
-            try
+            using (var command = new SqliteCommand(createRideTagTable, connection))
             {
-                // 检查并添加 status 列到 train_ride_info 表
-                string checkStatusColumn = @"
+                command.ExecuteNonQuery();
+            }
+
+            // 迁移：为已存在的表添加新列
+            MigrateDatabase(connection);
+
+            _logService.Info("Database", "数据库表创建完成");
+        }
+    }
+
+    /// <summary>
+    ///     数据库迁移：为现有表添加新列
+    /// </summary>
+    private static void MigrateDatabase(SqliteConnection connection)
+    {
+        try
+        {
+            // 检查并添加 status 列到 train_ride_info 表
+            var checkStatusColumn = @"
                     SELECT COUNT(*) FROM pragma_table_info('train_ride_info') WHERE name = 'status';
                 ";
-                using (var command = new SqliteCommand(checkStatusColumn, connection))
+            using (var command = new SqliteCommand(checkStatusColumn, connection))
+            {
+                var count = Convert.ToInt32(command.ExecuteScalar());
+                if (count == 0)
                 {
-                    int count = Convert.ToInt32(command.ExecuteScalar());
-                    if (count == 0)
-                    {
-                        string addStatusColumn = @"
+                    var addStatusColumn = @"
                             ALTER TABLE train_ride_info ADD COLUMN status INTEGER DEFAULT 0;
                         ";
-                        using (var alterCommand = new SqliteCommand(addStatusColumn, connection))
-                        {
-                            alterCommand.ExecuteNonQuery();
-                        }
-                        _logService.Info("Database", "已添加 status 列到 train_ride_info 表");
+                    using (var alterCommand = new SqliteCommand(addStatusColumn, connection))
+                    {
+                        alterCommand.ExecuteNonQuery();
                     }
-                }
 
-                // 检查并添加 idx_status 索引
-                string checkStatusIndex = @"
+                    _logService.Info("Database", "已添加 status 列到 train_ride_info 表");
+                }
+            }
+
+            // 检查并添加 idx_status 索引
+            var checkStatusIndex = @"
                     SELECT COUNT(*) FROM sqlite_master WHERE type = 'index' AND name = 'idx_status';
                 ";
-                using (var command = new SqliteCommand(checkStatusIndex, connection))
+            using (var command = new SqliteCommand(checkStatusIndex, connection))
+            {
+                var count = Convert.ToInt32(command.ExecuteScalar());
+                if (count == 0)
                 {
-                    int count = Convert.ToInt32(command.ExecuteScalar());
-                    if (count == 0)
-                    {
-                        string createStatusIndex = @"
+                    var createStatusIndex = @"
                             CREATE INDEX IF NOT EXISTS idx_status ON train_ride_info (status);
                         ";
-                        using (var indexCommand = new SqliteCommand(createStatusIndex, connection))
-                        {
-                            indexCommand.ExecuteNonQuery();
-                        }
-                        _logService.Info("Database", "已创建 idx_status 索引");
+                    using (var indexCommand = new SqliteCommand(createStatusIndex, connection))
+                    {
+                        indexCommand.ExecuteNonQuery();
                     }
+
+                    _logService.Info("Database", "已创建 idx_status 索引");
                 }
             }
-            catch (Exception ex)
-            {
-                _logService.Error("Database", $"数据库迁移失败: {ex.Message}");
-                throw;
-            }
         }
-
-        public static SqliteConnection GetConnection()
+        catch (Exception ex)
         {
-            return new SqliteConnection(ConfigManager.Instance.DatabaseConnectionString);
+            _logService.Error("Database", $"数据库迁移失败: {ex.Message}");
+            throw;
         }
+    }
+
+    public static SqliteConnection GetConnection()
+    {
+        return new SqliteConnection(ConfigManager.Instance.DatabaseConnectionString);
     }
 }

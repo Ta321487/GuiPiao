@@ -59,3 +59,5 @@ desktop.ini
 # WPF 自动生成的临时项目文件
 *_wpftmp.csproj
 *_wpftmp.vbproj
+
+/Docs/

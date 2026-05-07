@@ -3,7 +3,6 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:GuiPiao.View"
         mc:Ignorable="d"
         Title="批量修改状态"
         Width="500"
@@ -38,13 +37,13 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
-            
+
             <TextBlock Grid.Row="0"
                        Text="选中的车票："
                        FontWeight="Bold"
                        Foreground="{DynamicResource TextPrimaryBrush}"
                        Margin="0,0,0,5" />
-            
+
             <Border Grid.Row="1"
                     BorderBrush="{DynamicResource BorderBrush}"
                     BorderThickness="1"
@@ -61,17 +60,15 @@
                           ScrollViewer.VerticalScrollBarVisibility="Auto">
                     <DataGrid.Style>
                         <Style TargetType="DataGrid" BasedOn="{StaticResource {x:Type DataGrid}}">
-                            <Setter Property="HorizontalGridLinesBrush" Value="{DynamicResource BorderBrush}"/>
-                            <Setter Property="VerticalGridLinesBrush" Value="{DynamicResource BorderBrush}"/>
-                            <Setter Property="Background" Value="Transparent"/>
-                            <Setter Property="BorderThickness" Value="0"/>
+                            <Setter Property="Background" Value="Transparent" />
+                            <Setter Property="BorderThickness" Value="0" />
                             <Style.Resources>
-                                <Style TargetType="ScrollBar" BasedOn="{StaticResource NormalScrollBarStyle}"/>
+                                <Style TargetType="ScrollBar" BasedOn="{StaticResource NormalScrollBarStyle}" />
                             </Style.Resources>
                         </Style>
                     </DataGrid.Style>
                     <DataGrid.RowStyle>
-                        <Style TargetType="DataGridRow" BasedOn="{StaticResource ThemedDataGridRowStyle}"/>
+                        <Style TargetType="DataGridRow" BasedOn="{StaticResource ThemedDataGridRowStyle}" />
                     </DataGrid.RowStyle>
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="车次" Binding="{Binding TrainNo}" Width="80" />
@@ -106,13 +103,13 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
-            
+
             <TextBlock Grid.Row="0"
                        Text="目标状态："
                        FontWeight="Bold"
                        Foreground="{DynamicResource TextPrimaryBrush}"
                        Margin="0,0,0,10" />
-            
+
             <StackPanel Grid.Row="1" Orientation="Horizontal">
                 <RadioButton x:Name="NotTraveledRadio"
                              Content="未出行"

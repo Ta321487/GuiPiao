@@ -3,47 +3,42 @@ using System.Globalization;
 using System.Windows.Data;
 using System.Windows.Media;
 
-namespace GuiPiao.Converters
+namespace GuiPiao.Converters;
+
+/// <summary>
+///     标签背景透明度转换器 - 将颜色转换为半透明画刷
+/// </summary>
+public class TagBackgroundOpacityConverter : IValueConverter
 {
     /// <summary>
-    /// 标签背景透明度转换器 - 将颜色转换为半透明画刷
+    ///     背景透明度 (0-1)
     /// </summary>
-    public class TagBackgroundOpacityConverter : IValueConverter
+    public double Opacity { get; set; } = 0.85;
+
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        /// <summary>
-        /// 背景透明度 (0-1)
-        /// </summary>
-        public double Opacity { get; set; } = 0.85;
-
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (value is string hexColor)
+        if (value is string hexColor)
+            try
             {
-                try
-                {
-                    var brush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(hexColor));
-                    brush.Opacity = Opacity;
-                    return brush;
-                }
-                catch
-                {
-                    var defaultBrush = new SolidColorBrush(Colors.Gray);
-                    defaultBrush.Opacity = Opacity;
-                    return defaultBrush;
-                }
+                var brush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(hexColor));
+                brush.Opacity = Opacity;
+                return brush;
             }
-            var fallbackBrush = new SolidColorBrush(Colors.Gray);
-            fallbackBrush.Opacity = Opacity;
-            return fallbackBrush;
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (value is SolidColorBrush brush)
+            catch
             {
-                return brush.Color.ToString();
+                var defaultBrush = new SolidColorBrush(Colors.Gray);
+                defaultBrush.Opacity = Opacity;
+                return defaultBrush;
             }
-            return "#808080";
-        }
+
+        var fallbackBrush = new SolidColorBrush(Colors.Gray);
+        fallbackBrush.Opacity = Opacity;
+        return fallbackBrush;
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        if (value is SolidColorBrush brush) return brush.Color.ToString();
+        return "#808080";
     }
 }

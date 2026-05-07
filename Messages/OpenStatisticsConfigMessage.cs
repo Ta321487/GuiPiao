@@ -1,9 +1,8 @@
-namespace GuiPiao.Messages
+namespace GuiPiao.Messages;
+
+/// <summary>
+///     打开统计配置消息
+/// </summary>
+public class OpenStatisticsConfigMessage
 {
-    /// <summary>
-    /// 打开统计配置消息
-    /// </summary>
-    public class OpenStatisticsConfigMessage
-    {
-    }
 }

@@ -436,7 +436,6 @@
                                                 Command="{Binding ExitFullscreenCommand}"
                                                 Style="{StaticResource StandardButtonStyle}"
                                                 MinWidth="60"
-                                                FontSize="{DynamicResource BaseFontSize}"
                                                 ToolTip="关闭全屏" />
                                     </Grid>
 
@@ -485,6 +484,7 @@
                                                                   TooltipBackgroundPaint="{Binding TooltipBackgroundPaint}"
                                                                   TooltipTextSize="{Binding TooltipTextSize}"
                                                                   AnimationsSpeed="{Binding AnimationSpeed}"
+                                                                  EasingFunction="{Binding AnimationEasingFunction}"
                                                                   Visibility="{Binding IsPieChart, Converter={StaticResource BooleanToVisibilityConverter}}" />
 
                                                     <!-- 柱状图/条形图/折线图 -->
@@ -496,6 +496,7 @@
                                                                         TooltipBackgroundPaint="{Binding TooltipBackgroundPaint}"
                                                                         TooltipTextSize="{Binding TooltipTextSize}"
                                                                         AnimationsSpeed="{Binding AnimationSpeed}"
+                                                                        EasingFunction="{Binding AnimationEasingFunction}"
                                                                         Visibility="{Binding IsCartesianChart, Converter={StaticResource BooleanToVisibilityConverter}}" />
                                                 </Grid>
                                             </DataTemplate>
@@ -657,10 +658,6 @@
                               Visibility="{Binding IsDataGridVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <DataGrid.Style>
                             <Style TargetType="DataGrid" BasedOn="{StaticResource {x:Type DataGrid}}">
-                                <Setter Property="HorizontalGridLinesBrush" Value="{DynamicResource BorderBrush}" />
-                                <Setter Property="VerticalGridLinesBrush" Value="{DynamicResource BorderBrush}" />
-                                <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto" />
-                                <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
                                 <Style.Resources>
                                     <Style TargetType="ScrollBar" BasedOn="{StaticResource NormalScrollBarStyle}" />
                                 </Style.Resources>

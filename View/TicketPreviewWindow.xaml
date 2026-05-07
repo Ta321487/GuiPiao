@@ -3,7 +3,6 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:GuiPiao.View"
         xmlns:vm="clr-namespace:GuiPiao.ViewModel"
         mc:Ignorable="d"
         Title="票面预览"
@@ -23,7 +22,7 @@
         </Grid.RowDefinitions>
 
         <!-- 工具栏 -->
-        <Border Grid.Row="0" Background="{DynamicResource PanelBackgroundBrush}" 
+        <Border Grid.Row="0" Background="{DynamicResource PanelBackgroundBrush}"
                 BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1" Padding="10">
             <StackPanel Orientation="Horizontal">
                 <TextBlock Text="缩放：" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
@@ -38,38 +37,40 @@
                     <ComboBoxItem Content="300%" Tag="300" />
                     <ComboBoxItem Content="400%" Tag="400" />
                 </ComboBox>
-                
-                <Button Content="➖" ToolTip="缩小" Command="{Binding ZoomOutCommand}" Style="{StaticResource StandardButtonStyle}" Margin="0,0,5,0" MinWidth="30" />
-                <Button Content="➕" ToolTip="放大" Command="{Binding ZoomInCommand}" Style="{StaticResource StandardButtonStyle}" Margin="0,0,15,0" MinWidth="30" />
-                
+
+                <Button Content="➖" ToolTip="缩小" Command="{Binding ZoomOutCommand}"
+                        Style="{StaticResource StandardButtonStyle}" Margin="0,0,5,0" MinWidth="30" />
+                <Button Content="➕" ToolTip="放大" Command="{Binding ZoomInCommand}"
+                        Style="{StaticResource StandardButtonStyle}" Margin="0,0,15,0" MinWidth="30" />
+
                 <TextBlock Text="亮度：" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
-                <Slider Width="120" Minimum="50" Maximum="150" Value="{Binding Brightness}" 
+                <Slider Width="120" Minimum="50" Maximum="150" Value="{Binding Brightness}"
                         TickFrequency="10" TickPlacement="BottomRight" IsSnapToTickEnabled="True" Margin="0,0,15,0" />
-                <TextBlock Text="{Binding Brightness, StringFormat='{}{0}%'}" VerticalAlignment="Center" 
+                <TextBlock Text="{Binding Brightness, StringFormat='{}{0}%'}" VerticalAlignment="Center"
                            Foreground="{DynamicResource TextSecondaryBrush}" Width="40" />
-                
+
                 <Border Width="1" Height="24" Background="{DynamicResource BorderBrush}" Margin="0,0,15,0" />
-                
-                <Button Content="🔵 蓝色票" Command="{Binding SwitchImageCommand}" CommandParameter="blue" 
+
+                <Button Content="🔵 蓝色票" Command="{Binding SwitchImageCommand}" CommandParameter="blue"
                         Style="{StaticResource StandardButtonStyle}" Margin="0,0,5,0" Padding="8,3" />
-                <Button Content="🔴 红色票" Command="{Binding SwitchImageCommand}" CommandParameter="red" 
+                <Button Content="🔴 红色票" Command="{Binding SwitchImageCommand}" CommandParameter="red"
                         Style="{StaticResource StandardButtonStyle}" Padding="8,3" />
             </StackPanel>
         </Border>
 
         <!-- 图片显示区域 -->
         <Border Grid.Row="1" Background="{DynamicResource ContentBackgroundBrush}" ClipToBounds="True">
-            <ScrollViewer x:Name="ImageScrollViewer" 
-                          HorizontalScrollBarVisibility="Auto" 
+            <ScrollViewer x:Name="ImageScrollViewer"
+                          HorizontalScrollBarVisibility="Auto"
                           VerticalScrollBarVisibility="Auto"
                           PanningMode="Both">
-                <Grid x:Name="ImageContainer" 
+                <Grid x:Name="ImageContainer"
                       HorizontalAlignment="{Binding ImageHorizontalAlignment}"
                       VerticalAlignment="{Binding ImageVerticalAlignment}">
                     <!-- 使用Grid包裹Image来实现亮度效果 -->
                     <Grid>
                         <!-- 底层是原图 -->
-                        <Image x:Name="TicketImage" 
+                        <Image x:Name="TicketImage"
                                Source="{Binding TicketImageSource}"
                                RenderTransformOrigin="0.5,0.5"
                                Stretch="Uniform">
@@ -80,7 +81,7 @@
                             </Image.RenderTransform>
                         </Image>
                         <!-- 使用半透明遮罩层来模拟亮度调整 -->
-                        <Border Background="{Binding BrightnessOverlayBrush}" 
+                        <Border Background="{Binding BrightnessOverlayBrush}"
                                 IsHitTestVisible="False"
                                 RenderTransformOrigin="0.5,0.5">
                             <Border.RenderTransform>
@@ -95,7 +96,7 @@
         </Border>
 
         <!-- 底部信息栏 -->
-        <Border Grid.Row="2" Background="{DynamicResource PanelBackgroundBrush}" 
+        <Border Grid.Row="2" Background="{DynamicResource PanelBackgroundBrush}"
                 BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0" Padding="10">
             <StackPanel Orientation="Horizontal">
                 <TextBlock Text="{Binding TicketInfo}" Foreground="{DynamicResource TextSecondaryBrush}" />

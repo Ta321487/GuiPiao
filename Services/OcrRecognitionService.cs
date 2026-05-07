@@ -1,113 +1,114 @@
-using GuiPiao.Model;
-using GuiPiao.Models;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using GuiPiao.Model;
+using GuiPiao.Models;
+using Newtonsoft.Json;
 
-namespace GuiPiao.Services
+namespace GuiPiao.Services;
+
+/// <summary>
+///     OCR识别服务 - 执行实际的OCR识别
+/// </summary>
+public class OcrRecognitionService
 {
-    /// <summary>
-    /// OCR识别服务 - 执行实际的OCR识别
-    /// </summary>
-    public class OcrRecognitionService
+    private readonly OcrSettingsService _settingsService;
+
+    public OcrRecognitionService()
     {
-        private readonly OcrSettingsService _settingsService;
+        _settingsService = new OcrSettingsService();
+    }
 
-        public OcrRecognitionService()
-        {
-            _settingsService = new OcrSettingsService();
-        }
+    /// <summary>
+    ///     执行OCR识别
+    /// </summary>
+    /// <param name="imagePath">图片路径</param>
+    /// <param name="progress">进度报告</param>
+    /// <param name="config">OCR配置（为null时使用默认配置）</param>
+    /// <returns>OCR结果列表</returns>
+    public async Task<List<OcrResult>> RecognizeAsync(string imagePath, IProgress<string>? progress = null,
+        OcrConfig? config = null)
+    {
+        config ??= _settingsService.Config;
 
-        /// <summary>
-        /// 执行OCR识别
-        /// </summary>
-        /// <param name="imagePath">图片路径</param>
-        /// <param name="progress">进度报告</param>
-        /// <param name="config">OCR配置（为null时使用默认配置）</param>
-        /// <returns>OCR结果列表</returns>
-        public async Task<List<OcrResult>> RecognizeAsync(string imagePath, IProgress<string>? progress = null, OcrConfig? config = null)
+        try
         {
-            config ??= _settingsService.Config;
+            progress?.Report("正在初始化OCR引擎...");
+
+            // 生成Python脚本
+            var script = GenerateOcrScript(imagePath, config);
+            var tempScriptPath = Path.Combine(Path.GetTempPath(), $"ocr_{Guid.NewGuid()}.py");
 
             try
             {
-                progress?.Report("正在初始化OCR引擎...");
+                // 写入临时脚本
+                await File.WriteAllTextAsync(tempScriptPath, script, Encoding.UTF8);
+                progress?.Report("正在执行OCR识别...");
 
-                // 生成Python脚本
-                string script = GenerateOcrScript(imagePath, config);
-                string tempScriptPath = Path.Combine(Path.GetTempPath(), $"ocr_{Guid.NewGuid()}.py");
+                // 执行Python脚本
+                var processInfo = new ProcessStartInfo
+                {
+                    FileName = config.PythonPath,
+                    Arguments = tempScriptPath,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    StandardOutputEncoding = Encoding.UTF8,
+                    StandardErrorEncoding = Encoding.UTF8
+                };
 
+                using var process = Process.Start(processInfo);
+                if (process == null) throw new Exception("无法启动Python进程");
+
+                var output = await process.StandardOutput.ReadToEndAsync();
+                var error = await process.StandardError.ReadToEndAsync();
+                await process.WaitForExitAsync();
+
+                if (process.ExitCode != 0) throw new Exception($"OCR执行失败: {error}");
+
+                progress?.Report("正在解析识别结果...");
+
+                // 解析结果
+                var results = ParseOcrResults(output);
+                progress?.Report($"识别完成，共识别 {results.Count} 个文本区域");
+
+                return results;
+            }
+            finally
+            {
+                // 清理临时文件
                 try
                 {
-                    // 写入临时脚本
-                    await File.WriteAllTextAsync(tempScriptPath, script, Encoding.UTF8);
-                    progress?.Report("正在执行OCR识别...");
-
-                    // 执行Python脚本
-                    var processInfo = new ProcessStartInfo
-                    {
-                        FileName = config.PythonPath,
-                        Arguments = tempScriptPath,
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                        UseShellExecute = false,
-                        CreateNoWindow = true,
-                        StandardOutputEncoding = Encoding.UTF8,
-                        StandardErrorEncoding = Encoding.UTF8
-                    };
-
-                    using var process = Process.Start(processInfo);
-                    if (process == null)
-                    {
-                        throw new Exception("无法启动Python进程");
-                    }
-
-                    string output = await process.StandardOutput.ReadToEndAsync();
-                    string error = await process.StandardError.ReadToEndAsync();
-                    await process.WaitForExitAsync();
-
-                    if (process.ExitCode != 0)
-                    {
-                        throw new Exception($"OCR执行失败: {error}");
-                    }
-
-                    progress?.Report("正在解析识别结果...");
-
-                    // 解析结果
-                    var results = ParseOcrResults(output);
-                    progress?.Report($"识别完成，共识别 {results.Count} 个文本区域");
-
-                    return results;
+                    File.Delete(tempScriptPath);
                 }
-                finally
+                catch
                 {
-                    // 清理临时文件
-                    try { File.Delete(tempScriptPath); } catch { }
                 }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"OCR识别失败: {ex.Message}");
-                throw;
             }
         }
-
-        /// <summary>
-        /// 生成OCR Python脚本
-        /// </summary>
-        private string GenerateOcrScript(string imagePath, OcrConfig config)
+        catch (Exception ex)
         {
-            // 根据CnOCR文档生成脚本
-            string device = config.UseGpu ? "'cuda'" : "'cpu'";
-            double confidenceThreshold = config.ConfidenceThreshold;
-            bool autoRotate = config.AutoRotateImage;
-            bool enablePreprocessing = config.EnableImagePreprocessing;
+            Debug.WriteLine($"OCR识别失败: {ex.Message}");
+            throw;
+        }
+    }
 
-            return $@"
+    /// <summary>
+    ///     生成OCR Python脚本
+    /// </summary>
+    private string GenerateOcrScript(string imagePath, OcrConfig config)
+    {
+        // 根据CnOCR文档生成脚本
+        var device = config.UseGpu ? "'cuda'" : "'cpu'";
+        var confidenceThreshold = config.ConfidenceThreshold;
+        var autoRotate = config.AutoRotateImage;
+        var enablePreprocessing = config.EnableImagePreprocessing;
+
+        return $@"
 import sys
 import io
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
@@ -203,73 +204,60 @@ try:
 except Exception as e:
     print(json.dumps({{'error': str(e)}}))
 ";
-        }
+    }
 
-        /// <summary>
-        /// 解析OCR结果
-        /// </summary>
-        private List<OcrResult> ParseOcrResults(string json)
+    /// <summary>
+    ///     解析OCR结果
+    /// </summary>
+    private List<OcrResult> ParseOcrResults(string json)
+    {
+        try
         {
-            try
-            {
-                // 查找JSON部分
-                int jsonStart = json.IndexOf('[');
-                int jsonEnd = json.LastIndexOf(']');
+            // 查找JSON部分
+            var jsonStart = json.IndexOf('[');
+            var jsonEnd = json.LastIndexOf(']');
 
-                if (jsonStart >= 0 && jsonEnd > jsonStart)
-                {
-                    json = json.Substring(jsonStart, jsonEnd - jsonStart + 1);
-                }
+            if (jsonStart >= 0 && jsonEnd > jsonStart) json = json.Substring(jsonStart, jsonEnd - jsonStart + 1);
 
-                var results = JsonConvert.DeserializeObject<List<OcrResult>>(json);
-                return results ?? new List<OcrResult>();
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"解析OCR结果失败: {ex.Message}");
-                return new List<OcrResult>();
-            }
+            var results = JsonConvert.DeserializeObject<List<OcrResult>>(json);
+            return results ?? new List<OcrResult>();
         }
-
-        /// <summary>
-        /// 测试OCR功能
-        /// </summary>
-        public async Task<(bool success, string message, List<OcrResult>? results)> TestOcrAsync(string imagePath)
+        catch (Exception ex)
         {
-            try
-            {
-                var results = await RecognizeAsync(imagePath);
+            Debug.WriteLine($"解析OCR结果失败: {ex.Message}");
+            return new List<OcrResult>();
+        }
+    }
 
-                if (results.Count == 0)
-                {
-                    return (false, "未能识别到任何文本", null);
-                }
+    /// <summary>
+    ///     测试OCR功能
+    /// </summary>
+    public async Task<(bool success, string message, List<OcrResult>? results)> TestOcrAsync(string imagePath)
+    {
+        try
+        {
+            var results = await RecognizeAsync(imagePath);
 
-                // 计算平均置信度
-                double avgScore = 0;
-                foreach (var r in results)
-                {
-                    avgScore += r.Score;
-                }
-                avgScore /= results.Count;
+            if (results.Count == 0) return (false, "未能识别到任何文本", null);
 
-                var sb = new StringBuilder();
-                sb.AppendLine($"识别成功！共识别 {results.Count} 个文本区域");
-                sb.AppendLine($"平均置信度: {avgScore:P2}");
-                sb.AppendLine();
-                sb.AppendLine("识别内容:");
+            // 计算平均置信度
+            double avgScore = 0;
+            foreach (var r in results) avgScore += r.Score;
+            avgScore /= results.Count;
 
-                foreach (var result in results)
-                {
-                    sb.AppendLine($"- {result.Text} (置信度: {result.Score:P2})");
-                }
+            var sb = new StringBuilder();
+            sb.AppendLine($"识别成功！共识别 {results.Count} 个文本区域");
+            sb.AppendLine($"平均置信度: {avgScore:P2}");
+            sb.AppendLine();
+            sb.AppendLine("识别内容:");
 
-                return (true, sb.ToString(), results);
-            }
-            catch (Exception ex)
-            {
-                return (false, $"识别失败: {ex.Message}", null);
-            }
+            foreach (var result in results) sb.AppendLine($"- {result.Text} (置信度: {result.Score:P2})");
+
+            return (true, sb.ToString(), results);
+        }
+        catch (Exception ex)
+        {
+            return (false, $"识别失败: {ex.Message}", null);
         }
     }
 }

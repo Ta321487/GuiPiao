@@ -1,18 +1,19 @@
-namespace GuiPiao.Messages
-{
-    /// <summary>
-    /// 分组设置变更消息
-    /// </summary>
-    public class GroupSettingChangedMessage
-    {
-        /// <summary>
-        /// 分组选项
-        /// </summary>
-        public Model.GroupOption GroupOption { get; }
+using GuiPiao.Model;
 
-        public GroupSettingChangedMessage(Model.GroupOption groupOption)
-        {
-            GroupOption = groupOption;
-        }
+namespace GuiPiao.Messages;
+
+/// <summary>
+///     分组设置变更消息
+/// </summary>
+public class GroupSettingChangedMessage
+{
+    public GroupSettingChangedMessage(GroupOption groupOption)
+    {
+        GroupOption = groupOption;
     }
+
+    /// <summary>
+    ///     分组选项
+    /// </summary>
+    public GroupOption GroupOption { get; }
 }

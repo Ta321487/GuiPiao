@@ -2,25 +2,21 @@ using System;
 using System.Globalization;
 using System.Windows.Data;
 
-namespace GuiPiao.Converters
-{
-    /// <summary>
-    /// 布尔值转状态符号转换器（✓ / ✗）
-    /// </summary>
-    public class BoolToStatusConverter : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (value is bool b)
-            {
-                return b ? "✓" : "✗";
-            }
-            return "✗";
-        }
+namespace GuiPiao.Converters;
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            throw new NotImplementedException();
-        }
+/// <summary>
+///     布尔值转状态符号转换器（✓ / ✗）
+/// </summary>
+public class BoolToStatusConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        if (value is bool b) return b ? "✓" : "✗";
+        return "✗";
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        throw new NotImplementedException();
     }
 }

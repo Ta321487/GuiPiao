@@ -1,213 +1,207 @@
+using System;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Threading;
+using GuiPiao.DataAccess;
 using GuiPiao.Model;
 using GuiPiao.Services;
 using GuiPiao.View;
 using LiveChartsCore;
 using LiveChartsCore.SkiaSharpView;
 using SkiaSharp;
-using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Threading;
 
-namespace GuiPiao
+namespace GuiPiao;
+
+public partial class App : Application
 {
-    public partial class App : Application
+    private static Mutex? _mutex;
+    private readonly GeneralSettingsService _generalSettingsService = null!;
+    private readonly DatabaseLifecycleService _lifecycleService = null!;
+    private readonly LogService _logService = null!;
+
+    public App()
     {
-        private static Mutex? _mutex;
-        private LogService _logService = null!;
-        private DatabaseLifecycleService _lifecycleService = null!;
-        private GeneralSettingsService _generalSettingsService = null!;
+        _logService = new LogService();
+        _lifecycleService = new DatabaseLifecycleService();
+        _generalSettingsService = new GeneralSettingsService();
 
-        public App()
+        AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
+        DispatcherUnhandledException += OnDispatcherUnhandledException;
+        TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
+
+        // 配置 LiveCharts 全局中文字体
+        ConfigureLiveChartsFont();
+    }
+
+    /// <summary>
+    ///     配置 LiveCharts 使用微软雅黑字体以支持中文显示，并设置 Tooltip 字体大小
+    /// </summary>
+    private void ConfigureLiveChartsFont()
+    {
+        try
         {
-            _logService = new LogService();
-            _lifecycleService = new DatabaseLifecycleService();
-            _generalSettingsService = new GeneralSettingsService();
+            var typeface = SKTypeface.FromFamilyName("Microsoft YaHei");
+            var fontSize = GetApplicationFontSize();
 
-            AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
-            DispatcherUnhandledException += OnDispatcherUnhandledException;
-            TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
+            LiveCharts.Configure(config =>
+            {
+                config.HasGlobalSKTypeface(typeface);
+                // 设置全局 Tooltip 字体大小
+                config.TooltipTextSize = fontSize;
+            });
+        }
+        catch (Exception ex)
+        {
+            _logService?.Error("App", $"配置 LiveCharts 字体失败: {ex.Message}");
+        }
+    }
 
-            // 配置 LiveCharts 全局中文字体
-            ConfigureLiveChartsFont();
+    /// <summary>
+    ///     获取应用程序字体大小
+    /// </summary>
+    private double GetApplicationFontSize()
+    {
+        try
+        {
+            if (Current?.Resources?.Contains("BaseFontSize") == true) return (double)Current.Resources["BaseFontSize"];
+        }
+        catch
+        {
         }
 
-        /// <summary>
-        /// 配置 LiveCharts 使用微软雅黑字体以支持中文显示，并设置 Tooltip 字体大小
-        /// </summary>
-        private void ConfigureLiveChartsFont()
+        return 14; // 默认字体大小
+    }
+
+    protected override async void OnStartup(StartupEventArgs e)
+    {
+        _logService.Info("App", "程序启动");
+
+        var config = new GeneralSettingsService().Config;
+        if (config.SingleInstance)
         {
-            try
+            _mutex = new Mutex(true, "GuiPiao_SingleInstance_Mutex", out var createdNew);
+            if (!createdNew)
             {
-                var typeface = SKTypeface.FromFamilyName("Microsoft YaHei");
-                var fontSize = GetApplicationFontSize();
-                
-                LiveCharts.Configure(config =>
-                {
-                    config.HasGlobalSKTypeface(typeface);
-                    // 设置全局 Tooltip 字体大小
-                    config.TooltipTextSize = fontSize;
-                });
-            }
-            catch (Exception ex)
-            {
-                _logService?.Error("App", $"配置 LiveCharts 字体失败: {ex.Message}");
-            }
-        }
-
-        /// <summary>
-        /// 获取应用程序字体大小
-        /// </summary>
-        private double GetApplicationFontSize()
-        {
-            try
-            {
-                if (Current?.Resources?.Contains("BaseFontSize") == true)
-                {
-                    return (double)Current.Resources["BaseFontSize"];
-                }
-            }
-            catch { }
-            return 14; // 默认字体大小
-        }
-
-        protected override async void OnStartup(StartupEventArgs e)
-        {
-            _logService.Info("App", "程序启动");
-
-            var config = new GeneralSettingsService().Config;
-            if (config.SingleInstance)
-            {
-                _mutex = new Mutex(true, "GuiPiao_SingleInstance_Mutex", out bool createdNew);
-                if (!createdNew)
-                {
-                    _logService.Info("App", "程序已在运行，退出当前实例");
-                    MessageBoxWindow.Show("程序已经在运行中", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
-                    Current.Shutdown();
-                    return;
-                }
-            }
-
-            base.OnStartup(e);
-
-            ThemeManager.ApplyTheme(config);
-            _logService.Info("App", "主题应用完成");
-
-            // 应用DPI缩放设置
-            var uiConfig = new UISettingsService().Config;
-            ThemeManager.ApplyDpiScaling(uiConfig.DpiScaling);
-            _logService.Info("App", "DPI缩放设置应用完成");
-
-            try
-            {
-                DataAccess.Database.Initialize();
-                _logService.Info("App", "数据库初始化完成");
-            }
-            catch (Exception ex)
-            {
-                _logService.Fatal("App", $"数据库初始化失败: {ex.Message}");
-                throw;
-            }
-
-            // 执行启动时数据库生命周期操作
-            try
-            {
-                await _lifecycleService.OnStartupAsync();
-            }
-            catch (Exception ex)
-            {
-                _logService.Error("App", $"启动时生命周期操作失败: {ex.Message}");
-                // 不阻塞启动，仅记录错误
+                _logService.Info("App", "程序已在运行，退出当前实例");
+                MessageBoxWindow.Show("程序已经在运行中");
+                Current.Shutdown();
+                return;
             }
         }
 
-        protected override async void OnExit(ExitEventArgs e)
+        base.OnStartup(e);
+
+        ThemeManager.ApplyTheme(config);
+        _logService.Info("App", "主题应用完成");
+
+        // 应用DPI缩放设置
+        var uiConfig = new UISettingsService().Config;
+        ThemeManager.ApplyDpiScaling(uiConfig.DpiScaling);
+        _logService.Info("App", "DPI缩放设置应用完成");
+
+        try
         {
-            System.Diagnostics.Debug.WriteLine("[App] OnExit 被调用");
-            _logService.Info("App", "程序退出");
-
-
-            try
-            {
-                await _lifecycleService.OnExitAsync();
-            }
-            catch (Exception ex)
-            {
-                _logService.Error("App", $"退出时生命周期操作失败: {ex.Message}");
-            }
-
-            try
-            {
-                _mutex?.ReleaseMutex();
-                _mutex?.Dispose();
-            }
-            catch (Exception ex)
-            {
-                _logService.Error("App", $"释放互斥锁失败: {ex.Message}");
-            }
-            base.OnExit(e);
+            Database.Initialize();
+            _logService.Info("App", "数据库初始化完成");
+        }
+        catch (Exception ex)
+        {
+            _logService.Fatal("App", $"数据库初始化失败: {ex.Message}");
+            throw;
         }
 
-        /// <summary>
-        /// 保存上次关闭的页面状态
-        /// </summary>
-        private void SaveLastPageState()
+        // 执行启动时数据库生命周期操作
+        try
         {
-            try
-            {
-                // 检查各种窗口的打开状态（按优先级顺序）
-                bool isLogManagerWindowOpen = Current.Windows.OfType<LogManagerWindow>().Any();
-                bool isMapWindowOpen = Current.Windows.OfType<MapWindow>().Any();
+            await _lifecycleService.OnStartupAsync();
+        }
+        catch (Exception ex)
+        {
+            _logService.Error("App", $"启动时生命周期操作失败: {ex.Message}");
+            // 不阻塞启动，仅记录错误
+        }
+    }
 
-                System.Diagnostics.Debug.WriteLine($"[App] SaveLastPageState: isLogManagerWindowOpen={isLogManagerWindowOpen}, isMapWindowOpen={isMapWindowOpen}");
+    protected override async void OnExit(ExitEventArgs e)
+    {
+        Debug.WriteLine("[App] OnExit 被调用");
+        _logService.Info("App", "程序退出");
 
-                LastPageOption lastPage;
-                if (isLogManagerWindowOpen)
-                {
-                    lastPage = LastPageOption.LogManager;
-                }
-                else if (isMapWindowOpen)
-                {
-                    lastPage = LastPageOption.Map;
-                }
-                else
-                {
-                    lastPage = LastPageOption.MainList;
-                }
 
-                System.Diagnostics.Debug.WriteLine($"[App] SaveLastPageState: 保存 lastPage={lastPage}");
-
-                _generalSettingsService.SaveLastPage(lastPage);
-
-                _logService.Info("App", $"保存上次页面状态: {lastPage}");
-            }
-            catch (Exception ex)
-            {
-                _logService.Error("App", $"保存上次页面状态失败: {ex.Message}");
-            }
+        try
+        {
+            await _lifecycleService.OnExitAsync();
+        }
+        catch (Exception ex)
+        {
+            _logService.Error("App", $"退出时生命周期操作失败: {ex.Message}");
         }
 
-        private void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
+        try
         {
-            var ex = e.ExceptionObject as Exception;
-            if (ex != null)
-            {
-                _logService.Fatal("App", $"未处理异常: {ex.Message}");
-            }
+            _mutex?.ReleaseMutex();
+            _mutex?.Dispose();
+        }
+        catch (Exception ex)
+        {
+            _logService.Error("App", $"释放互斥锁失败: {ex.Message}");
         }
 
-        private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
-        {
-            _logService.Fatal("App", $"调度器异常: {e.Exception.Message}");
-            e.Handled = true;
-        }
+        base.OnExit(e);
+    }
 
-        private void OnUnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
+    /// <summary>
+    ///     保存上次关闭的页面状态
+    /// </summary>
+    private void SaveLastPageState()
+    {
+        try
         {
-            _logService.Error("App", $"任务异常: {e.Exception.Message}");
-            e.SetObserved();
+            // 检查各种窗口的打开状态（按优先级顺序）
+            var isLogManagerWindowOpen = Current.Windows.OfType<LogManagerWindow>().Any();
+            var isMapWindowOpen = Current.Windows.OfType<MapWindow>().Any();
+
+            Debug.WriteLine(
+                $"[App] SaveLastPageState: isLogManagerWindowOpen={isLogManagerWindowOpen}, isMapWindowOpen={isMapWindowOpen}");
+
+            LastPageOption lastPage;
+            if (isLogManagerWindowOpen)
+                lastPage = LastPageOption.LogManager;
+            else if (isMapWindowOpen)
+                lastPage = LastPageOption.Map;
+            else
+                lastPage = LastPageOption.MainList;
+
+            Debug.WriteLine($"[App] SaveLastPageState: 保存 lastPage={lastPage}");
+
+            _generalSettingsService.SaveLastPage(lastPage);
+
+            _logService.Info("App", $"保存上次页面状态: {lastPage}");
         }
+        catch (Exception ex)
+        {
+            _logService.Error("App", $"保存上次页面状态失败: {ex.Message}");
+        }
+    }
+
+    private void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
+    {
+        var ex = e.ExceptionObject as Exception;
+        if (ex != null) _logService.Fatal("App", $"未处理异常: {ex.Message}");
+    }
+
+    private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+    {
+        _logService.Fatal("App", $"调度器异常: {e.Exception.Message}");
+        e.Handled = true;
+    }
+
+    private void OnUnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
+    {
+        _logService.Error("App", $"任务异常: {e.Exception.Message}");
+        e.SetObserved();
     }
 }

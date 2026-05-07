@@ -21,7 +21,8 @@
         </Grid.ColumnDefinitions>
 
         <!-- 左侧导航栏 -->
-        <Border Grid.Column="0" Background="{DynamicResource PanelBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,0">
+        <Border Grid.Column="0" Background="{DynamicResource PanelBackgroundBrush}"
+                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,0">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -31,7 +32,8 @@
 
                 <!-- 标题 -->
                 <Border Grid.Row="0" Background="{DynamicResource ContentBackgroundBrush}" Padding="15,12">
-                    <TextBlock Text="⚙️ 系统设置" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" />
+                    <TextBlock Text="⚙️ 系统设置" FontSize="14" FontWeight="Bold"
+                               Foreground="{DynamicResource TextPrimaryBrush}" />
                 </Border>
 
                 <!-- 导航按钮列表 -->
@@ -94,7 +96,8 @@
                 </ScrollViewer>
 
                 <!-- 底部按钮 -->
-                <Border Grid.Row="2" Background="{DynamicResource ContentBackgroundBrush}" Padding="10,8" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0">
+                <Border Grid.Row="2" Background="{DynamicResource ContentBackgroundBrush}" Padding="10,8"
+                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
@@ -107,7 +110,6 @@
                                     Style="{StaticResource StandardButtonStyle}"
                                     Padding="8,8"
                                     Margin="0,0,4,0"
-                                    HorizontalContentAlignment="Center"
                                     ToolTip="从文件导入所有设置">
                                 <Viewbox Stretch="Uniform" StretchDirection="DownOnly">
                                     <TextBlock Text="📥 导入" />
@@ -117,7 +119,6 @@
                                     Style="{StaticResource StandardButtonStyle}"
                                     Padding="8,8"
                                     Margin="4,0,0,0"
-                                    HorizontalContentAlignment="Center"
                                     ToolTip="将所有设置导出到文件">
                                 <Viewbox Stretch="Uniform" StretchDirection="DownOnly">
                                     <TextBlock Text="📤 导出" />
@@ -141,10 +142,12 @@
         <!-- 右侧内容区 -->
         <DockPanel Grid.Column="1" Background="{DynamicResource ContentBackgroundBrush}" LastChildFill="True">
             <!-- 底部状态栏 -->
-            <Border DockPanel.Dock="Bottom" Background="{DynamicResource PanelBackgroundBrush}" Padding="15,8" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0">
+            <Border DockPanel.Dock="Bottom" Background="{DynamicResource PanelBackgroundBrush}" Padding="15,8"
+                    BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0">
                 <StackPanel Orientation="Horizontal">
                     <TextBlock Text="当前页面：" Foreground="{DynamicResource TextSecondaryBrush}" />
-                    <TextBlock Text="{Binding CurrentPageTitle}" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" />
+                    <TextBlock Text="{Binding CurrentPageTitle}" FontWeight="Bold"
+                               Foreground="{DynamicResource TextPrimaryBrush}" />
                 </StackPanel>
             </Border>
 
