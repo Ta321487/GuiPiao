@@ -1417,19 +1417,108 @@ public partial class MainWindow : Window
     /// </summary>
     private static void UpdateCardGridPosition(DashboardCard card, int index, LayoutType layoutType)
     {
-        var columns = layoutType switch
+        switch (layoutType)
         {
-            LayoutType.ThreeColumn => 3,
-            LayoutType.TwoColumn => 2,
-            LayoutType.LeftOneRightTwo => index == 0 ? 1 : 2,
-            LayoutType.TopOneBottomTwo => 2,
-            _ => 2
-        };
+            case LayoutType.LeftOneRightTwo:
+                ApplyLeftOneRightTwoPosition(card, index);
+                break;
+            case LayoutType.TopOneBottomTwo:
+                ApplyTopOneBottomTwoPosition(card, index);
+                break;
+            case LayoutType.ThreeColumn:
+                card.GridRow = index / 3;
+                card.GridColumn = index % 3;
+                card.GridRowSpan = 1;
+                card.GridColumnSpan = 1;
+                break;
+            case LayoutType.TwoColumn:
+            default:
+                card.GridRow = index / 2;
+                card.GridColumn = index % 2;
+                card.GridRowSpan = 1;
+                card.GridColumnSpan = 1;
+                break;
+        }
+    }
 
-        card.GridRow = index / columns;
-        card.GridColumn = index % columns;
-        card.GridRowSpan = 1;
-        card.GridColumnSpan = 1;
+    /// <summary>
+    ///     应用左一右二布局的卡片位置
+    /// </summary>
+    private static void ApplyLeftOneRightTwoPosition(DashboardCard card, int index)
+    {
+        if (index == 0)
+        {
+            // 第一个卡片：左侧，占2行1列
+            card.GridRow = 0;
+            card.GridColumn = 0;
+            card.GridRowSpan = 2;
+            card.GridColumnSpan = 1;
+        }
+        else if (index == 1)
+        {
+            // 第二个卡片：右上
+            card.GridRow = 0;
+            card.GridColumn = 1;
+            card.GridRowSpan = 1;
+            card.GridColumnSpan = 1;
+        }
+        else if (index == 2)
+        {
+            // 第三个卡片：右下
+            card.GridRow = 1;
+            card.GridColumn = 1;
+            card.GridRowSpan = 1;
+            card.GridColumnSpan = 1;
+        }
+        else
+        {
+            // 剩余卡片按两列布局继续排列，从第2行开始
+            var remainingIndex = index - 3;
+            card.GridRow = 2 + remainingIndex / 2;
+            card.GridColumn = remainingIndex % 2;
+            card.GridRowSpan = 1;
+            card.GridColumnSpan = 1;
+        }
+    }
+
+    /// <summary>
+    ///     应用上一下二布局的卡片位置
+    /// </summary>
+    private static void ApplyTopOneBottomTwoPosition(DashboardCard card, int index)
+    {
+        if (index == 0)
+        {
+            // 第一个卡片：上方，占1行2列
+            card.GridRow = 0;
+            card.GridColumn = 0;
+            card.GridRowSpan = 1;
+            card.GridColumnSpan = 2;
+        }
+        else if (index == 1)
+        {
+            // 第二个卡片：左下
+            card.GridRow = 1;
+            card.GridColumn = 0;
+            card.GridRowSpan = 1;
+            card.GridColumnSpan = 1;
+        }
+        else if (index == 2)
+        {
+            // 第三个卡片：右下
+            card.GridRow = 1;
+            card.GridColumn = 1;
+            card.GridRowSpan = 1;
+            card.GridColumnSpan = 1;
+        }
+        else
+        {
+            // 剩余卡片按两列布局继续排列，从第2行开始
+            var remainingIndex = index - 3;
+            card.GridRow = 2 + remainingIndex / 2;
+            card.GridColumn = remainingIndex % 2;
+            card.GridRowSpan = 1;
+            card.GridColumnSpan = 1;
+        }
     }
 
     /// <summary>
