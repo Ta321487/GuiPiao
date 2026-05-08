@@ -28,6 +28,22 @@ let clickTimer = null;
 let isDoubleClick = false;
 const DOUBLE_CLICK_DELAY = 350;
 
+// 关闭所有打开的卡片
+function closeAllPopups() {
+    if (currentPopup) {
+        map.closePopup();
+        currentPopup = null;
+        currentPopupTicket = null;
+    }
+    if (hoverPopup) {
+        map.closePopup();
+        hoverPopup = null;
+        hoverPopupTicket = null;
+    }
+    // 清除起终点脉冲动画
+    clearPulseMarkers();
+}
+
 // 当前主题设置
 let currentTheme = {
     isDarkMode: false,
@@ -245,6 +261,20 @@ function setMapInteractions(interactionSettings) {
 
 // 设置地图样式
 function setMapStyles(styleSettings) {
+    // 检查是否有状态筛选变化（已完成/未出行/已退票改签）
+    const hasStatusFilterChange = styleSettings.colors !== undefined || 
+                                  styleSettings.lineWidth !== undefined;
+    
+    // 检查是否有显示设置变化
+    const hasDisplaySettingChange = styleSettings.showStationLabels !== undefined ||
+                                    styleSettings.showDateLabels !== undefined ||
+                                    styleSettings.showHoverCard !== undefined;
+    
+    // 如果有筛选变化，关闭已打开的卡片
+    if (hasStatusFilterChange || styleSettings.directionFilter !== undefined) {
+        closeAllPopups();
+    }
+    
     if (styleSettings.colors) {
         Object.assign(currentTheme.colors, styleSettings.colors);
     }
@@ -465,6 +495,9 @@ function getTrainDirection(trainNo) {
 
 // 更新方向过滤
 function updateDirectionFilter() {
+    // 关闭已打开的卡片
+    closeAllPopups();
+    
     const filter = currentTheme.directionFilter;
     
     tripLayers.forEach(item => {
@@ -1734,6 +1767,9 @@ function safeGetYear(dateStr) {
 
 // 应用年份筛选
 function applyYearFilter() {
+    // 关闭已打开的卡片
+    closeAllPopups();
+    
     const filter = currentTheme.directionFilter;
     
     tripLayers.forEach(item => {
