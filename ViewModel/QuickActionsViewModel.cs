@@ -39,13 +39,17 @@ public partial class QuickActionsViewModel : ObservableObject
         Debug.WriteLine("OpenTicketMapCommand 被调用");
         try
         {
-            var mapWindow = new MapWindow();
+            // 使用单例模式获取或创建地图窗口
+            var mapWindow = MapWindow.GetInstance();
 
             // 不设置 Owner，避免最小化时影响主窗口
             WindowStateManager.Instance.RegisterWindow(LastPageOption.Map, mapWindow);
 
             Debug.WriteLine("MapWindow 实例已创建");
-            mapWindow.Show();
+            if (!mapWindow.IsVisible)
+            {
+                mapWindow.Show();
+            }
             Debug.WriteLine("MapWindow Show() 已调用");
         }
         catch (Exception ex)

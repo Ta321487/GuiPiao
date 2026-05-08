@@ -30,6 +30,73 @@ public partial class MapWindow : Window
 {
     private bool _isDisposed;
     private MapWindowViewModel? _viewModel;
+    private string? _pendingSelectedTripId;
+
+    // 单例实例
+    private static MapWindow? _instance;
+    private static readonly object _lock = new();
+
+    /// <summary>
+    ///     获取或创建地图窗口实例（单例模式），可选传递选中的车票ID
+    /// </summary>
+    public static MapWindow GetInstance(string? selectedTripId = null)
+    {
+        lock (_lock)
+        {
+            if (_instance == null || !_instance.IsVisible)
+            {
+                _instance = new MapWindow();
+                _instance._pendingSelectedTripId = selectedTripId;
+            }
+            else if (selectedTripId != null)
+            {
+                // 窗口已存在，传递新的选中车票ID
+                _instance.SelectTrip(selectedTripId);
+            }
+            return _instance;
+        }
+    }
+
+    /// <summary>
+    ///     激活已存在的地图窗口（如果存在），可选传递选中的车票ID
+    /// </summary>
+    public static bool ActivateExisting(string? selectedTripId = null)
+    {
+        lock (_lock)
+        {
+            if (_instance != null && _instance.IsVisible)
+            {
+                _instance.Activate();
+                _instance.WindowState = WindowState.Normal;
+                if (selectedTripId != null)
+                {
+                    _instance.SelectTrip(selectedTripId);
+                }
+                return true;
+            }
+            return false;
+        }
+    }
+
+    /// <summary>
+    ///     在地图上选中指定行程
+    /// </summary>
+    public void SelectTrip(string tripId)
+    {
+        if (_viewModel != null && IsMapReady)
+        {
+            _viewModel.SelectTripById(tripId);
+        }
+        else
+        {
+            _pendingSelectedTripId = tripId;
+        }
+    }
+
+    /// <summary>
+    ///     地图是否已就绪
+    /// </summary>
+    public bool IsMapReady => _viewModel?.IsMapReady ?? false;
 
     public MapWindow()
     {
@@ -320,6 +387,13 @@ public partial class MapWindow : Window
                             // 确保WebView已设置
                             _viewModel.SetWebView(MapWebView);
                             _viewModel.OnMapReady();
+                            
+                            // 处理待选中的行程
+                            if (!string.IsNullOrEmpty(_pendingSelectedTripId))
+                            {
+                                _viewModel.SelectTripById(_pendingSelectedTripId);
+                                _pendingSelectedTripId = null;
+                            }
                         }
                     });
                     break;

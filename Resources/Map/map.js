@@ -25,8 +25,10 @@ let hoverPopupTicket = null;
 
 // 双击检测相关变量
 let clickTimer = null;
-let isDoubleClick = false;
 const DOUBLE_CLICK_DELAY = 350;
+
+// 每个 polyline 独立的点击状态
+const polylineClickStates = new Map();
 
 // 关闭所有打开的卡片
 function closeAllPopups() {
@@ -622,7 +624,7 @@ window.receiveData = function (data) {
                 showTripInfoCard(data.tripId);
                 break;
             case 'selectTrip':
-                selectTrip(data.tripId);
+                selectTrip(data.tripId, data.fitView !== undefined ? data.fitView : true);
                 break;
         }
     } catch (e) {
@@ -857,35 +859,63 @@ function drawTrip(ticket) {
         noWrap: true
     }).addTo(map);
 
+    // 为每个 polyline 创建独立的点击状态
+    const polylineId = ticket.id;
+    polylineClickStates.set(polylineId, {
+        clickTimer: null,
+        isDoubleClick: false
+    });
+
     polyline.on('click', function (e) {
         L.DomEvent.stopPropagation(e);
 
-        if (clickTimer) {
-            clearTimeout(clickTimer);
-            clickTimer = null;
+        const state = polylineClickStates.get(polylineId);
+        if (!state) return;
+
+        if (state.clickTimer) {
+            clearTimeout(state.clickTimer);
+            state.clickTimer = null;
             return;
         }
 
-        clickTimer = setTimeout(() => {
-            clickTimer = null;
-            executeTripClick(e, ticket, start, end);
+        state.clickTimer = setTimeout(() => {
+            state.clickTimer = null;
+            executeTripClick(e, ticket, start, end, polylineId);
         }, DOUBLE_CLICK_DELAY);
     });
 
     polyline.on('dblclick', function (e) {
         L.DomEvent.stopPropagation(e);
 
-        if (clickTimer) {
-            clearTimeout(clickTimer);
-            clickTimer = null;
+        const state = polylineClickStates.get(polylineId);
+        if (!state) return;
+
+        state.isDoubleClick = true;
+
+        if (state.clickTimer) {
+            clearTimeout(state.clickTimer);
+            state.clickTimer = null;
         }
 
+        // 双击时启用视野调整
+        selectTrip(ticket.id, true);
         handleTripDoubleClick(ticket);
+
+        // 重置双击状态
+        setTimeout(() => {
+            state.isDoubleClick = false;
+        }, DOUBLE_CLICK_DELAY + 50);
     });
 
-    function executeTripClick(e, ticket, start, end) {
+    function executeTripClick(e, ticket, start, end, pId) {
+        const state = polylineClickStates.get(pId);
+        if (state && state.isDoubleClick) {
+            return; // 如果是双击，不执行单击逻辑
+        }
+
         sendTripClick(ticket.id);
-        highlightTrips([ticket.id]);
+        // 单击时不调整视野，只高亮
+        highlightTrips([ticket.id], false);
 
         if (currentPopup) {
             map.closePopup();
@@ -917,7 +947,7 @@ function drawTrip(ticket) {
         popup.setLatLng(popupLatLng);
         popup.openOn(map);
         currentPopup = popup;
-        
+
         popup.on('popupclose', function() {
             currentPopup = null;
             currentPopupTicket = null;
@@ -1371,14 +1401,14 @@ function showTripInfoCardWithTicket(ticket, tripLayer) {
 }
 
 // 选中行程
-function selectTrip(tripId) {
+function selectTrip(tripId, fitView = true) {
     let tripLayer = tripLayers.find(item => item.id === tripId);
     let ticket = null;
 
     if (!tripLayer) {
         ticket = currentTickets.find(t => t.id === tripId);
         if (ticket) {
-            tripLayer = tripLayers.find(item => 
+            tripLayer = tripLayers.find(item =>
                 item.ticket.trainNo === ticket.trainNo &&
                 item.ticket.departStation === ticket.departStation &&
                 item.ticket.arriveStation === ticket.arriveStation
@@ -1392,7 +1422,14 @@ function selectTrip(tripId) {
         return;
     }
 
-    highlightTrips([tripLayer.id], true);
+    // 高亮显示，根据 fitView 参数决定是否调整视野
+    highlightTrips([tripLayer.id], fitView);
+
+    // 如果不调整视野，直接显示信息卡片
+    if (!fitView) {
+        showTripInfoCard(tripId);
+        return;
+    }
 
     const isCloseEnough = map.getZoom() >= 8;
     const departLatLng = L.latLng(ticket.departLat, ticket.departLng);

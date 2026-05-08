@@ -714,10 +714,13 @@ public partial class TripListViewModel : ObservableObject, IDisposable
                 return;
             }
 
-            // 打开编辑窗口
-            var editWindow = new EditTrainTicketWindow(rideId.Value);
+            // 使用单例模式打开编辑窗口
+            var editWindow = EditTrainTicketWindow.GetInstance(rideId.Value);
             editWindow.Owner = Application.Current.MainWindow;
-            editWindow.ShowDialog();
+            if (!editWindow.IsVisible)
+            {
+                editWindow.ShowDialog();
+            }
 
             // 刷新列表
             await LoadTripItemsAsync();
@@ -975,40 +978,13 @@ public partial class TripListViewModel : ObservableObject, IDisposable
     {
         try
         {
-            // 打开地图窗口
-            var mapWindow = new MapWindow();
-            mapWindow.Show();
-
-            // 在地图加载完成后，定位并选中该行程
-            // 使用 Dispatcher 延迟执行，确保地图窗口已初始化
-            Application.Current.Dispatcher.BeginInvoke(async () =>
+            // 使用单例模式打开地图窗口，并传递选中的行程ID
+            var mapWindow = MapWindow.GetInstance(trip.DatabaseId.ToString());
+            
+            if (!mapWindow.IsVisible)
             {
-                // 等待 ViewModel 和数据加载完成
-                var maxWaitTime = 10000; // 最大等待10秒
-                var waitedTime = 0;
-
-                while (waitedTime < maxWaitTime)
-                {
-                    if (mapWindow.DataContext is MapWindowViewModel viewModel)
-                        // 检查地图是否就绪且数据已加载
-                        if (viewModel.IsMapReady && viewModel.IsDataLoaded)
-                        {
-                            // 再等待一小段时间确保数据已发送到地图
-                            await Task.Delay(500);
-
-                            // 选中行程（使用数据库真实ID）
-                            viewModel.SelectTripById(trip.DatabaseId.ToString());
-                            return;
-                        }
-
-                    // 等待100ms后重试
-                    await Task.Delay(100);
-                    waitedTime += 100;
-                }
-
-                // 超时后仍然尝试选中（使用数据库真实ID）
-                if (mapWindow.DataContext is MapWindowViewModel vm) vm.SelectTripById(trip.DatabaseId.ToString());
-            }, DispatcherPriority.Background);
+                mapWindow.Show();
+            }
         }
         catch (Exception ex)
         {
