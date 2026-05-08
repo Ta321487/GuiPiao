@@ -13,6 +13,7 @@ using GuiPiao.DataAccess;
 using GuiPiao.Messages;
 using GuiPiao.Model;
 using GuiPiao.Services;
+using GuiPiao.Utils;
 using GuiPiao.View;
 using GuiPiao.Views;
 using Microsoft.Win32;
@@ -692,14 +693,11 @@ public partial class MenuViewModel : ObservableObject
     [RelayCommand]
     public void OpenLogManager()
     {
-        var logWindow = new LogManagerWindow
+        var logWindow = WindowManager.ShowWindow(() => new LogManagerWindow
         {
-            // 不设置 Owner，避免最小化时影响主窗口
             WindowStartupLocation = WindowStartupLocation.CenterScreen
-        };
-
+        });
         WindowStateManager.Instance.RegisterWindow(LastPageOption.LogManager, logWindow);
-        logWindow.Show();
     }
 
     [RelayCommand]

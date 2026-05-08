@@ -8,6 +8,7 @@ using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Windows;
 using GuiPiao.Services;
+using GuiPiao.Utils;
 using GuiPiao.ViewModel;
 using Microsoft.Web.WebView2.Core;
 
@@ -32,29 +33,25 @@ public partial class MapWindow : Window
     private MapWindowViewModel? _viewModel;
     private string? _pendingSelectedTripId;
 
-    // 单例实例
-    private static MapWindow? _instance;
-    private static readonly object _lock = new();
-
     /// <summary>
-    ///     获取或创建地图窗口实例（单例模式），可选传递选中的车票ID
+    ///     获取或创建地图窗口实例，可选传递选中的车票ID
+    ///     使用 WindowManager 统一管理单开/多开
     /// </summary>
     public static MapWindow GetInstance(string? selectedTripId = null)
     {
-        lock (_lock)
+        var mapWindow = WindowManager.ShowWindow(() =>
         {
-            if (_instance == null || !_instance.IsVisible)
-            {
-                _instance = new MapWindow();
-                _instance._pendingSelectedTripId = selectedTripId;
-            }
-            else if (selectedTripId != null)
-            {
-                // 窗口已存在，传递新的选中车票ID
-                _instance.SelectTrip(selectedTripId);
-            }
-            return _instance;
+            var w = new MapWindow();
+            w._pendingSelectedTripId = selectedTripId;
+            return w;
+        });
+
+        if (selectedTripId != null && mapWindow.IsMapReady)
+        {
+            mapWindow.SelectTrip(selectedTripId);
         }
+
+        return mapWindow;
     }
 
     /// <summary>
@@ -62,20 +59,17 @@ public partial class MapWindow : Window
     /// </summary>
     public static bool ActivateExisting(string? selectedTripId = null)
     {
-        lock (_lock)
+        if (WindowManager.TryGetExistingWindow<MapWindow>(out var existingWindow) && existingWindow != null)
         {
-            if (_instance != null && _instance.IsVisible)
+            existingWindow.Activate();
+            existingWindow.WindowState = WindowState.Normal;
+            if (selectedTripId != null)
             {
-                _instance.Activate();
-                _instance.WindowState = WindowState.Normal;
-                if (selectedTripId != null)
-                {
-                    _instance.SelectTrip(selectedTripId);
-                }
-                return true;
+                existingWindow.SelectTrip(selectedTripId);
             }
-            return false;
+            return true;
         }
+        return false;
     }
 
     /// <summary>

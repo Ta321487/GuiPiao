@@ -8,6 +8,7 @@ using System.Windows.Threading;
 using GuiPiao.DataAccess;
 using GuiPiao.Model;
 using GuiPiao.Services;
+using GuiPiao.Utils;
 using GuiPiao.View;
 using LiveChartsCore;
 using LiveChartsCore.SkiaSharpView;
@@ -79,20 +80,21 @@ public partial class App : Application
     {
         _logService.Info("App", "程序启动");
 
-        var config = new GeneralSettingsService().Config;
-        if (config.SingleInstance)
+        _mutex = new Mutex(true, "GuiPiao_SingleInstance_Mutex", out var createdNew);
+        if (!createdNew)
         {
-            _mutex = new Mutex(true, "GuiPiao_SingleInstance_Mutex", out var createdNew);
-            if (!createdNew)
-            {
-                _logService.Info("App", "程序已在运行，退出当前实例");
-                MessageBoxWindow.Show("程序已经在运行中");
-                Current.Shutdown();
-                return;
-            }
+            _logService.Info("App", "程序已在运行，退出当前实例");
+            MessageBoxWindow.Show("程序已经在运行中");
+            Current.Shutdown();
+            return;
         }
 
+        var config = new GeneralSettingsService().Config;
+
         base.OnStartup(e);
+
+        WindowManager.RegisterFormWindowType<AddTrainTicketWindow>();
+        WindowManager.RegisterFormWindowType<EditTrainTicketWindow>();
 
         ThemeManager.ApplyTheme(config);
         _logService.Info("App", "主题应用完成");

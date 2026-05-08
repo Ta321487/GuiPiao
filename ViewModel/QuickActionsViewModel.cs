@@ -10,6 +10,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using GuiPiao.Messages;
 using GuiPiao.Model;
 using GuiPiao.Services;
+using GuiPiao.Utils;
 using GuiPiao.View;
 using Microsoft.Win32;
 
@@ -20,10 +21,7 @@ public partial class QuickActionsViewModel : ObservableObject
     [RelayCommand]
     public void NewTicketRecordCommand()
     {
-        var addTicketWindow = new AddTrainTicketWindow();
-        // 不设置 Owner，避免最小化时影响主窗口
-        // 使用 Show() 而不是 ShowDialog()，允许用户切换窗口
-        addTicketWindow.Show();
+        WindowManager.ShowWindow(() => new AddTrainTicketWindow());
     }
 
     [RelayCommand]
@@ -39,17 +37,8 @@ public partial class QuickActionsViewModel : ObservableObject
         Debug.WriteLine("OpenTicketMapCommand 被调用");
         try
         {
-            // 使用单例模式获取或创建地图窗口
-            var mapWindow = MapWindow.GetInstance();
-
-            // 不设置 Owner，避免最小化时影响主窗口
+            var mapWindow = WindowManager.ShowWindow(() => new MapWindow());
             WindowStateManager.Instance.RegisterWindow(LastPageOption.Map, mapWindow);
-
-            Debug.WriteLine("MapWindow 实例已创建");
-            if (!mapWindow.IsVisible)
-            {
-                mapWindow.Show();
-            }
             Debug.WriteLine("MapWindow Show() 已调用");
         }
         catch (Exception ex)
@@ -250,8 +239,6 @@ public partial class QuickActionsViewModel : ObservableObject
     [RelayCommand]
     public void SystemConfigCommand()
     {
-        var settingsWindow = new SettingsWindow();
-        // 不设置 Owner，避免最小化时影响主窗口
-        settingsWindow.Show();
+        WindowManager.ShowWindow(() => new SettingsWindow());
     }
 }

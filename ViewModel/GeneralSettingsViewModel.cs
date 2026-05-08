@@ -11,6 +11,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using GuiPiao.Messages;
 using GuiPiao.Model;
 using GuiPiao.Services;
+using GuiPiao.Utils;
 using GuiPiao.View;
 
 namespace GuiPiao.ViewModel;
@@ -267,8 +268,14 @@ public partial class GeneralSettingsViewModel : ObservableObject, ISettingsViewM
         try
         {
             var config = GetCurrentConfig();
+            var wasMultiInstance = !_originalConfig.SingleInstance && config.SingleInstance;
             _settingsService.SaveConfig(config);
             _originalConfig = config;
+
+            if (wasMultiInstance)
+            {
+                WindowManager.EnforceSingleInstance();
+            }
 
             // 应用主题设置（字体大小、强调色、行高等）
             await Task.Run(() =>

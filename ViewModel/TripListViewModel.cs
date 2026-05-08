@@ -978,13 +978,8 @@ public partial class TripListViewModel : ObservableObject, IDisposable
     {
         try
         {
-            // 使用单例模式打开地图窗口，并传递选中的行程ID
-            var mapWindow = MapWindow.GetInstance(trip.DatabaseId.ToString());
-            
-            if (!mapWindow.IsVisible)
-            {
-                mapWindow.Show();
-            }
+            var mapWindow = WindowManager.ShowWindow(() => new MapWindow());
+            mapWindow.SelectTrip(trip.DatabaseId.ToString());
         }
         catch (Exception ex)
         {
