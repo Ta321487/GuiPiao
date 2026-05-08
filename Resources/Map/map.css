@@ -1,0 +1,470 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+    background: #f5f5f5;
+    overflow: hidden;
+}
+
+#map {
+    width: 100%;
+    height: 100vh;
+}
+
+/* 自定义标记样式 */
+.station-marker {
+    background: #D32F2F;
+    border: 3px solid white;
+    border-radius: 50%;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.station-label {
+    background: rgba(255, 255, 255, 0.9);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: bold;
+    white-space: nowrap;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* 日期标注简单样式 */
+.date-label-simple {
+    background: rgba(0, 0, 0, 0.75);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 10px;
+    white-space: nowrap;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    line-height: 1.2;
+}
+
+/* 信息卡片样式 */
+.trip-popup {
+    min-width: 200px;
+}
+
+/* 导航按钮样式 */
+.nav-btn {
+    cursor: pointer;
+    padding: 2px 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: white;
+    color: #333;
+}
+
+.nav-btn:hover {
+    background: #f0f0f0;
+}
+
+.trip-popup h3 {
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    color: #333;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 5px;
+}
+
+.trip-popup .info-row {
+    display: flex;
+    justify-content: space-between;
+    margin: 4px 0;
+    font-size: 12px;
+}
+
+.trip-popup .label {
+    color: #666;
+}
+
+.trip-popup .value {
+    color: #333;
+    font-weight: 500;
+}
+
+.trip-popup .status-completed {
+    color: #2E7D32;
+}
+
+.trip-popup .status-pending {
+    color: #1976D2;
+}
+
+.trip-popup .status-rescheduled {
+    color: #FF9800;
+}
+
+.trip-popup .status-refunded {
+    color: #616161;
+}
+
+/* 图例 */
+.legend {
+    background: white;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    line-height: 1.8;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    margin: 5px 0;
+}
+
+.legend-color {
+    width: 20px;
+    height: 3px;
+    margin-right: 8px;
+}
+
+/* 时间轴抽屉样式 */
+.timeline-drawer {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%) translateY(calc(100% - 36px));
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 8px 8px 0 0;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    min-width: 320px;
+    transition: transform 0.3s ease;
+}
+
+.timeline-drawer.expanded {
+    transform: translateX(-50%) translateY(0);
+}
+
+.timeline-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 20px;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 8px 8px 0 0;
+    border-bottom: 1px solid #eee;
+}
+
+.timeline-toggle:hover {
+    background: #f5f5f5;
+}
+
+.timeline-toggle-text {
+    font-size: 13px;
+    font-weight: bold;
+    color: #333;
+    margin-right: 8px;
+}
+
+.timeline-toggle-icon {
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 5px solid #666;
+    transition: transform 0.3s ease;
+}
+
+.timeline-drawer.expanded .timeline-toggle-icon {
+    transform: rotate(180deg);
+}
+
+.timeline-content {
+    padding: 15px 25px;
+    min-width: 300px;
+}
+
+.timeline-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.timeline-title {
+    font-size: 14px;
+    font-weight: bold;
+    color: #333;
+}
+
+.timeline-reset {
+    font-size: 12px;
+    color: #1976D2;
+    cursor: pointer;
+    padding: 2px 8px;
+    border-radius: 3px;
+}
+
+.timeline-reset:hover {
+    background: #E3F2FD;
+}
+
+.timeline-slider {
+    width: 100%;
+    height: 6px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: #ddd;
+    border-radius: 3px;
+    outline: none;
+    cursor: pointer;
+}
+
+.timeline-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    background: #1976D2;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.timeline-slider::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    background: #1976D2;
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.timeline-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+    font-size: 12px;
+    color: #666;
+}
+
+.timeline-current {
+    text-align: center;
+    margin-top: 8px;
+    font-size: 13px;
+    font-weight: bold;
+    color: #1976D2;
+}
+
+/* 聚合标记样式 */
+.cluster-marker {
+    background: rgba(25, 118, 210, 0.8);
+    border: 2px solid white;
+    border-radius: 50%;
+    color: white;
+    font-weight: bold;
+    text-align: center;
+    line-height: 40px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.cluster-marker:hover {
+    background: rgba(25, 118, 210, 1);
+    transform: scale(1.1);
+}
+
+.cluster-marker.small {
+    width: 30px;
+    height: 30px;
+    line-height: 26px;
+    font-size: 12px;
+}
+
+.cluster-marker.medium {
+    width: 40px;
+    height: 40px;
+    line-height: 36px;
+    font-size: 14px;
+}
+
+.cluster-marker.large {
+    width: 50px;
+    height: 50px;
+    line-height: 46px;
+    font-size: 16px;
+}
+
+/* 缺少经纬度车站警告提示 */
+.missing-coords-warning {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(255, 243, 224, 0.95);
+    border: 1px solid #FF9800;
+    border-radius: 8px;
+    padding: 12px 15px;
+    max-width: 300px;
+    max-height: 200px;
+    overflow-y: auto;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    display: none;
+}
+
+.missing-coords-warning.visible {
+    display: block;
+}
+
+.missing-coords-warning .warning-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #E65100;
+}
+
+.missing-coords-warning .warning-icon {
+    margin-right: 6px;
+    font-size: 16px;
+}
+
+.missing-coords-warning .warning-title {
+    font-size: 13px;
+}
+
+.missing-coords-warning .warning-content {
+    font-size: 12px;
+    color: #666;
+    line-height: 1.5;
+}
+
+.missing-coords-warning .station-list {
+    margin-top: 6px;
+    padding-left: 16px;
+}
+
+.missing-coords-warning .station-list li {
+    margin: 2px 0;
+    color: #555;
+}
+
+.missing-coords-warning .close-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: none;
+    border: none;
+    font-size: 16px;
+    color: #999;
+    cursor: pointer;
+    padding: 0;
+    width: 20px;
+    height: 20px;
+    line-height: 20px;
+    text-align: center;
+}
+
+.missing-coords-warning .close-btn:hover {
+    color: #666;
+}
+
+/* 深色模式样式 */
+body.dark-mode .nav-btn {
+    background: #444;
+    color: #fff;
+    border: 1px solid #666;
+}
+
+body.dark-mode .nav-btn:hover {
+    background: #555;
+}
+
+body.dark-mode .trip-popup {
+    background: #333;
+    color: #fff;
+}
+
+body.dark-mode .trip-popup h3 {
+    color: #fff;
+    border-bottom: 1px solid #555;
+}
+
+body.dark-mode .trip-popup .label {
+    color: #aaa;
+}
+
+body.dark-mode .trip-popup .value {
+    color: #fff;
+}
+
+body.dark-mode .legend {
+    background: #333;
+    color: #fff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+body.dark-mode .timeline-drawer {
+    background: #333;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.5);
+}
+
+body.dark-mode .timeline-toggle {
+    background: #333;
+    border-bottom: 1px solid #555;
+}
+
+body.dark-mode .timeline-toggle:hover {
+    background: #444;
+}
+
+body.dark-mode .timeline-toggle-text {
+    color: #fff;
+}
+
+body.dark-mode .missing-coords-warning {
+    background: #333;
+    border: 1px solid #FF9800;
+}
+
+body.dark-mode .missing-coords-warning .warning-header {
+    color: #FFB74D;
+}
+
+body.dark-mode .missing-coords-warning .warning-content {
+    color: #ccc;
+}
+
+body.dark-mode .missing-coords-warning .station-list li {
+    color: #bbb;
+}
+
+body.dark-mode .missing-coords-warning .close-btn {
+    color: #999;
+}
+
+body.dark-mode .missing-coords-warning .close-btn:hover {
+    color: #ccc;
+}
+
+body.dark-mode .station-label {
+    background: #333;
+    color: #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+body.dark-mode .date-label {
+    background: #ccc;
+    color: #333;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+body.dark-mode .leaflet-popup-content-wrapper {
+    background: #333;
+    color: #fff;
+}
+
+body.dark-mode .leaflet-popup-tip {
+    background: #333;
+}
