@@ -39,14 +39,7 @@ public partial class QuickActionsViewModel : ObservableObject
         Debug.WriteLine("OpenTicketMapCommand 被调用");
         try
         {
-            // 检查是否已存在地图窗口，如果存在则激活它
-            if (MapWindow.ActivateExisting())
-            {
-                Debug.WriteLine("MapWindow 已存在，激活现有窗口");
-                return;
-            }
-            
-            var mapWindow = MapWindow.GetInstance();
+            var mapWindow = new MapWindow();
 
             // 不设置 Owner，避免最小化时影响主窗口
             WindowStateManager.Instance.RegisterWindow(LastPageOption.Map, mapWindow);

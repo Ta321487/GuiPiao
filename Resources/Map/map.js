@@ -622,7 +622,7 @@ window.receiveData = function (data) {
                 showTripInfoCard(data.tripId);
                 break;
             case 'selectTrip':
-                selectTrip(data.tripId, data.fitView !== undefined ? data.fitView : true);
+                selectTrip(data.tripId);
                 break;
         }
     } catch (e) {
@@ -857,50 +857,35 @@ function drawTrip(ticket) {
         noWrap: true
     }).addTo(map);
 
-    // 为每个线路独立的点击状态
-    let lineClickTimer = null;
-    let lineIsDoubleClick = false;
-
     polyline.on('click', function (e) {
         L.DomEvent.stopPropagation(e);
 
-        if (lineClickTimer) {
-            clearTimeout(lineClickTimer);
-            lineClickTimer = null;
+        if (clickTimer) {
+            clearTimeout(clickTimer);
+            clickTimer = null;
+            return;
         }
 
-        // 重置双击标志
-        lineIsDoubleClick = false;
-
-        lineClickTimer = setTimeout(() => {
-            lineClickTimer = null;
-            // 只有在没有发生双击时才执行单击操作
-            if (!lineIsDoubleClick) {
-                executeTripClick(e, ticket, start, end);
-            }
+        clickTimer = setTimeout(() => {
+            clickTimer = null;
+            executeTripClick(e, ticket, start, end);
         }, DOUBLE_CLICK_DELAY);
     });
 
     polyline.on('dblclick', function (e) {
         L.DomEvent.stopPropagation(e);
 
-        // 标记发生了双击
-        lineIsDoubleClick = true;
-
-        if (lineClickTimer) {
-            clearTimeout(lineClickTimer);
-            lineClickTimer = null;
+        if (clickTimer) {
+            clearTimeout(clickTimer);
+            clickTimer = null;
         }
 
         handleTripDoubleClick(ticket);
     });
 
     function executeTripClick(e, ticket, start, end) {
-        // 单击只显示高亮和信息卡片，不触发全程视野和缩放动画
-        highlightTrips([ticket.id], false);
-        
-        // 通知 WPF 端更新状态栏
         sendTripClick(ticket.id);
+        highlightTrips([ticket.id]);
 
         if (currentPopup) {
             map.closePopup();
@@ -923,8 +908,9 @@ function drawTrip(ticket) {
         const popup = L.popup({
             closeButton: true,
             offset: [0, -10],
-            keepInView: false,
-            autoPan: false
+            keepInView: true,
+            autoPan: true,
+            autoPanPadding: [50, 50]
         });
 
         popup.setContent(createPopupContent(ticket));
@@ -1216,9 +1202,6 @@ function getTripWeight(status) {
 
 // 处理行程双击事件
 function handleTripDoubleClick(ticket) {
-    // 双击时启用视野调整（fitView = true）
-    selectTrip(ticket.id, true);
-    
     const action = mapInteractions.doubleClickTripAction || 'OpenTicketEdit';
 
     switch (action) {
@@ -1227,12 +1210,6 @@ function handleTripDoubleClick(ticket) {
             break;
         case 'PreviewTicket':
             sendPreviewTicket(ticket.id);
-            break;
-        case 'FitTripView':
-            // 已经在 selectTrip 中调整了视野，这里不需要额外操作
-            break;
-        case 'None':
-            // 无操作
             break;
     }
 }
@@ -1394,7 +1371,7 @@ function showTripInfoCardWithTicket(ticket, tripLayer) {
 }
 
 // 选中行程
-function selectTrip(tripId, fitView = true) {
+function selectTrip(tripId) {
     let tripLayer = tripLayers.find(item => item.id === tripId);
     let ticket = null;
 
@@ -1415,14 +1392,7 @@ function selectTrip(tripId, fitView = true) {
         return;
     }
 
-    // 高亮显示，根据 fitView 参数决定是否调整视野
-    highlightTrips([tripLayer.id], fitView);
-
-    // 如果不调整视野，直接显示信息卡片
-    if (!fitView) {
-        showTripInfoCard(tripId);
-        return;
-    }
+    highlightTrips([tripLayer.id], true);
 
     const isCloseEnough = map.getZoom() >= 8;
     const departLatLng = L.latLng(ticket.departLat, ticket.departLng);

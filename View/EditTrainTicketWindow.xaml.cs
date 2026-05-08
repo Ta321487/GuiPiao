@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Windows;
 using CommunityToolkit.Mvvm.Input;
@@ -15,32 +14,6 @@ public partial class EditTrainTicketWindow : Window
 {
     private readonly int? _ticketId;
     private bool _isUndoRedoMessageRegistered;
-    
-    // 静态字典存储已打开的编辑窗口（按车票ID）
-    private static readonly Dictionary<int, EditTrainTicketWindow> _openEditWindows = new();
-    private static readonly object _lock = new();
-
-    /// <summary>
-    ///     获取或创建编辑窗口（单例模式，同一车票只能打开一个编辑窗口）
-    /// </summary>
-    public static EditTrainTicketWindow GetInstance(int ticketId)
-    {
-        lock (_lock)
-        {
-            if (_openEditWindows.TryGetValue(ticketId, out var existingWindow) && existingWindow.IsVisible)
-            {
-                // 已存在且可见，激活并返回现有窗口
-                existingWindow.Activate();
-                existingWindow.WindowState = WindowState.Normal;
-                return existingWindow;
-            }
-            
-            // 创建新窗口
-            var newWindow = new EditTrainTicketWindow(ticketId);
-            _openEditWindows[ticketId] = newWindow;
-            return newWindow;
-        }
-    }
 
     public EditTrainTicketWindow()
     {
@@ -197,14 +170,5 @@ public partial class EditTrainTicketWindow : Window
         Closing -= OnWindowClosing;
 
         WeakReferenceMessenger.Default.Unregister<UndoRedoSettingsChangedMessage>(this);
-        
-        // 从静态字典中移除
-        lock (_lock)
-        {
-            if (_ticketId.HasValue && _openEditWindows.ContainsKey(_ticketId.Value))
-            {
-                _openEditWindows.Remove(_ticketId.Value);
-            }
-        }
     }
 }
