@@ -37,6 +37,10 @@
     <SolidColorBrush x:Key="MenuHoverBrush" Color="#E0E0E0" />
     <SolidColorBrush x:Key="StatusBarBackgroundBrush" Color="#F0F0F0" />
 
+    <!-- 滚动条样式 -->
+    <SolidColorBrush x:Key="ScrollBarTrackBrush" Color="#E8E8E8" />
+    <SolidColorBrush x:Key="ScrollBarThumbBrush" Color="#BDBDBD" />
+
     <!-- DataGrid 样式 -->
     <SolidColorBrush x:Key="DataGridBackgroundBrush" Color="#FFFFFF" />
     <SolidColorBrush x:Key="DataGridHeaderBackgroundBrush" Color="#F0F0F0" />

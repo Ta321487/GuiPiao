@@ -549,6 +549,7 @@
                                     Click="OnStatisticsConfigClick" />
                             <Button Content="🔄 刷新统计"
                                     Command="{Binding RefreshStatisticsCommand}"
+                                    IsEnabled="{Binding Dashboard.HasDashboardCharts}"
                                     Style="{StaticResource StandardButtonStyle}"
                                     Click="OnRefreshStatisticsClick" />
                         </WrapPanel>

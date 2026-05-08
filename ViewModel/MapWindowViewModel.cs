@@ -30,6 +30,11 @@ public partial class MapWindowViewModel : ObservableObject
 
     [ObservableProperty] private bool _isMapReady;
 
+    /// <summary>
+    ///     数据是否已加载完成
+    /// </summary>
+    public bool IsDataLoaded => _isDataLoaded;
+
     private List<string> _stationsWithoutCoordinates = new();
 
     [ObservableProperty] private string _statusMessage = "正在加载地图...";
@@ -427,6 +432,7 @@ public partial class MapWindowViewModel : ObservableObject
     /// <summary>
     ///     根据行程ID选中行程（公共方法，供外部调用）
     /// </summary>
+    /// <param name="tripId">行程ID</param>
     public void SelectTripById(string? tripId)
     {
         if (string.IsNullOrEmpty(tripId)) return;
@@ -435,8 +441,33 @@ public partial class MapWindowViewModel : ObservableObject
         if (ticket != null)
         {
             StatusMessage = $"选中行程：{ticket.DepartStation} → {ticket.ArriveStation} ({ticket.TrainNo})";
-            // 高亮显示选中的行程
-            HighlightTrips(new List<string> { tripId });
+            // 直接调用前端的 selectTrip 函数，一次性完成高亮、视野调整和信息卡片显示
+            SelectTripOnMap(tripId);
+        }
+    }
+
+    /// <summary>
+    ///     在地图上选中行程（高亮+视野调整+信息卡片）
+    /// </summary>
+    private void SelectTripOnMap(string tripId)
+    {
+        if (_webView?.CoreWebView2 == null || !IsMapReady) return;
+
+        try
+        {
+            var data = new
+            {
+                type = "selectTrip",
+                tripId
+            };
+
+            var json = JsonSerializer.Serialize(data);
+            var script = $"window.receiveData({json});";
+            _webView.CoreWebView2.ExecuteScriptAsync(script);
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"选中行程失败：{ex.Message}";
         }
     }
 
@@ -872,7 +903,7 @@ public partial class MapWindowViewModel : ObservableObject
     /// <summary>
     ///     高亮显示指定行程
     /// </summary>
-    private void HighlightTrips(List<string> tripIds)
+    private void HighlightTrips(List<string> tripIds, bool fitView = true)
     {
         if (_webView?.CoreWebView2 == null || !IsMapReady) return;
 
@@ -880,7 +911,9 @@ public partial class MapWindowViewModel : ObservableObject
         {
             var data = new
             {
-                type = "highlightTrips", tripIds
+                type = "highlightTrips", 
+                tripIds,
+                fitView
             };
 
             var json = JsonSerializer.Serialize(data);
@@ -890,6 +923,31 @@ public partial class MapWindowViewModel : ObservableObject
         catch (Exception ex)
         {
             StatusMessage = $"高亮失败：{ex.Message}";
+        }
+    }
+
+    /// <summary>
+    ///     在地图上显示行程信息卡片
+    /// </summary>
+    private void ShowTripInfoCard(string tripId)
+    {
+        if (_webView?.CoreWebView2 == null || !IsMapReady) return;
+
+        try
+        {
+            var data = new
+            {
+                type = "showTripInfoCard",
+                tripId
+            };
+
+            var json = JsonSerializer.Serialize(data);
+            var script = $"window.receiveData({json});";
+            _webView.CoreWebView2.ExecuteScriptAsync(script);
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"显示信息卡片失败：{ex.Message}";
         }
     }
 

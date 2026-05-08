@@ -991,13 +991,13 @@ public partial class TripListViewModel : ObservableObject, IDisposable
                 {
                     if (mapWindow.DataContext is MapWindowViewModel viewModel)
                         // 检查地图是否就绪且数据已加载
-                        if (viewModel.IsMapReady)
+                        if (viewModel.IsMapReady && viewModel.IsDataLoaded)
                         {
                             // 再等待一小段时间确保数据已发送到地图
                             await Task.Delay(500);
 
-                            // 选中行程
-                            viewModel.SelectTripById(trip.Id.ToString());
+                            // 选中行程（使用数据库真实ID）
+                            viewModel.SelectTripById(trip.DatabaseId.ToString());
                             return;
                         }
 
@@ -1006,8 +1006,8 @@ public partial class TripListViewModel : ObservableObject, IDisposable
                     waitedTime += 100;
                 }
 
-                // 超时后仍然尝试选中
-                if (mapWindow.DataContext is MapWindowViewModel vm) vm.SelectTripById(trip.Id.ToString());
+                // 超时后仍然尝试选中（使用数据库真实ID）
+                if (mapWindow.DataContext is MapWindowViewModel vm) vm.SelectTripById(trip.DatabaseId.ToString());
             }, DispatcherPriority.Background);
         }
         catch (Exception ex)

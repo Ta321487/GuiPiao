@@ -949,11 +949,11 @@
                 }
             });
         } else {
-            // 根据方向过滤
+            // 根据方向过滤 - 考虑合并行程的情况
             tripLayers.forEach(item => {
-                const direction = getTrainDirection(item.ticket.trainNo);
-                const shouldShow = (filter === 'Up' && direction === 'up') ||
-                                   (filter === 'Down' && direction === 'down');
+                // 检查整个分组中的所有行程（处理合并行程情况）
+                const shouldShow = shouldShowLayerForFilter(item, filter);
+                
                 if (shouldShow) {
                     item.layer.addTo(map);
                     if (item.dateLabelMarker) {
@@ -967,6 +967,31 @@
                 }
             });
         }
+    }
+
+    // 判断图层是否应该在当前过滤条件下显示（考虑合并行程）
+    function shouldShowLayerForFilter(layerItem, filter) {
+        const ticket = layerItem.ticket;
+        
+        // 如果没有分组信息，只检查当前车票
+        if (!ticket.routeGroup || ticket.routeGroup.length <= 1) {
+            const direction = getTrainDirection(ticket.trainNo);
+            return (filter === 'Up' && direction === 'up') ||
+                   (filter === 'Down' && direction === 'down');
+        }
+        
+        // 如果有分组（合并行程），检查分组中是否有符合条件的行程
+        // 只要有一个符合条件就显示（因为合并行程共用一条线路）
+        for (const groupedTicket of ticket.routeGroup) {
+            const direction = getTrainDirection(groupedTicket.trainNo);
+            if ((filter === 'Up' && direction === 'up') ||
+                (filter === 'Down' && direction === 'down')) {
+                return true;
+            }
+        }
+        
+        // 分组中没有符合条件的行程
+        return false;
     }
 
     // 添加图例
@@ -1036,7 +1061,13 @@
                     }
                     break;
                 case 'highlightTrips':
-                    highlightTrips(data.tripIds);
+                    highlightTrips(data.tripIds, data.fitView !== undefined ? data.fitView : true);
+                    break;
+                case 'showTripInfoCard':
+                    showTripInfoCard(data.tripId);
+                    break;
+                case 'selectTrip':
+                    selectTrip(data.tripId);
                     break;
             }
         } catch (e) {
@@ -1663,24 +1694,60 @@
         });
     }
 
-    // 切换到上一张车票
+    // 切换到上一张车票（跳过不符合方向过滤的行程）
     function switchToPrevTicket() {
         if (!currentPopupTicket || !currentPopupTicket.routeGroup) return;
         const group = currentPopupTicket.routeGroup;
-        let newIndex = currentPopupTicket.routeIndex - 1;
-        if (newIndex < 0) newIndex = group.length - 1;
-        const newTicket = group[newIndex];
-        updatePopupContent(newTicket);
+        let newIndex = currentPopupTicket.routeIndex;
+        
+        // 循环查找上一张符合条件的车票
+        for (let i = 0; i < group.length; i++) {
+            newIndex--;
+            if (newIndex < 0) newIndex = group.length - 1;
+            
+            const newTicket = group[newIndex];
+            // 检查是否符合当前方向过滤条件
+            if (isTicketAllowedByFilter(newTicket)) {
+                updatePopupContent(newTicket);
+                return;
+            }
+        }
+        
+        // 如果所有都不符合，至少显示当前的
+        updatePopupContent(currentPopupTicket);
     }
 
-    // 切换到下一张车票
+    // 切换到下一张车票（跳过不符合方向过滤的行程）
     function switchToNextTicket() {
         if (!currentPopupTicket || !currentPopupTicket.routeGroup) return;
         const group = currentPopupTicket.routeGroup;
-        let newIndex = currentPopupTicket.routeIndex + 1;
-        if (newIndex >= group.length) newIndex = 0;
-        const newTicket = group[newIndex];
-        updatePopupContent(newTicket);
+        let newIndex = currentPopupTicket.routeIndex;
+        
+        // 循环查找下一张符合条件的车票
+        for (let i = 0; i < group.length; i++) {
+            newIndex++;
+            if (newIndex >= group.length) newIndex = 0;
+            
+            const newTicket = group[newIndex];
+            // 检查是否符合当前方向过滤条件
+            if (isTicketAllowedByFilter(newTicket)) {
+                updatePopupContent(newTicket);
+                return;
+            }
+        }
+        
+        // 如果所有都不符合，至少显示当前的
+        updatePopupContent(currentPopupTicket);
+    }
+
+    // 检查车票是否符合当前方向过滤条件
+    function isTicketAllowedByFilter(ticket) {
+        const filter = currentTheme.directionFilter;
+        if (filter === 'All') return true;
+        
+        const direction = getTrainDirection(ticket.trainNo);
+        return (filter === 'Up' && direction === 'up') ||
+               (filter === 'Down' && direction === 'down');
     }
 
     // 更新popup内容
@@ -1917,6 +1984,135 @@
         // 双击时不应重置视野，让用户定义的双击操作正常执行
         if (fitView && !isFromDoubleClick && highlightedLayers.length > 0) {
             fitHighlightedTrips(highlightedLayers);
+        }
+    }
+
+    // 显示行程信息卡片（模拟单击线路效果）
+    function showTripInfoCard(tripId) {
+        // 找到对应的行程图层（用于获取线路位置）
+        const tripLayer = tripLayers.find(item => item.id === tripId);
+        if (!tripLayer) {
+            // 如果找不到精确匹配的图层，尝试查找同车次的其他图层
+            const ticketInfo = currentTickets.find(t => t.id === tripId);
+            if (ticketInfo) {
+                // 找到同车次的任意图层（用于定位）
+                const sameTrainLayer = tripLayers.find(item => 
+                    item.ticket.trainNo === ticketInfo.trainNo &&
+                    item.ticket.departStation === ticketInfo.departStation &&
+                    item.ticket.arriveStation === ticketInfo.arriveStation
+                );
+                if (sameTrainLayer) {
+                    showTripInfoCardWithTicket(ticketInfo, sameTrainLayer);
+                    return;
+                }
+            }
+            return;
+        }
+
+        // 找到原始车票数据（可能有多个相同车次的行程，需要获取正确的那一个）
+        const ticket = currentTickets.find(t => t.id === tripId) || tripLayer.ticket;
+        
+        showTripInfoCardWithTicket(ticket, tripLayer);
+    }
+
+    // 显示行程信息卡片（带车票数据）
+    function showTripInfoCardWithTicket(ticket, tripLayer) {
+        const start = [ticket.departLat, ticket.departLng];
+        const end = [ticket.arriveLat, ticket.arriveLng];
+
+        // 关闭之前的卡片
+        if (currentPopup) {
+            map.closePopup();
+        }
+
+        // 创建并打开新卡片（显示在线路中点）
+        currentPopupTicket = ticket;
+
+        // 使用线路中点作为卡片位置
+        const midLat = (start[0] + end[0]) / 2;
+        const midLng = (start[1] + end[1]) / 2;
+        const popupLatLng = L.latLng(midLat, midLng);
+
+        const popup = L.popup({
+            closeButton: true,
+            offset: [0, -10],
+            keepInView: true,
+            autoPan: true,
+            autoPanPadding: [50, 50]
+        });
+
+        popup.setContent(createPopupContent(ticket));
+        popup.setLatLng(popupLatLng);
+        popup.openOn(map);
+        currentPopup = popup;
+    }
+
+    // 选中行程（完整操作：高亮+视野调整+信息卡片）
+    function selectTrip(tripId) {
+        console.log('[Map] selectTrip called with id:', tripId);
+        
+        // 找到对应的行程
+        let tripLayer = tripLayers.find(item => item.id === tripId);
+        let ticket = null;
+
+        // 如果找不到精确匹配的图层（可能是聚合情况）
+        if (!tripLayer) {
+            // 尝试从所有车票数据中找到对应的行程
+            ticket = currentTickets.find(t => t.id === tripId);
+            if (ticket) {
+                // 找到同车次的任意图层（用于定位和高亮）
+                tripLayer = tripLayers.find(item => 
+                    item.ticket.trainNo === ticket.trainNo &&
+                    item.ticket.departStation === ticket.departStation &&
+                    item.ticket.arriveStation === ticket.arriveStation
+                );
+            }
+        } else {
+            // 找到精确匹配的图层，获取正确的车票数据
+            ticket = currentTickets.find(t => t.id === tripId) || tripLayer.ticket;
+        }
+
+        if (!tripLayer || !ticket) {
+            console.warn('[Map] Trip not found:', tripId);
+            return;
+        }
+
+        console.log('[Map] Found trip:', ticket.trainNo, ticket.departStation, '->', ticket.arriveStation);
+
+        // 1. 高亮显示选中的行程（使用图层的ID，因为图层可能是聚合的）
+        highlightTrips([tripLayer.id], true);
+
+        // 检查当前地图是否已经足够近，且行程在视野内
+        const isCloseEnough = map.getZoom() >= 8; // 缩放级别大于等于8视为足够近
+        const departLatLng = L.latLng(ticket.departLat, ticket.departLng);
+        const arriveLatLng = L.latLng(ticket.arriveLat, ticket.arriveLng);
+        const currentBounds = map.getBounds();
+        const isDepartInView = currentBounds.contains(departLatLng);
+        const isArriveInView = currentBounds.contains(arriveLatLng);
+        const isTripInView = isDepartInView && isArriveInView;
+
+        if (isCloseEnough && isTripInView) {
+            // 如果已经足够近且行程在视野内，直接显示信息卡片，不调整视野
+            console.log('[Map] Already close enough, showing info card directly');
+            showTripInfoCard(tripId);
+        } else {
+            // 否则调整视野到该行程
+            setTimeout(() => {
+                const latlngs = [
+                    [ticket.departLat, ticket.departLng],
+                    [ticket.arriveLat, ticket.arriveLng]
+                ];
+                const bounds = L.latLngBounds(latlngs);
+                map.flyToBounds(bounds.pad(0.3), {
+                    duration: 1.5,
+                    easeLinearity: 0.25
+                });
+
+                // 延迟显示信息卡片（等待视野调整完成）
+                setTimeout(() => {
+                    showTripInfoCard(tripId);
+                }, 1600);
+            }, 100);
         }
     }
 
