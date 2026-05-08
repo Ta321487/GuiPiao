@@ -5,10 +5,12 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using GuiPiao.DataAccess;
 using GuiPiao.Model;
 using GuiPiao.Services;
 using GuiPiao.View;
@@ -27,6 +29,7 @@ public partial class MapWindowViewModel : ObservableObject
 
     private bool _isDataLoaded;
     private string _currentDirectionFilter = "All"; // 当前方向过滤值
+    private CancellationTokenSource? _statusResetCts; // 用于取消状态重置延迟
 
     [ObservableProperty] private bool _isMapReady;
 
@@ -115,6 +118,11 @@ public partial class MapWindowViewModel : ObservableObject
             // 取消订阅事件，避免内存泄漏
             MapSettingsViewModel.MapSettingsSaved -= OnMapSettingsSaved;
             ThemeManager.ThemeChanged -= OnThemeChanged;
+
+            // 取消状态重置延迟任务
+            _statusResetCts?.Cancel();
+            _statusResetCts?.Dispose();
+            _statusResetCts = null;
 
             _allTickets?.Clear();
             _webView = null;
@@ -440,16 +448,38 @@ public partial class MapWindowViewModel : ObservableObject
         var ticket = _allTickets.FirstOrDefault(t => t.Id == tripId);
         if (ticket != null)
         {
+            // 取消之前的延迟重置任务
+            _statusResetCts?.Cancel();
+            _statusResetCts = new CancellationTokenSource();
+            var token = _statusResetCts.Token;
+            
             StatusMessage = $"选中行程：{ticket.DepartStation} → {ticket.ArriveStation} ({ticket.TrainNo})";
-            // 直接调用前端的 selectTrip 函数，一次性完成高亮、视野调整和信息卡片显示
-            SelectTripOnMap(tripId);
+            // 调用前端的 selectTrip 函数，高亮+信息卡片，不调整视野（避免单击时缩放）
+            SelectTripOnMap(tripId, false);
+            
+            // 延迟1秒后变为就绪
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await Task.Delay(1000, token);
+                    if (!token.IsCancellationRequested)
+                    {
+                        StatusMessage = "就绪";
+                    }
+                }
+                catch (TaskCanceledException)
+                {
+                    // 任务被取消，忽略异常
+                }
+            }, token);
         }
     }
 
     /// <summary>
-    ///     在地图上选中行程（高亮+视野调整+信息卡片）
+    ///     在地图上选中行程（高亮+信息卡片），可选是否调整视野
     /// </summary>
-    private void SelectTripOnMap(string tripId)
+    private void SelectTripOnMap(string tripId, bool fitView = true)
     {
         if (_webView?.CoreWebView2 == null || !IsMapReady) return;
 
@@ -458,7 +488,8 @@ public partial class MapWindowViewModel : ObservableObject
             var data = new
             {
                 type = "selectTrip",
-                tripId
+                tripId,
+                fitView
             };
 
             var json = JsonSerializer.Serialize(data);
@@ -478,7 +509,7 @@ public partial class MapWindowViewModel : ObservableObject
     {
         // 重置所有线路样式
         ResetTripStyles();
-        StatusMessage = "已取消选中";
+        StatusMessage = "就绪";
     }
 
     /// <summary>
@@ -489,16 +520,43 @@ public partial class MapWindowViewModel : ObservableObject
         if (string.IsNullOrEmpty(tripId)) return;
 
         var ticket = _allTickets.FirstOrDefault(t => t.Id == tripId);
-        if (ticket != null)
+        if (ticket == null) return;
+
+        try
         {
             StatusMessage = $"打开车票编辑：{ticket.TrainNo} ({ticket.DepartStation} → {ticket.ArriveStation})";
-            // TODO: 打开车票编辑窗口 - 可以复用现有的 AddTrainTicketView 或其他编辑窗口
-            // 暂时使用消息框提示
-            MessageBoxWindow.Show(
-                GetMapWindow(),
-                $"编辑车票：{ticket.TrainNo}\n{ticket.DepartStation} → {ticket.ArriveStation}\n出发日期：{ticket.DepartDate:yyyy-MM-dd}",
-                "编辑车票");
+            
+            // 使用 DatabaseId 直接打开编辑窗口
+            if (ticket.DatabaseId <= 0)
+            {
+                MessageBoxWindow.Show("未找到对应的车票记录", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            // 打开编辑窗口（单例模式，同一车票只能打开一个）
+            var editWindow = EditTrainTicketWindow.GetInstance(ticket.DatabaseId);
+            editWindow.Owner = GetMapWindow();
+            editWindow.ShowDialog();
+            
+            StatusMessage = "车票编辑窗口已关闭";
+            
+            // 刷新地图数据
+            _ = RefreshDataAsync();
         }
+        catch (Exception ex)
+        {
+            _logService.Error("MapWindowViewModel", $"打开编辑窗口失败: {ex.Message}");
+            MessageBoxWindow.Show($"打开编辑窗口失败：{ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+    
+    /// <summary>
+    ///     异步刷新数据（用于编辑后刷新）
+    /// </summary>
+    private async Task RefreshDataAsync()
+    {
+        await LoadTicketDataAsync();
+        SendAllTicketsToMap();
     }
 
     /// <summary>
@@ -791,6 +849,7 @@ public partial class MapWindowViewModel : ObservableObject
             _allTickets = mapDataResult.ValidTickets.Select(t => new TicketData
             {
                 Id = t.Id,
+                DatabaseId = int.TryParse(t.Id, out var dbId) ? dbId : 0,
                 TrainNo = t.TrainNo,
                 DepartStation = t.DepartStation,
                 ArriveStation = t.ArriveStation,
@@ -1035,6 +1094,7 @@ public partial class MapWindowViewModel : ObservableObject
 public class TicketData
 {
     public string Id { get; set; } = string.Empty;
+    public int DatabaseId { get; set; }
     public string TrainNo { get; set; } = string.Empty;
     public string DepartStation { get; set; } = string.Empty;
     public string ArriveStation { get; set; } = string.Empty;

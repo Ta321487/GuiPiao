@@ -30,6 +30,55 @@ public partial class MapWindow : Window
 {
     private bool _isDisposed;
     private MapWindowViewModel? _viewModel;
+    
+    // 单例实例
+    private static MapWindow? _instance;
+    private static readonly object _lock = new();
+
+    /// <summary>
+    ///     获取或创建地图窗口实例（单例模式），可选传递选中的车票ID
+    /// </summary>
+    public static MapWindow GetInstance(string? selectedTripId = null)
+    {
+        lock (_lock)
+        {
+            if (_instance == null || !_instance.IsVisible)
+            {
+                _instance = new MapWindow();
+                _instance._pendingSelectedTripId = selectedTripId;
+            }
+            else if (selectedTripId != null)
+            {
+                // 窗口已存在，传递新的选中车票ID
+                _instance.SelectTrip(selectedTripId);
+            }
+            return _instance;
+        }
+    }
+    
+    /// <summary>
+    ///     激活已存在的地图窗口（如果存在），可选传递选中的车票ID
+    /// </summary>
+    public static bool ActivateExisting(string? selectedTripId = null)
+    {
+        lock (_lock)
+        {
+            if (_instance != null && _instance.IsVisible)
+            {
+                _instance.Activate();
+                _instance.WindowState = WindowState.Normal;
+                if (selectedTripId != null)
+                {
+                    _instance.SelectTrip(selectedTripId);
+                }
+                return true;
+            }
+            return false;
+        }
+    }
+    
+    // 待处理的车票ID（窗口创建后选中）
+    private string? _pendingSelectedTripId;
 
     public MapWindow()
     {
@@ -161,6 +210,15 @@ public partial class MapWindow : Window
 
             // 如果启用了自动清理缓存，检查并清理过期缓存
             if (config.AutoCleanCache) await CleanOldCacheAsync();
+            
+            // 如果有待处理的车票ID，在地图准备好后选中
+            if (_pendingSelectedTripId != null)
+            {
+                // 延迟等待地图加载完成
+                await Task.Delay(1000);
+                SelectTrip(_pendingSelectedTripId);
+                _pendingSelectedTripId = null;
+            }
         }
         catch (Exception ex)
         {
@@ -252,6 +310,14 @@ public partial class MapWindow : Window
 
         // 返回默认路径（即使不存在）
         return Path.Combine(exeDir, "Resources", "Map", "map.html");
+    }
+
+    /// <summary>
+    ///     在地图上选中指定行程
+    /// </summary>
+    public void SelectTrip(string tripId)
+    {
+        _viewModel?.OnTripClick(tripId);
     }
 
     /// <summary>
