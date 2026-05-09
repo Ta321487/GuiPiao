@@ -997,6 +997,9 @@
                                                             <Setter Property="HorizontalAlignment" Value="Right" />
                                                             <Setter Property="VerticalAlignment" Value="Center" />
                                                             <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding DataContext.Layout.CardContentDensity, RelativeSource={RelativeSource AncestorType=local:MainWindow}}" Value="Compact">
+                                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                                </DataTrigger>
                                                                 <DataTrigger Binding="{Binding DataContext.Layout.CardStatusPosition, RelativeSource={RelativeSource AncestorType=local:MainWindow}}" Value="Hidden">
                                                                     <Setter Property="Visibility" Value="Collapsed" />
                                                                 </DataTrigger>
