@@ -48,6 +48,8 @@ public partial class TripListViewModel : ObservableObject, IDisposable
 
     [ObservableProperty] private bool _isOperationButtonsVisible = true;
 
+    [ObservableProperty] private ViewType _currentViewType = ViewType.List;
+
     private bool _isTripListExpanded = true;
 
     private ObservableCollection<int> _paginationButtons = new();
@@ -73,8 +75,9 @@ public partial class TripListViewModel : ObservableObject, IDisposable
         _confirmationService = new ConfirmationService();
         _uiSettingsService = new UISettingsService();
 
-        // 根据配置设置初始展开状态
+        // 根据配置设置初始展开状态和视图类型
         _isTripListExpanded = _uiSettingsService.Config.IsTripListExpandedByDefault;
+        _currentViewType = _uiSettingsService.Config.DefaultTripListView;
 
         PaginationButtons = new ObservableCollection<int>();
         UpdatePaginationButtons();
@@ -132,6 +135,15 @@ public partial class TripListViewModel : ObservableObject, IDisposable
         {
             Debug.WriteLine("[RefreshTripListMessage] Received");
             await LoadTripItemsAsync();
+        });
+
+        // 订阅切换视图消息
+        WeakReferenceMessenger.Default.Register<SwitchViewMessage>(this, (recipient, message) =>
+        {
+            Debug.WriteLine($"[SwitchViewMessage] Received, ViewType: {message.ViewType}");
+            CurrentViewType = message.ViewType;
+            OnPropertyChanged(nameof(IsDataGridVisible));
+            OnPropertyChanged(nameof(IsCardViewVisible));
         });
 
         // 加载初始数据
@@ -205,7 +217,10 @@ public partial class TripListViewModel : ObservableObject, IDisposable
     }
 
     // DataGrid是否可见（折叠时隐藏，展开时显示）
-    public bool IsDataGridVisible => IsTripListExpanded;
+    public bool IsDataGridVisible => IsTripListExpanded && CurrentViewType == ViewType.List;
+
+    // 卡片视图是否可见
+    public bool IsCardViewVisible => IsTripListExpanded && CurrentViewType == ViewType.Card;
 
     public string CollapseButtonContent => IsTripListExpanded ? "📥 折叠" : "📤 展开";
 
@@ -220,6 +235,7 @@ public partial class TripListViewModel : ObservableObject, IDisposable
         WeakReferenceMessenger.Default.Unregister<DataGridColumnsChangedMessage>(this);
         WeakReferenceMessenger.Default.Unregister<AdvancedSearchMessage>(this);
         WeakReferenceMessenger.Default.Unregister<TicketSavedMessage>(this);
+        WeakReferenceMessenger.Default.Unregister<SwitchViewMessage>(this);
     }
 
     private void InitializeSortState()

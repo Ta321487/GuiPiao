@@ -522,14 +522,21 @@ public partial class MainWindow : Window
 
         if (viewModel.IsTripListExpanded)
         {
-            // 展开状态：恢复用户设置的高度
+            // 展开状态：清除Border的固定高度，恢复Grid行高的绑定
             TripListBorder.ClearValue(HeightProperty);
-            MainGrid.RowDefinitions[2].Height = viewModel.BottomRowHeight;
-            Debug.WriteLine($"[UpdateTripListLayout] 展开状态，恢复高度: {viewModel.BottomRowHeight}");
+            // 重新设置绑定，确保行高与ViewModel同步
+            var binding = new Binding("BottomRowHeight")
+            {
+                Source = viewModel,
+                Mode = BindingMode.OneWay
+            };
+            MainGrid.RowDefinitions[2].SetBinding(RowDefinition.HeightProperty, binding);
+            Debug.WriteLine($"[UpdateTripListLayout] 展开状态，恢复高度绑定: {viewModel.BottomRowHeight}");
         }
         else
         {
-            // 折叠状态：设置Grid行高度为Auto，让行跟随Border高度
+            // 折叠状态：清除绑定并设置行高为Auto，让行跟随Border高度
+            MainGrid.RowDefinitions[2].ClearValue(RowDefinition.HeightProperty);
             MainGrid.RowDefinitions[2].Height = GridLength.Auto;
             TripListBorder.Height = 40;
             Debug.WriteLine("[UpdateTripListLayout] 折叠状态，设置行高度为Auto，Border高度为40px");
@@ -618,6 +625,50 @@ public partial class MainWindow : Window
         else
         {
             Debug.WriteLine("[DeleteButton_Click] 无法获取 trip 对象");
+        }
+    }
+
+    /// <summary>
+    ///     卡片视图右键菜单点击事件处理
+    /// </summary>
+    private async void CardViewMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        Debug.WriteLine("[CardViewMenuItem_Click] 事件被触发");
+        if (sender is not MenuItem menuItem || menuItem.Tag is not string action) return;
+
+        // 从 ContextMenu 的 PlacementTarget 获取 Border，再从 Border.Tag 获取 TripItem
+        if (menuItem.Parent is not ContextMenu contextMenu || contextMenu.PlacementTarget is not Border border)
+        {
+            Debug.WriteLine("[CardViewMenuItem_Click] 无法获取 Border 对象");
+            return;
+        }
+
+        if (border.Tag is not Model.TripItem trip)
+        {
+            Debug.WriteLine("[CardViewMenuItem_Click] 无法获取 trip 对象");
+            return;
+        }
+
+        Debug.WriteLine($"[CardViewMenuItem_Click] 操作: {action}, trip: {trip.TrainNo}");
+        if (DataContext is not MainViewModel viewModel) return;
+
+        switch (action)
+        {
+            case "View":
+                viewModel.TripList.ViewTripCommand(trip);
+                break;
+            case "Edit":
+                await viewModel.TripList.EditTripCommand(trip);
+                break;
+            case "Reschedule":
+                await viewModel.TripList.RescheduleTripCommand(trip);
+                break;
+            case "Refund":
+                await viewModel.TripList.RefundTripCommand(trip);
+                break;
+            case "Delete":
+                await viewModel.TripList.DeleteTripCommand(trip);
+                break;
         }
     }
 

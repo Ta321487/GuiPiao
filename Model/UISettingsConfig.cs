@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
+using GuiPiao.Messages;
 
 namespace GuiPiao.Model;
 
@@ -64,7 +65,7 @@ public class UISettingsConfig
     public bool RightPanelLocked { get; set; } = true;
 
     /// <summary>
-    ///     底部行程列表高度 (120-400)
+    ///     底部行程列表高度 (150-400)
     /// </summary>
     public int BottomPanelHeight { get; set; } = 250;
 
@@ -147,6 +148,12 @@ public class UISettingsConfig
     ///     DataGrid列配置列表
     /// </summary>
     public List<DataGridColumnConfig> DataGridColumns { get; set; }
+
+    /// <summary>
+    ///     默认行程列表视图类型（List/Card）
+    /// </summary>
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public ViewType DefaultTripListView { get; set; } = ViewType.List;
 
     #endregion
 

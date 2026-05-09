@@ -128,6 +128,7 @@ public partial class UISettingsViewModel : ObservableObject, ISettingsViewModel
             ShowDeleteButton = _originalConfig.ShowDeleteButton;
             IsTripListExpandedByDefault = _originalConfig.IsTripListExpandedByDefault;
             DataGridColumns = _originalConfig.DataGridColumns ?? DataGridColumnConfig.GetDefaultColumns();
+            CurrentTripListView = _originalConfig.DefaultTripListView;
 
             // 日志面板显示设置
             LogRowHeight = _originalConfig.LogRowHeight;
@@ -182,6 +183,7 @@ public partial class UISettingsViewModel : ObservableObject, ISettingsViewModel
             IsTripListExpandedByDefault = IsTripListExpandedByDefault,
             DataGridColumns = DataGridColumns?.GroupBy(c => c.FieldName).Select(g => g.First()).ToList() ??
                               DataGridColumnConfig.GetDefaultColumns(),
+            DefaultTripListView = CurrentTripListView,
 
             // 日志面板显示设置
             LogRowHeight = LogRowHeight,
@@ -223,6 +225,7 @@ public partial class UISettingsViewModel : ObservableObject, ISettingsViewModel
                a.ShowRefundButton == b.ShowRefundButton &&
                a.ShowDeleteButton == b.ShowDeleteButton &&
                a.IsTripListExpandedByDefault == b.IsTripListExpandedByDefault &&
+               a.DefaultTripListView == b.DefaultTripListView &&
                a.LogRowHeight == b.LogRowHeight &&
                a.InfoColor == b.InfoColor &&
                a.WarningColor == b.WarningColor &&
@@ -275,6 +278,9 @@ public partial class UISettingsViewModel : ObservableObject, ISettingsViewModel
 
             // 发送分组设置变更消息，让主窗口重新加载数据应用分组
             WeakReferenceMessenger.Default.Send(new GroupSettingChangedMessage(DefaultGroup));
+
+            // 发送切换视图消息，让主窗口立即切换列表/卡片视图
+            WeakReferenceMessenger.Default.Send(new SwitchViewMessage(CurrentTripListView));
 
             // 发送UI设置变更消息，让主窗口应用滚动条样式、操作按钮设置和日志面板显示设置
             WeakReferenceMessenger.Default.Send(new UISettingsChangedMessage(
@@ -758,6 +764,11 @@ public partial class UISettingsViewModel : ObservableObject, ISettingsViewModel
     ///     DataGrid列配置
     /// </summary>
     [ObservableProperty] private List<DataGridColumnConfig> _dataGridColumns = DataGridColumnConfig.GetDefaultColumns();
+
+    /// <summary>
+    ///     当前行程列表视图类型（切换视图用）
+    /// </summary>
+    [ObservableProperty] private ViewType _currentTripListView = ViewType.List;
 
     #endregion
 

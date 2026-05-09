@@ -1046,7 +1046,9 @@ public partial class MenuViewModel : ObservableObject
 
     private void SwitchToCardView()
     {
-        MessageBoxWindow.Show(Application.Current.MainWindow, "简洁卡片视图功能即将推出");
+        WeakReferenceMessenger.Default.Send(new StatusMessageMessage("已切换到简洁卡片视图"));
+        // 发送消息通知切换视图
+        WeakReferenceMessenger.Default.Send(new SwitchViewMessage(ViewType.Card));
     }
 
     private void ShowColumnCustomization()
