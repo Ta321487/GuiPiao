@@ -255,6 +255,8 @@ public partial class OcrSettingsViewModel : ObservableObject, ISettingsViewModel
 
             // 初始环境状态为未检测
             UpdateEnvironmentStatus();
+
+            _originalConfig = GetCurrentConfig();
         }
         finally
         {
@@ -1222,7 +1224,7 @@ public partial class OcrSettingsViewModel : ObservableObject, ISettingsViewModel
         {
             var config = GetCurrentConfig();
             _settingsService.SaveConfig(config);
-            _originalConfig = config;
+            _originalConfig = GetCurrentConfig();
 
             if (showMessage) MessageBoxWindow.Show(settingsWindow, "OCR设置已保存", "成功");
         }

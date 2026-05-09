@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Text;
 
 namespace GuiPiao.Utils;
@@ -32,7 +33,9 @@ public static class CommonUtils
     /// <returns>日期时间对象</returns>
     public static DateTime ParseDate(string dateString)
     {
-        return DateTime.ParseExact(dateString, "yyyy-MM-dd", null);
+        if (DateTime.TryParseExact(dateString, "yyyy-MM-dd", null, DateTimeStyles.None, out var result))
+            return result;
+        return DateTime.MinValue;
     }
 
     /// <summary>

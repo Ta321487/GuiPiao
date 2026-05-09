@@ -177,10 +177,14 @@ public class ExportService
             {
                 return new ExportResult { Success = false, Message = $"文件已被占用，请关闭后重试：{filePath}" };
             }
+            catch (UnauthorizedAccessException)
+            {
+                return new ExportResult { Success = false, Message = $"文件访问被拒绝：{filePath}" };
+            }
 
         return await Task.Run(() =>
         {
-            IWorkbook workbook = new XSSFWorkbook();
+            using var workbook = new XSSFWorkbook();
             var sheet = workbook.CreateSheet(config.ExcelSheetName);
 
             // 创建单元格样式
@@ -283,6 +287,10 @@ public class ExportService
             {
                 return new ExportResult { Success = false, Message = $"文件已被占用，请关闭后重试：{filePath}" };
             }
+            catch (UnauthorizedAccessException)
+            {
+                return new ExportResult { Success = false, Message = $"文件访问被拒绝：{filePath}" };
+            }
 
         return await Task.Run(() =>
         {
@@ -371,14 +379,17 @@ public class ExportService
             {
                 return new ExportResult { Success = false, Message = $"文件已被占用，请关闭后重试：{filePath}" };
             }
+            catch (UnauthorizedAccessException)
+            {
+                return new ExportResult { Success = false, Message = $"文件访问被拒绝：{filePath}" };
+            }
 
         return await Task.Run(() =>
         {
-            var document = new PdfDocument();
+            using var document = new PdfDocument();
             document.Info.Title = "行程记录导出";
             document.Info.Author = "GuiPiao";
 
-            // 计算页面尺寸
             var pageSize = config.PdfPaperSize switch
             {
                 "A5" => new XSize(XUnit.FromMillimeter(148).Point, XUnit.FromMillimeter(210).Point),
@@ -728,12 +739,15 @@ public class ExportService
             {
                 return new ExportResult { Success = false, Message = $"文件已被占用，请关闭后重试：{filePath}" };
             }
+            catch (UnauthorizedAccessException)
+            {
+                return new ExportResult { Success = false, Message = $"文件访问被拒绝：{filePath}" };
+            }
 
         return await Task.Run(() =>
         {
-            IWorkbook workbook = new XSSFWorkbook();
+            using var workbook = new XSSFWorkbook();
 
-            // 按分组键分组
             var groupedData = trainRides.GroupBy(r => GetGroupKey(r, groupOption, config))
                 .OrderBy(g => g.Key)
                 .ToList();
@@ -937,11 +951,10 @@ public class ExportService
     {
         return await Task.Run(() =>
         {
-            var document = new PdfDocument();
+            using var document = new PdfDocument();
             document.Info.Title = "行程记录导出";
             document.Info.Author = "GuiPiao";
 
-            // 计算页面尺寸
             var pageSize = config.PdfPaperSize switch
             {
                 "A5" => new XSize(XUnit.FromMillimeter(148).Point, XUnit.FromMillimeter(210).Point),

@@ -99,7 +99,7 @@ public class TrainTicketService
                             DepartTime = parts[6],
                             CoachNo = parts[7],
                             SeatNo = parts[8],
-                            Money = decimal.Parse(parts[9]),
+                            Money = decimal.TryParse(parts[9], out var money) ? money : 0m,
                             SeatType = parts[10]
                         };
 

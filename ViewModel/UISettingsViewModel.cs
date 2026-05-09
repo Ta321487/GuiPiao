@@ -165,6 +165,8 @@ public partial class UISettingsViewModel : ObservableObject, ISettingsViewModel
 
             // 高级界面选项
             DpiScaling = _originalConfig.DpiScaling;
+
+            _originalConfig = GetCurrentConfig();
         }
         finally
         {
@@ -303,7 +305,24 @@ public partial class UISettingsViewModel : ObservableObject, ISettingsViewModel
                a.FatalColor == b.FatalColor &&
                a.ShowTimestamp == b.ShowTimestamp &&
                a.ShowModuleSource == b.ShowModuleSource &&
-               a.DpiScaling == b.DpiScaling;
+               a.DpiScaling == b.DpiScaling &&
+               DataGridColumnsEqual(a.DataGridColumns, b.DataGridColumns);
+    }
+
+    private bool DataGridColumnsEqual(List<DataGridColumnConfig> a, List<DataGridColumnConfig> b)
+    {
+        if (a == null && b == null) return true;
+        if (a == null || b == null) return false;
+        if (a.Count != b.Count) return false;
+        for (var i = 0; i < a.Count; i++)
+        {
+            if (a[i].FieldName != b[i].FieldName ||
+                a[i].IsVisible != b[i].IsVisible ||
+                a[i].DisplayOrder != b[i].DisplayOrder ||
+                a[i].Width != b[i].Width)
+                return false;
+        }
+        return true;
     }
 
     /// <summary>
@@ -332,7 +351,7 @@ public partial class UISettingsViewModel : ObservableObject, ISettingsViewModel
             Debug.WriteLine($"[SaveSettingsInternal] Config created - DefaultGroup: {config.DefaultGroup}");
             _settingsService.SaveConfig(config);
             Debug.WriteLine($"[SaveSettingsInternal] SAVED - DefaultGroup: {config.DefaultGroup}");
-            _originalConfig = config;
+            _originalConfig = GetCurrentConfig();
 
             // 发送布局变更消息，直接传递当前布局值，让主界面立即应用
             WeakReferenceMessenger.Default.Send(new LayoutChangedMessage(
@@ -619,9 +638,9 @@ public partial class UISettingsViewModel : ObservableObject, ISettingsViewModel
             // 先保存当前设置
             var config = GetCurrentConfig();
             _settingsService.SaveConfig(config);
-            _originalConfig = config;
+            _originalConfig = GetCurrentConfig();
 
-            // 打开预览窗口（使用示例数据）
+            // 打开预览窗口
             var testTrip = new TripItem
             {
                 TrainNo = "G1234",

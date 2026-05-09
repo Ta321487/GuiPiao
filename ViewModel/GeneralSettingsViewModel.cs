@@ -119,6 +119,8 @@ public partial class GeneralSettingsViewModel : ObservableObject, ISettingsViewM
             ConfirmOnRestore = _originalConfig.ConfirmOnRestore;
             EnableUndo = _originalConfig.EnableUndo;
             MaxUndoSteps = _originalConfig.MaxUndoSteps.ToString();
+
+            _originalConfig = GetCurrentConfig();
         }
         finally
         {
@@ -272,7 +274,7 @@ public partial class GeneralSettingsViewModel : ObservableObject, ISettingsViewM
             var wasMultiInstance = !_originalConfig.SingleInstance && config.SingleInstance;
             var previousConfig = _originalConfig;
             _settingsService.SaveConfig(config);
-            _originalConfig = config;
+            _originalConfig = GetCurrentConfig();
 
             if (wasMultiInstance)
             {

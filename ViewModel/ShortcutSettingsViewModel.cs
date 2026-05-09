@@ -139,8 +139,20 @@ public partial class ShortcutSettingsViewModel : ObservableObject, ISettingsView
     /// </summary>
     private void LoadSettings()
     {
-        _originalConfig = _settingsService.Config;
-        var shortcuts = _originalConfig.Shortcuts.Select(s => new ShortcutItemViewModel(s)).ToList();
+        var config = _settingsService.Config;
+        _originalConfig = new ShortcutConfig
+        {
+            Shortcuts = config.Shortcuts.Select(s => new ShortcutItem
+            {
+                ActionId = s.ActionId,
+                ActionName = s.ActionName,
+                Description = s.Description,
+                Category = s.Category,
+                DefaultKey = s.DefaultKey,
+                CurrentKey = s.CurrentKey
+            }).ToList()
+        };
+        var shortcuts = config.Shortcuts.Select(s => new ShortcutItemViewModel(s)).ToList();
         Shortcuts = new ObservableCollection<ShortcutItemViewModel>(shortcuts);
         ClearConflict();
     }
@@ -153,15 +165,13 @@ public partial class ShortcutSettingsViewModel : ObservableObject, ISettingsView
     {
         if (string.IsNullOrWhiteSpace(SearchText))
         {
-            // 显示所有
-            var shortcuts = _originalConfig.Shortcuts.Select(s => new ShortcutItemViewModel(s)).ToList();
+            var shortcuts = _settingsService.Config.Shortcuts.Select(s => new ShortcutItemViewModel(s)).ToList();
             Shortcuts = new ObservableCollection<ShortcutItemViewModel>(shortcuts);
         }
         else
         {
-            // 过滤
             var searchLower = SearchText.ToLower();
-            var filtered = _originalConfig.Shortcuts
+            var filtered = _settingsService.Config.Shortcuts
                 .Where(s => s.ActionName.ToLower().Contains(searchLower) ||
                             s.Category.ToLower().Contains(searchLower) ||
                             s.CurrentKey.ToLower().Contains(searchLower))
@@ -371,7 +381,18 @@ public partial class ShortcutSettingsViewModel : ObservableObject, ISettingsView
             };
 
             _settingsService.SaveConfig(config);
-            _originalConfig = config;
+            _originalConfig = new ShortcutConfig
+            {
+                Shortcuts = config.Shortcuts.Select(s => new ShortcutItem
+                {
+                    ActionId = s.ActionId,
+                    ActionName = s.ActionName,
+                    Description = s.Description,
+                    Category = s.Category,
+                    DefaultKey = s.DefaultKey,
+                    CurrentKey = s.CurrentKey
+                }).ToList()
+            };
 
             OnPropertyChanged(nameof(HasUnsavedChanges));
 

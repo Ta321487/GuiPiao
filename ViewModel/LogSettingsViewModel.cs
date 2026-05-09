@@ -77,13 +77,21 @@ public partial class LogSettingsViewModel : ObservableObject, ISettingsViewModel
 
     private void LoadConfig()
     {
-        _originalConfig = _logService.Config;
-        SelectedLogLevel = _originalConfig.MinLogLevel;
-        AutoCleanup = _originalConfig.AutoCleanup;
-        RetentionDays = _originalConfig.RetentionDays;
-        MaxLogCount = _originalConfig.MaxLogCount;
-        LogFilePath = _originalConfig.LogFilePath;
-        CurrentLogFileSize = _logService.FormatFileSize(_originalConfig.CurrentLogFileSize);
+        var config = _logService.Config;
+        _originalConfig = new LogConfig
+        {
+            MinLogLevel = config.MinLogLevel,
+            AutoCleanup = config.AutoCleanup,
+            RetentionDays = config.RetentionDays,
+            MaxLogCount = config.MaxLogCount,
+            LogFilePath = config.LogFilePath
+        };
+        SelectedLogLevel = config.MinLogLevel;
+        AutoCleanup = config.AutoCleanup;
+        RetentionDays = config.RetentionDays;
+        MaxLogCount = config.MaxLogCount;
+        LogFilePath = config.LogFilePath;
+        CurrentLogFileSize = _logService.FormatFileSize(config.CurrentLogFileSize);
     }
 
     [RelayCommand]
@@ -118,7 +126,14 @@ public partial class LogSettingsViewModel : ObservableObject, ISettingsViewModel
             };
 
             _logService.SaveConfig(config);
-            _originalConfig = config;
+            _originalConfig = new LogConfig
+            {
+                MinLogLevel = config.MinLogLevel,
+                AutoCleanup = config.AutoCleanup,
+                RetentionDays = config.RetentionDays,
+                MaxLogCount = config.MaxLogCount,
+                LogFilePath = config.LogFilePath
+            };
 
             if (AutoCleanup) await _logService.AutoCleanupAsync();
 

@@ -139,20 +139,22 @@ public class DatabaseDangerousRepository
         {
             await connection.OpenAsync();
 
-            // 获取所有表名
             var tables = await GetAllTableNamesAsync();
 
-            // 禁用外键约束
             await connection.ExecuteAsync("PRAGMA foreign_keys = OFF;");
 
-            foreach (var table in tables)
+            try
             {
-                var dropSql = $"DROP TABLE IF EXISTS {table};";
-                await connection.ExecuteAsync(dropSql);
+                foreach (var table in tables)
+                {
+                    var dropSql = $"DROP TABLE IF EXISTS {table};";
+                    await connection.ExecuteAsync(dropSql);
+                }
             }
-
-            // 重新启用外键约束
-            await connection.ExecuteAsync("PRAGMA foreign_keys = ON;");
+            finally
+            {
+                await connection.ExecuteAsync("PRAGMA foreign_keys = ON;");
+            }
         }
     }
 

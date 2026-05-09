@@ -67,19 +67,19 @@ public class LogService
     /// </summary>
     public void SaveConfig(LogConfig config)
     {
-        // 更新内存中的配置
         Config.MinLogLevel = config.MinLogLevel;
         Config.AutoCleanup = config.AutoCleanup;
         Config.RetentionDays = config.RetentionDays;
         Config.MaxLogCount = config.MaxLogCount;
+        Config.LogFilePath = config.LogFilePath;
 
-        // 保存到JSON文件（不包含运行时属性）
         var configToSave = new LogConfig
         {
             MinLogLevel = config.MinLogLevel,
             AutoCleanup = config.AutoCleanup,
             RetentionDays = config.RetentionDays,
-            MaxLogCount = config.MaxLogCount
+            MaxLogCount = config.MaxLogCount,
+            LogFilePath = config.LogFilePath
         };
 
         JsonConfigManager.Instance.SaveConfig(ConfigFileName, configToSave);
@@ -137,7 +137,8 @@ public class LogService
         try
         {
             var logDir = Path.GetDirectoryName(Config.LogFilePath);
-            if (!Directory.Exists(logDir)) Directory.CreateDirectory(logDir);
+            if (!string.IsNullOrEmpty(logDir) && !Directory.Exists(logDir))
+                Directory.CreateDirectory(logDir);
 
             var logLine = $"[{log.Time}] [{log.LevelDisplay}] [{log.Module}] {log.Content}{Environment.NewLine}";
             await File.AppendAllTextAsync(Config.LogFilePath, logLine);

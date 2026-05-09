@@ -1,6 +1,7 @@
 using System;
 using System.Globalization;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Data;
 using GuiPiao.Model;
 
@@ -15,15 +16,16 @@ public class PageToStyleConverter : IValueConverter
     {
         if (value is SettingsPageType currentPage && parameter is string targetPage)
             if (Enum.TryParse<SettingsPageType>(targetPage, out var target))
-                // 获取应用程序资源中的样式
                 if (currentPage == target)
-                    return Application.Current.FindResource("NavItemSelectedStyle");
+                    return Application.Current?.TryFindResource("NavItemSelectedStyle") as Style
+                           ?? new Style(typeof(ListBoxItem));
 
-        return Application.Current.FindResource("NavItemStyle");
+        return Application.Current?.TryFindResource("NavItemStyle") as Style
+               ?? new Style(typeof(ListBoxItem));
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        throw new NotImplementedException();
+        return Binding.DoNothing;
     }
 }

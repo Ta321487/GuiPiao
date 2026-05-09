@@ -204,11 +204,11 @@ public class DownloadService : IDisposable
         var url = task.Url;
         var startPosition = task.DownloadedBytes;
 
-        // 确保目录存在
-        Directory.CreateDirectory(Path.GetDirectoryName(filePath)!);
+        var dir = Path.GetDirectoryName(filePath);
+        if (!string.IsNullOrEmpty(dir))
+            Directory.CreateDirectory(dir);
 
-        // 检查服务器是否支持断点续传
-        var headResponse = await _httpClient.SendAsync(
+        using var headResponse = await _httpClient.SendAsync(
             new HttpRequestMessage(HttpMethod.Head, url),
             HttpCompletionOption.ResponseHeadersRead);
 
@@ -221,11 +221,17 @@ public class DownloadService : IDisposable
         var totalBytes = headResponse.Content.Headers.ContentLength ?? 0;
         task.TotalBytes = totalBytes;
 
-        // 如果文件已存在且大小匹配，说明已下载完成
-        if (File.Exists(filePath) && new FileInfo(filePath).Length == totalBytes && totalBytes > 0)
+        try
         {
-            task.DownloadedBytes = totalBytes;
-            return true;
+            var fi = new FileInfo(filePath);
+            if (fi.Exists && fi.Length == totalBytes && totalBytes > 0)
+            {
+                task.DownloadedBytes = totalBytes;
+                return true;
+            }
+        }
+        catch (FileNotFoundException)
+        {
         }
 
         // 创建或打开文件

@@ -138,6 +138,8 @@ public partial class MapSettingsViewModel : ObservableObject, ISettingsViewModel
 
             // 刷新缓存大小
             RefreshCacheSize();
+
+            _originalConfig = GetCurrentConfig();
         }
         finally
         {
@@ -250,7 +252,7 @@ public partial class MapSettingsViewModel : ObservableObject, ISettingsViewModel
             var config = GetCurrentConfig();
             var previousConfig = _originalConfig;
             _settingsService.SaveConfig(config);
-            _originalConfig = config;
+            _originalConfig = GetCurrentConfig();
 
             // 触发地图设置已保存事件
             MapSettingsSaved?.Invoke(this, EventArgs.Empty);

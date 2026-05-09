@@ -112,7 +112,9 @@ public partial class App : Application
         catch (Exception ex)
         {
             _logService.Fatal("App", $"数据库初始化失败: {ex.Message}");
-            throw;
+            MessageBoxWindow.Show($"数据库初始化失败，程序即将退出：\n{ex.Message}");
+            Current.Shutdown();
+            return;
         }
 
         // 执行启动时数据库生命周期操作
@@ -191,19 +193,37 @@ public partial class App : Application
 
     private void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
     {
-        var ex = e.ExceptionObject as Exception;
-        if (ex != null) _logService.Fatal("App", $"未处理异常: {ex.Message}");
+        try
+        {
+            var ex = e.ExceptionObject as Exception;
+            _logService.Fatal("App", $"未处理异常: {ex?.Message ?? e.ExceptionObject?.ToString() ?? "未知异常"}");
+        }
+        catch
+        {
+        }
     }
 
     private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
-        _logService.Fatal("App", $"调度器异常: {e.Exception.Message}");
+        try
+        {
+            _logService.Fatal("App", $"调度器异常: {e.Exception?.Message ?? "未知异常"}");
+        }
+        catch
+        {
+        }
         e.Handled = true;
     }
 
     private void OnUnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
     {
-        _logService.Error("App", $"任务异常: {e.Exception.Message}");
+        try
+        {
+            _logService.Error("App", $"任务异常: {e.Exception?.InnerException?.Message ?? e.Exception?.Message ?? "未知异常"}");
+        }
+        catch
+        {
+        }
         e.SetObserved();
     }
 }

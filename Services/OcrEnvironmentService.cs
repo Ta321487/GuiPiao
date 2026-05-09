@@ -108,9 +108,12 @@ public class OcrEnvironmentService
             using var process = Process.Start(processInfo);
             if (process == null) return string.Empty;
 
-            var output = await process.StandardOutput.ReadToEndAsync();
+            var outputTask = process.StandardOutput.ReadToEndAsync();
+            var errorTask = process.StandardError.ReadToEndAsync();
+            await Task.WhenAll(outputTask, errorTask);
             await process.WaitForExitAsync();
 
+            var output = outputTask.Result;
             if (process.ExitCode == 0 && !string.IsNullOrWhiteSpace(output))
             {
                 // where命令可能返回多个路径，取第一个
@@ -171,10 +174,12 @@ public class OcrEnvironmentService
             using var process = Process.Start(processInfo);
             if (process == null) return false;
 
-            var output = await process.StandardOutput.ReadToEndAsync();
+            var outputTask = process.StandardOutput.ReadToEndAsync();
+            var errorTask = process.StandardError.ReadToEndAsync();
+            await Task.WhenAll(outputTask, errorTask);
             await process.WaitForExitAsync();
 
-            return process.ExitCode == 0 && output.Contains("OK");
+            return process.ExitCode == 0 && outputTask.Result.Contains("OK");
         }
         catch (Exception ex)
         {
@@ -203,10 +208,12 @@ public class OcrEnvironmentService
             using var process = Process.Start(processInfo);
             if (process == null) return false;
 
-            var output = await process.StandardOutput.ReadToEndAsync();
+            var outputTask = process.StandardOutput.ReadToEndAsync();
+            var errorTask = process.StandardError.ReadToEndAsync();
+            await Task.WhenAll(outputTask, errorTask);
             await process.WaitForExitAsync();
 
-            return process.ExitCode == 0 && output.Contains("OK");
+            return process.ExitCode == 0 && outputTask.Result.Contains("OK");
         }
         catch (Exception ex)
         {
@@ -259,10 +266,12 @@ public class OcrEnvironmentService
             using var process = Process.Start(processInfo);
             if (process == null) return false;
 
-            var output = await process.StandardOutput.ReadToEndAsync();
+            var outputTask = process.StandardOutput.ReadToEndAsync();
+            var errorTask = process.StandardError.ReadToEndAsync();
+            await Task.WhenAll(outputTask, errorTask);
             await process.WaitForExitAsync();
 
-            return process.ExitCode == 0 && output.Contains("OK");
+            return process.ExitCode == 0 && outputTask.Result.Contains("OK");
         }
         catch (Exception ex)
         {
@@ -297,10 +306,12 @@ public class OcrEnvironmentService
             using var process = Process.Start(processInfo);
             if (process == null) return false;
 
-            var output = await process.StandardOutput.ReadToEndAsync();
+            var outputTask = process.StandardOutput.ReadToEndAsync();
+            var errorTask = process.StandardError.ReadToEndAsync();
+            await Task.WhenAll(outputTask, errorTask);
             await process.WaitForExitAsync();
 
-            return process.ExitCode == 0 && output.Contains("OK");
+            return process.ExitCode == 0 && outputTask.Result.Contains("OK");
         }
         catch (Exception ex)
         {

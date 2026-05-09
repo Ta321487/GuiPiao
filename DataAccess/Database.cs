@@ -12,22 +12,38 @@ public static class Database
 
     public static void Initialize()
     {
-        var dbPath = Path.Combine(Directory.GetCurrentDirectory(), "guipiao.db");
-        var dbDir = Path.GetDirectoryName(dbPath);
-        if (!Directory.Exists(dbDir))
+        try
         {
-            Directory.CreateDirectory(dbDir);
-            _logService.Info("Database", $"创建数据库目录: {dbDir}");
-        }
+            var dbPath = Path.Combine(Directory.GetCurrentDirectory(), "guipiao.db");
+            var dbDir = Path.GetDirectoryName(dbPath);
+            if (!string.IsNullOrEmpty(dbDir) && !Directory.Exists(dbDir))
+            {
+                Directory.CreateDirectory(dbDir);
+                _logService.Info("Database", $"创建数据库目录: {dbDir}");
+            }
 
-        CreateTables();
+            CreateTables();
+        }
+        catch (Exception ex)
+        {
+            _logService.Error("Database", $"数据库初始化失败: {ex.Message}");
+            throw;
+        }
     }
 
     private static void CreateTables()
     {
         using (var connection = new SqliteConnection(ConfigManager.Instance.DatabaseConnectionString))
         {
-            connection.Open();
+            try
+            {
+                connection.Open();
+            }
+            catch (Exception ex)
+            {
+                _logService.Error("Database", $"数据库连接失败: {ex.Message}");
+                throw;
+            }
 
             var createStationTable = @"
                     CREATE TABLE IF NOT EXISTS station_info (

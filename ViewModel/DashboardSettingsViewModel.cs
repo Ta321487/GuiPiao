@@ -120,23 +120,22 @@ public partial class DashboardSettingsViewModel : ObservableObject, ISettingsVie
         _isLoadingConfig = true;
         try
         {
-            _originalConfig = _settingsService.Config;
+            var loadedConfig = _settingsService.Config;
 
-            LayoutType = _originalConfig.LayoutType;
-            CardSpacing = _originalConfig.CardSpacing;
-            GlobalTimeRange = _originalConfig.GlobalTimeRange;
-            GlobalCustomStartDate = _originalConfig.GlobalCustomStartDate;
-            GlobalCustomEndDate = _originalConfig.GlobalCustomEndDate;
-            GlobalChartType = _originalConfig.GlobalChartType;
-            ExcludeRefundedTickets = _originalConfig.ExcludeRefundedTickets;
-            ExcludeDuplicateTickets = _originalConfig.ExcludeDuplicateTickets;
-            AutoRefresh = _originalConfig.AutoRefresh;
-            EnableChartAnimation = _originalConfig.EnableChartAnimation;
+            LayoutType = loadedConfig.LayoutType;
+            CardSpacing = loadedConfig.CardSpacing;
+            GlobalTimeRange = loadedConfig.GlobalTimeRange;
+            GlobalCustomStartDate = loadedConfig.GlobalCustomStartDate;
+            GlobalCustomEndDate = loadedConfig.GlobalCustomEndDate;
+            GlobalChartType = loadedConfig.GlobalChartType;
+            ExcludeRefundedTickets = loadedConfig.ExcludeRefundedTickets;
+            ExcludeDuplicateTickets = loadedConfig.ExcludeDuplicateTickets;
+            AutoRefresh = loadedConfig.AutoRefresh;
+            EnableChartAnimation = loadedConfig.EnableChartAnimation;
 
             Cards.Clear();
-            foreach (var card in _originalConfig.Cards.OrderBy(c => c.SortOrder))
+            foreach (var card in loadedConfig.Cards.OrderBy(c => c.SortOrder))
             {
-                // 确保卡片的 ChartType 与 CustomConfig 中的 UseCustomChartType 设置一致
                 if (card.CustomConfig != null)
                 {
                     if (card.CustomConfig.UseCustomChartType)
@@ -147,6 +146,8 @@ public partial class DashboardSettingsViewModel : ObservableObject, ISettingsVie
 
                 Cards.Add(card);
             }
+
+            _originalConfig = GetCurrentConfig();
         }
         finally
         {
@@ -590,9 +591,7 @@ public partial class DashboardSettingsViewModel : ObservableObject, ISettingsVie
         {
             var config = GetCurrentConfig();
             _settingsService.SaveConfig(config);
-            _originalConfig = config;
 
-            // 更新所有使用全局配置的卡片
             foreach (var card in Cards)
                 if (card.UseGlobalConfig)
                 {
@@ -601,6 +600,8 @@ public partial class DashboardSettingsViewModel : ObservableObject, ISettingsVie
                     card.CustomStartDate = GlobalCustomStartDate;
                     card.CustomEndDate = GlobalCustomEndDate;
                 }
+
+            _originalConfig = GetCurrentConfig();
 
             // 触发配置已保存事件
             Debug.WriteLine("[DashboardSettingsViewModel] 触发 DashboardConfigSaved 事件");

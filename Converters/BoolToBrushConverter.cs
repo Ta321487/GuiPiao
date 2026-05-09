@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using System.Windows;
 using System.Windows.Data;
 using System.Windows.Media;
 
@@ -32,8 +33,8 @@ public class BoolToBrushConverter : IValueConverter
                 "error" => new SolidColorBrush(Color.FromRgb(220, 53, 69)), // #DC3545
                 "warning" => new SolidColorBrush(Color.FromRgb(253, 126, 20)), // #FD7E14
                 "info" => new SolidColorBrush(Color.FromRgb(0, 123, 255)), // #007BFF
-                "primary" => new SolidColorBrush(
-                    (Color)ColorConverter.ConvertFromString("{DynamicResource AccentColor}")),
+                "primary" => Application.Current?.TryFindResource("AccentBrush") as SolidColorBrush
+                    ?? new SolidColorBrush(Color.FromRgb(0, 123, 255)),
                 _ => new SolidColorBrush(Colors.Gray)
             };
         }
@@ -43,6 +44,6 @@ public class BoolToBrushConverter : IValueConverter
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        throw new NotImplementedException();
+        return Binding.DoNothing;
     }
 }

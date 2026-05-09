@@ -120,7 +120,7 @@ public partial class EditTrainTicketWindow : Window
             vm.CheckForChanges();
     }
 
-    private void OnWindowClosing(object? sender, CancelEventArgs e)
+    private async void OnWindowClosing(object? sender, CancelEventArgs e)
     {
         if (DataContext is not TrainTicketFormViewModelBase vm) return;
 
@@ -152,18 +152,21 @@ public partial class EditTrainTicketWindow : Window
         switch (result2)
         {
             case MessageBoxResult.Yes:
-                e.Cancel = true; // 首先取消关闭操作
+                e.Cancel = true;
 
                 try
                 {
                     if (vm.SaveCommand is IAsyncRelayCommand asyncCommand)
-                        asyncCommand.ExecuteAsync(null).GetAwaiter().GetResult();
+                    {
+                        await asyncCommand.ExecuteAsync(null);
+                    }
                     else
+                    {
                         vm.SaveCommand.Execute(null);
+                    }
 
                     if (!vm.HasUnsavedChanges)
                     {
-                        // 保存成功，重新关闭窗口
                         Closing -= OnWindowClosing;
                         Close();
                     }

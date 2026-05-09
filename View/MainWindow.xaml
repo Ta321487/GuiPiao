@@ -168,16 +168,11 @@
             <!-- 上部区域：高级检索区 + 仪表盘 + 日志面板 -->
             <Grid x:Name="TopGrid" Grid.Row="0">
                 <Grid.ColumnDefinitions>
-                    <!-- 左侧检索区：使用星号宽度让GridSplitter可以调整 -->
-                    <ColumnDefinition Width="{Binding LeftColumnWidth}" MinWidth="160" MaxWidth="800" />
-                    <!-- 左侧分割条列：锁定时为0，解锁时为5 -->
+                    <ColumnDefinition Width="{Binding LeftColumnWidth}" MinWidth="120" MaxWidth="300" />
                     <ColumnDefinition Width="{Binding LeftSplitterWidth}" />
-                    <!-- 中间仪表盘：最小150px -->
                     <ColumnDefinition Width="*" MinWidth="150" />
-                    <!-- 右侧分割条列：锁定时为0，解锁时为5 -->
                     <ColumnDefinition Width="{Binding RightSplitterWidth}" />
-                    <!-- 右侧日志面板：使用星号宽度让GridSplitter可以调整 -->
-                    <ColumnDefinition Width="{Binding RightColumnWidth}" MinWidth="200" MaxWidth="800" />
+                    <ColumnDefinition Width="{Binding RightColumnWidth}" MinWidth="180" MaxWidth="350" />
                 </Grid.ColumnDefinitions>
 
                 <!-- 左侧分割条 -->

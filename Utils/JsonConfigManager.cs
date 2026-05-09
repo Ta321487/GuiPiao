@@ -30,7 +30,13 @@ public class JsonConfigManager
     /// </summary>
     private void EnsureConfigDirectoryExists()
     {
-        if (!Directory.Exists(_configDirectory)) Directory.CreateDirectory(_configDirectory);
+        try
+        {
+            if (!Directory.Exists(_configDirectory)) Directory.CreateDirectory(_configDirectory);
+        }
+        catch
+        {
+        }
     }
 
     /// <summary>
@@ -119,7 +125,6 @@ public class JsonConfigManager
         catch (Exception ex)
         {
             Debug.WriteLine($"保存配置失败: {ex.Message}");
-            throw;
         }
     }
 

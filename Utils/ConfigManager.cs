@@ -42,19 +42,36 @@ public class ConfigManager
     // 初始化配置
     private void InitializeConfig()
     {
-        // 数据库连接字符串
-        var dbPath = GetDatabasePath();
-        DatabaseConnectionString = $"Data Source={dbPath}";
+        try
+        {
+            var dbPath = GetDatabasePath();
+            DatabaseConnectionString = $"Data Source={dbPath}";
+        }
+        catch (Exception ex)
+        {
+            DatabaseConnectionString = $"Data Source={Path.Combine(Directory.GetCurrentDirectory(), "guipiao.db")}";
+        }
 
-        // Tesseract数据路径
-        TesseractDataPath = Path.Combine(Directory.GetCurrentDirectory(), "tessdata");
+        try
+        {
+            TesseractDataPath = Path.Combine(Directory.GetCurrentDirectory(), "tessdata");
+        }
+        catch
+        {
+            TesseractDataPath = "tessdata";
+        }
 
-        // 日志文件路径
-        var logDir = Path.Combine(Directory.GetCurrentDirectory(), "logs");
-        if (!Directory.Exists(logDir)) Directory.CreateDirectory(logDir);
-        LogFilePath = Path.Combine(logDir, $"app_{DateTime.Now:yyyyMMdd}.log");
+        try
+        {
+            var logDir = Path.Combine(Directory.GetCurrentDirectory(), "logs");
+            if (!Directory.Exists(logDir)) Directory.CreateDirectory(logDir);
+            LogFilePath = Path.Combine(logDir, $"app_{DateTime.Now:yyyyMMdd}.log");
+        }
+        catch
+        {
+            LogFilePath = Path.Combine(Directory.GetCurrentDirectory(), $"app_{DateTime.Now:yyyyMMdd}.log");
+        }
 
-        // 默认分页大小
         DefaultPageSize = 20;
     }
 
@@ -74,20 +91,14 @@ public class ConfigManager
             // 配置文件读取失败，使用默认路径
         }
 
-        // 获取程序集所在目录
         var exePath = Assembly.GetExecutingAssembly().Location;
-        var exeDir = Path.GetDirectoryName(exePath)!;
+        var exeDir = Path.GetDirectoryName(exePath) ?? Directory.GetCurrentDirectory();
 
-        // 搜索路径列表（按优先级）
         var searchPaths = new List<string>
         {
-            // 1. 当前工作目录
             Directory.GetCurrentDirectory(),
-            // 2. 程序集所在目录
             exeDir,
-            // 3. 项目目录（开发环境）
             Path.GetFullPath(Path.Combine(exeDir, "..", "..", "..")),
-            // 4. 程序集父目录
             Path.GetFullPath(Path.Combine(exeDir, ".."))
         };
 

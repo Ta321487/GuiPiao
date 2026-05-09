@@ -155,14 +155,22 @@ public partial class LayoutViewModel : ObservableObject, IDisposable
         });
     }
 
+    public const int LeftPanelMinWidth = 120;
+    public const int LeftPanelMaxWidth = 300;
+    public const int RightPanelMinWidth = 180;
+    public const int RightPanelMaxWidth = 350;
+    public const int BottomPanelMinHeight = 150;
+    public const int BottomPanelMaxHeight = 400;
+
     public int LeftPanelWidth
     {
         get => _leftPanelWidth;
         set
         {
-            if (_leftPanelWidth != value)
+            var clamped = Math.Max(LeftPanelMinWidth, Math.Min(LeftPanelMaxWidth, value));
+            if (_leftPanelWidth != clamped)
             {
-                _leftPanelWidth = value;
+                _leftPanelWidth = clamped;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(LeftColumnWidth));
             }
@@ -190,9 +198,10 @@ public partial class LayoutViewModel : ObservableObject, IDisposable
         get => _rightPanelWidth;
         set
         {
-            if (_rightPanelWidth != value)
+            var clamped = Math.Max(RightPanelMinWidth, Math.Min(RightPanelMaxWidth, value));
+            if (_rightPanelWidth != clamped)
             {
-                _rightPanelWidth = value;
+                _rightPanelWidth = clamped;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(RightColumnWidth));
             }
@@ -220,9 +229,10 @@ public partial class LayoutViewModel : ObservableObject, IDisposable
         get => _bottomPanelHeight;
         set
         {
-            if (_bottomPanelHeight != value)
+            var clamped = Math.Max(BottomPanelMinHeight, Math.Min(BottomPanelMaxHeight, value));
+            if (_bottomPanelHeight != clamped)
             {
-                _bottomPanelHeight = value;
+                _bottomPanelHeight = clamped;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(BottomRowHeight));
             }

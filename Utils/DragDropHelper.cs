@@ -65,8 +65,13 @@ public class DragDropHelper
         // 触发开始拖拽回调
         _onDragStartAction?.Invoke();
 
-        // 开始拖拽操作
-        DragDrop.DoDragDrop(_draggedElement, _draggedElement.DataContext, DragDropEffects.Move);
+        try
+        {
+            DragDrop.DoDragDrop(_draggedElement, _draggedElement.DataContext, DragDropEffects.Move);
+        }
+        catch
+        {
+        }
         ResetDragState();
     }
 

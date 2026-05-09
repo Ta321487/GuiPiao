@@ -1356,168 +1356,120 @@ public partial class MainWindow : Window
     /// </summary>
     private void LeftSplitter_DragCompleted(object sender, DragCompletedEventArgs e)
     {
-        // 恢复光标
         Mouse.OverrideCursor = null;
 
         if (DataContext is MainViewModel viewModel && TopGrid != null)
         {
-            // 获取左侧列的实际宽度并更新ViewModel
             var actualWidth = TopGrid.ColumnDefinitions[0].ActualWidth;
-            // 限制宽度在120-800范围内
-            var limitedWidth = (int)Math.Max(120, Math.Min(800, actualWidth));
+            var limitedWidth = (int)Math.Max(LayoutViewModel.LeftPanelMinWidth, Math.Min(LayoutViewModel.LeftPanelMaxWidth, actualWidth));
             viewModel.Layout.LeftPanelWidth = limitedWidth;
-            // 保存到配置文件（无论锁定还是解锁状态都保存宽度值）
             viewModel.SaveLayoutSettings();
         }
     }
 
-    /// <summary>
-    ///     左侧分割条拖动中事件 - 实时限制宽度
-    /// </summary>
     private void LeftSplitter_DragDelta(object sender, DragDeltaEventArgs e)
     {
         if (TopGrid != null)
         {
-            // 获取左侧列的当前宽度
             var currentWidth = TopGrid.ColumnDefinitions[0].ActualWidth;
             var newWidth = currentWidth + e.HorizontalChange;
 
-            // 限制宽度在120-800范围内
-            if (newWidth < 120)
+            if (newWidth < LayoutViewModel.LeftPanelMinWidth)
             {
-                // 阻止进一步缩小
                 e.Handled = true;
-                TopGrid.ColumnDefinitions[0].Width = new GridLength(120);
+                TopGrid.ColumnDefinitions[0].Width = new GridLength(LayoutViewModel.LeftPanelMinWidth);
                 TopGrid.ColumnDefinitions[2].Width = new GridLength(1, GridUnitType.Star);
-                // 显示禁止光标
                 Mouse.OverrideCursor = Cursors.No;
             }
-            else if (newWidth > 800)
+            else if (newWidth > LayoutViewModel.LeftPanelMaxWidth)
             {
-                // 阻止进一步放大
                 e.Handled = true;
-                TopGrid.ColumnDefinitions[0].Width = new GridLength(800);
-                // 显示禁止光标
+                TopGrid.ColumnDefinitions[0].Width = new GridLength(LayoutViewModel.LeftPanelMaxWidth);
                 Mouse.OverrideCursor = Cursors.No;
             }
             else
             {
-                // 恢复正常光标
                 Mouse.OverrideCursor = null;
             }
         }
     }
 
-    /// <summary>
-    ///     右侧分割条拖动完成事件 - 同步更新ViewModel中的宽度值并保存配置
-    /// </summary>
     private void RightSplitter_DragCompleted(object sender, DragCompletedEventArgs e)
     {
-        // 恢复光标
         Mouse.OverrideCursor = null;
 
         if (DataContext is MainViewModel viewModel && TopGrid != null)
         {
-            // 获取右侧列的实际宽度并更新ViewModel
             var actualWidth = TopGrid.ColumnDefinitions[4].ActualWidth;
-            // 限制宽度在180-800范围内
-            var limitedWidth = (int)Math.Max(180, Math.Min(800, actualWidth));
+            var limitedWidth = (int)Math.Max(LayoutViewModel.RightPanelMinWidth, Math.Min(LayoutViewModel.RightPanelMaxWidth, actualWidth));
             viewModel.Layout.RightPanelWidth = limitedWidth;
-            // 保存到配置文件（无论锁定还是解锁状态都保存宽度值）
             viewModel.SaveLayoutSettings();
         }
     }
 
-    /// <summary>
-    ///     右侧分割条拖动中事件 - 实时限制宽度
-    /// </summary>
     private void RightSplitter_DragDelta(object sender, DragDeltaEventArgs e)
     {
         if (TopGrid != null)
         {
-            // 获取右侧列的当前宽度
             var currentWidth = TopGrid.ColumnDefinitions[4].ActualWidth;
             var newWidth = currentWidth - e.HorizontalChange;
 
-            // 限制宽度在180-800范围内
-            if (newWidth < 180)
+            if (newWidth < LayoutViewModel.RightPanelMinWidth)
             {
-                // 阻止进一步缩小
                 e.Handled = true;
-                TopGrid.ColumnDefinitions[4].Width = new GridLength(180);
+                TopGrid.ColumnDefinitions[4].Width = new GridLength(LayoutViewModel.RightPanelMinWidth);
                 TopGrid.ColumnDefinitions[2].Width = new GridLength(1, GridUnitType.Star);
-                // 显示禁止光标
                 Mouse.OverrideCursor = Cursors.No;
             }
-            else if (newWidth > 800)
+            else if (newWidth > LayoutViewModel.RightPanelMaxWidth)
             {
-                // 阻止进一步放大
                 e.Handled = true;
-                TopGrid.ColumnDefinitions[4].Width = new GridLength(800);
-                // 显示禁止光标
+                TopGrid.ColumnDefinitions[4].Width = new GridLength(LayoutViewModel.RightPanelMaxWidth);
                 Mouse.OverrideCursor = Cursors.No;
             }
             else
             {
-                // 恢复正常光标
                 Mouse.OverrideCursor = null;
             }
         }
     }
 
-    /// <summary>
-    ///     底部分割条拖动中事件 - 实时限制高度
-    /// </summary>
     private void BottomSplitter_DragDelta(object sender, DragDeltaEventArgs e)
     {
         if (MainGrid != null)
         {
-            // 获取底部行的当前高度
             var currentHeight = MainGrid.RowDefinitions[2].ActualHeight;
             var newHeight = currentHeight - e.VerticalChange;
 
-            // 限制高度在120-400范围内
-            if (newHeight < 120)
+            if (newHeight < LayoutViewModel.BottomPanelMinHeight)
             {
-                // 阻止进一步缩小
                 e.Handled = true;
-                MainGrid.RowDefinitions[2].Height = new GridLength(120);
+                MainGrid.RowDefinitions[2].Height = new GridLength(LayoutViewModel.BottomPanelMinHeight);
                 MainGrid.RowDefinitions[0].Height = new GridLength(1, GridUnitType.Star);
-                // 显示禁止光标
                 Mouse.OverrideCursor = Cursors.No;
             }
-            else if (newHeight > 400)
+            else if (newHeight > LayoutViewModel.BottomPanelMaxHeight)
             {
-                // 阻止进一步放大
                 e.Handled = true;
-                MainGrid.RowDefinitions[2].Height = new GridLength(400);
-                // 显示禁止光标
+                MainGrid.RowDefinitions[2].Height = new GridLength(LayoutViewModel.BottomPanelMaxHeight);
                 Mouse.OverrideCursor = Cursors.No;
             }
             else
             {
-                // 恢复正常光标
                 Mouse.OverrideCursor = null;
             }
         }
     }
 
-    /// <summary>
-    ///     底部分割条拖动完成事件 - 恢复光标
-    /// </summary>
     private void BottomSplitter_DragCompleted(object sender, DragCompletedEventArgs e)
     {
-        // 恢复光标
         Mouse.OverrideCursor = null;
 
         if (DataContext is MainViewModel viewModel && MainGrid != null)
         {
-            // 获取底部行的实际高度并更新ViewModel
             var actualHeight = MainGrid.RowDefinitions[2].ActualHeight;
-            // 限制高度在120-400范围内
-            var limitedHeight = (int)Math.Max(120, Math.Min(400, actualHeight));
+            var limitedHeight = (int)Math.Max(LayoutViewModel.BottomPanelMinHeight, Math.Min(LayoutViewModel.BottomPanelMaxHeight, actualHeight));
             viewModel.Layout.BottomPanelHeight = limitedHeight;
-            // 保存到配置文件（无论锁定还是解锁状态都保存高度值）
             viewModel.SaveLayoutSettings();
         }
     }

@@ -47,8 +47,14 @@ public static class WindowManager
                 var existing = existingList[0];
                 if (activateExisting)
                 {
-                    existing.Activate();
-                    existing.WindowState = WindowState.Normal;
+                    try
+                    {
+                        existing.Activate();
+                        existing.WindowState = WindowState.Normal;
+                    }
+                    catch
+                    {
+                    }
                 }
                 return (T)existing;
             }
@@ -96,19 +102,37 @@ public static class WindowManager
             if (IsFormWindowType(kvp.Key))
             {
                 var first = windowList[0];
-                first.Activate();
-                first.WindowState = WindowState.Normal;
+                try
+                {
+                    first.Activate();
+                    first.WindowState = WindowState.Normal;
+                }
+                catch
+                {
+                }
                 continue;
             }
 
             var keepWindow = windowList[0];
-            keepWindow.Activate();
-            keepWindow.WindowState = WindowState.Normal;
+            try
+            {
+                keepWindow.Activate();
+                keepWindow.WindowState = WindowState.Normal;
+            }
+            catch
+            {
+            }
 
             for (var i = windowList.Count - 1; i >= 1; i--)
             {
                 var extraWindow = windowList[i];
-                extraWindow.Close();
+                try
+                {
+                    extraWindow.Close();
+                }
+                catch
+                {
+                }
             }
         }
     }

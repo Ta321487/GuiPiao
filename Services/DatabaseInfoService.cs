@@ -182,7 +182,7 @@ public class DatabaseInfoService
         catch (Exception ex)
         {
             _logService.Error("DatabaseInfoService", $"打开数据库目录失败: {ex.Message}");
-            throw;
+            return false;
         }
     }
 }
