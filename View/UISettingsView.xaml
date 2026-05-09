@@ -131,6 +131,25 @@
                                       Margin="0,0,0,5" />
                         </WrapPanel>
 
+                        <WrapPanel Margin="0,0,0,10">
+                            <TextBlock Text="行程视图模式：" VerticalAlignment="Center" Margin="0,0,5,5"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <ComboBox Width="120"
+                                      SelectedValue="{Binding CurrentTripListView, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                      SelectedValuePath="Tag" Margin="0,0,20,5">
+                                <ComboBoxItem Content="专业列表">
+                                    <ComboBoxItem.Tag>
+                                        <messages:ViewType>List</messages:ViewType>
+                                    </ComboBoxItem.Tag>
+                                </ComboBoxItem>
+                                <ComboBoxItem Content="简洁卡片">
+                                    <ComboBoxItem.Tag>
+                                        <messages:ViewType>Card</messages:ViewType>
+                                    </ComboBoxItem.Tag>
+                                </ComboBoxItem>
+                            </ComboBox>
+                        </WrapPanel>
+
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,0">
                             <Button Content="💾 保存当前布局" Command="{Binding SaveLayoutCommand}"
                                     Style="{StaticResource StandardButtonStyle}" Padding="10,5" Margin="0,0,10,0" />
@@ -188,22 +207,6 @@
                                 <ComboBoxItem Content="按到达站">
                                     <ComboBoxItem.Tag>
                                         <model:GroupOption>Arrival</model:GroupOption>
-                                    </ComboBoxItem.Tag>
-                                </ComboBoxItem>
-                            </ComboBox>
-                            <TextBlock Text="切换视图：" VerticalAlignment="Center" Margin="0,0,5,5"
-                                       Foreground="{DynamicResource TextPrimaryBrush}" />
-                            <ComboBox Width="120"
-                                      SelectedValue="{Binding CurrentTripListView, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                      SelectedValuePath="Tag" Margin="0,0,20,5">
-                                <ComboBoxItem Content="专业列表">
-                                    <ComboBoxItem.Tag>
-                                        <messages:ViewType>List</messages:ViewType>
-                                    </ComboBoxItem.Tag>
-                                </ComboBoxItem>
-                                <ComboBoxItem Content="简洁卡片">
-                                    <ComboBoxItem.Tag>
-                                        <messages:ViewType>Card</messages:ViewType>
                                     </ComboBoxItem.Tag>
                                 </ComboBoxItem>
                             </ComboBox>

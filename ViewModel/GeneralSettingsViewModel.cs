@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
@@ -269,6 +270,7 @@ public partial class GeneralSettingsViewModel : ObservableObject, ISettingsViewM
         {
             var config = GetCurrentConfig();
             var wasMultiInstance = !_originalConfig.SingleInstance && config.SingleInstance;
+            var previousConfig = _originalConfig;
             _settingsService.SaveConfig(config);
             _originalConfig = config;
 
@@ -295,7 +297,24 @@ public partial class GeneralSettingsViewModel : ObservableObject, ISettingsViewM
             Debug.WriteLine("[GeneralSettingsViewModel] 发送 UndoRedoSettingsChangedMessage");
             WeakReferenceMessenger.Default.Send(new UndoRedoSettingsChangedMessage());
 
-            if (showMessage) MessageBoxWindow.Show(settingsWindow, "常规设置已保存", "成功");
+            if (showMessage)
+            {
+                var restartHints = new List<string>();
+                if (config.StartupPage != previousConfig.StartupPage)
+                    restartHints.Add("• 启动页面");
+                if (config.WindowState != previousConfig.WindowState)
+                    restartHints.Add("• 窗口启动状态");
+                if (previousConfig.SingleInstance && !config.SingleInstance)
+                    restartHints.Add("• 关闭单实例模式");
+                if (config.AutoRefreshOnStartup != previousConfig.AutoRefreshOnStartup)
+                    restartHints.Add("• 启动时自动刷新");
+
+                var message = "常规设置已保存";
+                if (restartHints.Count > 0)
+                    message += $"\n\n以下设置需重启程序后生效：\n{string.Join("\n", restartHints)}";
+
+                MessageBoxWindow.Show(settingsWindow, message, "成功");
+            }
         }
         catch (Exception ex)
         {

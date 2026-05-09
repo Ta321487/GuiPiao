@@ -380,6 +380,7 @@ public partial class UISettingsViewModel : ObservableObject, ISettingsViewModel
                 CardShowRescheduleAction,
                 CardShowRefundAction,
                 CardShowDeleteAction,
+                CardEnableMultiSelect,
                 CardBatchShowView,
                 CardBatchShowEdit,
                 CardBatchShowReschedule,

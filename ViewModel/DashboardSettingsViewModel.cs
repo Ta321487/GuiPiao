@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -172,9 +173,61 @@ public partial class DashboardSettingsViewModel : ObservableObject, ISettingsVie
             EnableChartAnimation = EnableChartAnimation
         };
 
-        foreach (var card in Cards) config.Cards.Add(card);
+        foreach (var card in Cards) config.Cards.Add(CloneCard(card));
 
         return config;
+    }
+
+    private static DashboardCard CloneCard(DashboardCard source)
+    {
+        return new DashboardCard
+        {
+            Id = source.Id,
+            Name = source.Name,
+            StatisticType = source.StatisticType,
+            ChartType = source.ChartType,
+            TimeRange = source.TimeRange,
+            SortOrder = source.SortOrder,
+            UseGlobalConfig = source.UseGlobalConfig,
+            CustomConfig = source.CustomConfig != null ? CloneCustomConfig(source.CustomConfig) : null,
+            CustomStartDate = source.CustomStartDate,
+            CustomEndDate = source.CustomEndDate,
+            GridRow = source.GridRow,
+            GridColumn = source.GridColumn,
+            GridRowSpan = source.GridRowSpan,
+            GridColumnSpan = source.GridColumnSpan
+        };
+    }
+
+    private static StatisticCardConfig CloneCustomConfig(StatisticCardConfig source)
+    {
+        return new StatisticCardConfig
+        {
+            StatisticType = source.StatisticType,
+            CardName = source.CardName,
+            CardIcon = source.CardIcon,
+            TimeRange = source.TimeRange,
+            CustomStartDate = source.CustomStartDate,
+            CustomEndDate = source.CustomEndDate,
+            ClassificationBasis = source.ClassificationBasis,
+            StatisticIndicator = source.StatisticIndicator,
+            DisplayThreshold = source.DisplayThreshold,
+            TimeGranularity = source.TimeGranularity,
+            SortOrder = source.SortOrder,
+            TopCount = source.TopCount,
+            CustomTimePeriods = source.CustomTimePeriods?.ToList() ?? new List<CustomTimePeriod>(),
+            UseCustomChartType = source.UseCustomChartType,
+            ChartType = source.ChartType,
+            ChartColor = source.ChartColor,
+            ShowPercentage = source.ShowPercentage,
+            ShowValue = source.ShowValue,
+            ShowTooltip = source.ShowTooltip,
+            ShowValueLabel = source.ShowValueLabel,
+            ShowTrendLine = source.ShowTrendLine,
+            UseCustomFilter = source.UseCustomFilter,
+            ExcludeRefundedTickets = source.ExcludeRefundedTickets,
+            ExcludeDuplicateTickets = source.ExcludeDuplicateTickets
+        };
     }
 
     /// <summary>
@@ -204,13 +257,51 @@ public partial class DashboardSettingsViewModel : ObservableObject, ISettingsVie
             var cardA = sortedCardsA[i];
             var cardB = sortedCardsB[i];
             if (cardA.Id != cardB.Id) return false;
+            if (cardA.Name != cardB.Name) return false;
             if (cardA.StatisticType != cardB.StatisticType) return false;
             if (cardA.ChartType != cardB.ChartType) return false;
             if (cardA.TimeRange != cardB.TimeRange) return false;
             if (cardA.SortOrder != cardB.SortOrder) return false;
             if (cardA.UseGlobalConfig != cardB.UseGlobalConfig) return false;
+            if (cardA.CustomStartDate != cardB.CustomStartDate) return false;
+            if (cardA.CustomEndDate != cardB.CustomEndDate) return false;
+            if (cardA.GridRow != cardB.GridRow) return false;
+            if (cardA.GridColumn != cardB.GridColumn) return false;
+            if (cardA.GridRowSpan != cardB.GridRowSpan) return false;
+            if (cardA.GridColumnSpan != cardB.GridColumnSpan) return false;
+            if (!CustomConfigsEqual(cardA.CustomConfig, cardB.CustomConfig)) return false;
         }
 
+        return true;
+    }
+
+    private static bool CustomConfigsEqual(StatisticCardConfig? a, StatisticCardConfig? b)
+    {
+        if (a == null && b == null) return true;
+        if (a == null || b == null) return false;
+        if (a.StatisticType != b.StatisticType) return false;
+        if (a.CardName != b.CardName) return false;
+        if (a.CardIcon != b.CardIcon) return false;
+        if (a.TimeRange != b.TimeRange) return false;
+        if (a.CustomStartDate != b.CustomStartDate) return false;
+        if (a.CustomEndDate != b.CustomEndDate) return false;
+        if (a.ClassificationBasis != b.ClassificationBasis) return false;
+        if (a.StatisticIndicator != b.StatisticIndicator) return false;
+        if (a.DisplayThreshold != b.DisplayThreshold) return false;
+        if (a.TimeGranularity != b.TimeGranularity) return false;
+        if (a.SortOrder != b.SortOrder) return false;
+        if (a.TopCount != b.TopCount) return false;
+        if (a.UseCustomChartType != b.UseCustomChartType) return false;
+        if (a.ChartType != b.ChartType) return false;
+        if (a.ChartColor != b.ChartColor) return false;
+        if (a.ShowPercentage != b.ShowPercentage) return false;
+        if (a.ShowValue != b.ShowValue) return false;
+        if (a.ShowTooltip != b.ShowTooltip) return false;
+        if (a.ShowValueLabel != b.ShowValueLabel) return false;
+        if (a.ShowTrendLine != b.ShowTrendLine) return false;
+        if (a.UseCustomFilter != b.UseCustomFilter) return false;
+        if (a.ExcludeRefundedTickets != b.ExcludeRefundedTickets) return false;
+        if (a.ExcludeDuplicateTickets != b.ExcludeDuplicateTickets) return false;
         return true;
     }
 

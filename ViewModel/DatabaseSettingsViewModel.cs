@@ -9,6 +9,8 @@ using System.Windows;
 using System.Windows.Forms;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
+using GuiPiao.Messages;
 using GuiPiao.Model;
 using GuiPiao.Services;
 using GuiPiao.Utils;
@@ -156,6 +158,8 @@ public partial class DatabaseSettingsViewModel : ObservableObject, ISettingsView
         _config.AutoDefragmentMonthly = AutoDefragmentMonthly;
 
         JsonConfigManager.Instance.SaveConfig("databasesettings.json", _config);
+
+        WeakReferenceMessenger.Default.Send(new SettingsChangedMessage("Database"));
 
         // 更新原始配置
         _originalConfig = new DatabaseConfig
@@ -396,8 +400,13 @@ public partial class DatabaseSettingsViewModel : ObservableObject, ISettingsView
                 DatabasePath = selectedPath,
                 UseCustomPath = true,
                 AutoBackupEnabled = AutoBackupEnabled,
+                BackupType = BackupType,
                 BackupTiming = BackupTiming,
                 MaxBackupCount = MaxBackupCount,
+                FullBackupFrequency = FullBackupFrequency,
+                MaxFullBackupCount = MaxFullBackupCount,
+                IncrementalBackupFrequency = IncrementalBackupFrequency,
+                MaxIncrementalBackupCount = MaxIncrementalBackupCount,
                 BackupPath = BackupPath,
                 AutoCompress = AutoCompress,
                 ShowErrorOnFail = ShowErrorOnFail,

@@ -56,6 +56,12 @@ public partial class MainWindow : Window
                         Debug.WriteLine($"[MainWindow] IsTripListExpanded changed to: {viewModel.IsTripListExpanded}");
                         Dispatcher.BeginInvoke(() => UpdateTripListLayout(viewModel), DispatcherPriority.Render);
                     }
+                    else if (args.PropertyName == nameof(viewModel.LogRowHeightValue) ||
+                             args.PropertyName == nameof(viewModel.ShowTimestamp) ||
+                             args.PropertyName == nameof(viewModel.ShowModuleSource))
+                    {
+                        Dispatcher.BeginInvoke(() => UpdateLogColumnsVisibility(viewModel), DispatcherPriority.Render);
+                    }
                 };
 
                 // 初始更新（延迟等待 ItemsControl 加载完成）
@@ -704,10 +710,11 @@ public partial class MainWindow : Window
     {
         if (DataContext is not MainViewModel viewModel) return;
 
+        var enableMultiSelect = viewModel.Layout.CardEnableMultiSelect;
         var tripItems = viewModel.TripList.TripItems.ToList();
         var lastSelected = tripItems.LastOrDefault(t => t.IsSelected);
 
-        if (isShiftPressed && lastSelected != null)
+        if (enableMultiSelect && isShiftPressed && lastSelected != null)
         {
             // Shift+单击：范围选择
             var startIndex = tripItems.IndexOf(lastSelected);
@@ -719,7 +726,7 @@ public partial class MainWindow : Window
                 for (var i = minIndex; i <= maxIndex; i++) tripItems[i].IsSelected = true;
             }
         }
-        else if (isCtrlPressed)
+        else if (enableMultiSelect && isCtrlPressed)
         {
             // Ctrl+单击：切换选中状态
             clickedTrip.IsSelected = !clickedTrip.IsSelected;

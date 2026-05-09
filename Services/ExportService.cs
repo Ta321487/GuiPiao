@@ -57,6 +57,7 @@ public class ExportService
     public async Task<ExportResult> ExportAsync(string filePath, ExportFormatOption format,
         List<TrainRideInfo> trainRides)
     {
+        _exportSettingsService.Value.RefreshConfig();
         var config = ExportSettingsService.Config;
         return await ExportAsync(filePath, format, trainRides, config);
     }
@@ -121,6 +122,7 @@ public class ExportService
     public async Task<ExportResult> ExportGroupedAsync(string filePath, ExportFormatOption format,
         List<TrainRideInfo> trainRides, GroupOption groupOption)
     {
+        _exportSettingsService.Value.RefreshConfig();
         var config = ExportSettingsService.Config;
         return await ExportGroupedAsync(filePath, format, trainRides, groupOption, config);
     }

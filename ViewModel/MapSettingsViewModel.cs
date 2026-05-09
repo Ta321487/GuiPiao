@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
@@ -247,6 +248,7 @@ public partial class MapSettingsViewModel : ObservableObject, ISettingsViewModel
         try
         {
             var config = GetCurrentConfig();
+            var previousConfig = _originalConfig;
             _settingsService.SaveConfig(config);
             _originalConfig = config;
 
@@ -258,7 +260,23 @@ public partial class MapSettingsViewModel : ObservableObject, ISettingsViewModel
                 {
                     Application.Current.Dispatcher.Invoke(() =>
                     {
-                        MessageBoxWindow.Show(settingsWindow, "地图设置已保存", "成功");
+                        var restartHints = new List<string>();
+                        if (config.EnableHardwareAcceleration != previousConfig.EnableHardwareAcceleration)
+                            restartHints.Add("• 硬件加速");
+                        if (config.EnableDevTools != previousConfig.EnableDevTools)
+                            restartHints.Add("• 开发者工具");
+                        if (config.PreloadMapResources != previousConfig.PreloadMapResources)
+                            restartHints.Add("• 预加载资源");
+                        if (config.AutoCleanCache != previousConfig.AutoCleanCache)
+                            restartHints.Add("• 自动清理缓存");
+                        if (config.DefaultMapDisplay != previousConfig.DefaultMapDisplay)
+                            restartHints.Add("• 默认显示选项");
+
+                        var message = "地图设置已保存";
+                        if (restartHints.Count > 0)
+                            message += $"\n\n以下设置需重新打开地图窗口后生效：\n{string.Join("\n", restartHints)}";
+
+                        MessageBoxWindow.Show(settingsWindow, message, "成功");
                     });
                 });
         }

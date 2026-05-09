@@ -61,6 +61,8 @@ public partial class LayoutViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _cardShowRefundAction = true;
     [ObservableProperty] private bool _cardShowDeleteAction = true;
 
+    [ObservableProperty] private bool _cardEnableMultiSelect = true;
+
     // 卡片外观效果
     [ObservableProperty] private string _cardStatusPosition = "TopRight";
     [ObservableProperty] private bool _cardHoverHighlight = true;
@@ -126,6 +128,7 @@ public partial class LayoutViewModel : ObservableObject, IDisposable
             CardShowRescheduleAction = message.CardShowRescheduleAction;
             CardShowRefundAction = message.CardShowRefundAction;
             CardShowDeleteAction = message.CardShowDeleteAction;
+            CardEnableMultiSelect = message.CardEnableMultiSelect;
             CardBatchShowView = message.CardBatchShowView;
             CardBatchShowEdit = message.CardBatchShowEdit;
             CardBatchShowReschedule = message.CardBatchShowReschedule;
@@ -307,6 +310,7 @@ public partial class LayoutViewModel : ObservableObject, IDisposable
         CardActionTrigger = config.CardActionTrigger;
         CardDefaultAction = config.CardDefaultAction;
         IsCardActionRightClick = config.CardActionTrigger == "RightClick";
+        CardEnableMultiSelect = config.CardEnableMultiSelect;
         CardStatusPosition = config.CardStatusPosition;
         CardHoverHighlight = config.CardHoverHighlight;
         CardShowShadow = config.CardShowShadow;

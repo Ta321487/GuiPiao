@@ -13,6 +13,7 @@ public class CardViewSettingsChangedMessage(
     bool cardShowRescheduleAction,
     bool cardShowRefundAction,
     bool cardShowDeleteAction,
+    bool cardEnableMultiSelect,
     bool cardBatchShowView,
     bool cardBatchShowEdit,
     bool cardBatchShowReschedule,
@@ -35,6 +36,7 @@ public class CardViewSettingsChangedMessage(
     public bool CardShowRescheduleAction { get; } = cardShowRescheduleAction;
     public bool CardShowRefundAction { get; } = cardShowRefundAction;
     public bool CardShowDeleteAction { get; } = cardShowDeleteAction;
+    public bool CardEnableMultiSelect { get; } = cardEnableMultiSelect;
     public bool CardBatchShowView { get; } = cardBatchShowView;
     public bool CardBatchShowEdit { get; } = cardBatchShowEdit;
     public bool CardBatchShowReschedule { get; } = cardBatchShowReschedule;

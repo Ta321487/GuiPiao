@@ -32,7 +32,11 @@ public class OcrRecognitionService
     public async Task<List<OcrResult>> RecognizeAsync(string imagePath, IProgress<string>? progress = null,
         OcrConfig? config = null)
     {
-        config ??= _settingsService.Config;
+        if (config == null)
+        {
+            _settingsService.RefreshConfig();
+            config = _settingsService.Config;
+        }
 
         try
         {
