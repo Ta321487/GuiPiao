@@ -211,7 +211,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
             {
                 case nameof(TripList.TripItems):
                     OnPropertyChanged(nameof(TripItems));
-                    SetTemporaryStatus($"行程列表已更新，共 {TripList.TotalItems} 条记录");
+                    SetTemporaryStatus($"行程已更新，共 {TripList.TotalItems} 条记录");
                     break;
                 case nameof(TripList.SelectedTripItem):
                     OnPropertyChanged(nameof(SelectedTripItem));
@@ -241,7 +241,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
                     OnPropertyChanged(nameof(IsTripListExpanded));
                     OnPropertyChanged(nameof(IsDataGridVisible));
                     OnPropertyChanged(nameof(CollapseButtonContent));
-                    SetTemporaryStatus(TripList.IsTripListExpanded ? "行程列表已展开" : "行程列表已收起");
+                    SetTemporaryStatus(TripList.IsTripListExpanded ? "行程已展开" : "行程已收起");
                     break;
                 case nameof(TripList.IsOperationButtonsVisible):
                     OnPropertyChanged(nameof(IsOperationButtonsVisible));

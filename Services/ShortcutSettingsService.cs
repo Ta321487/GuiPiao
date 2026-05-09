@@ -106,7 +106,7 @@ public class ShortcutSettingsService
                 },
                 new()
                 {
-                    ActionId = "RefreshData", ActionName = "刷新数据", Description = "刷新行程列表数据", Category = "行程管理",
+                    ActionId = "RefreshData", ActionName = "刷新数据", Description = "刷新行程数据", Category = "行程管理",
                     DefaultKey = "F5", CurrentKey = "F5"
                 },
                 new()

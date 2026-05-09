@@ -58,6 +58,16 @@ public partial class TripListViewModel : ObservableObject, IDisposable
 
     [ObservableProperty] private int _totalItems;
 
+    /// <summary>
+    ///     是否有选中的卡片项
+    /// </summary>
+    public bool HasSelectedItems => TripItems.Any(t => t.IsSelected);
+
+    /// <summary>
+    ///     选中的卡片项数量
+    /// </summary>
+    public int SelectedItemsCount => TripItems.Count(t => t.IsSelected);
+
     private int _totalPages = 1;
 
     [ObservableProperty] private ObservableCollection<TripItem> _tripItems = new();
@@ -146,6 +156,13 @@ public partial class TripListViewModel : ObservableObject, IDisposable
             OnPropertyChanged(nameof(IsCardViewVisible));
         });
 
+        // 订阅卡片选中状态变更消息
+        WeakReferenceMessenger.Default.Register<CardSelectionChangedMessage>(this, (recipient, message) =>
+        {
+            OnPropertyChanged(nameof(HasSelectedItems));
+            OnPropertyChanged(nameof(SelectedItemsCount));
+        });
+
         // 加载初始数据
         _ = LoadTripItemsAsync();
     }
@@ -212,6 +229,7 @@ public partial class TripListViewModel : ObservableObject, IDisposable
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(CollapseButtonContent));
                 OnPropertyChanged(nameof(IsDataGridVisible));
+                OnPropertyChanged(nameof(IsCardViewVisible));
             }
         }
     }
@@ -223,6 +241,10 @@ public partial class TripListViewModel : ObservableObject, IDisposable
     public bool IsCardViewVisible => IsTripListExpanded && CurrentViewType == ViewType.Card;
 
     public string CollapseButtonContent => IsTripListExpanded ? "📥 折叠" : "📤 展开";
+
+    public string SectionTitle => CurrentViewType == ViewType.Card ? "📋 行程卡片" : "📋 行程列表";
+
+    public string SectionName => CurrentViewType == ViewType.Card ? "行程卡片" : "行程列表";
 
     public void Dispose()
     {
@@ -1324,7 +1346,7 @@ public partial class TripListViewModel : ObservableObject, IDisposable
                 {
                     _logService.Info("TripListViewModel", "用户选择跳转到车票预览功能进行图片导出");
                     MessageBoxWindow.Show(
-                        "车票预览图片导出功能即将推出！\n\n您可以通过以下方式预览车票：\n1. 在行程列表中双击某条记录\n2. 或选中记录后按 Ctrl+P",
+                        "车票预览图片导出功能即将推出！\n\n您可以通过以下方式预览车票：\n1. 在行程中双击某条记录\n2. 或选中记录后按 Ctrl+P",
                         "功能预告");
                 }
 
@@ -1439,19 +1461,19 @@ public partial class TripListViewModel : ObservableObject, IDisposable
 
                     var logText = isExportSelected ? "选中数据" : "全部数据";
                     _logService.Info("TripListViewModel",
-                        $"行程列表导出成功：{result.FilePath}，类型：{logText}，记录数：{result.RecordCount}");
+                        $"行程导出成功：{result.FilePath}，类型：{logText}，记录数：{result.RecordCount}");
                 }
                 else
                 {
                     MessageBoxWindow.Show($"导出失败：{result.Message}", "导出错误", MessageBoxButton.OK, MessageBoxImage.Error);
-                    _logService.Error("TripListViewModel", $"行程列表导出失败：{result.Message}");
+                    _logService.Error("TripListViewModel", $"行程导出失败：{result.Message}");
                 }
             }
         }
         catch (Exception ex)
         {
             MessageBoxWindow.Show($"导出过程中发生错误：{ex.Message}", "导出错误", MessageBoxButton.OK, MessageBoxImage.Error);
-            _logService.Error("TripListViewModel", $"行程列表导出异常：{ex.Message}");
+            _logService.Error("TripListViewModel", $"行程导出异常：{ex.Message}");
         }
     }
 
@@ -1559,5 +1581,11 @@ public partial class TripListViewModel : ObservableObject, IDisposable
         if ((flags & 256) != 0) channels.Add("中国银行");
 
         return string.Join(", ", channels);
+    }
+
+    partial void OnCurrentViewTypeChanged(ViewType value)
+    {
+        OnPropertyChanged(nameof(SectionTitle));
+        OnPropertyChanged(nameof(SectionName));
     }
 }

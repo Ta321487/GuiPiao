@@ -20,6 +20,7 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
                 <!-- 票面预览显示设置 -->
@@ -243,8 +244,169 @@
                     </StackPanel>
                 </Border>
 
-                <!-- 日志面板显示设置 -->
+                <!-- 卡片视图显示设置 -->
                 <Border Grid.Row="3" Background="{DynamicResource PanelBackgroundBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
+                    <StackPanel>
+                        <TextBlock Text="🎴 卡片视图显示设置" FontWeight="Bold" Margin="0,0,0,10"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+
+                        <!-- 布局设置 -->
+                        <TextBlock Text="布局设置：" FontWeight="Bold" Margin="0,0,0,8"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+
+                        <WrapPanel Margin="0,0,0,8">
+                            <TextBlock Text="每行卡片数：" VerticalAlignment="Center" Margin="0,0,5,5"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <ComboBox Width="80" SelectedValue="{Binding CardsPerRow}" SelectedValuePath="Tag" Margin="0,0,20,5">
+                                <ComboBoxItem Content="自动" Tag="0" />
+                                <ComboBoxItem Content="2" Tag="2" />
+                                <ComboBoxItem Content="3" Tag="3" />
+                                <ComboBoxItem Content="4" Tag="4" />
+                                <ComboBoxItem Content="5" Tag="5" />
+                            </ComboBox>
+                        </WrapPanel>
+
+                        <!-- 卡片宽度仅在自动模式下显示 -->
+                        <WrapPanel Margin="0,0,0,8" Visibility="{Binding CardsPerRow, Converter={StaticResource IntToVisibilityConverter}, ConverterParameter=0}">
+                            <TextBlock Text="卡片宽度：" VerticalAlignment="Center" Margin="0,0,5,5"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <Slider Width="150" Minimum="240" Maximum="320" Value="{Binding CardWidth}"
+                                    TickFrequency="10" TickPlacement="BottomRight" IsSnapToTickEnabled="True" Margin="0,0,10,5" />
+                            <TextBox MinWidth="50" Text="{Binding CardWidth, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                                     Margin="0,0,5,5" VerticalAlignment="Center" Tag="240,320" />
+                            <TextBlock Text="px" VerticalAlignment="Center" Margin="0,0,15,5"
+                                       Foreground="{DynamicResource TextSecondaryBrush}" />
+                        </WrapPanel>
+
+                        <!-- 固定列数模式提示 -->
+                        <TextBlock Margin="0,0,0,8" FontSize="12" FontStyle="Italic"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                   Visibility="{Binding CardsPerRow, Converter={StaticResource InverseIntToVisibilityConverter}, ConverterParameter=0}">
+                            固定列数模式下，卡片宽度将根据容器自动计算
+                        </TextBlock>
+
+                        <WrapPanel Margin="0,0,0,8">
+                            <TextBlock Text="卡片间距：" VerticalAlignment="Center" Margin="0,0,5,5"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <Slider Width="150" Minimum="4" Maximum="16" Value="{Binding CardSpacing}"
+                                    TickFrequency="2" TickPlacement="BottomRight" IsSnapToTickEnabled="True" Margin="0,0,10,5" />
+                            <TextBox MinWidth="50" Text="{Binding CardSpacing, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                                     Margin="0,0,5,5" VerticalAlignment="Center" Tag="4,16" />
+                            <TextBlock Text="px" VerticalAlignment="Center" Margin="0,0,15,5"
+                                       Foreground="{DynamicResource TextSecondaryBrush}" />
+                        </WrapPanel>
+
+                        <WrapPanel Margin="0,0,0,10">
+                            <TextBlock Text="卡片圆角：" VerticalAlignment="Center" Margin="0,0,5,5"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <Slider Width="150" Minimum="0" Maximum="16" Value="{Binding CardCornerRadius}"
+                                    TickFrequency="2" TickPlacement="BottomRight" IsSnapToTickEnabled="True" Margin="0,0,10,5" />
+                            <TextBox MinWidth="50" Text="{Binding CardCornerRadius, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                                     Margin="0,0,5,5" VerticalAlignment="Center" Tag="0,16" />
+                            <TextBlock Text="px" VerticalAlignment="Center" Margin="0,0,15,5"
+                                       Foreground="{DynamicResource TextSecondaryBrush}" />
+                        </WrapPanel>
+
+                        <!-- 卡片内容 -->
+                        <TextBlock Text="卡片内容：" FontWeight="Bold" Margin="0,0,0,8"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+
+                        <WrapPanel Margin="0,0,0,8">
+                            <TextBlock Text="信息密度：" VerticalAlignment="Center" Margin="0,0,5,5"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <ComboBox Width="100" SelectedValue="{Binding CardContentDensity}" SelectedValuePath="Tag" Margin="0,0,0,5">
+                                <ComboBoxItem Content="简洁" Tag="Compact" />
+                                <ComboBoxItem Content="标准" Tag="Standard" />
+                                <ComboBoxItem Content="详细" Tag="Detailed" />
+                                <ComboBoxItem Content="完整" Tag="Full" />
+                            </ComboBox>
+                        </WrapPanel>
+
+                        <Border Background="{DynamicResource ContentBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}"
+                                BorderThickness="1" Padding="8" Margin="0,0,0,10">
+                            <StackPanel>
+                                <TextBlock Text="简洁：车次号、出发站→到达站、出发/到达时间、票价" FontSize="12" Margin="0,0,0,4"
+                                           Foreground="{DynamicResource TextSecondaryBrush}" />
+                                <TextBlock Text="标准：+ 日期、席别类型、状态标签" FontSize="12" Margin="0,0,0,4"
+                                           Foreground="{DynamicResource TextSecondaryBrush}" />
+                                <TextBlock Text="详细：+ 车厢号、座位号、检票口、备注" FontSize="12" Margin="0,0,0,4"
+                                           Foreground="{DynamicResource TextSecondaryBrush}" />
+                                <TextBlock Text="完整：+ 票号、用途、改签/退票标记、标签" FontSize="12"
+                                           Foreground="{DynamicResource TextSecondaryBrush}" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- 操作设置 -->
+                        <TextBlock Text="操作设置：" FontWeight="Bold" Margin="0,0,0,8"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+
+                        <WrapPanel Margin="0,0,0,8">
+                            <TextBlock Text="双击卡片执行：" VerticalAlignment="Center" Margin="0,0,5,5"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <ComboBox Width="100" SelectedValue="{Binding CardDefaultAction}" SelectedValuePath="Tag" Margin="0,0,0,5">
+                                <ComboBoxItem Content="查看票面" Tag="View" />
+                                <ComboBoxItem Content="编辑行程" Tag="Edit" />
+                                <ComboBoxItem Content="改签" Tag="Reschedule" />
+                                <ComboBoxItem Content="退票" Tag="Refund" />
+                                <ComboBoxItem Content="删除" Tag="Delete" />
+                            </ComboBox>
+                        </WrapPanel>
+
+                        <CheckBox Content="右键弹出操作菜单" IsChecked="{Binding IsCardActionRightClick}"
+                                  Margin="0,0,0,5" />
+
+                        <StackPanel IsEnabled="{Binding IsCardActionRightClick}" Margin="0,0,0,10">
+                            <WrapPanel>
+                                <CheckBox Content="👁 查看" IsChecked="{Binding CardShowViewAction}" Margin="0,0,15,5" />
+                                <CheckBox Content="✏️ 编辑" IsChecked="{Binding CardShowEditAction}" Margin="0,0,15,5" />
+                                <CheckBox Content="🔄 改签" IsChecked="{Binding CardShowRescheduleAction}" Margin="0,0,15,5" />
+                                <CheckBox Content="💰 退票" IsChecked="{Binding CardShowRefundAction}" Margin="0,0,15,5" />
+                                <CheckBox Content="🗑️ 删除" IsChecked="{Binding CardShowDeleteAction}" Margin="0,0,0,5" />
+                            </WrapPanel>
+                        </StackPanel>
+
+                        <!-- 批量操作 -->
+                        <TextBlock Text="批量操作：" FontWeight="Bold" Margin="0,0,0,8"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+
+                        <CheckBox Content="启用多选 (Ctrl+单击多选, Shift+连选)" IsChecked="{Binding CardEnableMultiSelect}"
+                                  Margin="0,0,0,8" />
+
+                        <StackPanel IsEnabled="{Binding CardEnableMultiSelect}" Margin="0,0,0,10">
+                            <WrapPanel>
+                                <CheckBox Content="👁 查看" IsChecked="{Binding CardBatchShowView}" Margin="0,0,15,5" />
+                                <CheckBox Content="✏️ 编辑" IsChecked="{Binding CardBatchShowEdit}" Margin="0,0,15,5" />
+                                <CheckBox Content="🔄 改签" IsChecked="{Binding CardBatchShowReschedule}" Margin="0,0,15,5" />
+                                <CheckBox Content="💰 退票" IsChecked="{Binding CardBatchShowRefund}" Margin="0,0,15,5" />
+                                <CheckBox Content="🗑️ 删除" IsChecked="{Binding CardBatchShowDelete}" Margin="0,0,0,5" />
+                            </WrapPanel>
+                        </StackPanel>
+
+                        <!-- 外观效果 -->
+                        <TextBlock Text="外观效果：" FontWeight="Bold" Margin="0,0,0,8"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+
+                        <WrapPanel Margin="0,0,0,8">
+                            <TextBlock Text="状态标签位置：" VerticalAlignment="Center" Margin="0,0,5,5"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <ComboBox Width="100" SelectedValue="{Binding CardStatusPosition}" SelectedValuePath="Tag" Margin="0,0,0,5">
+                                <ComboBoxItem Content="右上角" Tag="TopRight" />
+                                <ComboBoxItem Content="顶部居中" Tag="TopCenter" />
+                                <ComboBoxItem Content="隐藏" Tag="Hidden" />
+                            </ComboBox>
+                        </WrapPanel>
+
+                        <WrapPanel Margin="0,0,0,5">
+                            <CheckBox Content="悬停时高亮边框" IsChecked="{Binding CardHoverHighlight}" Margin="0,0,20,5" />
+                            <CheckBox Content="显示卡片阴影效果" IsChecked="{Binding CardShowShadow}" Margin="0,0,20,5" />
+                            <CheckBox Content="卡片悬停放大效果" IsChecked="{Binding CardHoverScale}" Margin="0,0,0,5" />
+                        </WrapPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- 日志面板显示设置 -->
+                <Border Grid.Row="4" Background="{DynamicResource PanelBackgroundBrush}"
                         BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
                     <StackPanel>
                         <TextBlock Text="📄 日志面板显示设置" FontWeight="Bold" Margin="0,0,0,10"
@@ -323,7 +485,7 @@
                 </Border>
 
                 <!-- 高级界面选项 -->
-                <Border Grid.Row="5" Background="{DynamicResource PanelBackgroundBrush}"
+                <Border Grid.Row="6" Background="{DynamicResource PanelBackgroundBrush}"
                         BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
                     <StackPanel>
                         <TextBlock Text="🔧 高级界面选项" FontWeight="Bold" Margin="0,0,0,10"

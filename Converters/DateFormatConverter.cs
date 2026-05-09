@@ -29,10 +29,10 @@ public class DateFormatConverter : IValueConverter
         {
             // 尝试使用特定格式解析
             if (DateTime.TryParseExact(dateString, DateFormats, CultureInfo.InvariantCulture, DateTimeStyles.None,
-                    out var date)) return date.ToString("yyyy/MM/dd");
+                    out var date)) return date.ToString("yyyy-MM-dd");
 
             // 尝试通用解析
-            if (DateTime.TryParse(dateString, out date)) return date.ToString("yyyy/MM/dd");
+            if (DateTime.TryParse(dateString, out date)) return date.ToString("yyyy-MM-dd");
         }
 
         return value;

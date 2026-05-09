@@ -590,7 +590,7 @@ public partial class MenuViewModel : ObservableObject
                     "【基本操作】\n" +
                     "• 新增票务：点击「新增」按钮或使用快捷键 Ctrl+N\n" +
                     "• OCR识别：点击「OCR识别」或使用快捷键 Ctrl+O\n" +
-                    "• 编辑票务：双击行程列表中的记录或选中后按 Ctrl+E\n" +
+                    "• 编辑票务：双击行程中的记录或选中后按 Ctrl+E\n" +
                     "• 删除票务：选中记录后按 Delete 键\n\n" +
                     "【数据管理】\n" +
                     "• 数据导入：支持从CSV文件导入票务数据\n" +
@@ -619,7 +619,7 @@ public partial class MenuViewModel : ObservableObject
                     "1. 添加车票：点击快捷功能区的「🆕」按钮\n" +
                     "2. 查看统计：在仪表盘区域查看行程统计图表\n" +
                     "3. 筛选行程：使用左侧高级检索区按条件筛选\n" +
-                    "4. 导出数据：在行程列表底部点击「导出」按钮\n\n" +
+                    "4. 导出数据：在行程底部点击「导出」按钮\n\n" +
                     "【高级功能】\n" +
                     "• 批量操作：在「票务」菜单中选择批量修改状态、标签或删除\n" +
                     "• 标签管理：为车票添加自定义标签便于分类管理\n" +
@@ -1070,7 +1070,7 @@ public partial class MenuViewModel : ObservableObject
 
     private async Task RefreshTripListAsync()
     {
-        WeakReferenceMessenger.Default.Send(new StatusMessageMessage("正在刷新行程列表..."));
+        WeakReferenceMessenger.Default.Send(new StatusMessageMessage("正在刷新行程..."));
         // 发送刷新消息给 TripListViewModel
         WeakReferenceMessenger.Default.Send(new RefreshTripListMessage());
     }

@@ -130,6 +130,30 @@ public partial class UISettingsViewModel : ObservableObject, ISettingsViewModel
             DataGridColumns = _originalConfig.DataGridColumns ?? DataGridColumnConfig.GetDefaultColumns();
             CurrentTripListView = _originalConfig.DefaultTripListView;
 
+            // 卡片视图显示设置
+            CardsPerRow = _originalConfig.CardsPerRow;
+            CardWidth = _originalConfig.CardWidth;
+            CardSpacing = _originalConfig.CardSpacing;
+            CardCornerRadius = _originalConfig.CardCornerRadius;
+            CardContentDensity = _originalConfig.CardContentDensity;
+            CardDefaultAction = _originalConfig.CardDefaultAction;
+            IsCardActionRightClick = _originalConfig.CardActionTrigger == "RightClick";
+            CardShowViewAction = _originalConfig.CardShowViewAction;
+            CardShowEditAction = _originalConfig.CardShowEditAction;
+            CardShowRescheduleAction = _originalConfig.CardShowRescheduleAction;
+            CardShowRefundAction = _originalConfig.CardShowRefundAction;
+            CardShowDeleteAction = _originalConfig.CardShowDeleteAction;
+            CardEnableMultiSelect = _originalConfig.CardEnableMultiSelect;
+            CardBatchShowView = _originalConfig.CardBatchShowView;
+            CardBatchShowEdit = _originalConfig.CardBatchShowEdit;
+            CardBatchShowReschedule = _originalConfig.CardBatchShowReschedule;
+            CardBatchShowRefund = _originalConfig.CardBatchShowRefund;
+            CardBatchShowDelete = _originalConfig.CardBatchShowDelete;
+            CardStatusPosition = _originalConfig.CardStatusPosition;
+            CardHoverHighlight = _originalConfig.CardHoverHighlight;
+            CardShowShadow = _originalConfig.CardShowShadow;
+            CardHoverScale = _originalConfig.CardHoverScale;
+
             // 日志面板显示设置
             LogRowHeight = _originalConfig.LogRowHeight;
             InfoColor = _originalConfig.InfoColor;
@@ -185,6 +209,30 @@ public partial class UISettingsViewModel : ObservableObject, ISettingsViewModel
                               DataGridColumnConfig.GetDefaultColumns(),
             DefaultTripListView = CurrentTripListView,
 
+            // 卡片视图显示设置
+            CardsPerRow = CardsPerRow,
+            CardWidth = CardWidth,
+            CardSpacing = CardSpacing,
+            CardCornerRadius = CardCornerRadius,
+            CardContentDensity = CardContentDensity,
+            CardDefaultAction = CardDefaultAction,
+            CardActionTrigger = IsCardActionRightClick ? "RightClick" : "DoubleClick",
+            CardShowViewAction = CardShowViewAction,
+            CardShowEditAction = CardShowEditAction,
+            CardShowRescheduleAction = CardShowRescheduleAction,
+            CardShowRefundAction = CardShowRefundAction,
+            CardShowDeleteAction = CardShowDeleteAction,
+            CardEnableMultiSelect = CardEnableMultiSelect,
+            CardBatchShowView = CardBatchShowView,
+            CardBatchShowEdit = CardBatchShowEdit,
+            CardBatchShowReschedule = CardBatchShowReschedule,
+            CardBatchShowRefund = CardBatchShowRefund,
+            CardBatchShowDelete = CardBatchShowDelete,
+            CardStatusPosition = CardStatusPosition,
+            CardHoverHighlight = CardHoverHighlight,
+            CardShowShadow = CardShowShadow,
+            CardHoverScale = CardHoverScale,
+
             // 日志面板显示设置
             LogRowHeight = LogRowHeight,
             InfoColor = InfoColor,
@@ -226,6 +274,28 @@ public partial class UISettingsViewModel : ObservableObject, ISettingsViewModel
                a.ShowDeleteButton == b.ShowDeleteButton &&
                a.IsTripListExpandedByDefault == b.IsTripListExpandedByDefault &&
                a.DefaultTripListView == b.DefaultTripListView &&
+               a.CardsPerRow == b.CardsPerRow &&
+               a.CardWidth == b.CardWidth &&
+               a.CardSpacing == b.CardSpacing &&
+               a.CardCornerRadius == b.CardCornerRadius &&
+               a.CardContentDensity == b.CardContentDensity &&
+               a.CardDefaultAction == b.CardDefaultAction &&
+               a.CardActionTrigger == b.CardActionTrigger &&
+               a.CardShowViewAction == b.CardShowViewAction &&
+               a.CardShowEditAction == b.CardShowEditAction &&
+               a.CardShowRescheduleAction == b.CardShowRescheduleAction &&
+               a.CardShowRefundAction == b.CardShowRefundAction &&
+               a.CardShowDeleteAction == b.CardShowDeleteAction &&
+               a.CardEnableMultiSelect == b.CardEnableMultiSelect &&
+               a.CardBatchShowView == b.CardBatchShowView &&
+               a.CardBatchShowEdit == b.CardBatchShowEdit &&
+               a.CardBatchShowReschedule == b.CardBatchShowReschedule &&
+               a.CardBatchShowRefund == b.CardBatchShowRefund &&
+               a.CardBatchShowDelete == b.CardBatchShowDelete &&
+               a.CardStatusPosition == b.CardStatusPosition &&
+               a.CardHoverHighlight == b.CardHoverHighlight &&
+               a.CardShowShadow == b.CardShowShadow &&
+               a.CardHoverScale == b.CardHoverScale &&
                a.LogRowHeight == b.LogRowHeight &&
                a.InfoColor == b.InfoColor &&
                a.WarningColor == b.WarningColor &&
@@ -295,6 +365,30 @@ public partial class UISettingsViewModel : ObservableObject, ISettingsViewModel
                 ShowTimestamp,
                 ShowModuleSource,
                 LogRowHeight));
+
+            // 发送卡片视图设置变更消息
+            WeakReferenceMessenger.Default.Send(new CardViewSettingsChangedMessage(
+                CardsPerRow,
+                CardWidth,
+                CardSpacing,
+                CardCornerRadius,
+                CardContentDensity,
+                IsCardActionRightClick ? "RightClick" : "DoubleClick",
+                CardDefaultAction,
+                CardShowViewAction,
+                CardShowEditAction,
+                CardShowRescheduleAction,
+                CardShowRefundAction,
+                CardShowDeleteAction,
+                CardBatchShowView,
+                CardBatchShowEdit,
+                CardBatchShowReschedule,
+                CardBatchShowRefund,
+                CardBatchShowDelete,
+                CardStatusPosition,
+                CardHoverHighlight,
+                CardShowShadow,
+                CardHoverScale));
 
             // 发送日志颜色变更消息，通知所有使用日志的地方刷新显示
             WeakReferenceMessenger.Default.Send(new LogColorsChangedMessage(InfoColor, WarningColor, ErrorColor,
@@ -772,6 +866,54 @@ public partial class UISettingsViewModel : ObservableObject, ISettingsViewModel
 
     #endregion
 
+    #region 卡片视图显示设置
+
+    [ObservableProperty] private int _cardsPerRow = 0;
+
+    [ObservableProperty] private int _cardWidth = 280;
+
+    [ObservableProperty] private int _cardSpacing = 8;
+
+    [ObservableProperty] private int _cardCornerRadius = 8;
+
+    [ObservableProperty] private string _cardContentDensity = "Standard";
+
+    [ObservableProperty] private string _cardDefaultAction = "View";
+
+    [ObservableProperty] private bool _isCardActionRightClick = false;
+
+    [ObservableProperty] private bool _cardShowViewAction = true;
+
+    [ObservableProperty] private bool _cardShowEditAction = true;
+
+    [ObservableProperty] private bool _cardShowRescheduleAction = true;
+
+    [ObservableProperty] private bool _cardShowRefundAction = true;
+
+    [ObservableProperty] private bool _cardShowDeleteAction = true;
+
+    [ObservableProperty] private bool _cardEnableMultiSelect = true;
+
+    [ObservableProperty] private bool _cardBatchShowView = true;
+
+    [ObservableProperty] private bool _cardBatchShowEdit = true;
+
+    [ObservableProperty] private bool _cardBatchShowReschedule = true;
+
+    [ObservableProperty] private bool _cardBatchShowRefund = true;
+
+    [ObservableProperty] private bool _cardBatchShowDelete = true;
+
+    [ObservableProperty] private string _cardStatusPosition = "TopRight";
+
+    [ObservableProperty] private bool _cardHoverHighlight = true;
+
+    [ObservableProperty] private bool _cardShowShadow = true;
+
+    [ObservableProperty] private bool _cardHoverScale = false;
+
+    #endregion
+
     #region 日志面板显示设置
 
     [ObservableProperty] private string _logRowHeight = "Standard";
@@ -807,6 +949,17 @@ public partial class UISettingsViewModel : ObservableObject, ISettingsViewModel
     ///     致命错误颜色画刷
     /// </summary>
     public Brush FatalColorBrush => CreateBrushFromHex(FatalColor);
+
+    #endregion
+
+    #region 卡片视图设置联动方法
+
+    /// <summary>
+    ///     当双击卡片选项改变时，同步更新右键菜单选项
+    /// </summary>
+    partial void OnIsCardActionRightClickChanged(bool value)
+    {
+    }
 
     #endregion
 }

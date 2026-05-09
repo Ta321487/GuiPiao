@@ -157,6 +157,102 @@ public class UISettingsConfig
 
     #endregion
 
+    #region 卡片视图显示设置
+
+    /// <summary>
+    ///     每行卡片数 (0=自动, 2-5)
+    /// </summary>
+    public int CardsPerRow { get; set; } = 0;
+
+    /// <summary>
+    ///     卡片宽度 (240-320像素)
+    /// </summary>
+    public int CardWidth { get; set; } = 280;
+
+    /// <summary>
+    ///     卡片间距 (4-16像素)
+    /// </summary>
+    public int CardSpacing { get; set; } = 8;
+
+    /// <summary>
+    ///     卡片圆角 (0-16像素)
+    /// </summary>
+    public int CardCornerRadius { get; set; } = 8;
+
+    /// <summary>
+    ///     卡片内容密度 (Compact/Standard/Detailed/Full)
+    /// </summary>
+    public string CardContentDensity { get; set; } = "Standard";
+
+    /// <summary>
+    ///     默认操作 (View/Edit/Reschedule/Refund/Delete)
+    /// </summary>
+    public string CardDefaultAction { get; set; } = "View";
+
+    /// <summary>
+    ///     操作触发方式 (DoubleClick/RightClick)
+    /// </summary>
+    public string CardActionTrigger { get; set; } = "DoubleClick";
+
+    public bool CardShowViewAction { get; set; } = true;
+
+    public bool CardShowEditAction { get; set; } = true;
+
+    public bool CardShowRescheduleAction { get; set; } = true;
+
+    public bool CardShowRefundAction { get; set; } = true;
+
+    public bool CardShowDeleteAction { get; set; } = true;
+
+    public bool CardEnableMultiSelect { get; set; } = true;
+
+    /// <summary>
+    ///     批量工具栏显示查看
+    /// </summary>
+    public bool CardBatchShowView { get; set; } = true;
+
+    /// <summary>
+    ///     批量工具栏显示编辑
+    /// </summary>
+    public bool CardBatchShowEdit { get; set; } = true;
+
+    /// <summary>
+    ///     批量工具栏显示改签
+    /// </summary>
+    public bool CardBatchShowReschedule { get; set; } = true;
+
+    /// <summary>
+    ///     批量工具栏显示退票
+    /// </summary>
+    public bool CardBatchShowRefund { get; set; } = true;
+
+    /// <summary>
+    ///     批量工具栏显示删除
+    /// </summary>
+    public bool CardBatchShowDelete { get; set; } = true;
+
+    /// <summary>
+    ///     状态标签位置 (TopRight/TopCenter/Hidden)
+    /// </summary>
+    public string CardStatusPosition { get; set; } = "TopRight";
+
+    /// <summary>
+    ///     悬停时高亮边框
+    /// </summary>
+    public bool CardHoverHighlight { get; set; } = true;
+
+    /// <summary>
+    ///     显示卡片阴影效果
+    /// </summary>
+    public bool CardShowShadow { get; set; } = true;
+
+    /// <summary>
+    ///     卡片悬停放大效果
+    /// </summary>
+    public bool CardHoverScale { get; set; } = false;
+
+    #endregion
+
     #region 日志面板显示设置
 
     /// <summary>

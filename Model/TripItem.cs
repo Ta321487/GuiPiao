@@ -1,8 +1,9 @@
 using System.Collections.Generic;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace GuiPiao.Model;
 
-public class TripItem
+public partial class TripItem : ObservableObject
 {
     // 核心列（默认显示）
     public int Id { get; set; }
@@ -59,4 +60,7 @@ public class TripItem
     // 票种类型和支付渠道
     public string TicketType { get; set; }
     public string PaymentChannel { get; set; }
+
+    // UI状态（不保存到数据库）
+    [ObservableProperty] private bool _isSelected;
 }

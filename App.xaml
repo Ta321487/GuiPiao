@@ -35,6 +35,9 @@
             <converters:BooleanToThicknessConverter x:Key="BooleanToThicknessConverter" />
             <converters:BooleanToOpacityConverter x:Key="BooleanToOpacityConverter" />
             <converters:BooleanToBrushConverter x:Key="BooleanToBrushConverter" />
+            <converters:IntComparisonToVisibilityConverter x:Key="IntToVisibilityConverter" />
+            <converters:InverseIntComparisonToVisibilityConverter x:Key="InverseIntToVisibilityConverter" />
+            <converters:CardDensityToVisibilityConverter x:Key="CardDensityToVisibilityConverter" />
 
             <!-- ============================================ -->
             <!-- 主题资源（由 ThemeManager 动态加载 LightTheme.xaml 或 DarkTheme.xaml） -->

@@ -46,6 +46,34 @@ public partial class LayoutViewModel : ObservableObject, IDisposable
 
     [ObservableProperty] private bool _showViewButton = true;
 
+    // 卡片视图设置
+    [ObservableProperty] private int _cardsPerRow = 0;
+    [ObservableProperty] private int _cardWidth = 280;
+    [ObservableProperty] private int _cardSpacing = 8;
+    [ObservableProperty] private int _cardCornerRadius = 8;
+    [ObservableProperty] private string _cardContentDensity = "Standard";
+    [ObservableProperty] private string _cardActionTrigger = "DoubleClick";
+    [ObservableProperty] private string _cardDefaultAction = "View";
+    [ObservableProperty] private bool _isCardActionRightClick = false;
+    [ObservableProperty] private bool _cardShowViewAction = true;
+    [ObservableProperty] private bool _cardShowEditAction = true;
+    [ObservableProperty] private bool _cardShowRescheduleAction = true;
+    [ObservableProperty] private bool _cardShowRefundAction = true;
+    [ObservableProperty] private bool _cardShowDeleteAction = true;
+
+    // 卡片外观效果
+    [ObservableProperty] private string _cardStatusPosition = "TopRight";
+    [ObservableProperty] private bool _cardHoverHighlight = true;
+    [ObservableProperty] private bool _cardShowShadow = true;
+    [ObservableProperty] private bool _cardHoverScale = false;
+
+    // 批量操作工具栏按钮显示
+    [ObservableProperty] private bool _cardBatchShowView = true;
+    [ObservableProperty] private bool _cardBatchShowEdit = true;
+    [ObservableProperty] private bool _cardBatchShowReschedule = true;
+    [ObservableProperty] private bool _cardBatchShowRefund = true;
+    [ObservableProperty] private bool _cardBatchShowDelete = true;
+
     public LayoutViewModel()
     {
         UISettingsService = new UISettingsService();
@@ -80,6 +108,47 @@ public partial class LayoutViewModel : ObservableObject, IDisposable
             LogRowHeight = message.LogRowHeight;
 
             ApplyScrollbarStyle();
+        });
+
+        // 订阅卡片视图设置变更消息
+        WeakReferenceMessenger.Default.Register<CardViewSettingsChangedMessage>(this, (recipient, message) =>
+        {
+            CardsPerRow = message.CardsPerRow;
+            CardWidth = message.CardWidth;
+            CardSpacing = message.CardSpacing;
+            CardCornerRadius = message.CardCornerRadius;
+            CardContentDensity = message.CardContentDensity;
+            CardActionTrigger = message.CardActionTrigger;
+            CardDefaultAction = message.CardDefaultAction;
+            IsCardActionRightClick = message.CardActionTrigger == "RightClick";
+            CardShowViewAction = message.CardShowViewAction;
+            CardShowEditAction = message.CardShowEditAction;
+            CardShowRescheduleAction = message.CardShowRescheduleAction;
+            CardShowRefundAction = message.CardShowRefundAction;
+            CardShowDeleteAction = message.CardShowDeleteAction;
+            CardBatchShowView = message.CardBatchShowView;
+            CardBatchShowEdit = message.CardBatchShowEdit;
+            CardBatchShowReschedule = message.CardBatchShowReschedule;
+            CardBatchShowRefund = message.CardBatchShowRefund;
+            CardBatchShowDelete = message.CardBatchShowDelete;
+            CardStatusPosition = message.CardStatusPosition;
+            CardHoverHighlight = message.CardHoverHighlight;
+            CardShowShadow = message.CardShowShadow;
+            CardHoverScale = message.CardHoverScale;
+
+            // 通知卡片视图布局已变更
+            OnPropertyChanged(nameof(CardsPerRow));
+            OnPropertyChanged(nameof(CardMargin));
+            OnPropertyChanged(nameof(CardContentDensity));
+            OnPropertyChanged(nameof(CardStatusPosition));
+            OnPropertyChanged(nameof(CardHoverHighlight));
+            OnPropertyChanged(nameof(CardShowShadow));
+            OnPropertyChanged(nameof(CardHoverScale));
+            OnPropertyChanged(nameof(CardBatchShowView));
+            OnPropertyChanged(nameof(CardBatchShowEdit));
+            OnPropertyChanged(nameof(CardBatchShowReschedule));
+            OnPropertyChanged(nameof(CardBatchShowRefund));
+            OnPropertyChanged(nameof(CardBatchShowDelete));
         });
     }
 
@@ -183,6 +252,10 @@ public partial class LayoutViewModel : ObservableObject, IDisposable
     public GridLength RightSplitterWidth => RightPanelLocked ? new GridLength(0) : new GridLength(5);
     public GridLength BottomSplitterHeight => BottomPanelLocked ? new GridLength(0) : new GridLength(5);
 
+    // 卡片视图计算属性
+    public Thickness CardMargin => new(CardSpacing);
+    public bool IsCardContextMenuEnabled => IsCardActionRightClick;
+
     public UISettingsService UISettingsService { get; }
 
     public double LogRowHeightValue => LogRowHeight switch
@@ -224,6 +297,25 @@ public partial class LayoutViewModel : ObservableObject, IDisposable
         ShowTimestamp = config.ShowTimestamp;
         ShowModuleSource = config.ShowModuleSource;
         LogRowHeight = config.LogRowHeight;
+
+        // 卡片视图设置
+        CardsPerRow = config.CardsPerRow;
+        CardWidth = config.CardWidth;
+        CardSpacing = config.CardSpacing;
+        CardCornerRadius = config.CardCornerRadius;
+        CardContentDensity = config.CardContentDensity;
+        CardActionTrigger = config.CardActionTrigger;
+        CardDefaultAction = config.CardDefaultAction;
+        IsCardActionRightClick = config.CardActionTrigger == "RightClick";
+        CardStatusPosition = config.CardStatusPosition;
+        CardHoverHighlight = config.CardHoverHighlight;
+        CardShowShadow = config.CardShowShadow;
+        CardHoverScale = config.CardHoverScale;
+        CardBatchShowView = config.CardBatchShowView;
+        CardBatchShowEdit = config.CardBatchShowEdit;
+        CardBatchShowReschedule = config.CardBatchShowReschedule;
+        CardBatchShowRefund = config.CardBatchShowRefund;
+        CardBatchShowDelete = config.CardBatchShowDelete;
     }
 
     public void SaveLayoutSettings()

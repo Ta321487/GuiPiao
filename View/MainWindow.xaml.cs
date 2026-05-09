@@ -13,7 +13,9 @@ using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
+using CommunityToolkit.Mvvm.Messaging;
 using GuiPiao.Converters;
+using GuiPiao.Messages;
 using GuiPiao.Model;
 using GuiPiao.Services;
 using GuiPiao.Utils;
@@ -522,23 +524,23 @@ public partial class MainWindow : Window
 
         if (viewModel.IsTripListExpanded)
         {
-            // 展开状态：清除Border的固定高度，恢复Grid行高的绑定
             TripListBorder.ClearValue(HeightProperty);
-            // 重新设置绑定，确保行高与ViewModel同步
+            TripListBorder.MaxHeight = double.PositiveInfinity;
             var binding = new Binding("BottomRowHeight")
             {
                 Source = viewModel,
                 Mode = BindingMode.OneWay
             };
             MainGrid.RowDefinitions[2].SetBinding(RowDefinition.HeightProperty, binding);
+            MainGrid.RowDefinitions[0].Height = new GridLength(1, GridUnitType.Star);
             Debug.WriteLine($"[UpdateTripListLayout] 展开状态，恢复高度绑定: {viewModel.BottomRowHeight}");
         }
         else
         {
-            // 折叠状态：清除绑定并设置行高为Auto，让行跟随Border高度
-            MainGrid.RowDefinitions[2].ClearValue(RowDefinition.HeightProperty);
             MainGrid.RowDefinitions[2].Height = GridLength.Auto;
+            MainGrid.RowDefinitions[0].Height = new GridLength(1, GridUnitType.Star);
             TripListBorder.Height = 40;
+            TripListBorder.MaxHeight = 40;
             Debug.WriteLine("[UpdateTripListLayout] 折叠状态，设置行高度为Auto，Border高度为40px");
         }
     }
@@ -670,6 +672,192 @@ public partial class MainWindow : Window
                 await viewModel.TripList.DeleteTripCommand(trip);
                 break;
         }
+    }
+
+    /// <summary>
+    ///     卡片视图鼠标左键按下事件（用于检测双击和多选）
+    /// </summary>
+    private void CardViewBorder_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is not Border border || border.Tag is not Model.TripItem trip) return;
+        if (DataContext is not MainViewModel viewModel) return;
+
+        if (e.ClickCount == 2)
+        {
+            e.Handled = true;
+            ExecuteCardDefaultAction(trip);
+            return;
+        }
+
+        // 多选逻辑（仅单击时）
+        if (e.ClickCount == 1)
+        {
+            HandleCardSelection(trip, Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl),
+                Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift));
+        }
+    }
+
+    /// <summary>
+    ///     处理卡片选中逻辑
+    /// </summary>
+    private void HandleCardSelection(Model.TripItem clickedTrip, bool isCtrlPressed, bool isShiftPressed)
+    {
+        if (DataContext is not MainViewModel viewModel) return;
+
+        var tripItems = viewModel.TripList.TripItems.ToList();
+        var lastSelected = tripItems.LastOrDefault(t => t.IsSelected);
+
+        if (isShiftPressed && lastSelected != null)
+        {
+            // Shift+单击：范围选择
+            var startIndex = tripItems.IndexOf(lastSelected);
+            var endIndex = tripItems.IndexOf(clickedTrip);
+            if (startIndex >= 0 && endIndex >= 0)
+            {
+                var minIndex = Math.Min(startIndex, endIndex);
+                var maxIndex = Math.Max(startIndex, endIndex);
+                for (var i = minIndex; i <= maxIndex; i++) tripItems[i].IsSelected = true;
+            }
+        }
+        else if (isCtrlPressed)
+        {
+            // Ctrl+单击：切换选中状态
+            clickedTrip.IsSelected = !clickedTrip.IsSelected;
+        }
+        else
+        {
+            // 普通单击：单选（清除其他选中）
+            foreach (var item in tripItems) item.IsSelected = false;
+            clickedTrip.IsSelected = true;
+        }
+
+        // 更新工具栏可见性
+        UpdateCardSelectionToolbar();
+    }
+
+    /// <summary>
+    ///     更新卡片选中工具栏
+    /// </summary>
+    private void UpdateCardSelectionToolbar()
+    {
+        if (DataContext is MainViewModel viewModel)
+        {
+            // 发送消息通知选中状态变更
+            WeakReferenceMessenger.Default.Send(new CardSelectionChangedMessage(
+                viewModel.TripList.HasSelectedItems,
+                viewModel.TripList.SelectedItemsCount));
+        }
+    }
+
+    /// <summary>
+    ///     清除卡片选择
+    /// </summary>
+    private void ClearCardSelection_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainViewModel viewModel) return;
+        foreach (var item in viewModel.TripList.TripItems) item.IsSelected = false;
+        UpdateCardSelectionToolbar();
+    }
+
+    /// <summary>
+    ///     批量查看选中卡片
+    /// </summary>
+    private void BatchViewButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainViewModel viewModel) return;
+        var selectedItems = viewModel.TripList.TripItems.Where(t => t.IsSelected).ToList();
+        foreach (var item in selectedItems) viewModel.TripList.ViewTripCommand(item);
+    }
+
+    /// <summary>
+    ///     批量编辑选中卡片
+    /// </summary>
+    private async void BatchEditButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainViewModel viewModel) return;
+        var selectedItems = viewModel.TripList.TripItems.Where(t => t.IsSelected).ToList();
+        foreach (var item in selectedItems) await viewModel.TripList.EditTripCommand(item);
+    }
+
+    /// <summary>
+    ///     批量改签选中卡片
+    /// </summary>
+    private async void BatchRescheduleButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainViewModel viewModel) return;
+        var selectedItems = viewModel.TripList.TripItems.Where(t => t.IsSelected).ToList();
+        foreach (var item in selectedItems) await viewModel.TripList.RescheduleTripCommand(item);
+    }
+
+    /// <summary>
+    ///     批量退票选中卡片
+    /// </summary>
+    private async void BatchRefundButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainViewModel viewModel) return;
+        var selectedItems = viewModel.TripList.TripItems.Where(t => t.IsSelected).ToList();
+        foreach (var item in selectedItems) await viewModel.TripList.RefundTripCommand(item);
+    }
+
+    /// <summary>
+    ///     批量删除选中卡片
+    /// </summary>
+    private async void BatchDeleteButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainViewModel viewModel) return;
+        var selectedItems = viewModel.TripList.TripItems.Where(t => t.IsSelected).ToList();
+        foreach (var item in selectedItems) await viewModel.TripList.DeleteTripCommand(item);
+    }
+
+    /// <summary>
+    ///     卡片视图鼠标左键释放事件
+    /// </summary>
+    private void CardViewBorder_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        // 单击处理在MouseLeftButtonDown中完成
+    }
+
+    /// <summary>
+    ///     执行卡片默认操作
+    /// </summary>
+    private async void ExecuteCardDefaultAction(Model.TripItem trip)
+    {
+        if (DataContext is not MainViewModel viewModel) return;
+
+        var action = GetDefaultActionFromSettings();
+
+        if (action == null) return;
+
+        switch (action)
+        {
+            case "View":
+                viewModel.TripList.ViewTripCommand(trip);
+                break;
+            case "Edit":
+                await viewModel.TripList.EditTripCommand(trip);
+                break;
+            case "Reschedule":
+                await viewModel.TripList.RescheduleTripCommand(trip);
+                break;
+            case "Refund":
+                await viewModel.TripList.RefundTripCommand(trip);
+                break;
+            case "Delete":
+                await viewModel.TripList.DeleteTripCommand(trip);
+                break;
+        }
+    }
+
+    /// <summary>
+    ///     从设置获取默认操作
+    /// </summary>
+    private string? GetDefaultActionFromSettings()
+    {
+        if (DataContext is MainViewModel viewModel)
+        {
+            return viewModel.Layout.CardDefaultAction;
+        }
+        return "View";
     }
 
     /// <summary>

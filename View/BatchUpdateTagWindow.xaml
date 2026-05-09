@@ -74,7 +74,7 @@
                         <DataGridTextColumn Header="车次" Binding="{Binding TrainNo}" Width="80" />
                         <DataGridTextColumn Header="出发站" Binding="{Binding DepartStation}" Width="80" />
                         <DataGridTextColumn Header="到达站" Binding="{Binding ArriveStation}" Width="80" />
-                        <DataGridTextColumn Header="出发日期" Binding="{Binding DepartDate}" Width="90" />
+                        <DataGridTextColumn Header="出发日期" Binding="{Binding DepartDate, Converter={StaticResource DateFormatConverter}}" Width="90" />
                         <DataGridTextColumn Header="当前标签" Binding="{Binding CurrentTags}" Width="120" />
                     </DataGrid.Columns>
                 </DataGrid>
