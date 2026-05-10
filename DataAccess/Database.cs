@@ -8,7 +8,7 @@ namespace GuiPiao.DataAccess;
 
 public static class Database
 {
-    private static readonly LogService _logService = new();
+    private static readonly Lazy<LogService> _logService = new(() => new LogService());
 
     public static void Initialize()
     {
@@ -19,14 +19,14 @@ public static class Database
             if (!string.IsNullOrEmpty(dbDir) && !Directory.Exists(dbDir))
             {
                 Directory.CreateDirectory(dbDir);
-                _logService.Info("Database", $"创建数据库目录: {dbDir}");
+                _logService.Value.Info("Database", $"创建数据库目录: {dbDir}");
             }
 
             CreateTables();
         }
         catch (Exception ex)
         {
-            _logService.Error("Database", $"数据库初始化失败: {ex.Message}");
+            _logService.Value.Error("Database", $"数据库初始化失败: {ex.Message}");
             throw;
         }
     }
@@ -40,10 +40,10 @@ public static class Database
                 connection.Open();
             }
             catch (Exception ex)
-            {
-                _logService.Error("Database", $"数据库连接失败: {ex.Message}");
-                throw;
-            }
+        {
+            _logService.Value.Error("Database", $"数据库连接失败: {ex.Message}");
+            throw;
+        }
 
             var createStationTable = @"
                     CREATE TABLE IF NOT EXISTS station_info (
@@ -172,7 +172,7 @@ public static class Database
             // 迁移：为已存在的表添加新列
             MigrateDatabase(connection);
 
-            _logService.Info("Database", "数据库表创建完成");
+            _logService.Value.Info("Database", "数据库表创建完成");
         }
     }
 
@@ -200,7 +200,7 @@ public static class Database
                         alterCommand.ExecuteNonQuery();
                     }
 
-                    _logService.Info("Database", "已添加 status 列到 train_ride_info 表");
+                    _logService.Value.Info("Database", "已添加 status 列到 train_ride_info 表");
                 }
             }
 
@@ -221,13 +221,13 @@ public static class Database
                         indexCommand.ExecuteNonQuery();
                     }
 
-                    _logService.Info("Database", "已创建 idx_status 索引");
+                    _logService.Value.Info("Database", "已创建 idx_status 索引");
                 }
             }
         }
         catch (Exception ex)
         {
-            _logService.Error("Database", $"数据库迁移失败: {ex.Message}");
+            _logService.Value.Error("Database", $"数据库迁移失败: {ex.Message}");
             throw;
         }
     }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using GuiPiao.DataAccess;
 using GuiPiao.Model;
@@ -16,6 +17,12 @@ public class ChartDataService : IChartDataService
 {
     private readonly string _connectionString;
     private readonly TrainRideRepository _trainRideRepository;
+
+    // 缓存字段
+    private List<TrainRideInfo>? _cachedRides;
+    private DateTime _cacheTimestamp = DateTime.MinValue;
+    private readonly TimeSpan _cacheExpiration = TimeSpan.FromMinutes(5);
+    private readonly SemaphoreSlim _cacheLock = new(1, 1);
 
     public ChartDataService()
     {
@@ -36,6 +43,7 @@ public class ChartDataService : IChartDataService
     /// </summary>
     public void RefreshData()
     {
+        InvalidateCache();
         DataRefreshed?.Invoke(this, EventArgs.Empty);
         Debug.WriteLine("[ChartDataService] 数据已刷新");
     }
@@ -45,8 +53,47 @@ public class ChartDataService : IChartDataService
     /// </summary>
     public void ClearCache()
     {
+        InvalidateCache();
         DataRefreshed?.Invoke(this, EventArgs.Empty);
         Debug.WriteLine("[ChartDataService] 缓存已清除");
+    }
+
+    /// <summary>
+    ///     使缓存失效
+    /// </summary>
+    private void InvalidateCache()
+    {
+        _cachedRides = null;
+        _cacheTimestamp = DateTime.MinValue;
+    }
+
+    /// <summary>
+    ///     获取所有行程数据（带缓存）
+    /// </summary>
+    private async Task<List<TrainRideInfo>> GetAllTrainRidesCachedAsync()
+    {
+        if (_cachedRides != null && DateTime.Now - _cacheTimestamp < _cacheExpiration)
+        {
+            Debug.WriteLine("[ChartDataService] 使用缓存数据");
+            return _cachedRides;
+        }
+
+        await _cacheLock.WaitAsync();
+        try
+        {
+            // 双重检查
+            if (_cachedRides != null && DateTime.Now - _cacheTimestamp < _cacheExpiration)
+                return _cachedRides;
+
+            Debug.WriteLine("[ChartDataService] 从数据库加载数据");
+            _cachedRides = (await _trainRideRepository.GetAllTrainRidesAsync()).ToList();
+            _cacheTimestamp = DateTime.Now;
+            return _cachedRides;
+        }
+        finally
+        {
+            _cacheLock.Release();
+        }
     }
 
     public async Task<ChartData> GetMonthlyTripStatsAsync(StatisticCardConfig config)
@@ -602,7 +649,7 @@ public class ChartDataService : IChartDataService
     /// </summary>
     private async Task<IEnumerable<TrainRideInfo>> GetAllTrainRidesAsync()
     {
-        return await _trainRideRepository.GetAllTrainRidesAsync();
+        return await GetAllTrainRidesCachedAsync();
     }
 
     /// <summary>

@@ -328,6 +328,8 @@ public partial class DashboardChartViewModel : ObservableObject, IDisposable
 
         // 共享的 DataLabelsPaint，减少对象创建
         var sharedDataLabelsPaint = ShowDataLabels || ShowPercentage ? new SolidColorPaint(dataLabelColor) : null;
+        if (sharedDataLabelsPaint != null)
+            RegisterSkiaResource(sharedDataLabelsPaint);
 
         for (var i = 0; i < length; i++)
         {
@@ -353,11 +355,14 @@ public partial class DashboardChartViewModel : ObservableObject, IDisposable
                 dataLabel = FormatValue(value);
             }
 
+            var fillPaint = new SolidColorPaint(color);
+            RegisterSkiaResource(fillPaint);
+
             pieSeriesList.Add(new PieSeries<double>
             {
                 Values = new List<double> { value },
                 Name = label,
-                Fill = new SolidColorPaint(color),
+                Fill = fillPaint,
                 DataLabelsPaint = sharedDataLabelsPaint,
                 DataLabelsPosition = PolarLabelsPosition.Middle,
                 DataLabelsSize = dataLabelFontSize,
@@ -383,14 +388,24 @@ public partial class DashboardChartViewModel : ObservableObject, IDisposable
         // 根据数据量调整数据标签字体大小，避免重叠
         var dataLabelFontSize = CalculateDataLabelFontSize(baseFontSize, ChartData.Values.Length);
 
+        var fillPaint = new SolidColorPaint(color);
+        RegisterSkiaResource(fillPaint);
+
+        SolidColorPaint? dataLabelsPaint = null;
+        if (ShowDataLabels)
+        {
+            dataLabelsPaint = new SolidColorPaint(dataLabelColor);
+            RegisterSkiaResource(dataLabelsPaint);
+        }
+
         return new ISeries[]
         {
             new ColumnSeries<double>
             {
                 Values = ChartData.Values,
                 Name = ChartData.SeriesName,
-                Fill = new SolidColorPaint(color),
-                DataLabelsPaint = ShowDataLabels ? new SolidColorPaint(dataLabelColor) : null,
+                Fill = fillPaint,
+                DataLabelsPaint = dataLabelsPaint,
                 DataLabelsPosition = DataLabelsPosition.Middle,
                 DataLabelsSize = dataLabelFontSize,
                 DataLabelsFormatter = point => FormatValue(point.Coordinate.PrimaryValue),
@@ -417,14 +432,24 @@ public partial class DashboardChartViewModel : ObservableObject, IDisposable
         // 为 Tooltip 准备标签数组（需要与 reversedValues 对应）
         var reversedLabels = ChartData.Labels.Reverse().ToArray();
 
+        var fillPaint = new SolidColorPaint(color);
+        RegisterSkiaResource(fillPaint);
+
+        SolidColorPaint? dataLabelsPaint = null;
+        if (ShowDataLabels)
+        {
+            dataLabelsPaint = new SolidColorPaint(dataLabelColor);
+            RegisterSkiaResource(dataLabelsPaint);
+        }
+
         return new ISeries[]
         {
             new RowSeries<double>
             {
                 Values = reversedValues,
                 Name = null,
-                Fill = new SolidColorPaint(color),
-                DataLabelsPaint = ShowDataLabels ? new SolidColorPaint(dataLabelColor) : null,
+                Fill = fillPaint,
+                DataLabelsPaint = dataLabelsPaint,
                 DataLabelsPosition = DataLabelsPosition.End,
                 DataLabelsSize = dataLabelFontSize,
                 DataLabelsFormatter = point => FormatValue(point.Coordinate.PrimaryValue),
@@ -463,6 +488,17 @@ public partial class DashboardChartViewModel : ObservableObject, IDisposable
         var dataLabelFontSize = CalculateDataLabelFontSize(baseFontSize, ChartData.Values.Length);
 
         var strokePaint = new SolidColorPaint(color);
+        RegisterSkiaResource(strokePaint);
+
+        var geometryFillPaint = new SolidColorPaint(dataLabelColor);
+        RegisterSkiaResource(geometryFillPaint);
+
+        SolidColorPaint? dataLabelsPaint = null;
+        if (ShowDataLabels)
+        {
+            dataLabelsPaint = new SolidColorPaint(dataLabelColor);
+            RegisterSkiaResource(dataLabelsPaint);
+        }
 
         return new ISeries[]
         {
@@ -474,8 +510,8 @@ public partial class DashboardChartViewModel : ObservableObject, IDisposable
                 Fill = null,
                 GeometrySize = 8,
                 GeometryStroke = strokePaint,
-                GeometryFill = new SolidColorPaint(dataLabelColor),
-                DataLabelsPaint = ShowDataLabels ? new SolidColorPaint(dataLabelColor) : null,
+                GeometryFill = geometryFillPaint,
+                DataLabelsPaint = dataLabelsPaint,
                 DataLabelsSize = dataLabelFontSize,
                 DataLabelsFormatter = point => FormatValue(point.Coordinate.PrimaryValue),
                 LineSmoothness = 0.5,

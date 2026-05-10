@@ -19,27 +19,33 @@ public partial class MainViewModel : ObservableObject, IDisposable
     private readonly GeneralSettingsService _generalSettingsService;
     private readonly LogService _logService;
     private bool _isDisposed;
+    private bool _isInitialized;
 
     [ObservableProperty] private string _statusMessage = "就绪";
 
     private DispatcherTimer? _statusResetTimer;
 
+    private PropertyChangedEventHandler? _layoutPropertyChangedHandler;
+    private PropertyChangedEventHandler? _tripListPropertyChangedHandler;
+    private PropertyChangedEventHandler? _dashboardPropertyChangedHandler;
+    private PropertyChangedEventHandler? _logPanelPropertyChangedHandler;
+    private PropertyChangedEventHandler? _quickActionsPropertyChangedHandler;
+    private PropertyChangedEventHandler? _searchPanelPropertyChangedHandler;
+
+    private LayoutViewModel? _layout;
+    private TripListViewModel? _tripList;
+    private DashboardViewModel? _dashboard;
+    private LogPanelViewModel? _logPanel;
+    private MenuViewModel? _menu;
+    private QuickActionsViewModel? _quickActions;
+    private SearchPanelViewModel? _searchPanel;
+
     public MainViewModel()
     {
         Debug.WriteLine("[MainViewModel] 开始初始化");
 
-        Layout = new LayoutViewModel();
-        TripList = new TripListViewModel();
-        Dashboard = new DashboardViewModel();
-        LogPanel = new LogPanelViewModel();
-        Menu = new MenuViewModel();
-        QuickActions = new QuickActionsViewModel();
-        SearchPanel = new SearchPanelViewModel();
-
         _generalSettingsService = new GeneralSettingsService();
         _logService = ServiceManager.Instance.LogService;
-
-        SubscribeToChildViewModels();
 
         if (DesignerProperties.GetIsInDesignMode(new DependencyObject()))
         {
@@ -63,22 +69,70 @@ public partial class MainViewModel : ObservableObject, IDisposable
         WeakReferenceMessenger.Default.Register<BatchUpdateStatusMessage>(this,
             async (recipient, message) => { await TripList.BatchUpdateStatusAsync(); });
 
-        if (_generalSettingsService.Config.AutoRefreshOnStartup) _ = TripList.LoadTripItemsAsync();
-
         Debug.WriteLine("[MainViewModel] 初始化完成");
     }
 
-    #region 子 ViewModel
+    private void EnsureInitialized()
+    {
+        if (_isInitialized) return;
+        _isInitialized = true;
 
-    public LayoutViewModel Layout { get; }
-    public TripListViewModel TripList { get; }
-    public DashboardViewModel Dashboard { get; }
-    public LogPanelViewModel LogPanel { get; }
-    public MenuViewModel Menu { get; }
-    public QuickActionsViewModel QuickActions { get; }
-    public SearchPanelViewModel SearchPanel { get; }
+        Debug.WriteLine("[MainViewModel] 延迟初始化子ViewModel");
 
-    #endregion
+        _layout = new LayoutViewModel();
+        _tripList = new TripListViewModel();
+        _logPanel = new LogPanelViewModel();
+        _menu = new MenuViewModel();
+        _quickActions = new QuickActionsViewModel();
+        _searchPanel = new SearchPanelViewModel();
+
+        SubscribeToChildViewModels();
+
+        if (_generalSettingsService.Config.AutoRefreshOnStartup) _ = _tripList.LoadTripItemsAsync();
+    }
+
+    public LayoutViewModel Layout
+    {
+        get { EnsureInitialized(); return _layout!; }
+    }
+
+    public TripListViewModel TripList
+    {
+        get { EnsureInitialized(); return _tripList!; }
+    }
+
+    public DashboardViewModel Dashboard
+    {
+        get
+        {
+            if (_dashboard == null)
+            {
+                Debug.WriteLine("[MainViewModel] 延迟初始化DashboardViewModel");
+                _dashboard = new DashboardViewModel();
+            }
+            return _dashboard;
+        }
+    }
+
+    public LogPanelViewModel LogPanel
+    {
+        get { EnsureInitialized(); return _logPanel!; }
+    }
+
+    public MenuViewModel Menu
+    {
+        get { EnsureInitialized(); return _menu!; }
+    }
+
+    public QuickActionsViewModel QuickActions
+    {
+        get { EnsureInitialized(); return _quickActions!; }
+    }
+
+    public SearchPanelViewModel SearchPanel
+    {
+        get { EnsureInitialized(); return _searchPanel!; }
+    }
 
     public UISettingsService UISettingsService => Layout.UISettingsService;
 
@@ -91,10 +145,23 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
         _isDisposed = true;
 
-        Layout?.Dispose();
-        TripList?.Dispose();
-        Dashboard?.Dispose();
-        LogPanel?.Dispose();
+        if (_layout != null && _layoutPropertyChangedHandler != null)
+            _layout.PropertyChanged -= _layoutPropertyChangedHandler;
+        if (_tripList != null && _tripListPropertyChangedHandler != null)
+            _tripList.PropertyChanged -= _tripListPropertyChangedHandler;
+        if (_dashboard != null && _dashboardPropertyChangedHandler != null)
+            _dashboard.PropertyChanged -= _dashboardPropertyChangedHandler;
+        if (_logPanel != null && _logPanelPropertyChangedHandler != null)
+            _logPanel.PropertyChanged -= _logPanelPropertyChangedHandler;
+        if (_quickActions != null && _quickActionsPropertyChangedHandler != null)
+            _quickActions.PropertyChanged -= _quickActionsPropertyChangedHandler;
+        if (_searchPanel != null && _searchPanelPropertyChangedHandler != null)
+            _searchPanel.PropertyChanged -= _searchPanelPropertyChangedHandler;
+
+        _layout?.Dispose();
+        _tripList?.Dispose();
+        _dashboard?.Dispose();
+        _logPanel?.Dispose();
 
         WeakReferenceMessenger.Default.UnregisterAll(this);
 

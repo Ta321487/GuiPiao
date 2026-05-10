@@ -95,7 +95,7 @@ public partial class MainViewModel
 
     private void SubscribeToSearchPanelChanges()
     {
-        SearchPanel.PropertyChanged += (s, e) =>
+        _searchPanelPropertyChangedHandler = (s, e) =>
         {
             OnPropertyChanged(e.PropertyName);
             switch (e.PropertyName)
@@ -129,5 +129,6 @@ public partial class MainViewModel
                     break;
             }
         };
+        SearchPanel.PropertyChanged += _searchPanelPropertyChangedHandler;
     }
 }

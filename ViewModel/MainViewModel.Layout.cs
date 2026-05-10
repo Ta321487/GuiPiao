@@ -33,7 +33,7 @@ public partial class MainViewModel
 
     private void SubscribeToLayoutChanges()
     {
-        Layout.PropertyChanged += (s, e) =>
+        _layoutPropertyChangedHandler = (s, e) =>
         {
             OnPropertyChanged(e.PropertyName);
             switch (e.PropertyName)
@@ -86,5 +86,6 @@ public partial class MainViewModel
                     break;
             }
         };
+        Layout.PropertyChanged += _layoutPropertyChangedHandler;
     }
 }

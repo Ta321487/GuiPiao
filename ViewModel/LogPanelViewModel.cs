@@ -66,7 +66,10 @@ public partial class LogPanelViewModel : ObservableObject, IDisposable
 
         _lastRefreshTime = now;
 
-        _refreshCts?.Cancel();
+        var oldCts = _refreshCts;
+        oldCts?.Cancel();
+        oldCts?.Dispose();
+
         _refreshCts = new CancellationTokenSource();
         var cts = _refreshCts;
 

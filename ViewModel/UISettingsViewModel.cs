@@ -983,5 +983,11 @@ public partial class UISettingsViewModel : ObservableObject, ISettingsViewModel
     #region 卡片视图设置联动方法
 
     /// <summary>
+    ///     释放资源
+    /// </summary>
+    public void Dispose()
+    {
+        WeakReferenceMessenger.Default.UnregisterAll(this);
+    }
     #endregion
 }

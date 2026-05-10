@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Windows;
@@ -21,6 +22,10 @@ public static class ThemeManager
     // 当前DPI缩放比例（用于与字体大小叠加）
     private static double _currentDpiScale = 1.0;
 
+    // SolidColorBrush 缓存
+    private static readonly Dictionary<string, SolidColorBrush> _brushCache = new();
+    private static readonly Dictionary<Color, SolidColorBrush> _colorToBrushCache = new();
+
     /// <summary>
     ///     当前是否为深色主题
     /// </summary>
@@ -30,6 +35,34 @@ public static class ThemeManager
     ///     主题已更改事件
     /// </summary>
     public static event EventHandler? ThemeChanged;
+
+    /// <summary>
+    ///     获取或创建 SolidColorBrush（带缓存）
+    /// </summary>
+    private static SolidColorBrush GetOrCreateBrush(Color color)
+    {
+        if (!_colorToBrushCache.TryGetValue(color, out var brush))
+        {
+            brush = new SolidColorBrush(color);
+            brush.Freeze();
+            _colorToBrushCache[color] = brush;
+        }
+        return brush;
+    }
+
+    /// <summary>
+    ///     获取或创建 SolidColorBrush（从十六进制颜色字符串）
+    /// </summary>
+    private static SolidColorBrush GetOrCreateBrush(string colorHex)
+    {
+        if (!_brushCache.TryGetValue(colorHex, out var brush))
+        {
+            var color = (Color)ColorConverter.ConvertFromString(colorHex);
+            brush = GetOrCreateBrush(color);
+            _brushCache[colorHex] = brush;
+        }
+        return brush;
+    }
 
     /// <summary>
     ///     应用主题设置
@@ -185,7 +218,7 @@ public static class ThemeManager
         try
         {
             var color = (Color)ColorConverter.ConvertFromString(colorHex);
-            var brush = new SolidColorBrush(color);
+            var brush = GetOrCreateBrush(color);
 
             // 获取当前主题字典并更新（确保覆盖主题文件中的默认值）
             var mergedDictionaries = Application.Current.Resources.MergedDictionaries;
@@ -214,8 +247,8 @@ public static class ThemeManager
             // 计算悬停和按下颜色
             var hoverColor = AdjustBrightness(color, 0.1);
             var pressedColor = AdjustBrightness(color, -0.1);
-            targetDictionary["AccentHoverBrush"] = new SolidColorBrush(hoverColor);
-            targetDictionary["AccentPressedBrush"] = new SolidColorBrush(pressedColor);
+            targetDictionary["AccentHoverBrush"] = GetOrCreateBrush(hoverColor);
+            targetDictionary["AccentPressedBrush"] = GetOrCreateBrush(pressedColor);
 
             // 计算对比文字颜色（根据背景色亮度决定使用黑色或白色文字）
             var textBrush = GetContrastTextBrush(color);
@@ -225,10 +258,11 @@ public static class ThemeManager
         {
             // 如果颜色解析失败，使用默认蓝色
             var defaultColor = (Color)ColorConverter.ConvertFromString("#0078D4");
+            var defaultBrush = GetOrCreateBrush(defaultColor);
             Application.Current.Resources["AccentColor"] = defaultColor;
-            Application.Current.Resources["AccentBrush"] = new SolidColorBrush(defaultColor);
-            Application.Current.Resources["PrimaryBrush"] = new SolidColorBrush(defaultColor);
-            Application.Current.Resources["AccentTextBrush"] = new SolidColorBrush(Colors.White);
+            Application.Current.Resources["AccentBrush"] = defaultBrush;
+            Application.Current.Resources["PrimaryBrush"] = defaultBrush;
+            Application.Current.Resources["AccentTextBrush"] = GetOrCreateBrush(Colors.White);
         }
     }
 
@@ -241,7 +275,7 @@ public static class ThemeManager
         var brightness = (backgroundColor.R * 299 + backgroundColor.G * 587 + backgroundColor.B * 114) / 1000.0;
 
         // 亮度 > 128 使用黑色文字，否则使用白色文字
-        return brightness > 128 ? new SolidColorBrush(Colors.Black) : new SolidColorBrush(Colors.White);
+        return brightness > 128 ? GetOrCreateBrush(Colors.Black) : GetOrCreateBrush(Colors.White);
     }
 
     /// <summary>

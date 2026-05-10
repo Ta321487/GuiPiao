@@ -64,7 +64,7 @@ public partial class MainViewModel
 
     private void SubscribeToDashboardChanges()
     {
-        Dashboard.PropertyChanged += (s, e) =>
+        _dashboardPropertyChangedHandler = (s, e) =>
         {
             OnPropertyChanged(e.PropertyName);
             switch (e.PropertyName)
@@ -93,5 +93,6 @@ public partial class MainViewModel
                     break;
             }
         };
+        Dashboard.PropertyChanged += _dashboardPropertyChangedHandler;
     }
 }

@@ -30,16 +30,25 @@ public partial class MainWindow : Window
     private DragDropHelper? _dashboardDragDropHelper;
     private bool _isMinimizedToTray;
     private Forms.NotifyIcon? _notifyIcon;
+    private bool _isDataContextInitialized;
 
     public MainWindow()
     {
         InitializeComponent();
         InitializeDashboardDragDrop();
 
-        // 检查 DataContext
+        // 初始化系统托盘图标
+        InitializeNotifyIcon();
+
+        // 延迟设置 DataContext（在窗口视觉元素加载完成后）
         Loaded += (s, e) =>
         {
-            Debug.WriteLine($"[MainWindow] DataContext: {DataContext?.GetType().Name}");
+            if (!_isDataContextInitialized)
+            {
+                _isDataContextInitialized = true;
+                DataContext = new MainViewModel();
+                Debug.WriteLine($"[MainWindow] DataContext 已延迟初始化: {DataContext.GetType().Name}");
+            }
 
             // 监听 DashboardCharts 变化，更新 Grid 布局
             if (DataContext is MainViewModel viewModel)
@@ -77,14 +86,11 @@ public partial class MainWindow : Window
 
                 // 初始化快捷键管理器
                 InitializeShortcuts(viewModel);
+
+                // 初始应用日志列显示设置
+                UpdateLogColumnsVisibility(viewModel);
             }
         };
-
-        // 初始化系统托盘图标
-        InitializeNotifyIcon();
-
-        // 初始应用日志列显示设置
-        if (DataContext is MainViewModel viewModel) UpdateLogColumnsVisibility(viewModel);
     }
 
     /// <summary>

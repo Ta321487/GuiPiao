@@ -270,6 +270,10 @@ public partial class TripListViewModel : ObservableObject, IDisposable
         WeakReferenceMessenger.Default.Unregister<TicketSavedMessage>(this);
         WeakReferenceMessenger.Default.Unregister<SwitchViewMessage>(this);
         WeakReferenceMessenger.Default.Unregister<CardViewSettingsChangedMessage>(this);
+        WeakReferenceMessenger.Default.Unregister<RefreshTripListMessage>(this);
+        WeakReferenceMessenger.Default.Unregister<CardSelectionChangedMessage>(this);
+
+        _tripItemsView = null;
     }
 
     private void InitializeSortState()

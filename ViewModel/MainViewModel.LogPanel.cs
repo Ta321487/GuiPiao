@@ -31,7 +31,7 @@ public partial class MainViewModel
 
     private void SubscribeToLogPanelChanges()
     {
-        LogPanel.PropertyChanged += (s, e) =>
+        _logPanelPropertyChangedHandler = (s, e) =>
         {
             OnPropertyChanged(e.PropertyName);
             if (e.PropertyName == nameof(LogPanel.LogItems))
@@ -40,5 +40,6 @@ public partial class MainViewModel
                 SetTemporaryStatus($"日志面板已更新，共 {LogPanel.LogItems.Count} 条日志");
             }
         };
+        LogPanel.PropertyChanged += _logPanelPropertyChangedHandler;
     }
 }

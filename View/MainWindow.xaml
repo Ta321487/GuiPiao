@@ -14,9 +14,6 @@
         WindowStyle="SingleBorderWindow"
         ResizeMode="CanResize"
         Background="{DynamicResource WindowBackgroundBrush}">
-    <Window.DataContext>
-        <vm:MainViewModel />
-    </Window.DataContext>
     <DockPanel Background="{DynamicResource ContentBackgroundBrush}">
 
         <Menu DockPanel.Dock="Top" Background="{DynamicResource MenuBackgroundBrush}">

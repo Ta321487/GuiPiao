@@ -72,7 +72,7 @@ public partial class MainViewModel
 
     private void SubscribeToQuickActionsChanges()
     {
-        QuickActions.PropertyChanged += (s, e) =>
+        _quickActionsPropertyChangedHandler = (s, e) =>
         {
             switch (e.PropertyName)
             {
@@ -81,5 +81,6 @@ public partial class MainViewModel
                     break;
             }
         };
+        QuickActions.PropertyChanged += _quickActionsPropertyChangedHandler;
     }
 }

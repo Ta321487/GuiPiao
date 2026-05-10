@@ -26,7 +26,9 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
     private readonly DashboardSettingsService _dashboardSettingsService;
     private readonly SemaphoreSlim _loadChartsLock = new(1, 1);
 
-    [ObservableProperty] private ObservableCollection<DashboardChartViewModel> _dashboardCharts = new();
+    private ObservableCollection<DashboardChartViewModel> _dashboardCharts = new();
+    private bool _isInitialized;
+    private bool _isPendingAutoRefresh;
 
     [ObservableProperty] private int _dashboardColumns = 2;
 
@@ -46,6 +48,40 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         _dashboardSettingsService = new DashboardSettingsService();
         _chartDataService = new ChartDataService();
 
+        // 注册消息（这些轻量级操作可以立即执行）
+        WeakReferenceMessenger.Default.Register<OpenStatisticsConfigMessage>(this, (recipient, message) =>
+        {
+            Debug.WriteLine("[OpenStatisticsConfigMessage] Received");
+            EnsureInitialized();
+            Application.Current.Dispatcher.Invoke(() => { StatisticsConfigCommand(); });
+        });
+
+        WeakReferenceMessenger.Default.Register<RefreshStatisticsMessage>(this, async (recipient, message) =>
+        {
+            Debug.WriteLine("[RefreshStatisticsMessage] Received");
+            EnsureInitialized();
+            await RefreshStatisticsCommand();
+        });
+    }
+
+    public ObservableCollection<DashboardChartViewModel> DashboardCharts
+    {
+        get
+        {
+            EnsureInitialized();
+            return _dashboardCharts;
+        }
+    }
+
+    public bool HasDashboardCharts => _dashboardCharts.Count > 0;
+
+    private void EnsureInitialized()
+    {
+        if (_isInitialized) return;
+        _isInitialized = true;
+
+        Debug.WriteLine("[DashboardViewModel] 延迟初始化开始");
+
         // 订阅仪表盘配置保存事件
         DashboardSettingsViewModel.DashboardConfigSaved += OnDashboardConfigSaved;
         _dashboardSettingsService.ConfigSaved += OnDashboardConfigSavedFromService;
@@ -60,30 +96,25 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         // 应用自动刷新策略
         ApplyAutoRefreshStrategy();
 
-        // 如果配置为 OnStartup，在启动时自动刷新数据
+        // 如果配置为 OnStartup，延迟后自动刷新数据
         if (_dashboardSettingsService.Config.AutoRefresh == AutoRefreshType.OnStartup)
+        {
+            _isPendingAutoRefresh = true;
             _ = Task.Run(async () =>
             {
-                await Task.Delay(2000);
-                await RefreshDashboardDataAsync();
+                await Task.Delay(3000);
+                if (_isInitialized && !_isDisposed)
+                {
+                    await Application.Current.Dispatcher.InvokeAsync(async () =>
+                    {
+                        await RefreshDashboardDataAsync();
+                    });
+                }
             });
+        }
 
-        // 订阅打开统计配置消息
-        WeakReferenceMessenger.Default.Register<OpenStatisticsConfigMessage>(this, (recipient, message) =>
-        {
-            Debug.WriteLine("[OpenStatisticsConfigMessage] Received");
-            Application.Current.Dispatcher.Invoke(() => { StatisticsConfigCommand(); });
-        });
-
-        // 订阅刷新统计数据消息
-        WeakReferenceMessenger.Default.Register<RefreshStatisticsMessage>(this, async (recipient, message) =>
-        {
-            Debug.WriteLine("[RefreshStatisticsMessage] Received");
-            await RefreshStatisticsCommand();
-        });
+        Debug.WriteLine("[DashboardViewModel] 延迟初始化完成");
     }
-
-    public bool HasDashboardCharts => DashboardCharts.Count > 0;
 
     public bool CanNavigatePrevious => IsFullscreenMode && FullscreenChartIndex > 0;
 

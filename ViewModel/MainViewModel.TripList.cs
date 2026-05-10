@@ -85,7 +85,7 @@ public partial class MainViewModel
 
     private void SubscribeToTripListChanges()
     {
-        TripList.PropertyChanged += (s, e) =>
+        _tripListPropertyChangedHandler = (s, e) =>
         {
             OnPropertyChanged(e.PropertyName);
             switch (e.PropertyName)
@@ -129,5 +129,6 @@ public partial class MainViewModel
                     break;
             }
         };
+        TripList.PropertyChanged += _tripListPropertyChangedHandler;
     }
 }
