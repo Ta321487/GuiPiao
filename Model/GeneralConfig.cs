@@ -164,8 +164,13 @@ public class GeneralConfig
     public LoadRangeOption LoadRange { get; set; } = LoadRangeOption.ThisYear;
     public DefaultSeatTypeOption DefaultSeatType { get; set; } = DefaultSeatTypeOption.SecondClass;
     public DefaultTicketStatusOption DefaultTicketStatus { get; set; } = DefaultTicketStatusOption.Completed;
-    public bool OcrEditConfirm { get; set; } = true; // true=编辑后确认, false=直接保存
+    public bool OcrEditConfirm { get; set; } = true;
     public DoubleClickActionOption DoubleClickAction { get; set; } = DoubleClickActionOption.Edit;
+
+    // 卡片视图默认规则
+    public string CardDefaultAction { get; set; } = "View";
+    public string CardActionTrigger { get; set; } = "DoubleClick";
+    public string CardContentDensity { get; set; } = "Standard";
 
     // 操作防护与确认
     public bool ConfirmOnDelete { get; set; } = true;

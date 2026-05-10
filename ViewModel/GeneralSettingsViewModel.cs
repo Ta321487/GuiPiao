@@ -112,6 +112,9 @@ public partial class GeneralSettingsViewModel : ObservableObject, ISettingsViewM
             OcrDirectSave = !_originalConfig.OcrEditConfirm;
             OcrEditConfirm = _originalConfig.OcrEditConfirm;
             DoubleClickAction = _originalConfig.DoubleClickAction.ToString();
+            CardDefaultAction = _originalConfig.CardDefaultAction;
+            CardActionTrigger = _originalConfig.CardActionTrigger;
+            CardContentDensity = _originalConfig.CardContentDensity;
 
             // 操作防护与确认
             ConfirmOnDelete = _originalConfig.ConfirmOnDelete;
@@ -165,6 +168,9 @@ public partial class GeneralSettingsViewModel : ObservableObject, ISettingsViewM
             DefaultTicketStatus = Enum.Parse<DefaultTicketStatusOption>(DefaultTicketStatus),
             OcrEditConfirm = OcrEditConfirm,
             DoubleClickAction = Enum.Parse<DoubleClickActionOption>(DoubleClickAction),
+            CardDefaultAction = CardDefaultAction,
+            CardActionTrigger = CardActionTrigger,
+            CardContentDensity = CardContentDensity,
 
             // 操作防护与确认
             ConfirmOnDelete = ConfirmOnDelete,
@@ -226,6 +232,9 @@ public partial class GeneralSettingsViewModel : ObservableObject, ISettingsViewM
                a.DefaultTicketStatus == b.DefaultTicketStatus &&
                a.OcrEditConfirm == b.OcrEditConfirm &&
                a.DoubleClickAction == b.DoubleClickAction &&
+               a.CardDefaultAction == b.CardDefaultAction &&
+               a.CardActionTrigger == b.CardActionTrigger &&
+               a.CardContentDensity == b.CardContentDensity &&
                a.ConfirmOnDelete == b.ConfirmOnDelete &&
                a.ConfirmOnBatchDelete == b.ConfirmOnBatchDelete &&
                a.ConfirmOnRestore == b.ConfirmOnRestore &&
@@ -436,6 +445,11 @@ public partial class GeneralSettingsViewModel : ObservableObject, ISettingsViewM
         OcrEditConfirm = defaultConfig.OcrEditConfirm;
         DoubleClickAction = defaultConfig.DoubleClickAction.ToString();
 
+        // 卡片视图默认规则
+        CardDefaultAction = defaultConfig.CardDefaultAction;
+        CardActionTrigger = defaultConfig.CardActionTrigger;
+        CardContentDensity = defaultConfig.CardContentDensity;
+
         // 操作防护与确认
         ConfirmOnDelete = defaultConfig.ConfirmOnDelete;
         ConfirmOnBatchDelete = defaultConfig.ConfirmOnBatchDelete;
@@ -538,6 +552,19 @@ public partial class GeneralSettingsViewModel : ObservableObject, ISettingsViewM
     [ObservableProperty] private bool _ocrEditConfirm = true;
 
     [ObservableProperty] private string _doubleClickAction = "Edit";
+
+    [ObservableProperty] private string _cardDefaultAction = "View";
+
+    [ObservableProperty] private string _cardActionTrigger = "DoubleClick";
+
+    [ObservableProperty] private string _cardContentDensity = "Standard";
+
+    public bool IsCardDefaultActionVisible => CardActionTrigger == "DoubleClick";
+
+    partial void OnCardActionTriggerChanged(string value)
+    {
+        OnPropertyChanged(nameof(IsCardDefaultActionVisible));
+    }
 
     #endregion
 

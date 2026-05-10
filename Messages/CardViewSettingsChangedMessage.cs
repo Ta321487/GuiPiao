@@ -5,9 +5,6 @@ public class CardViewSettingsChangedMessage(
     int cardWidth,
     int cardSpacing,
     int cardCornerRadius,
-    string cardContentDensity,
-    string cardActionTrigger,
-    string cardDefaultAction,
     bool cardShowViewAction,
     bool cardShowEditAction,
     bool cardShowRescheduleAction,
@@ -28,9 +25,6 @@ public class CardViewSettingsChangedMessage(
     public int CardWidth { get; } = cardWidth;
     public int CardSpacing { get; } = cardSpacing;
     public int CardCornerRadius { get; } = cardCornerRadius;
-    public string CardContentDensity { get; } = cardContentDensity;
-    public string CardActionTrigger { get; } = cardActionTrigger;
-    public string CardDefaultAction { get; } = cardDefaultAction;
     public bool CardShowViewAction { get; } = cardShowViewAction;
     public bool CardShowEditAction { get; } = cardShowEditAction;
     public bool CardShowRescheduleAction { get; } = cardShowRescheduleAction;

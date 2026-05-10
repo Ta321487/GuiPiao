@@ -872,36 +872,29 @@
                                                          BorderBrush="{DynamicResource BorderBrush}"
                                                          BorderThickness="1"
                                                          FontSize="{DynamicResource BaseFontSize}"
-                                                         Visibility="{Binding DataContext.Layout.IsCardContextMenuEnabled, RelativeSource={RelativeSource AncestorType=local:MainWindow}, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                                         Opened="CardContextMenu_Opened">
                                                 <MenuItem Header="👁 查看"
                                                           Click="CardViewMenuItem_Click"
                                                           Tag="View"
-                                                          Style="{StaticResource ContextMenuItemStyle}"
-                                                          Visibility="{Binding DataContext.Layout.CardShowViewAction, RelativeSource={RelativeSource AncestorType=local:MainWindow}, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                                          Style="{StaticResource ContextMenuItemStyle}" />
                                                 <MenuItem Header="✏️ 编辑"
                                                           Click="CardViewMenuItem_Click"
                                                           Tag="Edit"
-                                                          Style="{StaticResource ContextMenuItemStyle}"
-                                                          Visibility="{Binding DataContext.Layout.CardShowEditAction, RelativeSource={RelativeSource AncestorType=local:MainWindow}, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                                                <Separator Background="{DynamicResource BorderBrush}"
-                                                           Visibility="{Binding DataContext.Layout.CardShowRescheduleAction, RelativeSource={RelativeSource AncestorType=local:MainWindow}, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                                          Style="{StaticResource ContextMenuItemStyle}" />
+                                                <Separator Background="{DynamicResource BorderBrush}" />
                                                 <MenuItem Header="🔄 改签"
                                                           Click="CardViewMenuItem_Click"
                                                           Tag="Reschedule"
-                                                          Style="{StaticResource ContextMenuItemStyle}"
-                                                          Visibility="{Binding DataContext.Layout.CardShowRescheduleAction, RelativeSource={RelativeSource AncestorType=local:MainWindow}, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                                          Style="{StaticResource ContextMenuItemStyle}" />
                                                 <MenuItem Header="💰 退票"
                                                           Click="CardViewMenuItem_Click"
                                                           Tag="Refund"
-                                                          Style="{StaticResource ContextMenuItemStyle}"
-                                                          Visibility="{Binding DataContext.Layout.CardShowRefundAction, RelativeSource={RelativeSource AncestorType=local:MainWindow}, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                                                <Separator Background="{DynamicResource BorderBrush}"
-                                                           Visibility="{Binding DataContext.Layout.CardShowDeleteAction, RelativeSource={RelativeSource AncestorType=local:MainWindow}, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                                          Style="{StaticResource ContextMenuItemStyle}" />
+                                                <Separator Background="{DynamicResource BorderBrush}" />
                                                 <MenuItem Header="🗑️ 删除"
                                                           Click="CardViewMenuItem_Click"
                                                           Tag="Delete"
-                                                          Style="{StaticResource ContextMenuItemStyle}"
-                                                          Visibility="{Binding DataContext.Layout.CardShowDeleteAction, RelativeSource={RelativeSource AncestorType=local:MainWindow}, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                                          Style="{StaticResource ContextMenuItemStyle}" />
                                             </ContextMenu>
                                         </Border.ContextMenu>
                                         <Border.Style>

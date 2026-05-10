@@ -119,10 +119,6 @@ public partial class LayoutViewModel : ObservableObject, IDisposable
             CardWidth = message.CardWidth;
             CardSpacing = message.CardSpacing;
             CardCornerRadius = message.CardCornerRadius;
-            CardContentDensity = message.CardContentDensity;
-            CardActionTrigger = message.CardActionTrigger;
-            CardDefaultAction = message.CardDefaultAction;
-            IsCardActionRightClick = message.CardActionTrigger == "RightClick";
             CardShowViewAction = message.CardShowViewAction;
             CardShowEditAction = message.CardShowEditAction;
             CardShowRescheduleAction = message.CardShowRescheduleAction;
@@ -139,7 +135,6 @@ public partial class LayoutViewModel : ObservableObject, IDisposable
             CardShowShadow = message.CardShowShadow;
             CardHoverScale = message.CardHoverScale;
 
-            // 通知卡片视图布局已变更
             OnPropertyChanged(nameof(CardsPerRow));
             OnPropertyChanged(nameof(CardMargin));
             OnPropertyChanged(nameof(CardContentDensity));
@@ -152,6 +147,24 @@ public partial class LayoutViewModel : ObservableObject, IDisposable
             OnPropertyChanged(nameof(CardBatchShowReschedule));
             OnPropertyChanged(nameof(CardBatchShowRefund));
             OnPropertyChanged(nameof(CardBatchShowDelete));
+        });
+
+        // 订阅常规设置变更消息（刷新卡片默认规则）
+        WeakReferenceMessenger.Default.Register<SettingsChangedMessage>(this, (recipient, message) =>
+        {
+            if (message.SettingType == "General")
+            {
+                var generalConfig = new GeneralSettingsService().Config;
+                CardContentDensity = generalConfig.CardContentDensity;
+                CardActionTrigger = generalConfig.CardActionTrigger;
+                CardDefaultAction = generalConfig.CardDefaultAction;
+                IsCardActionRightClick = generalConfig.CardActionTrigger == "RightClick";
+
+                OnPropertyChanged(nameof(CardContentDensity));
+                OnPropertyChanged(nameof(CardActionTrigger));
+                OnPropertyChanged(nameof(CardDefaultAction));
+                OnPropertyChanged(nameof(IsCardActionRightClick));
+            }
         });
     }
 
@@ -316,10 +329,11 @@ public partial class LayoutViewModel : ObservableObject, IDisposable
         CardWidth = config.CardWidth;
         CardSpacing = config.CardSpacing;
         CardCornerRadius = config.CardCornerRadius;
-        CardContentDensity = config.CardContentDensity;
-        CardActionTrigger = config.CardActionTrigger;
-        CardDefaultAction = config.CardDefaultAction;
-        IsCardActionRightClick = config.CardActionTrigger == "RightClick";
+        var generalConfig = new GeneralSettingsService().Config;
+        CardContentDensity = generalConfig.CardContentDensity;
+        CardActionTrigger = generalConfig.CardActionTrigger;
+        CardDefaultAction = generalConfig.CardDefaultAction;
+        IsCardActionRightClick = generalConfig.CardActionTrigger == "RightClick";
         CardEnableMultiSelect = config.CardEnableMultiSelect;
         CardStatusPosition = config.CardStatusPosition;
         CardHoverHighlight = config.CardHoverHighlight;

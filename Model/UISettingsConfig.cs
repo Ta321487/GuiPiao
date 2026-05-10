@@ -140,7 +140,7 @@ public class UISettingsConfig
     public bool ShowDeleteButton { get; set; } = true;
 
     /// <summary>
-    ///     默认展开行程列表
+    ///     默认展开行程区域
     /// </summary>
     public bool IsTripListExpandedByDefault { get; set; } = true;
 
@@ -178,21 +178,6 @@ public class UISettingsConfig
     ///     卡片圆角 (0-16像素)
     /// </summary>
     public int CardCornerRadius { get; set; } = 8;
-
-    /// <summary>
-    ///     卡片内容密度 (Compact/Standard/Detailed/Full)
-    /// </summary>
-    public string CardContentDensity { get; set; } = "Standard";
-
-    /// <summary>
-    ///     默认操作 (View/Edit/Reschedule/Refund/Delete)
-    /// </summary>
-    public string CardDefaultAction { get; set; } = "View";
-
-    /// <summary>
-    ///     操作触发方式 (DoubleClick/RightClick)
-    /// </summary>
-    public string CardActionTrigger { get; set; } = "DoubleClick";
 
     public bool CardShowViewAction { get; set; } = true;
 

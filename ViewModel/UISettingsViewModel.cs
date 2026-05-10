@@ -135,9 +135,6 @@ public partial class UISettingsViewModel : ObservableObject, ISettingsViewModel
             CardWidth = _originalConfig.CardWidth;
             CardSpacing = _originalConfig.CardSpacing;
             CardCornerRadius = _originalConfig.CardCornerRadius;
-            CardContentDensity = _originalConfig.CardContentDensity;
-            CardDefaultAction = _originalConfig.CardDefaultAction;
-            IsCardActionRightClick = _originalConfig.CardActionTrigger == "RightClick";
             CardShowViewAction = _originalConfig.CardShowViewAction;
             CardShowEditAction = _originalConfig.CardShowEditAction;
             CardShowRescheduleAction = _originalConfig.CardShowRescheduleAction;
@@ -216,9 +213,6 @@ public partial class UISettingsViewModel : ObservableObject, ISettingsViewModel
             CardWidth = CardWidth,
             CardSpacing = CardSpacing,
             CardCornerRadius = CardCornerRadius,
-            CardContentDensity = CardContentDensity,
-            CardDefaultAction = CardDefaultAction,
-            CardActionTrigger = IsCardActionRightClick ? "RightClick" : "DoubleClick",
             CardShowViewAction = CardShowViewAction,
             CardShowEditAction = CardShowEditAction,
             CardShowRescheduleAction = CardShowRescheduleAction,
@@ -280,9 +274,6 @@ public partial class UISettingsViewModel : ObservableObject, ISettingsViewModel
                a.CardWidth == b.CardWidth &&
                a.CardSpacing == b.CardSpacing &&
                a.CardCornerRadius == b.CardCornerRadius &&
-               a.CardContentDensity == b.CardContentDensity &&
-               a.CardDefaultAction == b.CardDefaultAction &&
-               a.CardActionTrigger == b.CardActionTrigger &&
                a.CardShowViewAction == b.CardShowViewAction &&
                a.CardShowEditAction == b.CardShowEditAction &&
                a.CardShowRescheduleAction == b.CardShowRescheduleAction &&
@@ -391,9 +382,6 @@ public partial class UISettingsViewModel : ObservableObject, ISettingsViewModel
                 CardWidth,
                 CardSpacing,
                 CardCornerRadius,
-                CardContentDensity,
-                IsCardActionRightClick ? "RightClick" : "DoubleClick",
-                CardDefaultAction,
                 CardShowViewAction,
                 CardShowEditAction,
                 CardShowRescheduleAction,
@@ -896,12 +884,6 @@ public partial class UISettingsViewModel : ObservableObject, ISettingsViewModel
 
     [ObservableProperty] private int _cardCornerRadius = 8;
 
-    [ObservableProperty] private string _cardContentDensity = "Standard";
-
-    [ObservableProperty] private string _cardDefaultAction = "View";
-
-    [ObservableProperty] private bool _isCardActionRightClick = false;
-
     [ObservableProperty] private bool _cardShowViewAction = true;
 
     [ObservableProperty] private bool _cardShowEditAction = true;
@@ -975,11 +957,5 @@ public partial class UISettingsViewModel : ObservableObject, ISettingsViewModel
     #region 卡片视图设置联动方法
 
     /// <summary>
-    ///     当双击卡片选项改变时，同步更新右键菜单选项
-    /// </summary>
-    partial void OnIsCardActionRightClickChanged(bool value)
-    {
-    }
-
     #endregion
 }

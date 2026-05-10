@@ -147,6 +147,17 @@ public partial class TripListViewModel : ObservableObject, IDisposable
             await LoadTripItemsAsync();
         });
 
+        // 订阅卡片视图设置变更消息（CardsPerRow变化需重新计算分页）
+        WeakReferenceMessenger.Default.Register<CardViewSettingsChangedMessage>(this, async (recipient, message) =>
+        {
+            Debug.WriteLine("[CardViewSettingsChangedMessage] Received in TripListViewModel");
+            if (CurrentViewType == ViewType.Card)
+            {
+                CurrentPage = 1;
+                await LoadTripItemsAsync();
+            }
+        });
+
         // 订阅切换视图消息
         WeakReferenceMessenger.Default.Register<SwitchViewMessage>(this, (recipient, message) =>
         {
@@ -258,6 +269,7 @@ public partial class TripListViewModel : ObservableObject, IDisposable
         WeakReferenceMessenger.Default.Unregister<AdvancedSearchMessage>(this);
         WeakReferenceMessenger.Default.Unregister<TicketSavedMessage>(this);
         WeakReferenceMessenger.Default.Unregister<SwitchViewMessage>(this);
+        WeakReferenceMessenger.Default.Unregister<CardViewSettingsChangedMessage>(this);
     }
 
     private void InitializeSortState()
@@ -354,6 +366,16 @@ public partial class TripListViewModel : ObservableObject, IDisposable
         {
             var config = _generalSettingsService.Config;
             var pageSize = config.PageSize;
+
+            if (CurrentViewType == ViewType.Card)
+            {
+                var cardsPerRow = new UISettingsService().Config.CardsPerRow;
+                if (cardsPerRow > 0)
+                {
+                    var rows = (int)Math.Ceiling((double)pageSize / cardsPerRow);
+                    pageSize = rows * cardsPerRow;
+                }
+            }
             Debug.WriteLine(
                 $"[LoadTripItemsAsync] PageSize: {pageSize}, LoadRange: {config.LoadRange}, IsAdvancedSearch: {_isAdvancedSearchMode}");
             Debug.WriteLine($"[LoadTripItemsAsync] DatabasePath: {ConfigManager.Instance.DatabaseConnectionString}");
@@ -1587,5 +1609,7 @@ public partial class TripListViewModel : ObservableObject, IDisposable
     {
         OnPropertyChanged(nameof(SectionTitle));
         OnPropertyChanged(nameof(SectionName));
+        CurrentPage = 1;
+        _ = LoadTripItemsAsync();
     }
 }

@@ -58,7 +58,7 @@ public class UISettingsChangedMessage
     public bool ShowDeleteButton { get; }
 
     /// <summary>
-    ///     默认展开行程列表
+    ///     默认展开行程区域
     /// </summary>
     public bool IsTripListExpandedByDefault { get; }
 

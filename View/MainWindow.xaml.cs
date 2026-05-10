@@ -636,6 +636,50 @@ public partial class MainWindow : Window
         }
     }
 
+    private void CardContextMenu_Opened(object sender, RoutedEventArgs e)
+    {
+        if (sender is not ContextMenu contextMenu) return;
+        if (DataContext is not MainViewModel viewModel) return;
+
+        var layout = viewModel.Layout;
+        var tags = new Dictionary<string, bool>
+        {
+            ["View"] = layout.CardShowViewAction,
+            ["Edit"] = layout.CardShowEditAction,
+            ["Reschedule"] = layout.CardShowRescheduleAction,
+            ["Refund"] = layout.CardShowRefundAction,
+            ["Delete"] = layout.CardShowDeleteAction
+        };
+
+        var visibleActions = new HashSet<string>();
+        foreach (var pair in tags)
+            if (pair.Value)
+                visibleActions.Add(pair.Key);
+
+        foreach (var item in contextMenu.Items)
+        {
+            if (item is MenuItem menuItem && menuItem.Tag is string tag)
+                menuItem.Visibility = visibleActions.Contains(tag)
+                    ? Visibility.Visible
+                    : Visibility.Collapsed;
+            else if (item is Separator separator)
+            {
+                var prevVisible = contextMenu.Items.Cast<object>()
+                    .TakeWhile(x => x != separator)
+                    .OfType<MenuItem>()
+                    .LastOrDefault(m => m.Visibility == Visibility.Visible);
+                var nextVisible = contextMenu.Items.Cast<object>()
+                    .SkipWhile(x => x != separator)
+                    .Skip(1)
+                    .OfType<MenuItem>()
+                    .FirstOrDefault(m => m.Visibility == Visibility.Visible);
+                separator.Visibility = prevVisible != null && nextVisible != null
+                    ? Visibility.Visible
+                    : Visibility.Collapsed;
+            }
+        }
+    }
+
     /// <summary>
     ///     卡片视图右键菜单点击事件处理
     /// </summary>
@@ -691,7 +735,10 @@ public partial class MainWindow : Window
         if (e.ClickCount == 2)
         {
             e.Handled = true;
-            ExecuteCardDefaultAction(trip);
+            if (viewModel.Layout.CardActionTrigger == "DoubleClick")
+            {
+                ExecuteCardDefaultAction(trip);
+            }
             return;
         }
 
