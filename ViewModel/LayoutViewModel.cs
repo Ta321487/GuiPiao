@@ -168,7 +168,7 @@ public partial class LayoutViewModel : ObservableObject, IDisposable
         });
     }
 
-    public const int LeftPanelMinWidth = 120;
+    public const int LeftPanelMinWidth = 175;
     public const int LeftPanelMaxWidth = 300;
     public const int RightPanelMinWidth = 180;
     public const int RightPanelMaxWidth = 350;

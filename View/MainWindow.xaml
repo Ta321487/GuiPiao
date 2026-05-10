@@ -165,7 +165,7 @@
             <!-- 上部区域：高级检索区 + 仪表盘 + 日志面板 -->
             <Grid x:Name="TopGrid" Grid.Row="0">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="{Binding LeftColumnWidth}" MinWidth="120" MaxWidth="300" />
+                    <ColumnDefinition Width="{Binding LeftColumnWidth}" MinWidth="175" MaxWidth="300" />
                     <ColumnDefinition Width="{Binding LeftSplitterWidth}" />
                     <ColumnDefinition Width="*" MinWidth="150" />
                     <ColumnDefinition Width="{Binding RightSplitterWidth}" />
@@ -226,10 +226,10 @@
                                         </WrapPanel>
 
                                         <!-- 车次 -->
-                                        <WrapPanel Margin="0,0,0,5">
-                                            <TextBlock Text="车次：" VerticalAlignment="Center" Margin="0,0,5,5"
+                                        <StackPanel Margin="0,0,0,5">
+                                            <TextBlock Text="车次：" Margin="0,0,0,5"
                                                        FontSize="{DynamicResource BaseFontSize}" />
-                                            <Grid MinWidth="100" Margin="0,0,0,5">
+                                            <Grid>
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="Auto" />
                                                     <ColumnDefinition Width="4" />
@@ -247,9 +247,10 @@
                                                          IsEnabled="{Binding IsTrainNoNumberEnabled}"
                                                          FontSize="{DynamicResource BaseFontSize}"
                                                          Padding="4,2"
-                                                         MinHeight="24" />
+                                                         MinHeight="24"
+                                                         MinWidth="50" />
                                             </Grid>
-                                        </WrapPanel>
+                                        </StackPanel>
 
                                         <!-- 日期范围 -->
                                         <WrapPanel Margin="0,0,0,5">

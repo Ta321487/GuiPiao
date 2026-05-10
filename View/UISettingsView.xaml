@@ -77,7 +77,7 @@
                         <WrapPanel Margin="0,0,0,10">
                             <TextBlock Text="左侧检索区宽度：" VerticalAlignment="Center" Margin="0,0,5,5"
                                        Foreground="{DynamicResource TextPrimaryBrush}" />
-                            <Slider Width="150" Minimum="120" Maximum="300" Value="{Binding LeftPanelWidth}"
+                            <Slider Width="150" Minimum="175" Maximum="300" Value="{Binding LeftPanelWidth}"
                                     TickFrequency="10" TickPlacement="BottomRight" IsSnapToTickEnabled="True"
                                     IsEnabled="{Binding LeftPanelLocked, Converter={StaticResource InverseBooleanConverter}}"
                                     Margin="0,0,10,5" />
@@ -86,7 +86,7 @@
                                      Margin="0,0,5,5" VerticalAlignment="Center"
                                      IsEnabled="{Binding LeftPanelLocked, Converter={StaticResource InverseBooleanConverter}}"
                                      PreviewTextInput="NumericTextBox_PreviewTextInput"
-                                     LostFocus="NumericTextBox_LostFocus" Tag="120,300" />
+                                     LostFocus="NumericTextBox_LostFocus" Tag="130,300" />
                             <TextBlock Text="px" VerticalAlignment="Center" Margin="0,0,15,5"
                                        Foreground="{DynamicResource TextSecondaryBrush}" />
                             <CheckBox Content="锁定宽度" IsChecked="{Binding LeftPanelLocked}" VerticalAlignment="Center"
