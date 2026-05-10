@@ -180,19 +180,35 @@ public partial class DashboardChartViewModel : ObservableObject, IDisposable
             if (ChartData != null)
             {
                 var config = BuildConfigFromCard(Card);
+                
+                // 1. 先清空图表，让 LiveCharts 完成清理
+                Series = null;
+                XAxes = null;
+                YAxes = null;
+                OnPropertyChanged(nameof(Series));
+                OnPropertyChanged(nameof(XAxes));
+                OnPropertyChanged(nameof(YAxes));
+                
+                // 2. 释放旧资源
                 DisposeSkiaResources();
 
-                // 延迟一帧以确保 LiveCharts 全局配置已更新
-                await Task.Delay(50);
+                // 3. 延迟以确保 LiveCharts 完成清理
+                await Task.Delay(100);
 
+                // 4. 生成新资源
                 GenerateSeries(config.ChartType);
                 GenerateAxes(config.ChartType);
 
-                // 触发属性变更通知，强制 UI 刷新
+                // 5. 触发属性变更通知，刷新 UI
                 OnPropertyChanged(nameof(Series));
                 OnPropertyChanged(nameof(XAxes));
                 OnPropertyChanged(nameof(YAxes));
             }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[DashboardChartViewModel] 主题变化刷新图表失败: {ex.Message}");
+            _logService?.Error("DashboardChartViewModel", $"主题变化刷新图表失败: {ex.Message}");
         }
         finally
         {
@@ -226,56 +242,78 @@ public partial class DashboardChartViewModel : ObservableObject, IDisposable
     /// </summary>
     public async Task LoadDataAsync()
     {
-        Debug.WriteLine($"[DashboardChartViewModel] 开始加载数据: {Card.Name}, 类型: {Card.StatisticType}");
-
-        // 构建配置：以 CustomConfig 为基础（统计维度+显示样式），时间范围和数据过滤根据 UseGlobalConfig 决定
-        var config = BuildConfigFromCard(Card);
-
-        // 读取显示配置
-        ShowDataLabels = config.ShowValue;
-        ShowPercentage = config.ShowPercentage;
-        ShowTooltip = config.ShowTooltip;
-
-        Debug.WriteLine(
-            $"[DashboardChartViewModel] 配置: ChartType={config.ChartType}, TimeRange={config.TimeRange}, ClassificationBasis={config.ClassificationBasis}, StatisticIndicator={config.StatisticIndicator}, ShowValue={ShowDataLabels}, ShowPercentage={ShowPercentage}, ShowTooltip={ShowTooltip}");
-        _logService.Info("DashboardChartViewModel",
-            $"配置: 图表类型 ={config.ChartType}, 时间范围 ={config.TimeRange}, 分类 ={config.ClassificationBasis}, 统计指标 ={config.StatisticIndicator}, 显示数值标签 ={ShowDataLabels}, 显示百分比 ={ShowPercentage}, 显示提示 ={ShowTooltip}");
-
-        // 根据统计类型获取数据
-        ChartData = Card.StatisticType switch
+        try
         {
-            StatisticType.MonthlyTripStats => await _dataService.GetMonthlyTripStatsAsync(config),
-            StatisticType.TrainTypeRatio => await _dataService.GetTrainTypeRatioAsync(config),
-            StatisticType.StationTopRanking => await _dataService.GetStationTopRankingAsync(config),
-            StatisticType.SeatTypeRatio => await _dataService.GetSeatTypeRatioAsync(config),
-            StatisticType.AnnualTripSummary => await _dataService.GetAnnualTripSummaryAsync(config),
-            StatisticType.TripTimeDistribution => await _dataService.GetTripTimeDistributionAsync(config),
-            StatisticType.PopularRouteStats => await _dataService.GetPopularRouteStatsAsync(config),
-            StatisticType.TripCostAnalysis => await _dataService.GetTripCostAnalysisAsync(config),
-            _ => null
-        };
+            Debug.WriteLine($"[DashboardChartViewModel] 开始加载数据: {Card.Name}, 类型: {Card.StatisticType}");
 
-        Debug.WriteLine(
-            $"[DashboardChartViewModel] ChartData: {(ChartData != null ? $"Labels={ChartData.Labels?.Length}, Values={ChartData.Values?.Length}" : "null")}");
+            // 构建配置：以 CustomConfig 为基础（统计维度+显示样式），时间范围和数据过滤根据 UseGlobalConfig 决定
+            var config = BuildConfigFromCard(Card);
 
-        // 根据图表类型生成 Series
-        if (ChartData != null)
-        {
-            // 先释放旧资源，再生成新的图表元素
-            DisposeSkiaResources();
-            GenerateSeries(config.ChartType);
-            GenerateAxes(config.ChartType);
-            Debug.WriteLine($"[DashboardChartViewModel] Series 生成完成: {Series?.Length ?? 0}");
-            OnPropertyChanged(nameof(HasData));
+            // 读取显示配置
+            ShowDataLabels = config.ShowValue;
+            ShowPercentage = config.ShowPercentage;
+            ShowTooltip = config.ShowTooltip;
+
+            Debug.WriteLine(
+                $"[DashboardChartViewModel] 配置: ChartType={config.ChartType}, TimeRange={config.TimeRange}, ClassificationBasis={config.ClassificationBasis}, StatisticIndicator={config.StatisticIndicator}, ShowValue={ShowDataLabels}, ShowPercentage={ShowPercentage}, ShowTooltip={ShowTooltip}");
+            _logService.Info("DashboardChartViewModel",
+                $"配置: 图表类型 ={config.ChartType}, 时间范围 ={config.TimeRange}, 分类 ={config.ClassificationBasis}, 统计指标 ={config.StatisticIndicator}, 显示数值标签 ={ShowDataLabels}, 显示百分比 ={ShowPercentage}, 显示提示 ={ShowTooltip}");
+
+            // 根据统计类型获取数据
+            ChartData = Card.StatisticType switch
+            {
+                StatisticType.MonthlyTripStats => await _dataService.GetMonthlyTripStatsAsync(config),
+                StatisticType.TrainTypeRatio => await _dataService.GetTrainTypeRatioAsync(config),
+                StatisticType.StationTopRanking => await _dataService.GetStationTopRankingAsync(config),
+                StatisticType.SeatTypeRatio => await _dataService.GetSeatTypeRatioAsync(config),
+                StatisticType.AnnualTripSummary => await _dataService.GetAnnualTripSummaryAsync(config),
+                StatisticType.TripTimeDistribution => await _dataService.GetTripTimeDistributionAsync(config),
+                StatisticType.PopularRouteStats => await _dataService.GetPopularRouteStatsAsync(config),
+                StatisticType.TripCostAnalysis => await _dataService.GetTripCostAnalysisAsync(config),
+                _ => null
+            };
+
+            Debug.WriteLine(
+                $"[DashboardChartViewModel] ChartData: {(ChartData != null ? $"Labels={ChartData.Labels?.Length}, Values={ChartData.Values?.Length}" : "null")}");
+
+            // 根据图表类型生成 Series
+            if (ChartData != null)
+            {
+                // 1. 先清空图表，让 LiveCharts 完成清理
+                Series = null;
+                XAxes = null;
+                YAxes = null;
+                OnPropertyChanged(nameof(Series));
+                OnPropertyChanged(nameof(XAxes));
+                OnPropertyChanged(nameof(YAxes));
+                
+                // 2. 释放旧资源
+                DisposeSkiaResources();
+                
+                // 3. 延迟以确保 LiveCharts 完成清理
+                await Task.Delay(50);
+                
+                // 4. 生成新资源
+                GenerateSeries(config.ChartType);
+                GenerateAxes(config.ChartType);
+                
+                Debug.WriteLine($"[DashboardChartViewModel] Series 生成完成: {Series?.Length ?? 0}");
+                OnPropertyChanged(nameof(HasData));
+            }
+            else
+            {
+                Debug.WriteLine("[DashboardChartViewModel] ChartData 为 null，无法生成 Series");
+                DisposeSkiaResources();
+                Series = Array.Empty<ISeries>();
+                XAxes = null;
+                YAxes = null;
+                OnPropertyChanged(nameof(HasData));
+            }
         }
-        else
+        catch (Exception ex)
         {
-            Debug.WriteLine("[DashboardChartViewModel] ChartData 为 null，无法生成 Series");
-            DisposeSkiaResources();
-            Series = Array.Empty<ISeries>();
-            XAxes = null;
-            YAxes = null;
-            OnPropertyChanged(nameof(HasData));
+            Debug.WriteLine($"[DashboardChartViewModel] 加载图表数据失败: {ex.Message}");
+            _logService?.Error("DashboardChartViewModel", $"加载图表数据失败: {ex.Message}");
         }
     }
 
