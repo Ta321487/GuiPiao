@@ -1040,22 +1040,20 @@ public partial class MainWindow : Window
         Debug.WriteLine($"[InitializeDataGridColumns] 可见列数: {sortedConfigs.Count}");
 
         double totalWidth = 0;
-        foreach (var config in sortedConfigs)
+        for (var i = 0; i < sortedConfigs.Count; i++)
         {
-            var column = CreateColumnFromConfig(config);
+            var config = sortedConfigs[i];
+            var isLastVisibleColumn = i == sortedConfigs.Count - 1;
+            var column = CreateColumnFromConfig(config, isLastVisibleColumn);
             if (column != null)
             {
                 TripDataGrid.Columns.Add(column);
-                // 计算实际宽度：如果是Star类型，使用MinWidth
                 var actualWidth = column.Width.IsStar ? column.MinWidth : column.Width.Value;
                 Debug.WriteLine(
                     $"[InitializeDataGridColumns] 添加列: {config.FieldName}, 宽度: {column.Width}, MinWidth: {column.MinWidth}, 实际宽度: {actualWidth}");
                 totalWidth += actualWidth;
             }
         }
-
-        // 添加填充列（自动填充剩余空间，使垂直滚动条始终固定在右侧）
-        AddFillerColumn();
 
         // 添加操作列（固定在最右侧）
         AddActionColumn();
@@ -1076,31 +1074,6 @@ public partial class MainWindow : Window
 
         Debug.WriteLine($"[InitializeDataGridColumns] 列总宽度: {totalWidth}");
         Debug.WriteLine($"[InitializeDataGridColumns] DataGrid.ActualWidth: {TripDataGrid.ActualWidth}");
-    }
-
-    /// <summary>
-    ///     添加填充列（自动填充剩余空间，使垂直滚动条始终固定在右侧）
-    /// </summary>
-    private void AddFillerColumn()
-    {
-        var fillerColumn = new DataGridTemplateColumn
-        {
-            Header = "",
-            Width = new DataGridLength(1, DataGridLengthUnitType.Star),
-            MinWidth = 0,
-            IsReadOnly = true,
-            CanUserReorder = false,
-            CanUserResize = false
-        };
-
-        // 创建空单元格模板
-        var cellTemplate = new DataTemplate();
-        var textBlockFactory = new FrameworkElementFactory(typeof(TextBlock));
-        textBlockFactory.SetValue(TextBlock.TextProperty, "");
-        cellTemplate.VisualTree = textBlockFactory;
-        fillerColumn.CellTemplate = cellTemplate;
-
-        TripDataGrid.Columns.Add(fillerColumn);
     }
 
     /// <summary>
@@ -1147,17 +1120,19 @@ public partial class MainWindow : Window
     /// <summary>
     ///     根据配置创建列
     /// </summary>
-    private DataGridColumn CreateColumnFromConfig(DataGridColumnConfig config)
+    private DataGridColumn CreateColumnFromConfig(DataGridColumnConfig config, bool isLastVisibleColumn)
     {
-        // 解析宽度值 - 所有列使用固定宽度，确保水平滚动条正常工作
         DataGridLength columnWidth;
         if (config.Width == "*")
-            // Star类型转为固定宽度（使用MinWidth）
-            columnWidth = new DataGridLength(config.MinWidth > 0 ? config.MinWidth : 120);
+        {
+            if (isLastVisibleColumn)
+                columnWidth = new DataGridLength(1, DataGridLengthUnitType.Star);
+            else
+                columnWidth = new DataGridLength(config.MinWidth > 0 ? config.MinWidth : 120);
+        }
         else if (double.TryParse(config.Width, out var widthValue) && widthValue > 0)
             columnWidth = new DataGridLength(widthValue);
         else
-            // 默认宽度
             columnWidth = new DataGridLength(100);
 
         // 标签列使用模板列

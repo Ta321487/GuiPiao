@@ -42,6 +42,21 @@ public partial class UISettingsViewModel : ObservableObject, ISettingsViewModel
 
         _settingsService = new UISettingsService();
         LoadSettings();
+
+        // 订阅视图切换消息（从菜单栏切换时同步更新，但不触发未保存修改）
+        WeakReferenceMessenger.Default.Register<SwitchViewMessage>(this, (recipient, message) =>
+        {
+            if (CurrentTripListView != message.ViewType)
+            {
+                _isLoadingConfig = true;
+                CurrentTripListView = message.ViewType;
+                // 同步更新原始配置，避免触发未保存修改
+                _originalConfig.DefaultTripListView = message.ViewType;
+                _isLoadingConfig = false;
+                // 显式通知属性变更，确保UI更新
+                OnPropertyChanged(nameof(CurrentTripListView));
+            }
+        });
     }
 
     /// <summary>
@@ -92,6 +107,16 @@ public partial class UISettingsViewModel : ObservableObject, ISettingsViewModel
     }
 
     /// <summary>
+    ///     从主窗口获取当前视图类型
+    /// </summary>
+    private ViewType GetCurrentViewTypeFromMainWindow()
+    {
+        if (Application.Current.MainWindow?.DataContext is MainViewModel mainViewModel)
+            return mainViewModel.TripList.CurrentViewType;
+        return _originalConfig.DefaultTripListView;
+    }
+
+    /// <summary>
     ///     加载设置
     /// </summary>
     private void LoadSettings()
@@ -128,7 +153,8 @@ public partial class UISettingsViewModel : ObservableObject, ISettingsViewModel
             ShowDeleteButton = _originalConfig.ShowDeleteButton;
             IsTripListExpandedByDefault = _originalConfig.IsTripListExpandedByDefault;
             DataGridColumns = _originalConfig.DataGridColumns ?? DataGridColumnConfig.GetDefaultColumns();
-            CurrentTripListView = _originalConfig.DefaultTripListView;
+            // 从主窗口获取当前实际视图，而不是配置中的默认值
+            CurrentTripListView = GetCurrentViewTypeFromMainWindow();
 
             // 卡片视图显示设置
             CardsPerRow = _originalConfig.CardsPerRow;
