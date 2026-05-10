@@ -16,6 +16,8 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
                 <!-- 外观与显示 -->
@@ -97,24 +99,16 @@
                             </RadioButton>
                         </WrapPanel>
 
-                        <!-- 全局字体大小和列表行高 -->
+                        <!-- 全局字体大小 -->
                         <WrapPanel Margin="0,0,0,5">
                             <TextBlock Text="全局字体大小：" VerticalAlignment="Center" Margin="0,0,10,5"
                                        Foreground="{DynamicResource TextPrimaryBrush}" />
                             <ComboBox MinWidth="120" SelectedValue="{Binding FontSize}" SelectedValuePath="Tag"
-                                      Margin="0,0,20,5">
+                                      Margin="0,0,0,5">
                                 <ComboBoxItem Content="小 (12px)" Tag="Small" />
                                 <ComboBoxItem Content="中 (14px)" Tag="Medium" />
                                 <ComboBoxItem Content="大 (16px)" Tag="Large" />
                                 <ComboBoxItem Content="特大 (18px)" Tag="ExtraLarge" />
-                            </ComboBox>
-                            <TextBlock Text="列表行高：" VerticalAlignment="Center" Margin="0,0,10,5"
-                                       Foreground="{DynamicResource TextPrimaryBrush}" />
-                            <ComboBox MinWidth="100" SelectedValue="{Binding RowHeight}" SelectedValuePath="Tag"
-                                      Margin="0,0,0,5">
-                                <ComboBoxItem Content="紧凑" Tag="Compact" />
-                                <ComboBoxItem Content="标准" Tag="Standard" />
-                                <ComboBoxItem Content="宽松" Tag="Loose" />
                             </ComboBox>
                         </WrapPanel>
                     </StackPanel>
@@ -225,20 +219,16 @@
                             <RadioButton Content="弹出编辑窗口确认" GroupName="OcrBehavior"
                                          IsChecked="{Binding OcrEditConfirm}" Margin="0,0,0,5" />
                         </WrapPanel>
+                    </StackPanel>
+                </Border>
 
-                        <WrapPanel Margin="20,0,0,0">
-                            <TextBlock Text="双击行程项时：" VerticalAlignment="Center" Margin="0,0,10,5"
-                                       Foreground="{DynamicResource TextPrimaryBrush}" />
-                            <ComboBox MinWidth="120" SelectedValue="{Binding DoubleClickAction}"
-                                      SelectedValuePath="Tag" Margin="0,0,0,5">
-                                <ComboBoxItem Content="打开编辑窗口" Tag="Edit" />
-                                <ComboBoxItem Content="打开票面预览" Tag="Preview" />
-                                <ComboBoxItem Content="地图定位" Tag="Map" />
-                            </ComboBox>
-                        </WrapPanel>
+                <!-- 卡片视图显示规则 -->
+                <Border Grid.Row="3" Background="{DynamicResource PanelBackgroundBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
+                    <StackPanel>
+                        <TextBlock Text="📌 卡片视图显示规则" FontWeight="Bold" Margin="0,0,0,10"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" />
 
-                        <!-- 卡片视图默认规则 -->
-                        <TextBlock Text="卡片视图默认规则：" Margin="0,5,0,5" Foreground="{DynamicResource TextPrimaryBrush}" />
                         <WrapPanel Margin="20,0,0,10">
                             <StackPanel Orientation="Horizontal" Visibility="{Binding IsCardDefaultActionVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
                                 <TextBlock Text="双击执行：" VerticalAlignment="Center" Margin="0,0,5,5"
@@ -275,8 +265,8 @@
                                            Foreground="{DynamicResource TextSecondaryBrush}" />
                             </StackPanel>
                         </Border>
-                        <WrapPanel Margin="20,0,0,10">
-                            <TextBlock Text="操作触发方式：" VerticalAlignment="Center" Margin="0,0,5,5"
+                        <WrapPanel Margin="20,0,0,0">
+                            <TextBlock Text="触发方式：" VerticalAlignment="Center" Margin="0,0,10,5"
                                        Foreground="{DynamicResource TextPrimaryBrush}" />
                             <ComboBox MinWidth="100" SelectedValue="{Binding CardActionTrigger}"
                                       SelectedValuePath="Tag" Margin="0,0,0,5">
@@ -287,8 +277,36 @@
                     </StackPanel>
                 </Border>
 
+                <!-- 列表视图显示规则 -->
+                <Border Grid.Row="4" Background="{DynamicResource PanelBackgroundBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
+                    <StackPanel>
+                        <TextBlock Text="📌 列表视图显示规则" FontWeight="Bold" Margin="0,0,0,10"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+
+                        <WrapPanel Margin="20,0,0,0">
+                            <TextBlock Text="双击行程项时：" VerticalAlignment="Center" Margin="0,0,10,5"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <ComboBox MinWidth="120" SelectedValue="{Binding DoubleClickAction}"
+                                      SelectedValuePath="Tag" Margin="0,0,20,5">
+                                <ComboBoxItem Content="打开编辑窗口" Tag="Edit" />
+                                <ComboBoxItem Content="打开票面预览" Tag="Preview" />
+                                <ComboBoxItem Content="地图定位" Tag="Map" />
+                            </ComboBox>
+                            <TextBlock Text="列表行高：" VerticalAlignment="Center" Margin="0,0,10,5"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <ComboBox MinWidth="100" SelectedValue="{Binding RowHeight}" SelectedValuePath="Tag"
+                                      Margin="0,0,0,5">
+                                <ComboBoxItem Content="紧凑" Tag="Compact" />
+                                <ComboBoxItem Content="标准" Tag="Standard" />
+                                <ComboBoxItem Content="宽松" Tag="Loose" />
+                            </ComboBox>
+                        </WrapPanel>
+                    </StackPanel>
+                </Border>
+
                 <!-- 操作防护与确认设置 -->
-                <Border Grid.Row="3" Background="{DynamicResource PanelBackgroundBrush}"
+                <Border Grid.Row="5" Background="{DynamicResource PanelBackgroundBrush}"
                         BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
                     <StackPanel>
                         <TextBlock Text="📌 操作防护与确认设置" FontWeight="Bold" Margin="0,0,0,10"

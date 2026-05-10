@@ -279,7 +279,7 @@ public partial class LayoutViewModel : ObservableObject, IDisposable
     public GridLength BottomSplitterHeight => BottomPanelLocked ? new GridLength(0) : new GridLength(5);
 
     // 卡片视图计算属性
-    public Thickness CardMargin => new(CardSpacing);
+    public Thickness CardMargin => new(2);
     public bool IsCardContextMenuEnabled => IsCardActionRightClick;
 
     public UISettingsService UISettingsService { get; }
@@ -329,6 +329,11 @@ public partial class LayoutViewModel : ObservableObject, IDisposable
         CardWidth = config.CardWidth;
         CardSpacing = config.CardSpacing;
         CardCornerRadius = config.CardCornerRadius;
+        CardShowViewAction = config.CardShowViewAction;
+        CardShowEditAction = config.CardShowEditAction;
+        CardShowRescheduleAction = config.CardShowRescheduleAction;
+        CardShowRefundAction = config.CardShowRefundAction;
+        CardShowDeleteAction = config.CardShowDeleteAction;
         var generalConfig = new GeneralSettingsService().Config;
         CardContentDensity = generalConfig.CardContentDensity;
         CardActionTrigger = generalConfig.CardActionTrigger;
