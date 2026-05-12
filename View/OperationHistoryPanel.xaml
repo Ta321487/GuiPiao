@@ -65,7 +65,7 @@
                                     <StackPanel>
                                         <TextBlock Text="{Binding Description}"
                                                    FontSize="{DynamicResource BaseFontSize}"
-                                                   Foreground="{Binding IsUndone, Converter={StaticResource BooleanToBrushConverter}, ConverterParameter=Undone}"
+                                                   Foreground="{Binding IsUndone, Converter={StaticResource BooleanToBrushConverter}, ConverterParameter='Undone'}"
                                                    FontWeight="SemiBold">
                                             <TextBlock.Style>
                                                 <Style TargetType="TextBlock">
@@ -79,7 +79,7 @@
                                         </TextBlock>
                                         <TextBlock Text="{Binding NewValue}"
                                                    FontSize="{DynamicResource SmallFontSize}"
-                                                   Foreground="{Binding IsUndone, Converter={StaticResource BooleanToBrushConverter}, ConverterParameter=Undone}"
+                                                   Foreground="{Binding IsUndone, Converter={StaticResource BooleanToBrushConverter}, ConverterParameter='Undone'}"
                                                    TextTrimming="CharacterEllipsis"
                                                    MaxWidth="220">
                                             <TextBlock.Style>
@@ -94,7 +94,7 @@
                                         </TextBlock>
                                         <TextBlock Text="{Binding Timestamp, StringFormat='{}{0:HH:mm:ss}'}"
                                                    FontSize="{DynamicResource SmallFontSize}"
-                                                   Foreground="{Binding IsUndone, Converter={StaticResource BooleanToBrushConverter}, ConverterParameter=UndoneTimestamp}"
+                                                   Foreground="{Binding IsUndone, Converter={StaticResource BooleanToBrushConverter}, ConverterParameter='UndoneTimestamp'}"
                                                    HorizontalAlignment="Right">
                                             <TextBlock.Style>
                                                 <Style TargetType="TextBlock">

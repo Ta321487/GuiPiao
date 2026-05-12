@@ -21,10 +21,31 @@ public class ShortcutSettingsService
 
     /// <summary>
     ///     从JSON文件加载配置，如果不存在则使用默认值
+    ///     加载后会与默认配置合并，确保新增的快捷键能被添加进来
     /// </summary>
     private ShortcutConfig LoadConfig()
     {
-        var config = JsonConfigManager.Instance.LoadConfig(ConfigFileName, GetDefaultConfig());
+        var defaultConfig = GetDefaultConfig();
+        var config = JsonConfigManager.Instance.LoadConfig(ConfigFileName, defaultConfig);
+
+        // 合并配置：将默认配置中新增的快捷键添加到现有配置中
+        var existingIds = config.Shortcuts.Select(s => s.ActionId).ToHashSet();
+        var hasNewShortcuts = false;
+        foreach (var defaultShortcut in defaultConfig.Shortcuts)
+        {
+            if (!existingIds.Contains(defaultShortcut.ActionId))
+            {
+                config.Shortcuts.Add(defaultShortcut);
+                hasNewShortcuts = true;
+            }
+        }
+
+        // 如果有新增快捷键，保存合并后的配置
+        if (hasNewShortcuts)
+        {
+            SaveConfig(config);
+        }
+
         return config;
     }
 

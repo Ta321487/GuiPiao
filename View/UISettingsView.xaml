@@ -271,7 +271,7 @@
                         </WrapPanel>
 
                         <!-- 卡片宽度仅在自动模式下显示 -->
-                        <WrapPanel Margin="0,0,0,8" Visibility="{Binding CardsPerRow, Converter={StaticResource IntToVisibilityConverter}, ConverterParameter=0}">
+                        <WrapPanel Margin="0,0,0,8" Visibility="{Binding CardsPerRow, Converter={StaticResource IntToVisibilityConverter}, ConverterParameter='0'}">
                             <TextBlock Text="卡片宽度：" VerticalAlignment="Center" Margin="0,0,5,5"
                                        Foreground="{DynamicResource TextPrimaryBrush}" />
                             <Slider Width="150" Minimum="240" Maximum="320" Value="{Binding CardWidth}"
@@ -285,7 +285,7 @@
                         <!-- 固定列数模式提示 -->
                         <TextBlock Margin="0,0,0,8" FontSize="12" FontStyle="Italic"
                                    Foreground="{DynamicResource TextSecondaryBrush}"
-                                   Visibility="{Binding CardsPerRow, Converter={StaticResource InverseIntToVisibilityConverter}, ConverterParameter=0}">
+                                   Visibility="{Binding CardsPerRow, Converter={StaticResource InverseIntToVisibilityConverter}, ConverterParameter='0'}">
                             固定列数模式下，卡片宽度将根据容器自动计算
                         </TextBlock>
 

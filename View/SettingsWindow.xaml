@@ -41,55 +41,55 @@
                     <StackPanel Margin="5,10">
                         <!-- 常规 -->
                         <Button Content="📊 常规"
-                                Style="{Binding CurrentPage, Converter={StaticResource PageToStyleConverter}, ConverterParameter=General}"
+                                Style="{Binding CurrentPage, Converter={StaticResource PageToStyleConverter}, ConverterParameter='General'}"
                                 Command="{Binding NavigateCommand}"
                                 CommandParameter="General" />
 
                         <!-- 日志 -->
                         <Button Content="📝 日志"
-                                Style="{Binding CurrentPage, Converter={StaticResource PageToStyleConverter}, ConverterParameter=Log}"
+                                Style="{Binding CurrentPage, Converter={StaticResource PageToStyleConverter}, ConverterParameter='Log'}"
                                 Command="{Binding NavigateCommand}"
                                 CommandParameter="Log" />
 
                         <!-- 数据库 -->
                         <Button Content="🗄️ 数据库"
-                                Style="{Binding CurrentPage, Converter={StaticResource PageToStyleConverter}, ConverterParameter=Database}"
+                                Style="{Binding CurrentPage, Converter={StaticResource PageToStyleConverter}, ConverterParameter='Database'}"
                                 Command="{Binding NavigateCommand}"
                                 CommandParameter="Database" />
 
                         <!-- 地图 -->
                         <Button Content="🗺️ 地图"
-                                Style="{Binding CurrentPage, Converter={StaticResource PageToStyleConverter}, ConverterParameter=Map}"
+                                Style="{Binding CurrentPage, Converter={StaticResource PageToStyleConverter}, ConverterParameter='Map'}"
                                 Command="{Binding NavigateCommand}"
                                 CommandParameter="Map" />
 
                         <!-- 界面 -->
                         <Button Content="🎨 界面"
-                                Style="{Binding CurrentPage, Converter={StaticResource PageToStyleConverter}, ConverterParameter=UI}"
+                                Style="{Binding CurrentPage, Converter={StaticResource PageToStyleConverter}, ConverterParameter='UI'}"
                                 Command="{Binding NavigateCommand}"
                                 CommandParameter="UI" />
 
                         <!-- 仪表盘 -->
                         <Button Content="📊 仪表盘"
-                                Style="{Binding CurrentPage, Converter={StaticResource PageToStyleConverter}, ConverterParameter=Dashboard}"
+                                Style="{Binding CurrentPage, Converter={StaticResource PageToStyleConverter}, ConverterParameter='Dashboard'}"
                                 Command="{Binding NavigateCommand}"
                                 CommandParameter="Dashboard" />
 
                         <!-- OCR -->
                         <Button Content="🔧 OCR"
-                                Style="{Binding CurrentPage, Converter={StaticResource PageToStyleConverter}, ConverterParameter=OCR}"
+                                Style="{Binding CurrentPage, Converter={StaticResource PageToStyleConverter}, ConverterParameter='OCR'}"
                                 Command="{Binding NavigateCommand}"
                                 CommandParameter="OCR" />
 
                         <!-- 导出 -->
                         <Button Content="📤 导出"
-                                Style="{Binding CurrentPage, Converter={StaticResource PageToStyleConverter}, ConverterParameter=Export}"
+                                Style="{Binding CurrentPage, Converter={StaticResource PageToStyleConverter}, ConverterParameter='Export'}"
                                 Command="{Binding NavigateCommand}"
                                 CommandParameter="Export" />
 
                         <!-- 快捷键 -->
                         <Button Content="📋 快捷键"
-                                Style="{Binding CurrentPage, Converter={StaticResource PageToStyleConverter}, ConverterParameter=Shortcut}"
+                                Style="{Binding CurrentPage, Converter={StaticResource PageToStyleConverter}, ConverterParameter='Shortcut'}"
                                 Command="{Binding NavigateCommand}"
                                 CommandParameter="Shortcut" />
                     </StackPanel>

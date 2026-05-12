@@ -26,19 +26,19 @@
                         <TextBlock Text="记录以下级别的日志：" Margin="0,0,0,10" Foreground="{DynamicResource TextPrimaryBrush}" />
                         <StackPanel Margin="20,0,0,0">
                             <RadioButton Content="ALL (全部)" GroupName="LogLevel"
-                                         IsChecked="{Binding SelectedLogLevel, Converter={StaticResource LogLevelConverter}, ConverterParameter=ALL}"
+                                         IsChecked="{Binding SelectedLogLevel, Converter={StaticResource LogLevelConverter}, ConverterParameter='ALL'}"
                                          Margin="0,0,0,5" />
                             <RadioButton Content="INFO (信息)" GroupName="LogLevel"
-                                         IsChecked="{Binding SelectedLogLevel, Converter={StaticResource LogLevelConverter}, ConverterParameter=INFO}"
+                                         IsChecked="{Binding SelectedLogLevel, Converter={StaticResource LogLevelConverter}, ConverterParameter='INFO'}"
                                          Margin="0,0,0,5" />
                             <RadioButton Content="WARN (警告)" GroupName="LogLevel"
-                                         IsChecked="{Binding SelectedLogLevel, Converter={StaticResource LogLevelConverter}, ConverterParameter=WARN}"
+                                         IsChecked="{Binding SelectedLogLevel, Converter={StaticResource LogLevelConverter}, ConverterParameter='WARN'}"
                                          Margin="0,0,0,5" />
                             <RadioButton Content="ERROR (错误)" GroupName="LogLevel"
-                                         IsChecked="{Binding SelectedLogLevel, Converter={StaticResource LogLevelConverter}, ConverterParameter=ERROR}"
+                                         IsChecked="{Binding SelectedLogLevel, Converter={StaticResource LogLevelConverter}, ConverterParameter='ERROR'}"
                                          Margin="0,0,0,5" />
                             <RadioButton Content="FATAL (致命)" GroupName="LogLevel"
-                                         IsChecked="{Binding SelectedLogLevel, Converter={StaticResource LogLevelConverter}, ConverterParameter=FATAL}"
+                                         IsChecked="{Binding SelectedLogLevel, Converter={StaticResource LogLevelConverter}, ConverterParameter='FATAL'}"
                                          Margin="0,0,0,5" />
                         </StackPanel>
                         <TextBlock Text="(推荐选择 INFO 或 WARN，避免日志文件过大)" Foreground="{DynamicResource TextDisabledBrush}"
