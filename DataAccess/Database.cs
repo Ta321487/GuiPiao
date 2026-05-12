@@ -40,12 +40,14 @@ public static class Database
                 connection.Open();
             }
             catch (Exception ex)
-        {
-            _logService.Value.Error("Database", $"数据库连接失败: {ex.Message}");
-            throw;
-        }
+            {
+                _logService.Value.Error("Database", $"数据库连接失败: {ex.Message}");
+                throw;
+            }
 
-            var createStationTable = @"
+            try
+            {
+                var createStationTable = @"
                     CREATE TABLE IF NOT EXISTS station_info (
                         id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                         station_name TEXT,
@@ -65,7 +67,7 @@ public static class Database
                     CREATE INDEX IF NOT EXISTS idx_station_pinyin ON station_info (station_pinyin);
                 ";
 
-            var createTrainTable = @"
+                var createTrainTable = @"
                     CREATE TABLE IF NOT EXISTS train_ride_info (
                         id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                         ticket_number TEXT,
@@ -100,17 +102,17 @@ public static class Database
                     CREATE INDEX IF NOT EXISTS idx_depart_station_date ON train_ride_info (depart_station, depart_date);
                 ";
 
-            using (var command = new SqliteCommand(createStationTable, connection))
-            {
-                command.ExecuteNonQuery();
-            }
+                using (var command = new SqliteCommand(createStationTable, connection))
+                {
+                    command.ExecuteNonQuery();
+                }
 
-            using (var command = new SqliteCommand(createTrainTable, connection))
-            {
-                command.ExecuteNonQuery();
-            }
+                using (var command = new SqliteCommand(createTrainTable, connection))
+                {
+                    command.ExecuteNonQuery();
+                }
 
-            var createLogTable = @"
+                var createLogTable = @"
                     CREATE TABLE IF NOT EXISTS system_log (
                         id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                         time TEXT NOT NULL,
@@ -126,12 +128,12 @@ public static class Database
                     CREATE INDEX IF NOT EXISTS idx_log_created_at ON system_log (created_at);
                 ";
 
-            using (var command = new SqliteCommand(createLogTable, connection))
-            {
-                command.ExecuteNonQuery();
-            }
+                using (var command = new SqliteCommand(createLogTable, connection))
+                {
+                    command.ExecuteNonQuery();
+                }
 
-            var createTagTable = @"
+                var createTagTable = @"
                     CREATE TABLE IF NOT EXISTS ticket_tag (
                         id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                         name TEXT NOT NULL,
@@ -144,12 +146,12 @@ public static class Database
                     CREATE INDEX IF NOT EXISTS idx_tag_sort_order ON ticket_tag (sort_order);
                 ";
 
-            using (var command = new SqliteCommand(createTagTable, connection))
-            {
-                command.ExecuteNonQuery();
-            }
+                using (var command = new SqliteCommand(createTagTable, connection))
+                {
+                    command.ExecuteNonQuery();
+                }
 
-            var createRideTagTable = @"
+                var createRideTagTable = @"
                     CREATE TABLE IF NOT EXISTS train_ride_tag (
                         id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                         train_ride_id INTEGER NOT NULL,
@@ -164,15 +166,21 @@ public static class Database
                     CREATE INDEX IF NOT EXISTS idx_ride_tag_tag_id ON train_ride_tag (tag_id);
                 ";
 
-            using (var command = new SqliteCommand(createRideTagTable, connection))
-            {
-                command.ExecuteNonQuery();
+                using (var command = new SqliteCommand(createRideTagTable, connection))
+                {
+                    command.ExecuteNonQuery();
+                }
+
+                // 迁移：为已存在的表添加新列
+                MigrateDatabase(connection);
+
+                _logService.Value.Info("Database", "数据库表创建完成");
             }
-
-            // 迁移：为已存在的表添加新列
-            MigrateDatabase(connection);
-
-            _logService.Value.Info("Database", "数据库表创建完成");
+            catch (Exception ex)
+            {
+                _logService.Value.Error("Database", $"数据库表创建失败: {ex.Message}");
+                throw;
+            }
         }
     }
 

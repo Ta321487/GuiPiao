@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -443,21 +444,37 @@ public partial class MainWindow : Window
         // 首先保存上次关闭的页面状态（在子窗口关闭前保存）
         // 注意：这里必须在最前面保存，因为后面的 MessageBox 可能会阻塞或抛出异常
         Debug.WriteLine("[MainWindow] 准备调用 SaveLastPageState");
-        SaveLastPageState();
+        try
+        {
+            SaveLastPageState();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[MainWindow] SaveLastPageState 失败: {ex.Message}");
+        }
 
         // 询问用户是最小化到托盘还是退出
-        var result = MessageBoxWindow.Show(
-            this,
-            "您希望如何关闭火车票管理系统？\n\n" +
-            "【最小化到托盘】程序继续在后台运行，点击托盘图标可恢复窗口\n" +
-            "【退出程序】完全关闭程序，释放所有资源\n" +
-            "【取消】不执行任何操作，回到主界面",
-            "关闭确认",
-            MessageBoxButton.YesNoCancel,
-            MessageBoxImage.Question,
-            "最小化到托盘",
-            "退出程序",
-            cancelText: "取消");
+        MessageBoxResult result;
+        try
+        {
+            result = MessageBoxWindow.Show(
+                this,
+                "您希望如何关闭火车票管理系统？\n\n" +
+                "【最小化到托盘】程序继续在后台运行，点击托盘图标可恢复窗口\n" +
+                "【退出程序】完全关闭程序，释放所有资源\n" +
+                "【取消】不执行任何操作，回到主界面",
+                "关闭确认",
+                MessageBoxButton.YesNoCancel,
+                MessageBoxImage.Question,
+                "最小化到托盘",
+                "退出程序",
+                cancelText: "取消");
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[MainWindow] MessageBox 显示失败: {ex.Message}，默认执行退出");
+            result = MessageBoxResult.No;
+        }
 
         switch (result)
         {
@@ -476,16 +493,44 @@ public partial class MainWindow : Window
         }
 
         // 关闭所有子窗口（新增车票、编辑车票、地图、日志管理等）
-        CloseAllChildWindows();
+        try
+        {
+            CloseAllChildWindows();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[MainWindow] CloseAllChildWindows 失败: {ex.Message}");
+        }
 
         // 保存窗口大小和位置
-        SaveWindowPositionAndSize();
+        try
+        {
+            SaveWindowPositionAndSize();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[MainWindow] SaveWindowPositionAndSize 失败: {ex.Message}");
+        }
 
         // 释放托盘图标资源
-        _notifyIcon?.Dispose();
+        try
+        {
+            _notifyIcon?.Dispose();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[MainWindow] 释放托盘图标失败: {ex.Message}");
+        }
 
         // 释放 ViewModel 资源
-        if (DataContext is IDisposable disposable) disposable.Dispose();
+        try
+        {
+            if (DataContext is IDisposable disposable) disposable.Dispose();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[MainWindow] 释放 ViewModel 失败: {ex.Message}");
+        }
 
         base.OnClosing(e);
 
@@ -558,15 +603,31 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
+    ///     安全执行异步操作，捕获异常避免 fatal 崩溃
+    /// </summary>
+    private async void SafeExecuteAsync(Func<Task> action, string operationName)
+    {
+        try
+        {
+            await action();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[MainWindow] {operationName} 失败: {ex.Message}");
+        }
+    }
+
+    /// <summary>
     ///     改签按钮点击事件处理
     /// </summary>
-    private async void RescheduleButton_Click(object sender, RoutedEventArgs e)
+    private void RescheduleButton_Click(object sender, RoutedEventArgs e)
     {
         Debug.WriteLine("[RescheduleButton_Click] 事件被触发");
         if (sender is Button button && button.Tag is Model.TripItem trip)
         {
             Debug.WriteLine($"[RescheduleButton_Click] 获取到 trip: {trip.TrainNo}");
-            if (DataContext is MainViewModel viewModel) await viewModel.TripList.RescheduleTripCommand(trip);
+            if (DataContext is MainViewModel viewModel)
+                SafeExecuteAsync(() => viewModel.TripList.RescheduleTripCommand(trip), nameof(RescheduleButton_Click));
         }
         else
         {
@@ -577,13 +638,14 @@ public partial class MainWindow : Window
     /// <summary>
     ///     退票按钮点击事件处理
     /// </summary>
-    private async void RefundButton_Click(object sender, RoutedEventArgs e)
+    private void RefundButton_Click(object sender, RoutedEventArgs e)
     {
         Debug.WriteLine("[RefundButton_Click] 事件被触发");
         if (sender is Button button && button.Tag is Model.TripItem trip)
         {
             Debug.WriteLine($"[RefundButton_Click] 获取到 trip: {trip.TrainNo}");
-            if (DataContext is MainViewModel viewModel) await viewModel.TripList.RefundTripCommand(trip);
+            if (DataContext is MainViewModel viewModel)
+                SafeExecuteAsync(() => viewModel.TripList.RefundTripCommand(trip), nameof(RefundButton_Click));
         }
         else
         {
@@ -611,13 +673,14 @@ public partial class MainWindow : Window
     /// <summary>
     ///     编辑按钮点击事件处理
     /// </summary>
-    private async void EditButton_Click(object sender, RoutedEventArgs e)
+    private void EditButton_Click(object sender, RoutedEventArgs e)
     {
         Debug.WriteLine("[EditButton_Click] 事件被触发");
         if (sender is Button button && button.Tag is Model.TripItem trip)
         {
             Debug.WriteLine($"[EditButton_Click] 获取到 trip: {trip.TrainNo}");
-            if (DataContext is MainViewModel viewModel) await viewModel.TripList.EditTripCommand(trip);
+            if (DataContext is MainViewModel viewModel)
+                SafeExecuteAsync(() => viewModel.TripList.EditTripCommand(trip), nameof(EditButton_Click));
         }
         else
         {
@@ -628,13 +691,14 @@ public partial class MainWindow : Window
     /// <summary>
     ///     删除按钮点击事件处理
     /// </summary>
-    private async void DeleteButton_Click(object sender, RoutedEventArgs e)
+    private void DeleteButton_Click(object sender, RoutedEventArgs e)
     {
         Debug.WriteLine("[DeleteButton_Click] 事件被触发");
         if (sender is Button button && button.Tag is Model.TripItem trip)
         {
             Debug.WriteLine($"[DeleteButton_Click] 获取到 trip: {trip.TrainNo}");
-            if (DataContext is MainViewModel viewModel) await viewModel.TripList.DeleteTripCommand(trip);
+            if (DataContext is MainViewModel viewModel)
+                SafeExecuteAsync(() => viewModel.TripList.DeleteTripCommand(trip), nameof(DeleteButton_Click));
         }
         else
         {
@@ -689,7 +753,7 @@ public partial class MainWindow : Window
     /// <summary>
     ///     卡片视图右键菜单点击事件处理
     /// </summary>
-    private async void CardViewMenuItem_Click(object sender, RoutedEventArgs e)
+    private void CardViewMenuItem_Click(object sender, RoutedEventArgs e)
     {
         Debug.WriteLine("[CardViewMenuItem_Click] 事件被触发");
         if (sender is not MenuItem menuItem || menuItem.Tag is not string action) return;
@@ -716,16 +780,16 @@ public partial class MainWindow : Window
                 viewModel.TripList.ViewTripCommand(trip);
                 break;
             case "Edit":
-                await viewModel.TripList.EditTripCommand(trip);
+                SafeExecuteAsync(() => viewModel.TripList.EditTripCommand(trip), nameof(CardViewMenuItem_Click) + "_Edit");
                 break;
             case "Reschedule":
-                await viewModel.TripList.RescheduleTripCommand(trip);
+                SafeExecuteAsync(() => viewModel.TripList.RescheduleTripCommand(trip), nameof(CardViewMenuItem_Click) + "_Reschedule");
                 break;
             case "Refund":
-                await viewModel.TripList.RefundTripCommand(trip);
+                SafeExecuteAsync(() => viewModel.TripList.RefundTripCommand(trip), nameof(CardViewMenuItem_Click) + "_Refund");
                 break;
             case "Delete":
-                await viewModel.TripList.DeleteTripCommand(trip);
+                SafeExecuteAsync(() => viewModel.TripList.DeleteTripCommand(trip), nameof(CardViewMenuItem_Click) + "_Delete");
                 break;
         }
     }
@@ -832,41 +896,45 @@ public partial class MainWindow : Window
     /// <summary>
     ///     批量编辑选中卡片
     /// </summary>
-    private async void BatchEditButton_Click(object sender, RoutedEventArgs e)
+    private void BatchEditButton_Click(object sender, RoutedEventArgs e)
     {
         if (DataContext is not MainViewModel viewModel) return;
         var selectedItems = viewModel.TripList.TripItems.Where(t => t.IsSelected).ToList();
-        foreach (var item in selectedItems) await viewModel.TripList.EditTripCommand(item);
+        foreach (var item in selectedItems)
+            SafeExecuteAsync(() => viewModel.TripList.EditTripCommand(item), nameof(BatchEditButton_Click));
     }
 
     /// <summary>
     ///     批量改签选中卡片
     /// </summary>
-    private async void BatchRescheduleButton_Click(object sender, RoutedEventArgs e)
+    private void BatchRescheduleButton_Click(object sender, RoutedEventArgs e)
     {
         if (DataContext is not MainViewModel viewModel) return;
         var selectedItems = viewModel.TripList.TripItems.Where(t => t.IsSelected).ToList();
-        foreach (var item in selectedItems) await viewModel.TripList.RescheduleTripCommand(item);
+        foreach (var item in selectedItems)
+            SafeExecuteAsync(() => viewModel.TripList.RescheduleTripCommand(item), nameof(BatchRescheduleButton_Click));
     }
 
     /// <summary>
     ///     批量退票选中卡片
     /// </summary>
-    private async void BatchRefundButton_Click(object sender, RoutedEventArgs e)
+    private void BatchRefundButton_Click(object sender, RoutedEventArgs e)
     {
         if (DataContext is not MainViewModel viewModel) return;
         var selectedItems = viewModel.TripList.TripItems.Where(t => t.IsSelected).ToList();
-        foreach (var item in selectedItems) await viewModel.TripList.RefundTripCommand(item);
+        foreach (var item in selectedItems)
+            SafeExecuteAsync(() => viewModel.TripList.RefundTripCommand(item), nameof(BatchRefundButton_Click));
     }
 
     /// <summary>
     ///     批量删除选中卡片
     /// </summary>
-    private async void BatchDeleteButton_Click(object sender, RoutedEventArgs e)
+    private void BatchDeleteButton_Click(object sender, RoutedEventArgs e)
     {
         if (DataContext is not MainViewModel viewModel) return;
         var selectedItems = viewModel.TripList.TripItems.Where(t => t.IsSelected).ToList();
-        foreach (var item in selectedItems) await viewModel.TripList.DeleteTripCommand(item);
+        foreach (var item in selectedItems)
+            SafeExecuteAsync(() => viewModel.TripList.DeleteTripCommand(item), nameof(BatchDeleteButton_Click));
     }
 
     /// <summary>
@@ -880,7 +948,7 @@ public partial class MainWindow : Window
     /// <summary>
     ///     执行卡片默认操作
     /// </summary>
-    private async void ExecuteCardDefaultAction(Model.TripItem trip)
+    private void ExecuteCardDefaultAction(Model.TripItem trip)
     {
         if (DataContext is not MainViewModel viewModel) return;
 
@@ -894,16 +962,16 @@ public partial class MainWindow : Window
                 viewModel.TripList.ViewTripCommand(trip);
                 break;
             case "Edit":
-                await viewModel.TripList.EditTripCommand(trip);
+                SafeExecuteAsync(() => viewModel.TripList.EditTripCommand(trip), nameof(ExecuteCardDefaultAction) + "_Edit");
                 break;
             case "Reschedule":
-                await viewModel.TripList.RescheduleTripCommand(trip);
+                SafeExecuteAsync(() => viewModel.TripList.RescheduleTripCommand(trip), nameof(ExecuteCardDefaultAction) + "_Reschedule");
                 break;
             case "Refund":
-                await viewModel.TripList.RefundTripCommand(trip);
+                SafeExecuteAsync(() => viewModel.TripList.RefundTripCommand(trip), nameof(ExecuteCardDefaultAction) + "_Refund");
                 break;
             case "Delete":
-                await viewModel.TripList.DeleteTripCommand(trip);
+                SafeExecuteAsync(() => viewModel.TripList.DeleteTripCommand(trip), nameof(ExecuteCardDefaultAction) + "_Delete");
                 break;
         }
     }
@@ -972,43 +1040,42 @@ public partial class MainWindow : Window
     /// <summary>
     ///     DataGrid排序事件处理 - 使用数据库排序
     /// </summary>
-    private async void TripDataGrid_Sorting(object sender, DataGridSortingEventArgs e)
+    private void TripDataGrid_Sorting(object sender, DataGridSortingEventArgs e)
     {
         // 取消默认排序行为
         e.Handled = true;
 
-        if (DataContext is MainViewModel viewModel)
-        {
-            var column = e.Column;
-            var sortMemberPath = column.SortMemberPath;
+        if (DataContext is not MainViewModel viewModel) return;
 
-            if (string.IsNullOrEmpty(sortMemberPath))
-                return;
+        var column = e.Column;
+        var sortMemberPath = column.SortMemberPath;
 
-            // 确定新的排序方向
-            ListSortDirection newDirection;
-            if (column.SortDirection == null)
-                // 当前没有排序，默认升序
-                newDirection = ListSortDirection.Ascending;
-            else if (column.SortDirection == ListSortDirection.Ascending)
-                // 当前升序，切换为降序
-                newDirection = ListSortDirection.Descending;
-            else
-                // 当前降序，切换为升序
-                newDirection = ListSortDirection.Ascending;
+        if (string.IsNullOrEmpty(sortMemberPath))
+            return;
 
-            // 更新列头排序指示器
-            column.SortDirection = newDirection;
+        // 确定新的排序方向
+        ListSortDirection newDirection;
+        if (column.SortDirection == null)
+            // 当前没有排序，默认升序
+            newDirection = ListSortDirection.Ascending;
+        else if (column.SortDirection == ListSortDirection.Ascending)
+            // 当前升序，切换为降序
+            newDirection = ListSortDirection.Descending;
+        else
+            // 当前降序，切换为升序
+            newDirection = ListSortDirection.Ascending;
 
-            // 清除其他列的排序指示器
-            if (sender is DataGrid dataGrid)
-                foreach (var otherColumn in dataGrid.Columns)
-                    if (otherColumn != column)
-                        otherColumn.SortDirection = null;
+        // 更新列头排序指示器
+        column.SortDirection = newDirection;
 
-            // 保存排序信息并重新加载数据（数据库排序）
-            await viewModel.SaveDataSortInfoAsync(sortMemberPath, newDirection);
-        }
+        // 清除其他列的排序指示器
+        if (sender is DataGrid dataGrid)
+            foreach (var otherColumn in dataGrid.Columns)
+                if (otherColumn != column)
+                    otherColumn.SortDirection = null;
+
+        // 保存排序信息并重新加载数据（数据库排序）
+        SafeExecuteAsync(() => viewModel.SaveDataSortInfoAsync(sortMemberPath, newDirection), nameof(TripDataGrid_Sorting));
     }
 
     /// <summary>

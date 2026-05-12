@@ -909,11 +909,18 @@ public partial class MapWindowViewModel : ObservableObject
     /// </summary>
     private void LoadTicketData()
     {
-        // 同步等待异步方法完成
+        // 使用 async/await 模式避免 UI 线程死锁
         try
         {
-            var task = LoadTicketDataAsync();
-            task.Wait();
+            _ = LoadTicketDataAsync().ContinueWith(t =>
+            {
+                if (t.IsFaulted && t.Exception != null)
+                {
+                    var ex = t.Exception.GetBaseException();
+                    StatusMessage = $"加载数据失败：{ex.Message}";
+                    _allTickets = GetDefaultTickets();
+                }
+            }, TaskScheduler.FromCurrentSynchronizationContext());
         }
         catch (Exception ex)
         {

@@ -184,88 +184,96 @@ public class ExportService
 
         return await Task.Run(() =>
         {
-            using var workbook = new XSSFWorkbook();
-            var sheet = workbook.CreateSheet(config.ExcelSheetName);
-
-            // 创建单元格样式
-            var headerStyle = workbook.CreateCellStyle();
-            var headerFont = workbook.CreateFont();
-            headerFont.IsBold = true;
-            headerStyle.SetFont(headerFont);
-
-            var rowIndex = 0;
-
-            // 写入表头
-            if (config.ExcelIncludeHeader)
+            try
             {
-                var headerRow = sheet.CreateRow(rowIndex++);
-                var colIndex = 0;
+                using var workbook = new XSSFWorkbook();
+                var sheet = workbook.CreateSheet(SanitizeSheetName(config.ExcelSheetName));
 
-                if (config.ExportTicketNumber) headerRow.CreateCell(colIndex++).SetCellValue("票号");
-                if (config.ExportTrainNo) headerRow.CreateCell(colIndex++).SetCellValue("车次");
-                if (config.ExportDepartStation) headerRow.CreateCell(colIndex++).SetCellValue("出发站");
-                if (config.ExportArriveStation) headerRow.CreateCell(colIndex++).SetCellValue("到达站");
-                if (config.ExportDepartDate) headerRow.CreateCell(colIndex++).SetCellValue("出发日期");
-                if (config.ExportDepartTime) headerRow.CreateCell(colIndex++).SetCellValue("出发时间");
-                if (config.ExportCoachNo) headerRow.CreateCell(colIndex++).SetCellValue("车厢号");
-                if (config.ExportSeatNo) headerRow.CreateCell(colIndex++).SetCellValue("座位号");
-                if (config.ExportSeatType) headerRow.CreateCell(colIndex++).SetCellValue("席别");
-                if (config.ExportMoney) headerRow.CreateCell(colIndex++).SetCellValue("票价");
-                if (config.ExportCheckInLocation) headerRow.CreateCell(colIndex++).SetCellValue("检票口");
-                if (config.ExportTags) headerRow.CreateCell(colIndex++).SetCellValue("标签");
-                if (config.ExportAdditionalInfo) headerRow.CreateCell(colIndex++).SetCellValue("备注");
+                // 创建单元格样式
+                var headerStyle = workbook.CreateCellStyle();
+                var headerFont = workbook.CreateFont();
+                headerFont.IsBold = true;
+                headerStyle.SetFont(headerFont);
 
-                // 应用表头样式
-                for (var i = 0; i < colIndex; i++) headerRow.GetCell(i).CellStyle = headerStyle;
-            }
+                var rowIndex = 0;
 
-            // 写入数据
-            foreach (var ride in trainRides)
-            {
-                var row = sheet.CreateRow(rowIndex++);
-                var colIndex = 0;
-
-                if (config.ExportTicketNumber) row.CreateCell(colIndex++).SetCellValue(ride.TicketNumber);
-                if (config.ExportTrainNo) row.CreateCell(colIndex++).SetCellValue(ride.TrainNo);
-                if (config.ExportDepartStation) row.CreateCell(colIndex++).SetCellValue(ride.DepartStation);
-                if (config.ExportArriveStation) row.CreateCell(colIndex++).SetCellValue(ride.ArriveStation);
-                if (config.ExportDepartDate)
-                    row.CreateCell(colIndex++).SetCellValue(FormatDate(ride.DepartDate, config.ExcelDateFormat));
-                if (config.ExportDepartTime) row.CreateCell(colIndex++).SetCellValue(ride.DepartTime);
-                if (config.ExportCoachNo) row.CreateCell(colIndex++).SetCellValue(ride.CoachNo);
-                if (config.ExportSeatNo) row.CreateCell(colIndex++).SetCellValue(ride.SeatNo);
-                if (config.ExportSeatType) row.CreateCell(colIndex++).SetCellValue(ride.SeatType);
-                if (config.ExportMoney)
-                    row.CreateCell(colIndex++).SetCellValue(FormatMoney(ride.Money, config.ExcelMoneyFormat));
-                if (config.ExportCheckInLocation) row.CreateCell(colIndex++).SetCellValue(ride.CheckInLocation);
-                if (config.ExportTags) row.CreateCell(colIndex++).SetCellValue(""); // 标签字段待实现
-                if (config.ExportAdditionalInfo) row.CreateCell(colIndex++).SetCellValue(ride.AdditionalInfo);
-            }
-
-            // 自动调整列宽
-            if (config.ExcelAutoFitColumns)
-            {
-                int colCount = sheet.GetRow(0)?.LastCellNum ?? 0;
-                for (var i = 0; i < colCount; i++)
+                // 写入表头
+                if (config.ExcelIncludeHeader)
                 {
-                    // 先自动调整
-                    sheet.AutoSizeColumn(i);
+                    var headerRow = sheet.CreateRow(rowIndex++);
+                    var colIndex = 0;
 
-                    // 获取当前宽度（单位是1/256个字符宽度）
-                    var currentWidth = sheet.GetColumnWidth(i);
+                    if (config.ExportTicketNumber) headerRow.CreateCell(colIndex++).SetCellValue("票号");
+                    if (config.ExportTrainNo) headerRow.CreateCell(colIndex++).SetCellValue("车次");
+                    if (config.ExportDepartStation) headerRow.CreateCell(colIndex++).SetCellValue("出发站");
+                    if (config.ExportArriveStation) headerRow.CreateCell(colIndex++).SetCellValue("到达站");
+                    if (config.ExportDepartDate) headerRow.CreateCell(colIndex++).SetCellValue("出发日期");
+                    if (config.ExportDepartTime) headerRow.CreateCell(colIndex++).SetCellValue("出发时间");
+                    if (config.ExportCoachNo) headerRow.CreateCell(colIndex++).SetCellValue("车厢号");
+                    if (config.ExportSeatNo) headerRow.CreateCell(colIndex++).SetCellValue("座位号");
+                    if (config.ExportSeatType) headerRow.CreateCell(colIndex++).SetCellValue("席别");
+                    if (config.ExportMoney) headerRow.CreateCell(colIndex++).SetCellValue("票价");
+                    if (config.ExportCheckInLocation) headerRow.CreateCell(colIndex++).SetCellValue("检票口");
+                    if (config.ExportTags) headerRow.CreateCell(colIndex++).SetCellValue("标签");
+                    if (config.ExportAdditionalInfo) headerRow.CreateCell(colIndex++).SetCellValue("备注");
 
-                    // 为中文字符增加额外宽度（至少3000，即约12个字符宽度）
-                    var newWidth = Math.Max(currentWidth + 1000, 3000);
-                    sheet.SetColumnWidth(i, newWidth);
+                    // 应用表头样式
+                    for (var i = 0; i < colIndex; i++) headerRow.GetCell(i).CellStyle = headerStyle;
                 }
-            }
 
-            using (var fs = new FileStream(filePath, FileMode.Create, FileAccess.Write))
+                // 写入数据
+                foreach (var ride in trainRides)
+                {
+                    var row = sheet.CreateRow(rowIndex++);
+                    var colIndex = 0;
+
+                    if (config.ExportTicketNumber) row.CreateCell(colIndex++).SetCellValue(ride.TicketNumber ?? "");
+                    if (config.ExportTrainNo) row.CreateCell(colIndex++).SetCellValue(ride.TrainNo ?? "");
+                    if (config.ExportDepartStation) row.CreateCell(colIndex++).SetCellValue(ride.DepartStation ?? "");
+                    if (config.ExportArriveStation) row.CreateCell(colIndex++).SetCellValue(ride.ArriveStation ?? "");
+                    if (config.ExportDepartDate)
+                        row.CreateCell(colIndex++).SetCellValue(FormatDate(ride.DepartDate, config.ExcelDateFormat));
+                    if (config.ExportDepartTime) row.CreateCell(colIndex++).SetCellValue(ride.DepartTime ?? "");
+                    if (config.ExportCoachNo) row.CreateCell(colIndex++).SetCellValue(ride.CoachNo ?? "");
+                    if (config.ExportSeatNo) row.CreateCell(colIndex++).SetCellValue(ride.SeatNo ?? "");
+                    if (config.ExportSeatType) row.CreateCell(colIndex++).SetCellValue(ride.SeatType ?? "");
+                    if (config.ExportMoney)
+                        row.CreateCell(colIndex++).SetCellValue(FormatMoney(ride.Money, config.ExcelMoneyFormat));
+                    if (config.ExportCheckInLocation) row.CreateCell(colIndex++).SetCellValue(ride.CheckInLocation ?? "");
+                    if (config.ExportTags) row.CreateCell(colIndex++).SetCellValue(""); // 标签字段待实现
+                    if (config.ExportAdditionalInfo) row.CreateCell(colIndex++).SetCellValue(ride.AdditionalInfo ?? "");
+                }
+
+                // 自动调整列宽
+                if (config.ExcelAutoFitColumns)
+                {
+                    int colCount = sheet.GetRow(0)?.LastCellNum ?? 0;
+                    for (var i = 0; i < colCount; i++)
+                    {
+                        // 先自动调整
+                        sheet.AutoSizeColumn(i);
+
+                        // 获取当前宽度（单位是1/256个字符宽度）
+                        var currentWidth = sheet.GetColumnWidth(i);
+
+                        // 为中文字符增加额外宽度（至少3000，即约12个字符宽度）
+                        var newWidth = Math.Max(currentWidth + 1000, 3000);
+                        sheet.SetColumnWidth(i, newWidth);
+                    }
+                }
+
+                using (var fs = new FileStream(filePath, FileMode.Create, FileAccess.Write))
+                {
+                    workbook.Write(fs);
+                }
+
+                return new ExportResult { Success = true, FilePath = filePath, RecordCount = trainRides.Count };
+            }
+            catch (Exception ex)
             {
-                workbook.Write(fs);
+                _logService.Error("ExportService", $"Excel导出异常: {ex.Message}");
+                return new ExportResult { Success = false, Message = $"Excel导出失败: {ex.Message}" };
             }
-
-            return new ExportResult { Success = true, FilePath = filePath, RecordCount = trainRides.Count };
         });
     }
 
@@ -294,70 +302,78 @@ public class ExportService
 
         return await Task.Run(() =>
         {
-            var encoding = config.CsvEncoding switch
+            try
             {
-                CsvEncodingOption.UTF8 => new UTF8Encoding(true),
-                CsvEncodingOption.GBK => Encoding.GetEncoding("GBK"),
-                CsvEncodingOption.Unicode => Encoding.Unicode,
-                _ => Encoding.UTF8
-            };
-
-            var delimiter = config.CsvDelimiter switch
-            {
-                CsvDelimiterOption.Comma => ",",
-                CsvDelimiterOption.Semicolon => ";",
-                CsvDelimiterOption.Tab => "\t",
-                _ => ","
-            };
-
-            using (var writer = new StreamWriter(filePath, false, encoding))
-            {
-                // 写入表头
-                if (config.CsvIncludeHeader)
+                var encoding = config.CsvEncoding switch
                 {
-                    var headers = new List<string>();
-                    if (config.ExportTicketNumber) headers.Add("票号");
-                    if (config.ExportTrainNo) headers.Add("车次");
-                    if (config.ExportDepartStation) headers.Add("出发站");
-                    if (config.ExportArriveStation) headers.Add("到达站");
-                    if (config.ExportDepartDate) headers.Add("出发日期");
-                    if (config.ExportDepartTime) headers.Add("出发时间");
-                    if (config.ExportCoachNo) headers.Add("车厢号");
-                    if (config.ExportSeatNo) headers.Add("座位号");
-                    if (config.ExportSeatType) headers.Add("席别");
-                    if (config.ExportMoney) headers.Add("票价");
-                    if (config.ExportCheckInLocation) headers.Add("检票口");
-                    if (config.ExportTags) headers.Add("标签");
-                    if (config.ExportAdditionalInfo) headers.Add("备注");
+                    CsvEncodingOption.UTF8 => new UTF8Encoding(true),
+                    CsvEncodingOption.GBK => Encoding.GetEncoding("GBK"),
+                    CsvEncodingOption.Unicode => Encoding.Unicode,
+                    _ => Encoding.UTF8
+                };
 
-                    writer.WriteLine(string.Join(delimiter,
-                        headers.Select(h => CsvEscape(h, config.CsvUseTextQualifier))));
+                var delimiter = config.CsvDelimiter switch
+                {
+                    CsvDelimiterOption.Comma => ",",
+                    CsvDelimiterOption.Semicolon => ";",
+                    CsvDelimiterOption.Tab => "\t",
+                    _ => ","
+                };
+
+                using (var writer = new StreamWriter(filePath, false, encoding))
+                {
+                    // 写入表头
+                    if (config.CsvIncludeHeader)
+                    {
+                        var headers = new List<string>();
+                        if (config.ExportTicketNumber) headers.Add("票号");
+                        if (config.ExportTrainNo) headers.Add("车次");
+                        if (config.ExportDepartStation) headers.Add("出发站");
+                        if (config.ExportArriveStation) headers.Add("到达站");
+                        if (config.ExportDepartDate) headers.Add("出发日期");
+                        if (config.ExportDepartTime) headers.Add("出发时间");
+                        if (config.ExportCoachNo) headers.Add("车厢号");
+                        if (config.ExportSeatNo) headers.Add("座位号");
+                        if (config.ExportSeatType) headers.Add("席别");
+                        if (config.ExportMoney) headers.Add("票价");
+                        if (config.ExportCheckInLocation) headers.Add("检票口");
+                        if (config.ExportTags) headers.Add("标签");
+                        if (config.ExportAdditionalInfo) headers.Add("备注");
+
+                        writer.WriteLine(string.Join(delimiter,
+                            headers.Select(h => CsvEscape(h, config.CsvUseTextQualifier))));
+                    }
+
+                    // 写入数据
+                    foreach (var ride in trainRides)
+                    {
+                        var values = new List<string>();
+                        if (config.ExportTicketNumber) values.Add(ride.TicketNumber ?? "");
+                        if (config.ExportTrainNo) values.Add(ride.TrainNo ?? "");
+                        if (config.ExportDepartStation) values.Add(ride.DepartStation ?? "");
+                        if (config.ExportArriveStation) values.Add(ride.ArriveStation ?? "");
+                        if (config.ExportDepartDate) values.Add(FormatDate(ride.DepartDate, config.CsvDateFormat));
+                        if (config.ExportDepartTime) values.Add(ride.DepartTime ?? "");
+                        if (config.ExportCoachNo) values.Add(ride.CoachNo ?? "");
+                        if (config.ExportSeatNo) values.Add(ride.SeatNo ?? "");
+                        if (config.ExportSeatType) values.Add(ride.SeatType ?? "");
+                        if (config.ExportMoney) values.Add(FormatMoney(ride.Money, config.CsvMoneyFormat));
+                        if (config.ExportCheckInLocation) values.Add(ride.CheckInLocation ?? "");
+                        if (config.ExportTags) values.Add("");
+                        if (config.ExportAdditionalInfo) values.Add(ride.AdditionalInfo ?? "");
+
+                        writer.WriteLine(string.Join(delimiter,
+                            values.Select(v => CsvEscape(v, config.CsvUseTextQualifier))));
+                    }
                 }
 
-                // 写入数据
-                foreach (var ride in trainRides)
-                {
-                    var values = new List<string>();
-                    if (config.ExportTicketNumber) values.Add(ride.TicketNumber);
-                    if (config.ExportTrainNo) values.Add(ride.TrainNo);
-                    if (config.ExportDepartStation) values.Add(ride.DepartStation);
-                    if (config.ExportArriveStation) values.Add(ride.ArriveStation);
-                    if (config.ExportDepartDate) values.Add(FormatDate(ride.DepartDate, config.CsvDateFormat));
-                    if (config.ExportDepartTime) values.Add(ride.DepartTime);
-                    if (config.ExportCoachNo) values.Add(ride.CoachNo);
-                    if (config.ExportSeatNo) values.Add(ride.SeatNo);
-                    if (config.ExportSeatType) values.Add(ride.SeatType);
-                    if (config.ExportMoney) values.Add(FormatMoney(ride.Money, config.CsvMoneyFormat));
-                    if (config.ExportCheckInLocation) values.Add(ride.CheckInLocation);
-                    if (config.ExportTags) values.Add("");
-                    if (config.ExportAdditionalInfo) values.Add(ride.AdditionalInfo ?? "");
-
-                    writer.WriteLine(string.Join(delimiter,
-                        values.Select(v => CsvEscape(v, config.CsvUseTextQualifier))));
-                }
+                return new ExportResult { Success = true, FilePath = filePath, RecordCount = trainRides.Count };
             }
-
-            return new ExportResult { Success = true, FilePath = filePath, RecordCount = trainRides.Count };
+            catch (Exception ex)
+            {
+                _logService.Error("ExportService", $"CSV导出异常: {ex.Message}");
+                return new ExportResult { Success = false, Message = $"CSV导出失败: {ex.Message}" };
+            }
         });
     }
 
@@ -386,108 +402,122 @@ public class ExportService
 
         return await Task.Run(() =>
         {
-            using var document = new PdfDocument();
-            document.Info.Title = "行程记录导出";
-            document.Info.Author = "GuiPiao";
-
-            var pageSize = config.PdfPaperSize switch
+            try
             {
-                "A5" => new XSize(XUnit.FromMillimeter(148).Point, XUnit.FromMillimeter(210).Point),
-                "Letter" => new XSize(XUnit.FromMillimeter(216).Point, XUnit.FromMillimeter(279).Point),
-                _ => new XSize(XUnit.FromMillimeter(210).Point, XUnit.FromMillimeter(297).Point) // A4
-            };
+                using var document = new PdfDocument();
+                document.Info.Title = "行程记录导出";
+                document.Info.Author = "GuiPiao";
 
-            var rowsPerPage = config.PdfRowsPerPage;
-            var totalPages = (int)Math.Ceiling((double)trainRides.Count / rowsPerPage);
-            if (totalPages == 0) totalPages = 1;
-
-            _logService?.Info("ExportService", $"PDF导出：共 {trainRides.Count} 条记录，每页 {rowsPerPage} 行，预计 {totalPages} 页");
-
-            for (var pageIndex = 0; pageIndex < totalPages; pageIndex++)
-            {
-                _logService?.Info("ExportService", $"正在生成第 {pageIndex + 1}/{totalPages} 页");
-                var page = document.AddPage();
-                if (config.PdfLandscape)
+                var pageSize = config.PdfPaperSize switch
                 {
-                    page.Width = pageSize.Height;
-                    page.Height = pageSize.Width;
-                }
-                else
+                    "A5" => new XSize(XUnit.FromMillimeter(148).Point, XUnit.FromMillimeter(210).Point),
+                    "Letter" => new XSize(XUnit.FromMillimeter(216).Point, XUnit.FromMillimeter(279).Point),
+                    _ => new XSize(XUnit.FromMillimeter(210).Point, XUnit.FromMillimeter(297).Point) // A4
+                };
+
+                var rowsPerPage = config.PdfRowsPerPage;
+                if (rowsPerPage <= 0) rowsPerPage = 20;
+                var totalPages = (int)Math.Ceiling((double)trainRides.Count / rowsPerPage);
+                if (totalPages == 0) totalPages = 1;
+
+                _logService?.Info("ExportService", $"PDF导出：共 {trainRides.Count} 条记录，每页 {rowsPerPage} 行，预计 {totalPages} 页");
+
+                for (var pageIndex = 0; pageIndex < totalPages; pageIndex++)
                 {
-                    page.Width = pageSize.Width;
-                    page.Height = pageSize.Height;
-                }
-
-                var gfx = XGraphics.FromPdfPage(page);
-
-                // 使用支持中文的字体
-                var fontOptions = new XPdfFontOptions(PdfFontEncoding.Unicode);
-                var font = new XFont("Microsoft YaHei", config.PdfFontSize, XFontStyle.Regular, fontOptions);
-                var headerFont = new XFont("Microsoft YaHei", config.PdfFontSize + 2, XFontStyle.Bold, fontOptions);
-
-                var marginLeft = XUnit.FromMillimeter(config.PdfMarginLeft).Point;
-                var marginTop = XUnit.FromMillimeter(config.PdfMarginTop).Point;
-                var marginRight = page.Width.Point - XUnit.FromMillimeter(config.PdfMarginRight).Point;
-                var marginBottom = page.Height.Point - XUnit.FromMillimeter(config.PdfMarginBottom).Point;
-
-                var y = marginTop;
-                var lineHeight = config.PdfFontSize * 1.5;
-
-                // 获取当前页的数据
-                var pageData = trainRides.Skip(pageIndex * rowsPerPage).Take(rowsPerPage).ToList();
-                _logService?.Info("ExportService", $"第 {pageIndex + 1} 页包含 {pageData.Count} 条数据");
-
-                // 计算列宽
-                var columns = GetExportColumns(config);
-                var tableWidth = marginRight - marginLeft;
-                var colWidth = tableWidth / columns.Count;
-
-                // 绘制表头
-                if (config.ExcelIncludeHeader || pageIndex == 0)
-                {
-                    var x = marginLeft;
-                    foreach (var col in columns)
+                    _logService?.Info("ExportService", $"正在生成第 {pageIndex + 1}/{totalPages} 页");
+                    var page = document.AddPage();
+                    if (config.PdfLandscape)
                     {
-                        gfx.DrawString(col, headerFont, XBrushes.Black, new XRect(x, y, colWidth, lineHeight),
-                            XStringFormats.CenterLeft);
-                        x += colWidth;
+                        page.Width = pageSize.Height;
+                        page.Height = pageSize.Width;
+                    }
+                    else
+                    {
+                        page.Width = pageSize.Width;
+                        page.Height = pageSize.Height;
                     }
 
-                    y += lineHeight;
-                    gfx.DrawLine(XPens.Black, marginLeft, y, marginRight, y);
-                    y += 5;
-                }
+                    var gfx = XGraphics.FromPdfPage(page);
 
-                // 绘制数据
-                foreach (var ride in pageData)
-                {
-                    if (y + lineHeight > marginBottom)
-                        break;
+                    // 使用支持中文的字体
+                    var fontOptions = new XPdfFontOptions(PdfFontEncoding.Unicode);
+                    var font = new XFont("Microsoft YaHei", config.PdfFontSize, XFontStyle.Regular, fontOptions);
+                    var headerFont = new XFont("Microsoft YaHei", config.PdfFontSize + 2, XFontStyle.Bold, fontOptions);
 
-                    var x = marginLeft;
-                    var values = GetExportValues(ride, config);
-                    for (var i = 0; i < values.Count && i < columns.Count; i++)
+                    var marginLeft = XUnit.FromMillimeter(config.PdfMarginLeft).Point;
+                    var marginTop = XUnit.FromMillimeter(config.PdfMarginTop).Point;
+                    var marginRight = page.Width.Point - XUnit.FromMillimeter(config.PdfMarginRight).Point;
+                    var marginBottom = page.Height.Point - XUnit.FromMillimeter(config.PdfMarginBottom).Point;
+
+                    var y = marginTop;
+                    var lineHeight = config.PdfFontSize * 1.5;
+
+                    // 获取当前页的数据
+                    var pageData = trainRides.Skip(pageIndex * rowsPerPage).Take(rowsPerPage).ToList();
+                    _logService?.Info("ExportService", $"第 {pageIndex + 1} 页包含 {pageData.Count} 条数据");
+
+                    // 计算列宽
+                    var columns = GetExportColumns(config);
+                    if (columns.Count == 0)
                     {
-                        gfx.DrawString(values[i], font, XBrushes.Black, new XRect(x, y, colWidth, lineHeight),
-                            XStringFormats.CenterLeft);
-                        x += colWidth;
+                        _logService?.Error("ExportService", "PDF导出失败：没有可导出的列");
+                        return new ExportResult { Success = false, Message = "PDF导出失败：没有可导出的列" };
+                    }
+                    var tableWidth = marginRight - marginLeft;
+                    var colWidth = tableWidth / columns.Count;
+
+                    // 绘制表头
+                    if (config.ExcelIncludeHeader || pageIndex == 0)
+                    {
+                        var x = marginLeft;
+                        foreach (var col in columns)
+                        {
+                            gfx.DrawString(col, headerFont, XBrushes.Black, new XRect(x, y, colWidth, lineHeight),
+                                XStringFormats.CenterLeft);
+                            x += colWidth;
+                        }
+
+                        y += lineHeight;
+                        gfx.DrawLine(XPens.Black, marginLeft, y, marginRight, y);
+                        y += 5;
                     }
 
-                    y += lineHeight;
+                    // 绘制数据
+                    foreach (var ride in pageData)
+                    {
+                        if (y + lineHeight > marginBottom)
+                            break;
+
+                        var x = marginLeft;
+                        var values = GetExportValues(ride, config);
+                        for (var i = 0; i < values.Count && i < columns.Count; i++)
+                        {
+                            gfx.DrawString(values[i] ?? "", font, XBrushes.Black, new XRect(x, y, colWidth, lineHeight),
+                                XStringFormats.CenterLeft);
+                            x += colWidth;
+                        }
+
+                        y += lineHeight;
+                    }
+
+                    // 页脚页码
+                    if (totalPages > 1)
+                    {
+                        var pageNumText = $"第 {pageIndex + 1} 页 / 共 {totalPages} 页";
+                        gfx.DrawString(pageNumText, font, XBrushes.Gray,
+                            new XRect(marginLeft, marginBottom - lineHeight, tableWidth, lineHeight),
+                            XStringFormats.Center);
+                    }
                 }
 
-                // 页脚页码
-                if (totalPages > 1)
-                {
-                    var pageNumText = $"第 {pageIndex + 1} 页 / 共 {totalPages} 页";
-                    gfx.DrawString(pageNumText, font, XBrushes.Gray,
-                        new XRect(marginLeft, marginBottom - lineHeight, tableWidth, lineHeight),
-                        XStringFormats.Center);
-                }
+                document.Save(filePath);
+                return new ExportResult { Success = true, FilePath = filePath, RecordCount = trainRides.Count };
             }
-
-            document.Save(filePath);
-            return new ExportResult { Success = true, FilePath = filePath, RecordCount = trainRides.Count };
+            catch (Exception ex)
+            {
+                _logService?.Error("ExportService", $"PDF导出异常: {ex.Message}");
+                return new ExportResult { Success = false, Message = $"PDF导出失败: {ex.Message}" };
+            }
         });
     }
 
