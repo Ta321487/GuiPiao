@@ -57,6 +57,30 @@ public partial class UISettingsViewModel : ObservableObject, ISettingsViewModel
                 OnPropertyChanged(nameof(CurrentTripListView));
             }
         });
+
+        // 订阅DataGrid列配置变更消息（从菜单栏修改时同步更新，不触发未保存修改）
+        WeakReferenceMessenger.Default.Register<DataGridColumnsChangedMessage>(this, (recipient, message) =>
+        {
+            _isLoadingConfig = true;
+            // 同步更新原始配置的DataGridColumns，避免触发未保存修改
+            if (_originalConfig != null)
+            {
+                _originalConfig.DataGridColumns = message.ColumnConfigs.Select(c => new DataGridColumnConfig
+                {
+                    FieldName = c.FieldName,
+                    Header = c.Header,
+                    IsVisible = c.IsVisible,
+                    DisplayOrder = c.DisplayOrder,
+                    Width = c.Width,
+                    MinWidth = c.MinWidth,
+                    CanSort = c.CanSort,
+                    IsReadOnly = c.IsReadOnly
+                }).ToList();
+            }
+            _isLoadingConfig = false;
+            // 通知HasUnsavedChanges属性变更
+            OnPropertyChanged(nameof(HasUnsavedChanges));
+        });
     }
 
     /// <summary>

@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -65,8 +66,10 @@ public partial class SearchPanelViewModel : ObservableObject
         }
 
         var suggestions = await _trainRideRepository.SearchUserDepartStationsAsync(keyword);
-        DepartStationSuggestions = new ObservableCollection<string>(suggestions);
-        IsDepartStationDropDownOpen = suggestions.Count > 0;
+        // 去掉联想建议中的"站"字
+        var processedSuggestions = suggestions.Select(s => s.EndsWith("站") ? s.Substring(0, s.Length - 1) : s).ToList();
+        DepartStationSuggestions = new ObservableCollection<string>(processedSuggestions);
+        IsDepartStationDropDownOpen = processedSuggestions.Count > 0;
     }
 
     [RelayCommand]
@@ -80,8 +83,10 @@ public partial class SearchPanelViewModel : ObservableObject
         }
 
         var suggestions = await _trainRideRepository.SearchUserArriveStationsAsync(keyword);
-        ArriveStationSuggestions = new ObservableCollection<string>(suggestions);
-        IsArriveStationDropDownOpen = suggestions.Count > 0;
+        // 去掉联想建议中的"站"字
+        var processedSuggestions = suggestions.Select(s => s.EndsWith("站") ? s.Substring(0, s.Length - 1) : s).ToList();
+        ArriveStationSuggestions = new ObservableCollection<string>(processedSuggestions);
+        IsArriveStationDropDownOpen = processedSuggestions.Count > 0;
     }
 
     [RelayCommand]

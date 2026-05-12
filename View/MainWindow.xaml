@@ -210,7 +210,9 @@
                                                                           IsDropDownOpen="{Binding IsDepartStationDropDownOpen}"
                                                                           TextChangedCommand="{Binding DepartStationTextChangedCommand}"
                                                                           SelectItemCommand="{Binding SelectDepartStationCommand}"
-                                                                          MinWidth="100" Margin="0,0,0,5" />
+                                                                          MinWidth="80" Margin="0,0,0,5" />
+                                            <TextBlock Text="站" VerticalAlignment="Center" Margin="0,0,0,5"
+                                                       FontSize="{DynamicResource BaseFontSize}" />
                                         </WrapPanel>
 
                                         <!-- 到达站 -->
@@ -222,7 +224,9 @@
                                                                           IsDropDownOpen="{Binding IsArriveStationDropDownOpen}"
                                                                           TextChangedCommand="{Binding ArriveStationTextChangedCommand}"
                                                                           SelectItemCommand="{Binding SelectArriveStationCommand}"
-                                                                          MinWidth="100" Margin="0,0,0,5" />
+                                                                          MinWidth="80" Margin="0,0,0,5" />
+                                            <TextBlock Text="站" VerticalAlignment="Center" Margin="0,0,0,5"
+                                                       FontSize="{DynamicResource BaseFontSize}" />
                                         </WrapPanel>
 
                                         <!-- 车次 -->

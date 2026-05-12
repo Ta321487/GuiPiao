@@ -438,34 +438,22 @@ public partial class MenuViewModel : ObservableObject
             }
 
             // 创建标签选择对话框
-            var tagNames = string.Join("\n", tags.Select(t => $"• {t.Name}"));
-            var dialog = new InputDialogWindow("按标签筛选", $"可用标签：\n{tagNames}\n\n请输入要筛选的标签名称：");
+            var dialog = new View.TagSelectWindow(tags.ToList());
             dialog.Owner = Application.Current.MainWindow;
 
-            if (dialog.ShowDialog() == true)
+            if (dialog.ShowDialog() == true && dialog.SelectedTags.Count > 0)
             {
-                var tagName = dialog.InputText?.Trim();
-                if (!string.IsNullOrWhiteSpace(tagName))
+                // 目前只支持单个标签筛选，使用第一个选中的标签
+                var selectedTag = dialog.SelectedTags.First();
+                var criteria = new AdvancedSearchCriteria
                 {
-                    var selectedTag =
-                        tags.FirstOrDefault(t => t.Name.Equals(tagName, StringComparison.OrdinalIgnoreCase));
-                    if (selectedTag != null)
-                    {
-                        var criteria = new AdvancedSearchCriteria
-                        {
-                            TagId = selectedTag.Id,
-                            TagName = selectedTag.Name
-                        };
+                    TagId = selectedTag.Id,
+                    TagName = selectedTag.Name
+                };
 
-                        WeakReferenceMessenger.Default.Send(new AdvancedSearchMessage(criteria));
-                        WeakReferenceMessenger.Default.Send(new StatusMessageMessage($"已应用标签筛选：{selectedTag.Name}"));
-                    }
-                    else
-                    {
-                        MessageBoxWindow.Show(Application.Current.MainWindow, $"未找到标签：{tagName}", "提示",
-                            MessageBoxButton.OK, MessageBoxImage.Warning);
-                    }
-                }
+                WeakReferenceMessenger.Default.Send(new AdvancedSearchMessage(criteria));
+                var tagNames = string.Join("、", dialog.SelectedTags.Select(t => t.Name));
+                WeakReferenceMessenger.Default.Send(new StatusMessageMessage($"已应用标签筛选：{tagNames}"));
             }
         }
         catch (Exception ex)
@@ -1053,7 +1041,6 @@ public partial class MenuViewModel : ObservableObject
 
     private void ShowColumnCustomization()
     {
-        // 获取当前列配置
         var uiSettingsService = new UISettingsService();
         var columnConfigs = uiSettingsService.Config.DataGridColumns;
 
@@ -1065,7 +1052,20 @@ public partial class MenuViewModel : ObservableObject
 
         var dialog = new ColumnCustomizationDialog(columnConfigs);
         dialog.Owner = Application.Current.MainWindow;
-        dialog.ShowDialog();
+
+        if (dialog.ShowDialog() == true)
+        {
+            uiSettingsService.Config.DataGridColumns = dialog.ColumnConfigs;
+            uiSettingsService.SaveConfig(uiSettingsService.Config);
+
+            if (Application.Current.MainWindow is MainWindow mainWindow)
+            {
+                mainWindow.RefreshDataGridColumns();
+            }
+
+            WeakReferenceMessenger.Default.Send(new DataGridColumnsChangedMessage(dialog.ColumnConfigs));
+            WeakReferenceMessenger.Default.Send(new StatusMessageMessage("显示列配置已更新"));
+        }
     }
 
     private async Task RefreshTripListAsync()
