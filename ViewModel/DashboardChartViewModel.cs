@@ -327,6 +327,11 @@ public partial class DashboardChartViewModel : ObservableObject, IDisposable
         IsPieChart = chartType == ChartType.PieChart;
         IsTextList = chartType == ChartType.TextList;
 
+        // 先设置为空数组，触发旧图表控件的清理
+        Series = Array.Empty<ISeries>();
+        OnPropertyChanged(nameof(Series));
+
+        // 根据图表类型生成新的 Series
         Series = chartType switch
         {
             ChartType.PieChart => GeneratePieSeries(),
