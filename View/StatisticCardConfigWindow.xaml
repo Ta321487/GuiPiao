@@ -267,9 +267,7 @@
                                     <Style TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
                                         <Style.Triggers>
                                             <Trigger Property="IsEnabled" Value="False">
-                                                <Setter Property="Opacity" Value="{DynamicResource DisabledOpacity}" />
-                                                <Setter Property="Foreground"
-                                                        Value="{DynamicResource TextDisabledBrush}" />
+                                                <Setter Property="Foreground" Value="#999999" />
                                             </Trigger>
                                         </Style.Triggers>
                                     </Style>
@@ -398,9 +396,7 @@
                                     <Style TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
                                         <Style.Triggers>
                                             <Trigger Property="IsEnabled" Value="False">
-                                                <Setter Property="Opacity" Value="{DynamicResource DisabledOpacity}" />
-                                                <Setter Property="Foreground"
-                                                        Value="{DynamicResource TextDisabledBrush}" />
+                                                <Setter Property="Foreground" Value="#666666" />
                                             </Trigger>
                                         </Style.Triggers>
                                     </Style>
@@ -425,9 +421,7 @@
                                             </DataTrigger>
                                             <!-- 禁用状态：灰色显示 -->
                                             <Trigger Property="IsEnabled" Value="False">
-                                                <Setter Property="Opacity" Value="{DynamicResource DisabledOpacity}" />
-                                                <Setter Property="Foreground"
-                                                        Value="{DynamicResource TextDisabledBrush}" />
+                                                <Setter Property="Foreground" Value="#666666" />
                                             </Trigger>
                                         </Style.Triggers>
                                     </Style>
@@ -450,9 +444,7 @@
                                             </DataTrigger>
                                             <!-- 禁用状态：灰色显示 -->
                                             <Trigger Property="IsEnabled" Value="False">
-                                                <Setter Property="Opacity" Value="{DynamicResource DisabledOpacity}" />
-                                                <Setter Property="Foreground"
-                                                        Value="{DynamicResource TextDisabledBrush}" />
+                                                <Setter Property="Foreground" Value="#666666" />
                                             </Trigger>
                                         </Style.Triggers>
                                     </Style>

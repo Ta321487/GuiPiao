@@ -70,8 +70,10 @@ public partial class MainViewModel
             switch (e.PropertyName)
             {
                 case nameof(Dashboard.DashboardCharts):
+                case nameof(Dashboard.HasDashboardCharts):
                     OnPropertyChanged(nameof(DashboardCharts));
                     OnPropertyChanged(nameof(HasDashboardCharts));
+                    TripMenuCommandCommand.NotifyCanExecuteChanged();
                     SetTemporaryStatus(Dashboard.HasDashboardCharts
                         ? $"仪表盘已加载 {Dashboard.DashboardCharts.Count} 个图表"
                         : "仪表盘暂无图表");

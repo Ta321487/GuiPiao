@@ -1,4 +1,6 @@
+using System;
 using System.Threading.Tasks;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
 namespace GuiPiao.ViewModel;
@@ -38,10 +40,20 @@ public partial class MainViewModel
         }
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanExecuteTripMenuCommand))]
     public async Task TripMenuCommand(string action)
     {
         await Menu.TripMenuCommandAsync(action);
+    }
+
+    private bool CanExecuteTripMenuCommand(string action)
+    {
+        return action switch
+        {
+            "RefreshStats" => HasDashboardCharts,
+            "ExportChart" => HasDashboardCharts,
+            _ => true
+        };
     }
 
     [RelayCommand]
