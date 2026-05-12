@@ -654,15 +654,29 @@ public partial class DashboardSettingsViewModel : ObservableObject, ISettingsVie
         ExcludeRefundedTickets = defaultConfig.ExcludeRefundedTickets;
         ExcludeDuplicateTickets = defaultConfig.ExcludeDuplicateTickets;
         AutoRefresh = defaultConfig.AutoRefresh;
+        EnableChartAnimation = defaultConfig.EnableChartAnimation;
 
         Cards.Clear();
         foreach (var card in defaultConfig.Cards) Cards.Add(card);
+        OnPropertyChanged(nameof(CanAddCard));
+        OnPropertyChanged(nameof(CardCountText));
+
+        // 保存恢复后的默认配置
+        _settingsService.SaveConfig(defaultConfig);
+        _originalConfig = GetCurrentConfig();
+
+        // 触发配置已保存事件，通知主界面刷新图表
+        Debug.WriteLine("[DashboardSettingsViewModel] 恢复默认设置，触发 DashboardConfigSaved 事件");
+        DashboardConfigSaved?.Invoke(this, EventArgs.Empty);
+
+        // 清除统计缓存，确保图表数据重新加载
+        StatisticsCacheClearRequested?.Invoke(this, EventArgs.Empty);
 
         await Task.Run(() =>
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
-                MessageBoxWindow.Show(settingsWindow, "已恢复默认设置，请点击保存配置按钮保存更改。");
+                MessageBoxWindow.Show(settingsWindow, "已恢复默认设置并保存。");
             });
         });
     }

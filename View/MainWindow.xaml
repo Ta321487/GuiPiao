@@ -568,8 +568,15 @@
                                   ColumnHeaderStyle="{StaticResource ThemedDataGridColumnHeaderStyle}"
                                   CellStyle="{StaticResource ThemedDataGridCellStyle}">
                             <DataGrid.Columns>
-                                <DataGridTextColumn x:Name="TimeColumn" Header="时间" Width="Auto"
-                                                    Binding="{Binding Time}" />
+                                <DataGridTemplateColumn x:Name="TimeColumn" Header="时间" Width="Auto">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Time}"
+                                                       TextTrimming="CharacterEllipsis"
+                                                       ToolTip="{Binding Time}" />
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
                                 <DataGridTemplateColumn Header="级别" Width="Auto" MinWidth="45">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
@@ -578,9 +585,24 @@
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
-                                <DataGridTextColumn x:Name="ModuleColumn" Header="来源" Width="Auto"
-                                                    Binding="{Binding Module}" />
-                                <DataGridTextColumn Header="内容" Width="*" MinWidth="80" Binding="{Binding Content}" />
+                                <DataGridTemplateColumn x:Name="ModuleColumn" Header="来源" Width="Auto">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Module}"
+                                                       TextTrimming="CharacterEllipsis"
+                                                       ToolTip="{Binding Module}" />
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTemplateColumn Header="内容" Width="*" MinWidth="80">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Content}"
+                                                       TextTrimming="CharacterEllipsis"
+                                                       ToolTip="{Binding Content}" />
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
                             </DataGrid.Columns>
                         </DataGrid>
                         <WrapPanel Grid.Row="2" HorizontalAlignment="Right" Margin="10">
