@@ -1385,8 +1385,8 @@ public partial class TripListViewModel : ObservableObject, IDisposable
                 _exportService.GenerateFileName(exportConfig.FileNameTemplate, exportConfig.DefaultFormat, trainNo);
             string? exportFilePath = null;
 
-            // 如果设置了默认保存路径，直接使用；否则弹出对话框让用户选择
-            if (!string.IsNullOrEmpty(exportConfig.DefaultSavePath))
+            // 如果设置了默认保存路径且路径存在，直接使用；否则弹出对话框让用户选择
+            if (!string.IsNullOrEmpty(exportConfig.DefaultSavePath) && Directory.Exists(exportConfig.DefaultSavePath))
             {
                 // 使用默认路径
                 exportFilePath = Path.Combine(exportConfig.DefaultSavePath, fileName);
