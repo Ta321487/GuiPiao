@@ -668,11 +668,12 @@
                               MouseDoubleClick="TripDataGrid_DoubleClick"
                               ColumnHeaderStyle="{StaticResource ThemedDataGridColumnHeaderStyle}"
                               CellStyle="{StaticResource ThemedDataGridCellStyle}"
-                              ScrollViewer.CanContentScroll="True"
+                              ScrollViewer.CanContentScroll="False"
                               ScrollViewer.HorizontalScrollBarVisibility="Auto"
                               ScrollViewer.VerticalScrollBarVisibility="Auto"
-                              VirtualizingPanel.IsVirtualizing="True"
-                              VirtualizingPanel.VirtualizationMode="Recycling"
+                              EnableRowVirtualization="False"
+                              EnableColumnVirtualization="False"
+                              VirtualizingPanel.IsVirtualizing="False"
                               Loaded="TripDataGrid_Loaded"
                               Sorting="TripDataGrid_Sorting"
                               Visibility="{Binding IsDataGridVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
@@ -708,6 +709,11 @@
                                                             <RowDefinition Height="*" />
                                                             <RowDefinition Height="Auto" />
                                                         </SelectiveScrollingGrid.RowDefinitions>
+                                                        <DataGridRowHeader Grid.Row="0"
+                                                                Grid.RowSpan="2"
+                                                                Grid.Column="0"
+                                                                SelectiveScrollingGrid.SelectiveScrollingOrientation="Vertical"
+                                                                Visibility="{Binding HeadersVisibility, ConverterParameter={x:Static DataGridHeadersVisibility.Row}, Converter={x:Static DataGrid.HeadersVisibilityConverter}, RelativeSource={RelativeSource AncestorType=DataGrid}}" />
                                                         <DataGridCellsPresenter Grid.Column="1"
                                                                 ItemsPanel="{TemplateBinding ItemsPanel}"
                                                                 SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
@@ -801,6 +807,7 @@
                                             <Setter.Value>
                                                 <ControlTemplate TargetType="{x:Type GroupItem}">
                                                     <Expander IsExpanded="True"
+                                                              ExpandDirection="Down"
                                                               Background="{DynamicResource PanelBackgroundBrush}"
                                                               Foreground="{DynamicResource TextPrimaryBrush}"
                                                               BorderBrush="{DynamicResource BorderBrush}"
@@ -811,9 +818,9 @@
                                                                            FontWeight="Bold"
                                                                            Foreground="{DynamicResource TextPrimaryBrush}" />
                                                                 <TextBlock
-                                                                    Text="{Binding ItemCount, StringFormat=' ({0}项)'}"
-                                                                    Margin="5,0,0,0"
-                                                                    Foreground="{DynamicResource TextSecondaryBrush}" />
+                                                                        Text="{Binding ItemCount, StringFormat=' ({0}项)'}"
+                                                                        Margin="5,0,0,0"
+                                                                        Foreground="{DynamicResource TextSecondaryBrush}" />
                                                             </StackPanel>
                                                         </Expander.Header>
                                                         <ItemsPresenter />
