@@ -7,6 +7,8 @@ using System.Windows;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
+using GuiPiao.Messages;
 using GuiPiao.Model;
 using GuiPiao.Services;
 using GuiPiao.View;
@@ -398,6 +400,9 @@ public partial class ShortcutSettingsViewModel : ObservableObject, ISettingsView
 
             // 重新加载快捷键到应用程序
             ShortcutManager.Instance.ReloadShortcuts();
+
+            // 发送消息通知菜单更新快捷键显示
+            WeakReferenceMessenger.Default.Send(new ShortcutsChangedMessage());
 
             if (showMessage) MessageBoxWindow.Show(settingsWindow, "快捷键设置已保存", "成功");
         }

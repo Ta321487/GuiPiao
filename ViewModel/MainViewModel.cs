@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
@@ -57,6 +58,13 @@ public partial class MainViewModel : ObservableObject, IDisposable
         {
             if (message.SettingType == "General") _ = TripList.LoadTripItemsAsync();
         });
+
+        WeakReferenceMessenger.Default.Register<ShortcutsChangedMessage>(this, (recipient, message) =>
+        {
+            RefreshShortcuts();
+        });
+
+        LoadShortcutKeys();
 
         WeakReferenceMessenger.Default.Register<StatusMessageMessage>(this, (recipient, message) =>
         {
@@ -307,4 +315,30 @@ public partial class MainViewModel : ObservableObject, IDisposable
     public void UpdateColumnSortDirection(string sortColumn, bool isDescending)
     {
     }
+
+    #region 动态快捷键显示
+
+    private readonly ShortcutSettingsService _shortcutSettingsService = new();
+
+    private Dictionary<string, string> _shortcutKeys = new();
+
+    public Dictionary<string, string> ShortcutKeys
+    {
+        get => _shortcutKeys;
+        set => SetProperty(ref _shortcutKeys, value);
+    }
+
+    private void LoadShortcutKeys()
+    {
+        var config = _shortcutSettingsService.Config;
+        ShortcutKeys = config.Shortcuts.ToDictionary(s => s.ActionId, s => s.CurrentKey);
+    }
+
+    public void RefreshShortcuts()
+    {
+        _shortcutSettingsService.RefreshConfig();
+        LoadShortcutKeys();
+    }
+
+    #endregion
 }

@@ -311,30 +311,10 @@
         </Setter>
     </Style>
 
-    <!-- Menu 菜单选中项使用主题色 -->
+    <!-- Menu 菜单项基础样式（使用App.xaml中的完整模板） -->
     <Style TargetType="MenuItem">
         <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
         <Setter Property="Background" Value="Transparent" />
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="MenuItem">
-                    <Border x:Name="border"
-                            Background="{TemplateBinding Background}"
-                            Padding="12,6">
-                        <ContentPresenter ContentSource="Header" />
-                    </Border>
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="IsHighlighted" Value="true">
-                            <Setter TargetName="border" Property="Background" Value="{DynamicResource AccentBrush}" />
-                            <Setter Property="Foreground" Value="White" />
-                        </Trigger>
-                        <Trigger Property="IsEnabled" Value="false">
-                            <Setter Property="Foreground" Value="#999999" />
-                        </Trigger>
-                    </ControlTemplate.Triggers>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
     </Style>
 
     <!-- DataGrid 选中行和悬停行使用主题色 -->

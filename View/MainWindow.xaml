@@ -16,122 +16,122 @@
     <DockPanel Background="{DynamicResource ContentBackgroundBrush}">
 
         <Menu DockPanel.Dock="Top" Background="{DynamicResource MenuBackgroundBrush}">
-            <!-- 1. 存储(S) -->
+            <!-- 1. 存储 -->
             <MenuItem Header="存储(_S)">
                 <MenuItem Header="数据导入">
-                    <MenuItem Header="从Excel/CSV导入" Command="{Binding StorageMenuCommandCommand}"
+                    <MenuItem Header="从Excel/CSV导入..." Command="{Binding StorageMenuCommandCommand}"
                               CommandParameter="Import" />
                 </MenuItem>
                 <Separator />
                 <MenuItem Header="数据库操作">
-                    <MenuItem Header="全量备份数据库" Command="{Binding StorageMenuCommandCommand}"
+                    <MenuItem Header="全量备份数据库..." Command="{Binding StorageMenuCommandCommand}"
                               CommandParameter="BackupFull" />
-                    <MenuItem Header="增量备份数据库" Command="{Binding StorageMenuCommandCommand}"
+                    <MenuItem Header="增量备份数据库..." Command="{Binding StorageMenuCommandCommand}"
                               CommandParameter="BackupIncremental" />
-                    <MenuItem Header="恢复数据库" Command="{Binding StorageMenuCommandCommand}" CommandParameter="Restore" />
+                    <MenuItem Header="恢复数据库..." Command="{Binding StorageMenuCommandCommand}" CommandParameter="Restore" />
                     <Separator />
                     <MenuItem Header="打开存储目录" Command="{Binding StorageMenuCommandCommand}"
                               CommandParameter="OpenStorageDir" />
                 </MenuItem>
                 <Separator />
-                <MenuItem Header="数据完整性校验" Command="{Binding StorageMenuCommandCommand}" CommandParameter="VerifyData" />
-                <MenuItem Header="清空票务记录" Command="{Binding StorageMenuCommandCommand}"
+                <MenuItem Header="数据完整性校验..." Command="{Binding StorageMenuCommandCommand}" CommandParameter="VerifyData" />
+                <MenuItem Header="清空票务记录..." Command="{Binding StorageMenuCommandCommand}"
                           CommandParameter="ClearAllTickets" />
                 <Separator />
                 <MenuItem Header="退出" Command="{Binding StorageMenuCommandCommand}" CommandParameter="Exit" />
             </MenuItem>
 
-            <!-- 2. 票务(O) -->
+            <!-- 2. 票务 -->
             <MenuItem Header="票务(_O)">
-                <MenuItem Header="新增票务记录" Command="{Binding NewTicketRecordCommand}" InputGestureText="Ctrl+N" />
-                <MenuItem Header="OCR识别车票" Command="{Binding OcrRecognizeTicketCommand}" InputGestureText="Ctrl+O" />
+                <MenuItem Header="新增票务记录..." Command="{Binding NewTicketRecordCommand}" InputGestureText="{Binding ShortcutKeys[NewTicket]}" />
+                <MenuItem Header="OCR识别车票..." Command="{Binding OcrRecognizeTicketCommand}" InputGestureText="{Binding ShortcutKeys[OcrTicket]}" />
                 <Separator />
-                <MenuItem Header="编辑选中票务" Command="{Binding EditSelectedTicketCommand}" InputGestureText="Ctrl+E" />
-                <MenuItem Header="删除选中票务" Command="{Binding DeleteSelectedTicketCommand}" InputGestureText="Del" />
+                <MenuItem Header="编辑选中票务..." Command="{Binding EditSelectedTicketCommand}" InputGestureText="{Binding ShortcutKeys[EditTicket]}" />
+                <MenuItem Header="删除选中票务..." Command="{Binding DeleteSelectedTicketCommand}" InputGestureText="{Binding ShortcutKeys[DeleteTicket]}" />
                 <Separator />
                 <MenuItem Header="批量操作">
-                    <MenuItem Header="批量修改状态" Click="BatchUpdateStatus_Click" />
-                    <MenuItem Header="批量更改标签" Click="BatchUpdateTag_Click" />
-                    <MenuItem Header="批量删除" Click="BatchDelete_Click" />
+                    <MenuItem Header="批量修改状态..." Click="BatchUpdateStatus_Click" InputGestureText="{Binding ShortcutKeys[BatchUpdateStatus]}" />
+                    <MenuItem Header="批量更改标签..." Click="BatchUpdateTag_Click" InputGestureText="{Binding ShortcutKeys[BatchUpdateSeat]}" />
+                    <MenuItem Header="批量删除..." Click="BatchDelete_Click" InputGestureText="{Binding ShortcutKeys[BatchDelete]}" />
                 </MenuItem>
                 <MenuItem Header="标签管理">
-                    <MenuItem Header="新建标签" Click="NewTag_Click" />
-                    <MenuItem Header="管理标签" Click="ManageTags_Click" />
+                    <MenuItem Header="新建标签..." Click="NewTag_Click" InputGestureText="{Binding ShortcutKeys[NewTag]}" />
+                    <MenuItem Header="管理标签..." Click="ManageTags_Click" InputGestureText="{Binding ShortcutKeys[ManageTags]}" />
                 </MenuItem>
                 <Separator />
-                <MenuItem Header="票面预览" Command="{Binding TicketPreviewCommand}" InputGestureText="Ctrl+P" />
+                <MenuItem Header="票面预览..." Command="{Binding TicketPreviewCommand}" InputGestureText="{Binding ShortcutKeys[PreviewTicket]}" />
             </MenuItem>
 
-            <!-- 3. 行程管理(M) -->
+            <!-- 3. 行程管理 -->
             <MenuItem Header="行程管理(_M)">
                 <MenuItem Header="高级筛选">
                     <MenuItem Header="按时间筛选">
                         <MenuItem Header="本年度" Command="{Binding TripMenuCommandCommand}"
-                                  CommandParameter="FilterThisYear" />
+                                  CommandParameter="FilterThisYear" InputGestureText="{Binding ShortcutKeys[FilterThisYear]}" />
                         <MenuItem Header="上年度" Command="{Binding TripMenuCommandCommand}"
-                                  CommandParameter="FilterLastYear" />
-                        <MenuItem Header="自定义时间区间" Command="{Binding TripMenuCommandCommand}"
+                                  CommandParameter="FilterLastYear" InputGestureText="{Binding ShortcutKeys[FilterLastYear]}" />
+                        <MenuItem Header="自定义时间区间..." Command="{Binding TripMenuCommandCommand}"
                                   CommandParameter="FilterCustomDate" />
                         <Separator />
                         <MenuItem Header="未出行行程" Command="{Binding TripMenuCommandCommand}"
-                                  CommandParameter="FilterUpcoming" />
+                                  CommandParameter="FilterUpcoming" InputGestureText="{Binding ShortcutKeys[FilterUpcoming]}" />
                     </MenuItem>
-                    <MenuItem Header="按车次/站点筛选" Command="{Binding TripMenuCommandCommand}"
+                    <MenuItem Header="按车次/站点筛选..." Command="{Binding TripMenuCommandCommand}"
                               CommandParameter="FilterTrainStation" />
-                    <MenuItem Header="按标签筛选" Command="{Binding TripMenuCommandCommand}" CommandParameter="FilterByTag" />
+                    <MenuItem Header="按标签筛选..." Command="{Binding TripMenuCommandCommand}" CommandParameter="FilterByTag" />
                     <Separator />
                     <MenuItem Header="取消筛选" Command="{Binding TripMenuCommandCommand}" CommandParameter="ClearFilter" />
                 </MenuItem>
                 <Separator />
-                <MenuItem Header="车票地图" Command="{Binding OpenTicketMapCommand}" InputGestureText="Ctrl+M" />
+                <MenuItem Header="车票地图..." Command="{Binding OpenTicketMapCommand}" InputGestureText="{Binding ShortcutKeys[OpenMap]}" />
                 <MenuItem Header="仪表盘统计">
-                    <MenuItem Header="统计配置" Command="{Binding TripMenuCommandCommand}" CommandParameter="StatsConfig" />
+                    <MenuItem Header="统计配置..." Command="{Binding TripMenuCommandCommand}" CommandParameter="StatsConfig" />
                     <MenuItem Header="刷新统计" Command="{Binding TripMenuCommandCommand}" CommandParameter="RefreshStats"
-                              InputGestureText="F5" />
-                    <MenuItem Header="导出统计图表" Command="{Binding TripMenuCommandCommand}" CommandParameter="ExportChart" />
+                              InputGestureText="{Binding ShortcutKeys[RefreshData]}" />
+                    <MenuItem Header="导出统计图表..." Command="{Binding TripMenuCommandCommand}" CommandParameter="ExportChart" />
                 </MenuItem>
                 <Separator />
                 <MenuItem Header="视图配置">
                     <MenuItem Header="专业列表视图" Command="{Binding TripMenuCommandCommand}" CommandParameter="ViewList" />
                     <MenuItem Header="简洁卡片视图" Command="{Binding TripMenuCommandCommand}" CommandParameter="ViewCard" />
-                    <MenuItem Header="自定义显示列" Command="{Binding TripMenuCommandCommand}"
+                    <MenuItem Header="自定义显示列..." Command="{Binding TripMenuCommandCommand}"
                               CommandParameter="ViewCustomColumns" />
                 </MenuItem>
                 <MenuItem Header="刷新行程" Command="{Binding TripMenuCommandCommand}" CommandParameter="RefreshList"
-                          InputGestureText="F5" />
+                          InputGestureText="{Binding ShortcutKeys[RefreshData]}" />
             </MenuItem>
 
-            <!-- 4. 工具集(T) -->
+            <!-- 4. 工具集 -->
             <MenuItem Header="工具集(_T)">
                 <Separator />
                 <MenuItem Header="数据工具">
-                    <MenuItem Header="票务数据校验" Command="{Binding ToolsMenuCommandCommand}" CommandParameter="DataVerify" />
-                    <MenuItem Header="数据库碎片整理" Command="{Binding ToolsMenuCommandCommand}" CommandParameter="DbCompact" />
+                    <MenuItem Header="票务数据校验..." Command="{Binding ToolsMenuCommandCommand}" CommandParameter="DataVerify" InputGestureText="{Binding ShortcutKeys[DataVerify]}" />
+                    <MenuItem Header="数据库碎片整理..." Command="{Binding ToolsMenuCommandCommand}" CommandParameter="DbCompact" InputGestureText="{Binding ShortcutKeys[DbCompact]}" />
                     <Separator />
-                    <MenuItem Header="日志管理" Command="{Binding OpenLogManagerCommand}" InputGestureText="Ctrl+L" />
+                    <MenuItem Header="日志管理..." Command="{Binding OpenLogManagerCommand}" InputGestureText="{Binding ShortcutKeys[OpenLogManager]}" />
                 </MenuItem>
-                <MenuItem Header="数据清理" Command="{Binding ToolsMenuCommandCommand}" CommandParameter="DataClean" />
+                <MenuItem Header="数据清理..." Command="{Binding ToolsMenuCommandCommand}" CommandParameter="DataClean" />
                 <Separator />
-                <MenuItem Header="备份/恢复数据库" Command="{Binding BackupRestoreDatabaseCommand}" />
+                <MenuItem Header="备份/恢复数据库..." Command="{Binding BackupRestoreDatabaseCommand}" InputGestureText="{Binding ShortcutKeys[BackupDatabase]}" />
             </MenuItem>
 
-            <!-- 5. 配置(P) -->
+            <!-- 5. 配置 -->
             <MenuItem Header="配置(_P)">
-                <MenuItem Header="系统设置..." Command="{Binding OpenSettingsCommand}" InputGestureText="Ctrl+," />
+                <MenuItem Header="系统设置..." Command="{Binding OpenSettingsCommand}" InputGestureText="{Binding ShortcutKeys[OpenSettings]}" />
                 <Separator />
-                <MenuItem Header="日志设置" Command="{Binding OpenSettingsCommand}" CommandParameter="Log" />
-                <MenuItem Header="数据库配置" Command="{Binding OpenSettingsCommand}" CommandParameter="Database" />
-                <MenuItem Header="界面配置" Command="{Binding OpenSettingsCommand}" CommandParameter="UI" />
-                <MenuItem Header="OCR配置" Command="{Binding OpenSettingsCommand}" CommandParameter="OCR" />
+                <MenuItem Header="日志设置..." Command="{Binding OpenSettingsCommand}" CommandParameter="Log" />
+                <MenuItem Header="数据库配置..." Command="{Binding OpenSettingsCommand}" CommandParameter="Database" />
+                <MenuItem Header="界面配置..." Command="{Binding OpenSettingsCommand}" CommandParameter="UI" />
+                <MenuItem Header="OCR配置..." Command="{Binding OpenSettingsCommand}" CommandParameter="OCR" />
             </MenuItem>
 
-            <!-- 6. 帮助与信息(H) -->
+            <!-- 6. 帮助与信息 -->
             <MenuItem Header="帮助与信息(_H)">
-                <MenuItem Header="帮助文档" Command="{Binding HelpMenuCommandCommand}" CommandParameter="HelpDoc" />
-                <MenuItem Header="使用手册" Command="{Binding HelpMenuCommandCommand}" CommandParameter="Manual" />
+                <MenuItem Header="帮助文档..." Command="{Binding HelpMenuCommandCommand}" CommandParameter="HelpDoc" InputGestureText="{Binding ShortcutKeys[HelpDoc]}" />
+                <MenuItem Header="使用手册..." Command="{Binding HelpMenuCommandCommand}" CommandParameter="Manual" />
                 <Separator />
-                <MenuItem Header="关于系统" Command="{Binding HelpMenuCommandCommand}" CommandParameter="About" />
-                <MenuItem Header="检查更新" Command="{Binding HelpMenuCommandCommand}" CommandParameter="CheckUpdate" />
+                <MenuItem Header="关于系统..." Command="{Binding HelpMenuCommandCommand}" CommandParameter="About" />
+                <MenuItem Header="检查更新..." Command="{Binding HelpMenuCommandCommand}" CommandParameter="CheckUpdate" InputGestureText="{Binding ShortcutKeys[CheckUpdate]}" />
             </MenuItem>
         </Menu>
 
