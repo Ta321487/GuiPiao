@@ -322,6 +322,43 @@ public class TrainRideRepository
         }
     }
 
+    /// <summary>
+    ///     批量更新席别（使用事务）
+    /// </summary>
+    public async Task<int> BatchUpdateSeatTypeAsync(List<int> ids, string seatType)
+    {
+        if (ids == null || ids.Count == 0)
+            return 0;
+
+        if (string.IsNullOrWhiteSpace(seatType))
+            return 0;
+
+        using (var connection = new SqliteConnection(_connectionString))
+        {
+            await connection.OpenAsync();
+            using (var transaction = connection.BeginTransaction())
+            {
+                try
+                {
+                    const string sql = "UPDATE train_ride_info SET seat_type = @SeatType WHERE id = @Id";
+                    var totalAffected = 0;
+
+                    foreach (var id in ids)
+                        totalAffected += await connection.ExecuteAsync(sql,
+                            new { SeatType = seatType, Id = id }, transaction);
+
+                    transaction.Commit();
+                    return totalAffected;
+                }
+                catch
+                {
+                    transaction.Rollback();
+                    throw;
+                }
+            }
+        }
+    }
+
     public async Task<IEnumerable<TrainRideInfo>> SearchTrainRidesAsync(string keyword)
     {
         using (var connection = new SqliteConnection(_connectionString))

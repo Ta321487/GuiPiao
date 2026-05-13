@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Windows;
 using GuiPiao.Services;
 
@@ -35,11 +36,11 @@ public partial class MessageBoxWindow : Window
         MessageBoxButton button = MessageBoxButton.OK, MessageBoxImage icon = MessageBoxImage.Information,
         string? yesText = null, string? noText = null, string? okText = null, string? cancelText = null)
     {
-        var window = new MessageBoxWindow
+        if (string.IsNullOrWhiteSpace(message))
         {
-            Message = message,
-            Title = title
-        };
+            Debug.WriteLine("[MessageBoxWindow] Show 收到空消息，已替换为占位文案。请检查调用栈或日志定位来源。");
+            message = "（无提示内容。若刚启动即出现，请查看日志中同时间的错误或联系开发者。）";
+        }
 
         // 设置自定义按钮文字
         if (yesText != null) window.YesButtonText = yesText;
@@ -67,12 +68,11 @@ public partial class MessageBoxWindow : Window
         MessageBoxButton button = MessageBoxButton.OK, MessageBoxImage icon = MessageBoxImage.Information,
         string? yesText = null, string? noText = null, string? okText = null, string? cancelText = null)
     {
-        var window = new MessageBoxWindow
+        if (string.IsNullOrWhiteSpace(message))
         {
-            Message = message,
-            Title = title
-            // 不设置 Owner，避免最小化时影响主窗口
-        };
+            Debug.WriteLine("[MessageBoxWindow] Show(owner) 收到空消息，已替换为占位文案。请检查调用栈或日志定位来源。");
+            message = "（无提示内容。若刚启动即出现，请查看日志中同时间的错误或联系开发者。）";
+        }
 
         // 如果父窗口是置顶窗口，则消息框也设置为置顶，确保显示在最前面
         if (owner != null && owner.Topmost) window.Topmost = true;

@@ -27,6 +27,11 @@ public partial class MainViewModel
             _logService?.Info("MainViewModel", "开始调用 BatchUpdateTagAsync");
             _ = TripList.BatchUpdateTagAsync();
         }
+        else if (action == "BatchUpdateSeat")
+        {
+            _logService?.Info("MainViewModel", "开始调用 BatchUpdateSeatAsync");
+            _ = TripList.BatchUpdateSeatAsync();
+        }
         else if (action == "BatchDelete")
         {
             _logService?.Info("MainViewModel", "开始调用 BatchDeleteAsync");

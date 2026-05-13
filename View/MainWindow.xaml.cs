@@ -137,6 +137,11 @@ public partial class MainWindow : Window
         ShortcutManager.Instance.RegisterAction("OcrTicket", () => viewModel.OcrRecognizeTicketCommand.Execute(null));
         ShortcutManager.Instance.RegisterAction("PreviewTicket", () => viewModel.TicketPreviewCommand.Execute(null));
 
+        ShortcutManager.Instance.RegisterAction("BatchUpdateStatus", () => viewModel.TicketMenuCommand("BatchUpdateStatus"));
+        ShortcutManager.Instance.RegisterAction("BatchUpdateTag", () => viewModel.TicketMenuCommand("BatchUpdateTag"));
+        ShortcutManager.Instance.RegisterAction("BatchUpdateSeat", () => viewModel.TicketMenuCommand("BatchUpdateSeat"));
+        ShortcutManager.Instance.RegisterAction("BatchDelete", () => viewModel.TicketMenuCommand("BatchDelete"));
+
         // 注册快捷键动作 - 行程管理
         ShortcutManager.Instance.RegisterAction("OpenMap", () => viewModel.OpenTicketMapCommand.Execute(null));
         ShortcutManager.Instance.RegisterAction("RefreshData", () => viewModel.TripMenuCommand("RefreshList"));
@@ -932,9 +937,7 @@ public partial class MainWindow : Window
     private void BatchDeleteButton_Click(object sender, RoutedEventArgs e)
     {
         if (DataContext is not MainViewModel viewModel) return;
-        var selectedItems = viewModel.TripList.TripItems.Where(t => t.IsSelected).ToList();
-        foreach (var item in selectedItems)
-            SafeExecuteAsync(() => viewModel.TripList.DeleteTripCommand(item), nameof(BatchDeleteButton_Click));
+        _ = viewModel.TripList.BatchDeleteAsync();
     }
 
     /// <summary>
@@ -1370,13 +1373,18 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
-    ///     获取选中的行程项列表
+    ///     获取选中的行程项列表（列表视图为 DataGrid 多选；卡片视图为勾选卡片）
     /// </summary>
     public List<Model.TripItem> GetSelectedTripItems()
     {
-        var selectedItems = new List<Model.TripItem>();
+        if (DataContext is not MainViewModel viewModel)
+            return new List<Model.TripItem>();
 
-        if (TripDataGrid != null && TripDataGrid.SelectedItems.Count > 0)
+        if (viewModel.TripList.CurrentViewType == ViewType.Card)
+            return viewModel.TripList.TripItems.Where(t => t.IsSelected).ToList();
+
+        var selectedItems = new List<Model.TripItem>();
+        if (TripDataGrid != null)
             foreach (var item in TripDataGrid.SelectedItems)
                 if (item is Model.TripItem tripItem)
                     selectedItems.Add(tripItem);
@@ -1408,6 +1416,12 @@ public partial class MainWindow : Window
         {
             Debug.WriteLine($"[MainWindow] DataContext 不是 MainViewModel，实际类型: {DataContext?.GetType().Name}");
         }
+    }
+
+    private void BatchUpdateSeat_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainViewModel viewModel) return;
+        viewModel.TicketMenuCommand("BatchUpdateSeat");
     }
 
     /// <summary>

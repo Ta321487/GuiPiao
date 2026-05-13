@@ -143,7 +143,8 @@
                 <Separator />
                 <MenuItem Header="批量操作">
                     <MenuItem Header="批量修改状态..." Click="BatchUpdateStatus_Click" InputGestureText="{Binding ShortcutKeys[BatchUpdateStatus]}" />
-                    <MenuItem Header="批量更改标签..." Click="BatchUpdateTag_Click" InputGestureText="{Binding ShortcutKeys[BatchUpdateSeat]}" />
+                    <MenuItem Header="批量更新席别..." Click="BatchUpdateSeat_Click" InputGestureText="{Binding ShortcutKeys[BatchUpdateSeat]}" />
+                    <MenuItem Header="批量更改标签..." Click="BatchUpdateTag_Click" InputGestureText="{Binding ShortcutKeys[BatchUpdateTag]}" />
                     <MenuItem Header="批量删除..." Click="BatchDelete_Click" InputGestureText="{Binding ShortcutKeys[BatchDelete]}" />
                 </MenuItem>
                 <MenuItem Header="标签管理">

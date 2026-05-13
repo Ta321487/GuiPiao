@@ -1236,6 +1236,73 @@ public partial class TripListViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>
+    ///     批量更新席别命令
+    /// </summary>
+    [RelayCommand]
+    public async Task BatchUpdateSeatAsync()
+    {
+        _logService?.Info("TripListViewModel", "BatchUpdateSeatAsync 开始执行");
+        try
+        {
+            var selectedItems = GetSelectedTripItems();
+            _logService?.Info("TripListViewModel", $"获取到 {selectedItems.Count} 个选中项");
+
+            if (selectedItems.Count == 0)
+            {
+                _logService?.Info("TripListViewModel", "没有选中任何车票，显示提示");
+                MessageBoxWindow.Show("请先选择要更新席别的车票");
+                return;
+            }
+
+            var dialog = new BatchUpdateSeatWindow(selectedItems);
+            dialog.Owner = Application.Current.MainWindow;
+
+            if (dialog.ShowDialog() != true || !dialog.IsConfirmed)
+                return;
+
+            if (dialog.EditableTickets.Count == 0)
+            {
+                MessageBoxWindow.Show("选中的车票均为已改签或已退票状态，无法批量更新席别。", "提示",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var targetSeatType = dialog.SelectedSeatType;
+            var editableCount = dialog.EditableTickets.Count;
+            var skippedCount = dialog.SkippedTickets.Count;
+
+            var confirmMessage = $"确定要将 {editableCount} 张车票的席别更新为「{targetSeatType}」吗？";
+            if (skippedCount > 0)
+                confirmMessage += $"\n\n（有 {skippedCount} 张已改签/已退票的车票将被跳过）";
+
+            var result = MessageBoxWindow.Show(confirmMessage, "确认批量更新席别",
+                MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+            if (result != MessageBoxResult.Yes)
+                return;
+
+            var ids = dialog.EditableTickets.Select(t => t.DatabaseId).Where(id => id > 0).ToList();
+            var affectedCount = await _trainRideRepository.BatchUpdateSeatTypeAsync(ids, targetSeatType);
+
+            _logService.Info("TripListViewModel",
+                $"批量更新席别成功：{affectedCount} 张车票，目标席别：{targetSeatType}");
+
+            await LoadTripItemsAsync();
+
+            var successMessage = $"成功将 {affectedCount} 张车票的席别更新为「{targetSeatType}」";
+            if (skippedCount > 0) successMessage += $"\n跳过 {skippedCount} 张已改签/已退票的车票";
+
+            MessageBoxWindow.Show(successMessage, "成功");
+        }
+        catch (Exception ex)
+        {
+            _logService.Error("TripListViewModel", $"批量更新席别失败：{ex.Message}");
+            MessageBoxWindow.Show($"批量更新席别失败：{ex.Message}", "错误",
+                MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    /// <summary>
     ///     批量删除命令
     /// </summary>
     [RelayCommand]
@@ -1255,12 +1322,9 @@ public partial class TripListViewModel : ObservableObject, IDisposable
                 return;
             }
 
-            // 2. 确认对话框
+            // 2. 确认对话框（与「批量删除/清空数据时弹出二次确认」通用设置一致）
             var confirmMessage = $"确定要删除选中的 {selectedItems.Count} 张车票吗？\n\n此操作不可恢复！";
-            var result = MessageBoxWindow.Show(confirmMessage, "确认批量删除",
-                MessageBoxButton.YesNo, MessageBoxImage.Warning);
-
-            if (result != MessageBoxResult.Yes)
+            if (!_confirmationService.ConfirmBatchDelete(confirmMessage, true))
                 return;
 
             // 3. 执行批量删除

@@ -324,10 +324,8 @@ public partial class MenuViewModel : ObservableObject
                 // 批量修改状态功能已在 MainViewModel 中直接处理
                 break;
             case "BatchUpdateSeat":
-                MessageBoxWindow.Show(Application.Current.MainWindow, "批量更新席别功能即将推出");
-                break;
             case "BatchDelete":
-                MessageBoxWindow.Show(Application.Current.MainWindow, "批量删除功能即将推出");
+                // 票务批量操作由 MainViewModel.TicketMenuCommand 转发至 TripListViewModel，不应经由此路径调用
                 break;
             case "NewTag":
             {

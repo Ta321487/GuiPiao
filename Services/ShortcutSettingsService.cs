@@ -95,6 +95,11 @@ public class ShortcutSettingsService
                 },
                 new()
                 {
+                    ActionId = "BatchUpdateTag", ActionName = "批量更改标签", Description = "批量更改票务标签", Category = "票务操作",
+                    DefaultKey = "", CurrentKey = ""
+                },
+                new()
+                {
                     ActionId = "BatchUpdateSeat", ActionName = "批量更新席别", Description = "批量更新座位类型", Category = "票务操作",
                     DefaultKey = "", CurrentKey = ""
                 },
