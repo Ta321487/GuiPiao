@@ -770,7 +770,7 @@
                                     Click="OnStatisticsConfigClick" />
                             <Button Content="🔄 刷新统计"
                                     Command="{Binding RefreshStatisticsCommand}"
-                                    IsEnabled="{Binding Dashboard.HasDashboardCharts}"
+                                    IsEnabled="{Binding HasDashboardCharts}"
                                     Style="{StaticResource StandardButtonStyle}"
                                     Click="OnRefreshStatisticsClick" />
                         </WrapPanel>
@@ -894,12 +894,14 @@
                               MouseDoubleClick="TripDataGrid_DoubleClick"
                               ColumnHeaderStyle="{StaticResource ThemedDataGridColumnHeaderStyle}"
                               CellStyle="{StaticResource ThemedDataGridCellStyle}"
-                              ScrollViewer.CanContentScroll="False"
+                              ScrollViewer.CanContentScroll="True"
                               ScrollViewer.HorizontalScrollBarVisibility="Auto"
                               ScrollViewer.VerticalScrollBarVisibility="Auto"
-                              EnableRowVirtualization="False"
-                              EnableColumnVirtualization="False"
-                              VirtualizingPanel.IsVirtualizing="False"
+                              EnableRowVirtualization="True"
+                              EnableColumnVirtualization="True"
+                              VirtualizingPanel.IsVirtualizing="True"
+                              VirtualizingPanel.IsVirtualizingWhenGrouping="True"
+                              VirtualizingPanel.ScrollUnit="Pixel"
                               Loaded="TripDataGrid_Loaded"
                               Sorting="TripDataGrid_Sorting"
                               Visibility="{Binding IsDataGridVisible, Converter={StaticResource BooleanToVisibilityConverter}}">

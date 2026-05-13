@@ -90,6 +90,9 @@ public partial class MainWindow : Window
 
                 // 初始应用日志列显示设置
                 UpdateLogColumnsVisibility(viewModel);
+
+                // 与行程列表、日志等首屏 Loaded 队列任务错开后再激活仪表盘（Skia 图表），降低启动峰值内存
+                Dispatcher.BeginInvoke(viewModel.EnsureDashboardActivated, DispatcherPriority.Loaded);
             }
         };
     }

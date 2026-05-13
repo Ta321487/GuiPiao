@@ -6,6 +6,10 @@
         <Nullable>enable</Nullable>
         <UseWPF>true</UseWPF>
         <UseWindowsForms>true</UseWindowsForms>
+        <!-- 桌面 WPF：工作站 GC 通常比服务器 GC 占用更少托管堆 -->
+        <ServerGarbageCollection>false</ServerGarbageCollection>
+        <!-- 在内存压力下更积极归还内存（略增 GC 频率） -->
+        <GCConserveMemory>9</GCConserveMemory>
     </PropertyGroup>
 
     <ItemGroup>
@@ -13,8 +17,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <!-- 地图资源文件 -->
-        <Content Include="Resources\**\*">
+        <!-- 地图等资源复制到输出目录（不含 XAML：合并字典须由 WPF 编译进程序集，不能当作 Content） -->
+        <Content Include="Resources\**\*" Exclude="Resources\**\*.xaml">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
     </ItemGroup>

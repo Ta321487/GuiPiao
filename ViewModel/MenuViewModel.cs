@@ -272,19 +272,16 @@ public partial class MenuViewModel : ObservableObject
 
     private void ExitApplication()
     {
-        var owner = Application.Current.MainWindow;
-
-        var result = MessageBoxWindow.Show(
-            owner,
-            "确定要退出程序吗？",
-            "确认退出",
-            MessageBoxButton.YesNo,
-            MessageBoxImage.Question
-        );
-
-        if (result == MessageBoxResult.Yes)
+        // 与主窗口标题栏关闭（×）一致：统一走 MainWindow.OnClosing，
+        // 由那里的「最小化到托盘 / 退出程序 / 取消」对话框处理，避免与点叉两套文案不一致或菜单退出连弹两次。
+        var main = Application.Current.MainWindow;
+        if (main != null)
         {
-            _logService?.Info("MenuViewModel", "用户退出应用程序");
+            _logService?.Info("MenuViewModel", "用户从菜单请求关闭主窗口");
+            main.Close();
+        }
+        else
+        {
             Application.Current.Shutdown();
         }
     }

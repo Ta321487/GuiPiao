@@ -1,0 +1,16 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:system="clr-namespace:System;assembly=mscorlib">
+<!-- ============================================ -->
+<!-- 主题资源（由 ThemeManager 动态加载 LightTheme.xaml 或 DarkTheme.xaml） -->
+<!-- 默认字体大小和行高（在主题加载前使用） -->
+<!-- ============================================ -->
+<system:Double x:Key="BaseFontSize">14</system:Double>
+<system:Double x:Key="SmallFontSize">12</system:Double>
+<system:Double x:Key="LargeFontSize">16</system:Double>
+<system:Double x:Key="TitleFontSize">18</system:Double>
+<system:Double x:Key="DataGridRowHeight">36</system:Double>
+<system:Double x:Key="CompactRowHeight">28</system:Double>
+<system:Double x:Key="StandardRowHeight">36</system:Double>
+<system:Double x:Key="LooseRowHeight">44</system:Double>
+</ResourceDictionary>

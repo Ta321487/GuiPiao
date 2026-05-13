@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
@@ -39,7 +40,16 @@ public partial class LogPanelViewModel : ObservableObject, IDisposable
 
         _logService.LogsChanged += OnLogsChanged;
 
-        _ = LoadLogItemsAsync();
+        // 首屏后再拉日志，避免与行程列表、DataGrid 列初始化同时打磁盘与 UI
+        if (Application.Current?.Dispatcher != null)
+            Application.Current.Dispatcher.BeginInvoke(
+                new Action(() =>
+                {
+                    if (!_isDisposed) _ = LoadLogItemsAsync();
+                }),
+                DispatcherPriority.ApplicationIdle);
+        else
+            _ = LoadLogItemsAsync();
     }
 
     public void Dispose()

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
@@ -40,6 +41,11 @@ public partial class MainViewModel : ObservableObject, IDisposable
     private DispatcherTimer? _statusResetTimer;
     private TripListViewModel? _tripList;
     private PropertyChangedEventHandler? _tripListPropertyChangedHandler;
+
+    /// <summary>在仪表盘 VM 尚未创建时供绑定使用的空集合，避免首屏即构造 Skia 图表。</summary>
+    private readonly ObservableCollection<DashboardChartViewModel> _emptyDashboardCharts = new();
+
+    private DashboardSettingsService? _dashboardSettingsForLazyConfig;
 
     public MainViewModel()
     {
@@ -102,13 +108,16 @@ public partial class MainViewModel : ObservableObject, IDisposable
     {
         get
         {
-            if (_dashboard == null)
-            {
-                Debug.WriteLine("[MainViewModel] 延迟初始化DashboardViewModel");
-                _dashboard = new DashboardViewModel();
-                if (_menu != null) _menu.Dashboard = _dashboard;
-            }
+            if (_dashboard != null)
+                return _dashboard;
 
+            SubscribeToDashboardChanges();
+            Debug.WriteLine("[MainViewModel] 延迟初始化DashboardViewModel");
+            _dashboard = new DashboardViewModel();
+            if (_dashboardPropertyChangedHandler != null)
+                _dashboard.PropertyChanged += _dashboardPropertyChangedHandler;
+            if (_menu != null) _menu.Dashboard = _dashboard;
+            NotifyForwardedDashboardProperties();
             return _dashboard;
         }
     }
@@ -341,4 +350,28 @@ public partial class MainViewModel : ObservableObject, IDisposable
     }
 
     #endregion
+
+    /// <summary>
+    ///     在首屏空闲时刻再创建仪表盘 ViewModel，使统计图表与行程列表等错开峰值内存。
+    /// </summary>
+    internal void EnsureDashboardActivated()
+    {
+        if (!DesignerProperties.GetIsInDesignMode(new DependencyObject()))
+            _ = Dashboard;
+    }
+
+    private void NotifyForwardedDashboardProperties()
+    {
+        OnPropertyChanged(nameof(DashboardCharts));
+        OnPropertyChanged(nameof(HasDashboardCharts));
+        OnPropertyChanged(nameof(DashboardColumns));
+        OnPropertyChanged(nameof(DashboardConfig));
+        OnPropertyChanged(nameof(IsFullscreenMode));
+        OnPropertyChanged(nameof(FullscreenChart));
+        OnPropertyChanged(nameof(FullscreenChartIndex));
+        OnPropertyChanged(nameof(CanNavigatePrevious));
+        OnPropertyChanged(nameof(CanNavigateNext));
+        OnPropertyChanged(nameof(FullscreenIndicator));
+        TripMenuCommandCommand.NotifyCanExecuteChanged();
+    }
 }

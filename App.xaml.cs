@@ -32,9 +32,6 @@ public partial class App : Application
         AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
         DispatcherUnhandledException += OnDispatcherUnhandledException;
         TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
-
-        // 配置 LiveCharts 全局中文字体
-        ConfigureLiveChartsFont();
     }
 
     /// <summary>
@@ -89,7 +86,10 @@ public partial class App : Application
             return;
         }
 
-        var config = new GeneralSettingsService().Config;
+        // 在加载主窗口前配置 LiveCharts 字体（StartupUri 会在 base.OnStartup 中创建 MainWindow）
+        ConfigureLiveChartsFont();
+
+        var config = _generalSettingsService.Config;
 
         base.OnStartup(e);
 

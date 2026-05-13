@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 using System.Windows;
+using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
@@ -21,7 +22,8 @@ namespace GuiPiao.ViewModel;
 
 public partial class DashboardViewModel : ObservableObject, IDisposable
 {
-    private readonly IChartDataService _chartDataService;
+    /// <summary>首次真正加载图表数据时再创建，避免仅构造 DashboardViewModel 就拉取仓储与查询构建器。</summary>
+    private IChartDataService? _chartDataService;
 
     private readonly ObservableCollection<DashboardChartViewModel> _dashboardCharts = new();
 
@@ -41,12 +43,12 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
 
     private bool _isInitializingDashboard;
     private bool _isPendingAutoRefresh;
+    private bool _deferredInitializationScheduled;
     private Timer? _weeklyRefreshTimer;
 
     public DashboardViewModel()
     {
         _dashboardSettingsService = new DashboardSettingsService();
-        _chartDataService = new ChartDataService();
 
         // 注册消息（这些轻量级操作可以立即执行）
         WeakReferenceMessenger.Default.Register<OpenStatisticsConfigMessage>(this, (recipient, message) =>
@@ -68,9 +70,28 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
     {
         get
         {
-            EnsureInitialized();
+            if (!_isDisposed && !_isInitialized)
+                ScheduleDeferredInitialization();
             return _dashboardCharts;
         }
+    }
+
+    /// <summary>
+    ///     将仪表盘重初始化（图表与 Skia 控件）推迟到当前帧之后的空闲时刻，
+    ///     避免与主窗口、行程列表等首屏加载争抢内存与 CPU；消息入口仍会同步调用 EnsureInitialized。
+    /// </summary>
+    private void ScheduleDeferredInitialization()
+    {
+        if (_deferredInitializationScheduled || Application.Current == null)
+            return;
+
+        _deferredInitializationScheduled = true;
+        Application.Current.Dispatcher.BeginInvoke(() =>
+        {
+            _deferredInitializationScheduled = false;
+            if (!_isDisposed)
+                EnsureInitialized();
+        }, DispatcherPriority.ApplicationIdle);
     }
 
     public bool HasDashboardCharts => _dashboardCharts.Count > 0;
@@ -82,6 +103,8 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
     public string FullscreenIndicator => $"{FullscreenChartIndex + 1} / {DashboardCharts.Count}";
 
     public DashboardConfig DashboardConfig => _dashboardSettingsService.Config;
+
+    private IChartDataService ChartDataService => _chartDataService ??= new ChartDataService();
 
     public void Dispose()
     {
@@ -99,8 +122,8 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         _weeklyRefreshTimer?.Dispose();
         _loadChartsLock?.Dispose();
 
-        foreach (var chart in DashboardCharts) chart.Dispose();
-        DashboardCharts.Clear();
+        foreach (var chart in _dashboardCharts) chart.Dispose();
+        _dashboardCharts.Clear();
 
         WeakReferenceMessenger.Default.UnregisterAll(this);
     }
@@ -227,7 +250,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
             foreach (var card in config.Cards.OrderBy(c => c.SortOrder))
             {
                 Debug.WriteLine($"[LoadDashboardChartsAsync] 创建图表: {card.Name}");
-                var chartVm = new DashboardChartViewModel(card, _chartDataService);
+                var chartVm = new DashboardChartViewModel(card, ChartDataService);
                 chartViewModels.Add(chartVm);
             }
 
@@ -351,7 +374,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
     private async Task RefreshChartDataAndReloadAsync(bool reloadConfig)
     {
         // 触发数据刷新（通知所有图表重新加载数据）
-        _chartDataService.RefreshData();
+        _chartDataService?.RefreshData();
 
         if (reloadConfig)
         {
@@ -471,7 +494,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
     {
         Debug.WriteLine("[DashboardViewModel] 收到 StatisticsCacheClearRequested 事件");
         // 触发数据刷新事件，通知所有图表重新加载
-        _chartDataService.ClearCache();
+        _chartDataService?.ClearCache();
     }
 
     [RelayCommand]
