@@ -261,7 +261,8 @@
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
                             <TextBlock Text="Python路径：" VerticalAlignment="Center"
                                        Foreground="{DynamicResource TextPrimaryBrush}" />
-                            <TextBox Text="{Binding PythonPathDisplay, Mode=OneWay}" VerticalAlignment="Center" Width="300"
+                            <TextBox Text="{Binding PythonPathDisplay, Mode=OneWay}" VerticalAlignment="Center"
+                                     Width="300"
                                      Margin="10,0"
                                      Padding="5" ToolTip="{Binding PythonPath}"
                                      IsReadOnly="True" />

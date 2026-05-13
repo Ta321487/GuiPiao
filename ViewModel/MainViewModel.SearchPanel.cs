@@ -5,6 +5,45 @@ namespace GuiPiao.ViewModel;
 
 public partial class MainViewModel
 {
+    private void SubscribeToSearchPanelChanges()
+    {
+        _searchPanelPropertyChangedHandler = (s, e) =>
+        {
+            OnPropertyChanged(e.PropertyName);
+            switch (e.PropertyName)
+            {
+                case nameof(SearchPanel.IsSearchExpanded):
+                    OnPropertyChanged(nameof(IsSearchExpanded));
+                    SetTemporaryStatus(SearchPanel.IsSearchExpanded ? "高级检索区已展开" : "高级检索区已收起");
+                    break;
+                case nameof(SearchPanel.DepartStation):
+                case nameof(SearchPanel.ArriveStation):
+                case nameof(SearchPanel.SelectedTrainNoPrefix):
+                    OnPropertyChanged(e.PropertyName);
+                    OnPropertyChanged(nameof(IsTrainNoNumberEnabled));
+                    break;
+                case nameof(SearchPanel.TrainNoNumber):
+                case nameof(SearchPanel.DateRange):
+                case nameof(SearchPanel.Status):
+                    OnPropertyChanged(e.PropertyName);
+                    break;
+                case nameof(SearchPanel.DepartStationSuggestions):
+                    OnPropertyChanged(nameof(DepartStationSuggestions));
+                    break;
+                case nameof(SearchPanel.ArriveStationSuggestions):
+                    OnPropertyChanged(nameof(ArriveStationSuggestions));
+                    break;
+                case nameof(SearchPanel.IsDepartStationDropDownOpen):
+                    OnPropertyChanged(nameof(IsDepartStationDropDownOpen));
+                    break;
+                case nameof(SearchPanel.IsArriveStationDropDownOpen):
+                    OnPropertyChanged(nameof(IsArriveStationDropDownOpen));
+                    break;
+            }
+        };
+        SearchPanel.PropertyChanged += _searchPanelPropertyChangedHandler;
+    }
+
     #region 转发属性 - 高级检索区相关
 
     public bool IsSearchExpanded
@@ -92,43 +131,4 @@ public partial class MainViewModel
     }
 
     #endregion
-
-    private void SubscribeToSearchPanelChanges()
-    {
-        _searchPanelPropertyChangedHandler = (s, e) =>
-        {
-            OnPropertyChanged(e.PropertyName);
-            switch (e.PropertyName)
-            {
-                case nameof(SearchPanel.IsSearchExpanded):
-                    OnPropertyChanged(nameof(IsSearchExpanded));
-                    SetTemporaryStatus(SearchPanel.IsSearchExpanded ? "高级检索区已展开" : "高级检索区已收起");
-                    break;
-                case nameof(SearchPanel.DepartStation):
-                case nameof(SearchPanel.ArriveStation):
-                case nameof(SearchPanel.SelectedTrainNoPrefix):
-                    OnPropertyChanged(e.PropertyName);
-                    OnPropertyChanged(nameof(IsTrainNoNumberEnabled));
-                    break;
-                case nameof(SearchPanel.TrainNoNumber):
-                case nameof(SearchPanel.DateRange):
-                case nameof(SearchPanel.Status):
-                    OnPropertyChanged(e.PropertyName);
-                    break;
-                case nameof(SearchPanel.DepartStationSuggestions):
-                    OnPropertyChanged(nameof(DepartStationSuggestions));
-                    break;
-                case nameof(SearchPanel.ArriveStationSuggestions):
-                    OnPropertyChanged(nameof(ArriveStationSuggestions));
-                    break;
-                case nameof(SearchPanel.IsDepartStationDropDownOpen):
-                    OnPropertyChanged(nameof(IsDepartStationDropDownOpen));
-                    break;
-                case nameof(SearchPanel.IsArriveStationDropDownOpen):
-                    OnPropertyChanged(nameof(IsArriveStationDropDownOpen));
-                    break;
-            }
-        };
-        SearchPanel.PropertyChanged += _searchPanelPropertyChangedHandler;
-    }
 }

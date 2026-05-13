@@ -29,9 +29,9 @@ namespace GuiPiao.View;
 public partial class MainWindow : Window
 {
     private DragDropHelper? _dashboardDragDropHelper;
+    private bool _isDataContextInitialized;
     private bool _isMinimizedToTray;
     private Forms.NotifyIcon? _notifyIcon;
-    private bool _isDataContextInitialized;
 
     public MainWindow()
     {
@@ -727,11 +727,12 @@ public partial class MainWindow : Window
                 visibleActions.Add(pair.Key);
 
         foreach (var item in contextMenu.Items)
-        {
             if (item is MenuItem menuItem && menuItem.Tag is string tag)
+            {
                 menuItem.Visibility = visibleActions.Contains(tag)
                     ? Visibility.Visible
                     : Visibility.Collapsed;
+            }
             else if (item is Separator separator)
             {
                 var prevVisible = contextMenu.Items.Cast<object>()
@@ -747,7 +748,6 @@ public partial class MainWindow : Window
                     ? Visibility.Visible
                     : Visibility.Collapsed;
             }
-        }
     }
 
     /// <summary>
@@ -780,16 +780,20 @@ public partial class MainWindow : Window
                 viewModel.TripList.ViewTripCommand(trip);
                 break;
             case "Edit":
-                SafeExecuteAsync(() => viewModel.TripList.EditTripCommand(trip), nameof(CardViewMenuItem_Click) + "_Edit");
+                SafeExecuteAsync(() => viewModel.TripList.EditTripCommand(trip),
+                    nameof(CardViewMenuItem_Click) + "_Edit");
                 break;
             case "Reschedule":
-                SafeExecuteAsync(() => viewModel.TripList.RescheduleTripCommand(trip), nameof(CardViewMenuItem_Click) + "_Reschedule");
+                SafeExecuteAsync(() => viewModel.TripList.RescheduleTripCommand(trip),
+                    nameof(CardViewMenuItem_Click) + "_Reschedule");
                 break;
             case "Refund":
-                SafeExecuteAsync(() => viewModel.TripList.RefundTripCommand(trip), nameof(CardViewMenuItem_Click) + "_Refund");
+                SafeExecuteAsync(() => viewModel.TripList.RefundTripCommand(trip),
+                    nameof(CardViewMenuItem_Click) + "_Refund");
                 break;
             case "Delete":
-                SafeExecuteAsync(() => viewModel.TripList.DeleteTripCommand(trip), nameof(CardViewMenuItem_Click) + "_Delete");
+                SafeExecuteAsync(() => viewModel.TripList.DeleteTripCommand(trip),
+                    nameof(CardViewMenuItem_Click) + "_Delete");
                 break;
         }
     }
@@ -805,19 +809,14 @@ public partial class MainWindow : Window
         if (e.ClickCount == 2)
         {
             e.Handled = true;
-            if (viewModel.Layout.CardActionTrigger == "DoubleClick")
-            {
-                ExecuteCardDefaultAction(trip);
-            }
+            if (viewModel.Layout.CardActionTrigger == "DoubleClick") ExecuteCardDefaultAction(trip);
             return;
         }
 
         // 多选逻辑（仅单击时）
         if (e.ClickCount == 1)
-        {
             HandleCardSelection(trip, Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl),
                 Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift));
-        }
     }
 
     /// <summary>
@@ -865,12 +864,10 @@ public partial class MainWindow : Window
     private void UpdateCardSelectionToolbar()
     {
         if (DataContext is MainViewModel viewModel)
-        {
             // 发送消息通知选中状态变更
             WeakReferenceMessenger.Default.Send(new CardSelectionChangedMessage(
                 viewModel.TripList.HasSelectedItems,
                 viewModel.TripList.SelectedItemsCount));
-        }
     }
 
     /// <summary>
@@ -962,16 +959,20 @@ public partial class MainWindow : Window
                 viewModel.TripList.ViewTripCommand(trip);
                 break;
             case "Edit":
-                SafeExecuteAsync(() => viewModel.TripList.EditTripCommand(trip), nameof(ExecuteCardDefaultAction) + "_Edit");
+                SafeExecuteAsync(() => viewModel.TripList.EditTripCommand(trip),
+                    nameof(ExecuteCardDefaultAction) + "_Edit");
                 break;
             case "Reschedule":
-                SafeExecuteAsync(() => viewModel.TripList.RescheduleTripCommand(trip), nameof(ExecuteCardDefaultAction) + "_Reschedule");
+                SafeExecuteAsync(() => viewModel.TripList.RescheduleTripCommand(trip),
+                    nameof(ExecuteCardDefaultAction) + "_Reschedule");
                 break;
             case "Refund":
-                SafeExecuteAsync(() => viewModel.TripList.RefundTripCommand(trip), nameof(ExecuteCardDefaultAction) + "_Refund");
+                SafeExecuteAsync(() => viewModel.TripList.RefundTripCommand(trip),
+                    nameof(ExecuteCardDefaultAction) + "_Refund");
                 break;
             case "Delete":
-                SafeExecuteAsync(() => viewModel.TripList.DeleteTripCommand(trip), nameof(ExecuteCardDefaultAction) + "_Delete");
+                SafeExecuteAsync(() => viewModel.TripList.DeleteTripCommand(trip),
+                    nameof(ExecuteCardDefaultAction) + "_Delete");
                 break;
         }
     }
@@ -981,10 +982,7 @@ public partial class MainWindow : Window
     /// </summary>
     private string? GetDefaultActionFromSettings()
     {
-        if (DataContext is MainViewModel viewModel)
-        {
-            return viewModel.Layout.CardDefaultAction;
-        }
+        if (DataContext is MainViewModel viewModel) return viewModel.Layout.CardDefaultAction;
         return "View";
     }
 
@@ -1075,7 +1073,8 @@ public partial class MainWindow : Window
                     otherColumn.SortDirection = null;
 
         // 保存排序信息并重新加载数据（数据库排序）
-        SafeExecuteAsync(() => viewModel.SaveDataSortInfoAsync(sortMemberPath, newDirection), nameof(TripDataGrid_Sorting));
+        SafeExecuteAsync(() => viewModel.SaveDataSortInfoAsync(sortMemberPath, newDirection),
+            nameof(TripDataGrid_Sorting));
     }
 
     /// <summary>
@@ -1204,9 +1203,13 @@ public partial class MainWindow : Window
                 columnWidth = new DataGridLength(config.MinWidth > 0 ? config.MinWidth : 120);
         }
         else if (double.TryParse(config.Width, out var widthValue) && widthValue > 0)
+        {
             columnWidth = new DataGridLength(widthValue);
+        }
         else
+        {
             columnWidth = new DataGridLength(100);
+        }
 
         // 标签列使用模板列
         if (config.FieldName == "Tags")
@@ -1456,7 +1459,8 @@ public partial class MainWindow : Window
         if (DataContext is MainViewModel viewModel && TopGrid != null)
         {
             var actualWidth = TopGrid.ColumnDefinitions[0].ActualWidth;
-            var limitedWidth = (int)Math.Max(LayoutViewModel.LeftPanelMinWidth, Math.Min(LayoutViewModel.LeftPanelMaxWidth, actualWidth));
+            var limitedWidth = (int)Math.Max(LayoutViewModel.LeftPanelMinWidth,
+                Math.Min(LayoutViewModel.LeftPanelMaxWidth, actualWidth));
             viewModel.Layout.LeftPanelWidth = limitedWidth;
             viewModel.SaveLayoutSettings();
         }
@@ -1496,7 +1500,8 @@ public partial class MainWindow : Window
         if (DataContext is MainViewModel viewModel && TopGrid != null)
         {
             var actualWidth = TopGrid.ColumnDefinitions[4].ActualWidth;
-            var limitedWidth = (int)Math.Max(LayoutViewModel.RightPanelMinWidth, Math.Min(LayoutViewModel.RightPanelMaxWidth, actualWidth));
+            var limitedWidth = (int)Math.Max(LayoutViewModel.RightPanelMinWidth,
+                Math.Min(LayoutViewModel.RightPanelMaxWidth, actualWidth));
             viewModel.Layout.RightPanelWidth = limitedWidth;
             viewModel.SaveLayoutSettings();
         }
@@ -1563,7 +1568,8 @@ public partial class MainWindow : Window
         if (DataContext is MainViewModel viewModel && MainGrid != null)
         {
             var actualHeight = MainGrid.RowDefinitions[2].ActualHeight;
-            var limitedHeight = (int)Math.Max(LayoutViewModel.BottomPanelMinHeight, Math.Min(LayoutViewModel.BottomPanelMaxHeight, actualHeight));
+            var limitedHeight = (int)Math.Max(LayoutViewModel.BottomPanelMinHeight,
+                Math.Min(LayoutViewModel.BottomPanelMaxHeight, actualHeight));
             viewModel.Layout.BottomPanelHeight = limitedHeight;
             viewModel.SaveLayoutSettings();
         }

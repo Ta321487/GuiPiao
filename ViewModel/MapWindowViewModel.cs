@@ -27,21 +27,14 @@ public partial class MapWindowViewModel : ObservableObject
     private readonly MapDataService _mapDataService = new();
     private readonly TrainRideRepository _trainRideRepository = new();
     private List<TicketData> _allTickets = new();
-
-    private bool _isDataLoaded;
     private string _currentDirectionFilter = "All"; // 当前方向过滤值
-    private CancellationTokenSource? _statusResetCts; // 用于取消状态重置延迟
 
     [ObservableProperty] private bool _isMapReady;
-
-    /// <summary>
-    ///     数据是否已加载完成
-    /// </summary>
-    public bool IsDataLoaded => _isDataLoaded;
 
     private List<string> _stationsWithoutCoordinates = new();
 
     [ObservableProperty] private string _statusMessage = "正在加载地图...";
+    private CancellationTokenSource? _statusResetCts; // 用于取消状态重置延迟
 
     private WebView2? _webView;
 
@@ -58,12 +51,17 @@ public partial class MapWindowViewModel : ObservableObject
     }
 
     /// <summary>
+    ///     数据是否已加载完成
+    /// </summary>
+    public bool IsDataLoaded { get; private set; }
+
+    /// <summary>
     ///     初始化数据
     /// </summary>
     private async Task InitializeDataAsync()
     {
         await LoadTicketDataAsync();
-        _isDataLoaded = true;
+        IsDataLoaded = true;
 
         // 如果地图已经就绪，发送数据
         if (IsMapReady && _webView?.CoreWebView2 != null)
@@ -76,22 +74,19 @@ public partial class MapWindowViewModel : ObservableObject
     private async void OnMapSettingsSaved(object? sender, EventArgs e)
     {
         if (!IsMapReady || _webView?.CoreWebView2 == null) return;
-        
+
         var settingsService = new MapSettingsService();
         settingsService.RefreshConfig();
         var newDirectionFilter = settingsService.Config.DirectionFilter;
-        
+
         if (_currentDirectionFilter != newDirectionFilter)
         {
             _currentDirectionFilter = newDirectionFilter;
             StatusMessage = "方向过滤已更改，正在重新加载数据...";
-            
+
             // 应用新设置后重新加载数据
             ApplyAllMapSettings();
-            if (_isDataLoaded && _allTickets.Count > 0)
-            {
-                SendTicketsToMap(_allTickets);
-            }
+            if (IsDataLoaded && _allTickets.Count > 0) SendTicketsToMap(_allTickets);
             StatusMessage = "数据已重新加载";
         }
         else
@@ -158,7 +153,7 @@ public partial class MapWindowViewModel : ObservableObject
         ApplyAllMapSettings();
 
         // 如果数据已经加载完成，发送数据到地图
-        if (_isDataLoaded)
+        if (IsDataLoaded)
             ApplyDefaultMapDisplay();
         else
             StatusMessage = "地图就绪，等待数据加载...";
@@ -460,12 +455,7 @@ public partial class MapWindowViewModel : ObservableObject
                 {
                     await Task.Delay(1000, token);
                     if (!token.IsCancellationRequested)
-                    {
-                        await Application.Current.Dispatcher.InvokeAsync(() =>
-                        {
-                            StatusMessage = "就绪";
-                        });
-                    }
+                        await Application.Current.Dispatcher.InvokeAsync(() => { StatusMessage = "就绪"; });
                 }
                 catch (TaskCanceledException)
                 {
@@ -508,14 +498,14 @@ public partial class MapWindowViewModel : ObservableObject
     {
         // 重置所有线路样式
         ResetTripStyles();
-        
+
         // 取消之前的延迟重置任务
         _statusResetCts?.Cancel();
         _statusResetCts = new CancellationTokenSource();
         var token = _statusResetCts.Token;
-        
+
         StatusMessage = "已取消选中";
-        
+
         // 延迟1秒后变为就绪
         _ = Task.Run(async () =>
         {
@@ -523,12 +513,7 @@ public partial class MapWindowViewModel : ObservableObject
             {
                 await Task.Delay(1000, token);
                 if (!token.IsCancellationRequested)
-                {
-                    await Application.Current.Dispatcher.InvokeAsync(() =>
-                    {
-                        StatusMessage = "就绪";
-                    });
-                }
+                    await Application.Current.Dispatcher.InvokeAsync(() => { StatusMessage = "就绪"; });
             }
             catch (TaskCanceledException)
             {
@@ -548,7 +533,7 @@ public partial class MapWindowViewModel : ObservableObject
         if (ticket != null)
         {
             StatusMessage = $"打开车票编辑：{ticket.TrainNo} ({ticket.DepartStation} → {ticket.ArriveStation})";
-            
+
             // Id 已经是数据库ID（MapDataService 中设置：Id = ride.Id.ToString()）
             if (int.TryParse(ticket.Id, out var rideId))
             {
@@ -556,10 +541,7 @@ public partial class MapWindowViewModel : ObservableObject
                 {
                     var editWindow = EditTrainTicketWindow.GetInstance(rideId);
                     editWindow.Owner = GetMapWindow();
-                    if (!editWindow.IsVisible)
-                    {
-                        editWindow.ShowDialog();
-                    }
+                    if (!editWindow.IsVisible) editWindow.ShowDialog();
                 });
             }
             else
@@ -824,7 +806,7 @@ public partial class MapWindowViewModel : ObservableObject
         var existingSettingsWindow = Application.Current.Windows
             .OfType<SettingsWindow>()
             .FirstOrDefault();
-        
+
         if (existingSettingsWindow != null)
         {
             // 如果已有设置窗口，将其激活并前置
@@ -834,13 +816,10 @@ public partial class MapWindowViewModel : ObservableObject
         }
 
         var settingsWindow = new SettingsWindow(SettingsPageType.Map);
-        
+
         // 设置 Owner 为地图窗口，保持窗口关联
         // 但使用 ShowDialog 模态显示，符合对话框行为
-        if (mapWindow != null)
-        {
-            settingsWindow.Owner = mapWindow;
-        }
+        if (mapWindow != null) settingsWindow.Owner = mapWindow;
 
         // 使用 ShowDialog 模态方式显示，统一行为
         settingsWindow.ShowDialog();
@@ -992,7 +971,7 @@ public partial class MapWindowViewModel : ObservableObject
         {
             var data = new
             {
-                type = "highlightTrips", 
+                type = "highlightTrips",
                 tripIds,
                 fitView
             };

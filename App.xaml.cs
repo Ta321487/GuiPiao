@@ -212,6 +212,7 @@ public partial class App : Application
         catch
         {
         }
+
         e.Handled = true;
     }
 
@@ -224,6 +225,7 @@ public partial class App : Application
         catch
         {
         }
+
         e.SetObserved();
     }
 }

@@ -64,7 +64,6 @@ public partial class UISettingsViewModel : ObservableObject, ISettingsViewModel
             _isLoadingConfig = true;
             // 同步更新原始配置的DataGridColumns，避免触发未保存修改
             if (_originalConfig != null)
-            {
                 _originalConfig.DataGridColumns = message.ColumnConfigs.Select(c => new DataGridColumnConfig
                 {
                     FieldName = c.FieldName,
@@ -76,7 +75,6 @@ public partial class UISettingsViewModel : ObservableObject, ISettingsViewModel
                     CanSort = c.CanSort,
                     IsReadOnly = c.IsReadOnly
                 }).ToList();
-            }
             _isLoadingConfig = false;
             // 通知HasUnsavedChanges属性变更
             OnPropertyChanged(nameof(HasUnsavedChanges));
@@ -356,13 +354,11 @@ public partial class UISettingsViewModel : ObservableObject, ISettingsViewModel
         if (a == null || b == null) return false;
         if (a.Count != b.Count) return false;
         for (var i = 0; i < a.Count; i++)
-        {
             if (a[i].FieldName != b[i].FieldName ||
                 a[i].IsVisible != b[i].IsVisible ||
                 a[i].DisplayOrder != b[i].DisplayOrder ||
                 a[i].Width != b[i].Width)
                 return false;
-        }
         return true;
     }
 
@@ -860,6 +856,18 @@ public partial class UISettingsViewModel : ObservableObject, ISettingsViewModel
         }
     }
 
+    #region 卡片视图设置联动方法
+
+    /// <summary>
+    ///     释放资源
+    /// </summary>
+    public void Dispose()
+    {
+        WeakReferenceMessenger.Default.UnregisterAll(this);
+    }
+
+    #endregion
+
     #region 票面预览显示设置
 
     [ObservableProperty] private string _defaultZoom = "FitWindow";
@@ -926,7 +934,7 @@ public partial class UISettingsViewModel : ObservableObject, ISettingsViewModel
 
     #region 卡片视图显示设置
 
-    [ObservableProperty] private int _cardsPerRow = 0;
+    [ObservableProperty] private int _cardsPerRow;
 
     [ObservableProperty] private int _cardWidth = 280;
 
@@ -962,7 +970,7 @@ public partial class UISettingsViewModel : ObservableObject, ISettingsViewModel
 
     [ObservableProperty] private bool _cardShowShadow = true;
 
-    [ObservableProperty] private bool _cardHoverScale = false;
+    [ObservableProperty] private bool _cardHoverScale;
 
     #endregion
 
@@ -1002,16 +1010,5 @@ public partial class UISettingsViewModel : ObservableObject, ISettingsViewModel
     /// </summary>
     public Brush FatalColorBrush => CreateBrushFromHex(FatalColor);
 
-    #endregion
-
-    #region 卡片视图设置联动方法
-
-    /// <summary>
-    ///     释放资源
-    /// </summary>
-    public void Dispose()
-    {
-        WeakReferenceMessenger.Default.UnregisterAll(this);
-    }
     #endregion
 }

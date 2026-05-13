@@ -19,12 +19,12 @@ namespace GuiPiao.ViewModel;
 /// </summary>
 public partial class DashboardSettingsViewModel : ObservableObject, ISettingsViewModel
 {
-    private readonly DashboardSettingsService _settingsService;
-
     /// <summary>
     ///     最大允许的卡片数量
     /// </summary>
     public const int MaxCards = 20;
+
+    private readonly DashboardSettingsService _settingsService;
 
     #region 可用统计项
 
@@ -49,6 +49,16 @@ public partial class DashboardSettingsViewModel : ObservableObject, ISettingsVie
         InitializeAvailableStatistics();
         LoadConfig();
     }
+
+    /// <summary>
+    ///     是否可以添加新卡片
+    /// </summary>
+    public bool CanAddCard => Cards.Count < MaxCards;
+
+    /// <summary>
+    ///     当前卡片数量提示文本
+    /// </summary>
+    public string CardCountText => $"{Cards.Count}/{MaxCards}";
 
     /// <summary>
     ///     是否有未保存的更改
@@ -305,16 +315,6 @@ public partial class DashboardSettingsViewModel : ObservableObject, ISettingsVie
         if (a.ExcludeDuplicateTickets != b.ExcludeDuplicateTickets) return false;
         return true;
     }
-
-    /// <summary>
-    ///     是否可以添加新卡片
-    /// </summary>
-    public bool CanAddCard => Cards.Count < MaxCards;
-
-    /// <summary>
-    ///     当前卡片数量提示文本
-    /// </summary>
-    public string CardCountText => $"{Cards.Count}/{MaxCards}";
 
     /// <summary>
     ///     添加统计项到仪表盘
@@ -674,10 +674,7 @@ public partial class DashboardSettingsViewModel : ObservableObject, ISettingsVie
 
         await Task.Run(() =>
         {
-            Application.Current.Dispatcher.Invoke(() =>
-            {
-                MessageBoxWindow.Show(settingsWindow, "已恢复默认设置并保存。");
-            });
+            Application.Current.Dispatcher.Invoke(() => { MessageBoxWindow.Show(settingsWindow, "已恢复默认设置并保存。"); });
         });
     }
 

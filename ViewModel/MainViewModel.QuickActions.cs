@@ -1,13 +1,26 @@
 using System.Threading.Tasks;
 using System.Windows;
 using CommunityToolkit.Mvvm.Input;
-using GuiPiao.Model;
 using GuiPiao.View;
 
 namespace GuiPiao.ViewModel;
 
 public partial class MainViewModel
 {
+    private void SubscribeToQuickActionsChanges()
+    {
+        _quickActionsPropertyChangedHandler = (s, e) =>
+        {
+            switch (e.PropertyName)
+            {
+                case nameof(QuickActions.NewTicketRecordCommand):
+                    SetTemporaryStatus("正在打开新增票务记录...");
+                    break;
+            }
+        };
+        QuickActions.PropertyChanged += _quickActionsPropertyChangedHandler;
+    }
+
     #region 转发命令 - 快捷功能区
 
     [RelayCommand]
@@ -69,18 +82,4 @@ public partial class MainViewModel
     }
 
     #endregion
-
-    private void SubscribeToQuickActionsChanges()
-    {
-        _quickActionsPropertyChangedHandler = (s, e) =>
-        {
-            switch (e.PropertyName)
-            {
-                case nameof(QuickActions.NewTicketRecordCommand):
-                    SetTemporaryStatus("正在打开新增票务记录...");
-                    break;
-            }
-        };
-        QuickActions.PropertyChanged += _quickActionsPropertyChangedHandler;
-    }
 }

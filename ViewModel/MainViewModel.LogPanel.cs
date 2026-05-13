@@ -13,6 +13,20 @@ public partial class MainViewModel
 
     #endregion
 
+    private void SubscribeToLogPanelChanges()
+    {
+        _logPanelPropertyChangedHandler = (s, e) =>
+        {
+            OnPropertyChanged(e.PropertyName);
+            if (e.PropertyName == nameof(LogPanel.LogItems))
+            {
+                OnPropertyChanged(nameof(LogItems));
+                SetTemporaryStatus($"日志面板已更新，共 {LogPanel.LogItems.Count} 条日志");
+            }
+        };
+        LogPanel.PropertyChanged += _logPanelPropertyChangedHandler;
+    }
+
     #region 转发命令 - 日志面板
 
     [RelayCommand]
@@ -28,18 +42,4 @@ public partial class MainViewModel
     }
 
     #endregion
-
-    private void SubscribeToLogPanelChanges()
-    {
-        _logPanelPropertyChangedHandler = (s, e) =>
-        {
-            OnPropertyChanged(e.PropertyName);
-            if (e.PropertyName == nameof(LogPanel.LogItems))
-            {
-                OnPropertyChanged(nameof(LogItems));
-                SetTemporaryStatus($"日志面板已更新，共 {LogPanel.LogItems.Count} 条日志");
-            }
-        };
-        LogPanel.PropertyChanged += _logPanelPropertyChangedHandler;
-    }
 }

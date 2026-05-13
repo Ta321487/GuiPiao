@@ -4,7 +4,6 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GuiPiao.View"
-        xmlns:vm="clr-namespace:GuiPiao.ViewModel"
         xmlns:controls="clr-namespace:GuiPiao.Controls"
         xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF"
         mc:Ignorable="d"
@@ -648,7 +647,8 @@
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="{Binding TripList.SectionTitle}" FontSize="{DynamicResource LargeFontSize}"
+                            <TextBlock Grid.Column="0" Text="{Binding TripList.SectionTitle}"
+                                       FontSize="{DynamicResource LargeFontSize}"
                                        FontWeight="Bold" VerticalAlignment="Center" TextWrapping="Wrap" />
                             <TextBlock Grid.Column="2" Text="{Binding CollapseButtonContent}"
                                        VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryBrush}"
@@ -846,7 +846,8 @@
                                 <TextBlock Text="已选中：" VerticalAlignment="Center" Margin="0,0,10,0"
                                            FontSize="{DynamicResource BaseFontSize}"
                                            Foreground="{DynamicResource TextPrimaryBrush}" />
-                                <TextBlock Text="{Binding TripList.SelectedItemsCount}" VerticalAlignment="Center" Margin="0,0,20,0"
+                                <TextBlock Text="{Binding TripList.SelectedItemsCount}" VerticalAlignment="Center"
+                                           Margin="0,0,20,0"
                                            FontSize="{DynamicResource BaseFontSize}"
                                            Foreground="{DynamicResource AccentBrush}" FontWeight="Bold" />
                                 <Button Content="👁 查看" Style="{StaticResource StandardButtonStyle}" Margin="0,0,5,0"
@@ -864,7 +865,8 @@
                                 <Button Content="🗑️ 删除" Style="{StaticResource StandardButtonStyle}" Margin="0,0,5,0"
                                         Visibility="{Binding Layout.CardBatchShowDelete, Converter={StaticResource BooleanToVisibilityConverter}}"
                                         Click="BatchDeleteButton_Click" />
-                                <Button Content="清除选择" Style="{StaticResource StandardButtonStyle}" Click="ClearCardSelection_Click" />
+                                <Button Content="清除选择" Style="{StaticResource StandardButtonStyle}"
+                                        Click="ClearCardSelection_Click" />
                             </StackPanel>
                         </Border>
 
@@ -872,17 +874,18 @@
                                       VerticalScrollBarVisibility="Auto"
                                       HorizontalScrollBarVisibility="Disabled">
                             <ItemsControl ItemsSource="{Binding TripItemsView}">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <local:CardViewPanel 
-                                        CardsPerRow="{Binding DataContext.Layout.CardsPerRow, RelativeSource={RelativeSource AncestorType=local:MainWindow}}"
-                                        CardWidth="{Binding DataContext.Layout.CardWidth, RelativeSource={RelativeSource AncestorType=local:MainWindow}}"
-                                        CardSpacing="{Binding DataContext.Layout.CardSpacing, RelativeSource={RelativeSource AncestorType=local:MainWindow}}" />
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Border Width="{Binding DataContext.Layout.CardWidth, RelativeSource={RelativeSource AncestorType=local:MainWindow}}"
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <local:CardViewPanel
+                                            CardsPerRow="{Binding DataContext.Layout.CardsPerRow, RelativeSource={RelativeSource AncestorType=local:MainWindow}}"
+                                            CardWidth="{Binding DataContext.Layout.CardWidth, RelativeSource={RelativeSource AncestorType=local:MainWindow}}"
+                                            CardSpacing="{Binding DataContext.Layout.CardSpacing, RelativeSource={RelativeSource AncestorType=local:MainWindow}}" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border
+                                            Width="{Binding DataContext.Layout.CardWidth, RelativeSource={RelativeSource AncestorType=local:MainWindow}}"
                                             MaxWidth="{Binding DataContext.Layout.CardWidth, RelativeSource={RelativeSource AncestorType=local:MainWindow}}"
                                             Margin="{Binding DataContext.Layout.CardMargin, RelativeSource={RelativeSource AncestorType=local:MainWindow}}"
                                             Background="{DynamicResource PanelBackgroundBrush}"
@@ -890,300 +893,324 @@
                                             Tag="{Binding}"
                                             MouseLeftButtonDown="CardViewBorder_MouseLeftButtonDown"
                                             MouseLeftButtonUp="CardViewBorder_MouseLeftButtonUp">
-                                        <Border.ContextMenu>
-                                            <ContextMenu Background="{DynamicResource PanelBackgroundBrush}"
-                                                         Foreground="{DynamicResource TextPrimaryBrush}"
-                                                         BorderBrush="{DynamicResource BorderBrush}"
-                                                         BorderThickness="1"
-                                                         FontSize="{DynamicResource BaseFontSize}"
-                                                         Opened="CardContextMenu_Opened">
-                                                <MenuItem Header="👁 查看"
-                                                          Click="CardViewMenuItem_Click"
-                                                          Tag="View"
-                                                          Style="{StaticResource ContextMenuItemStyle}" />
-                                                <MenuItem Header="✏️ 编辑"
-                                                          Click="CardViewMenuItem_Click"
-                                                          Tag="Edit"
-                                                          Style="{StaticResource ContextMenuItemStyle}" />
-                                                <Separator Background="{DynamicResource BorderBrush}" />
-                                                <MenuItem Header="🔄 改签"
-                                                          Click="CardViewMenuItem_Click"
-                                                          Tag="Reschedule"
-                                                          Style="{StaticResource ContextMenuItemStyle}" />
-                                                <MenuItem Header="💰 退票"
-                                                          Click="CardViewMenuItem_Click"
-                                                          Tag="Refund"
-                                                          Style="{StaticResource ContextMenuItemStyle}" />
-                                                <Separator Background="{DynamicResource BorderBrush}" />
-                                                <MenuItem Header="🗑️ 删除"
-                                                          Click="CardViewMenuItem_Click"
-                                                          Tag="Delete"
-                                                          Style="{StaticResource ContextMenuItemStyle}" />
-                                            </ContextMenu>
-                                        </Border.ContextMenu>
-                                        <Border.Style>
-                                            <Style TargetType="Border">
-                                                <Setter Property="Opacity" Value="1" />
-                                                <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
-                                                <Setter Property="BorderThickness" Value="1" />
-                                                <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
-                                                <Setter Property="RenderTransform">
-                                                    <Setter.Value>
-                                                        <ScaleTransform ScaleX="1" ScaleY="1" />
-                                                    </Setter.Value>
-                                                </Setter>
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding IsSelected}" Value="True">
-                                                        <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
-                                                        <Setter Property="BorderThickness" Value="2" />
-                                                    </DataTrigger>
-                                                    <MultiDataTrigger>
-                                                        <MultiDataTrigger.Conditions>
-                                                            <Condition Binding="{Binding DataContext.Layout.CardHoverHighlight, RelativeSource={RelativeSource AncestorType=local:MainWindow}}" Value="True" />
-                                                            <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsMouseOver}" Value="True" />
-                                                        </MultiDataTrigger.Conditions>
-                                                        <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
-                                                        <Setter Property="BorderThickness" Value="2" />
-                                                    </MultiDataTrigger>
-                                                    <MultiDataTrigger>
-                                                        <MultiDataTrigger.Conditions>
-                                                            <Condition Binding="{Binding DataContext.Layout.CardShowShadow, RelativeSource={RelativeSource AncestorType=local:MainWindow}}" Value="True" />
-                                                            <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsMouseOver}" Value="True" />
-                                                        </MultiDataTrigger.Conditions>
-                                                        <Setter Property="Effect">
-                                                            <Setter.Value>
-                                                                <DropShadowEffect ShadowDepth="4" BlurRadius="12" Opacity="0.4" />
-                                                            </Setter.Value>
-                                                        </Setter>
-                                                    </MultiDataTrigger>
-                                                    <MultiDataTrigger>
-                                                        <MultiDataTrigger.Conditions>
-                                                            <Condition Binding="{Binding DataContext.Layout.CardHoverScale, RelativeSource={RelativeSource AncestorType=local:MainWindow}}" Value="True" />
-                                                            <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsMouseOver}" Value="True" />
-                                                        </MultiDataTrigger.Conditions>
-                                                        <Setter Property="RenderTransform">
-                                                            <Setter.Value>
-                                                                <ScaleTransform ScaleX="1.05" ScaleY="1.05" />
-                                                            </Setter.Value>
-                                                        </Setter>
-                                                        <Setter Property="Panel.ZIndex" Value="99" />
-                                                        <Setter Property="Effect">
-                                                            <Setter.Value>
-                                                                <DropShadowEffect ShadowDepth="6" BlurRadius="16" Opacity="0.5" />
-                                                            </Setter.Value>
-                                                        </Setter>
-                                                    </MultiDataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Border.Style>
-                                        <Grid>
-                                            <Grid.RowDefinitions>
-                                                <RowDefinition Height="Auto" />
-                                                <RowDefinition Height="Auto" />
-                                                <RowDefinition Height="Auto" />
-                                                <RowDefinition Height="Auto" />
-                                                <RowDefinition Height="Auto" />
-                                                <RowDefinition Height="Auto" />
-                                                <RowDefinition Height="Auto" />
-                                                <RowDefinition Height="Auto" />
-                                                <RowDefinition Height="Auto" />
-                                            </Grid.RowDefinitions>
+                                            <Border.ContextMenu>
+                                                <ContextMenu Background="{DynamicResource PanelBackgroundBrush}"
+                                                             Foreground="{DynamicResource TextPrimaryBrush}"
+                                                             BorderBrush="{DynamicResource BorderBrush}"
+                                                             BorderThickness="1"
+                                                             FontSize="{DynamicResource BaseFontSize}"
+                                                             Opened="CardContextMenu_Opened">
+                                                    <MenuItem Header="👁 查看"
+                                                              Click="CardViewMenuItem_Click"
+                                                              Tag="View"
+                                                              Style="{StaticResource ContextMenuItemStyle}" />
+                                                    <MenuItem Header="✏️ 编辑"
+                                                              Click="CardViewMenuItem_Click"
+                                                              Tag="Edit"
+                                                              Style="{StaticResource ContextMenuItemStyle}" />
+                                                    <Separator Background="{DynamicResource BorderBrush}" />
+                                                    <MenuItem Header="🔄 改签"
+                                                              Click="CardViewMenuItem_Click"
+                                                              Tag="Reschedule"
+                                                              Style="{StaticResource ContextMenuItemStyle}" />
+                                                    <MenuItem Header="💰 退票"
+                                                              Click="CardViewMenuItem_Click"
+                                                              Tag="Refund"
+                                                              Style="{StaticResource ContextMenuItemStyle}" />
+                                                    <Separator Background="{DynamicResource BorderBrush}" />
+                                                    <MenuItem Header="🗑️ 删除"
+                                                              Click="CardViewMenuItem_Click"
+                                                              Tag="Delete"
+                                                              Style="{StaticResource ContextMenuItemStyle}" />
+                                                </ContextMenu>
+                                            </Border.ContextMenu>
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="Opacity" Value="1" />
+                                                    <Setter Property="BorderBrush"
+                                                            Value="{DynamicResource BorderBrush}" />
+                                                    <Setter Property="BorderThickness" Value="1" />
+                                                    <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
+                                                    <Setter Property="RenderTransform">
+                                                        <Setter.Value>
+                                                            <ScaleTransform ScaleX="1" ScaleY="1" />
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                            <Setter Property="BorderBrush"
+                                                                    Value="{DynamicResource AccentBrush}" />
+                                                            <Setter Property="BorderThickness" Value="2" />
+                                                        </DataTrigger>
+                                                        <MultiDataTrigger>
+                                                            <MultiDataTrigger.Conditions>
+                                                                <Condition
+                                                                    Binding="{Binding DataContext.Layout.CardHoverHighlight, RelativeSource={RelativeSource AncestorType=local:MainWindow}}"
+                                                                    Value="True" />
+                                                                <Condition
+                                                                    Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsMouseOver}"
+                                                                    Value="True" />
+                                                            </MultiDataTrigger.Conditions>
+                                                            <Setter Property="BorderBrush"
+                                                                    Value="{DynamicResource AccentBrush}" />
+                                                            <Setter Property="BorderThickness" Value="2" />
+                                                        </MultiDataTrigger>
+                                                        <MultiDataTrigger>
+                                                            <MultiDataTrigger.Conditions>
+                                                                <Condition
+                                                                    Binding="{Binding DataContext.Layout.CardShowShadow, RelativeSource={RelativeSource AncestorType=local:MainWindow}}"
+                                                                    Value="True" />
+                                                                <Condition
+                                                                    Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsMouseOver}"
+                                                                    Value="True" />
+                                                            </MultiDataTrigger.Conditions>
+                                                            <Setter Property="Effect">
+                                                                <Setter.Value>
+                                                                    <DropShadowEffect ShadowDepth="4" BlurRadius="12"
+                                                                            Opacity="0.4" />
+                                                                </Setter.Value>
+                                                            </Setter>
+                                                        </MultiDataTrigger>
+                                                        <MultiDataTrigger>
+                                                            <MultiDataTrigger.Conditions>
+                                                                <Condition
+                                                                    Binding="{Binding DataContext.Layout.CardHoverScale, RelativeSource={RelativeSource AncestorType=local:MainWindow}}"
+                                                                    Value="True" />
+                                                                <Condition
+                                                                    Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsMouseOver}"
+                                                                    Value="True" />
+                                                            </MultiDataTrigger.Conditions>
+                                                            <Setter Property="RenderTransform">
+                                                                <Setter.Value>
+                                                                    <ScaleTransform ScaleX="1.05" ScaleY="1.05" />
+                                                                </Setter.Value>
+                                                            </Setter>
+                                                            <Setter Property="Panel.ZIndex" Value="99" />
+                                                            <Setter Property="Effect">
+                                                                <Setter.Value>
+                                                                    <DropShadowEffect ShadowDepth="6" BlurRadius="16"
+                                                                            Opacity="0.5" />
+                                                                </Setter.Value>
+                                                            </Setter>
+                                                        </MultiDataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
+                                            <Grid>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="Auto" />
+                                                </Grid.RowDefinitions>
 
-                                            <!-- 顶部：车次和状态 -->
-                                            <Grid Grid.Row="0" Margin="12,10,12,6">
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="*" />
-                                                    <ColumnDefinition Width="Auto" />
-                                                </Grid.ColumnDefinitions>
-                                                <TextBlock Grid.Column="0"
-                                                           Text="{Binding TrainNo}"
-                                                           FontSize="{DynamicResource LargeFontSize}"
-                                                           FontWeight="Bold"
-                                                           Foreground="{DynamicResource TextPrimaryBrush}" />
-                                                <Border Background="{DynamicResource AccentBrush}"
-                                                        CornerRadius="4"
-                                                        Padding="6,2">
-                                                    <Border.Style>
-                                                        <Style TargetType="Border">
-                                                            <Setter Property="Visibility" Value="Visible" />
-                                                            <Setter Property="Grid.Column" Value="1" />
-                                                            <Setter Property="Grid.ColumnSpan" Value="1" />
-                                                            <Setter Property="HorizontalAlignment" Value="Right" />
-                                                            <Setter Property="VerticalAlignment" Value="Center" />
-                                                            <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding DataContext.Layout.CardContentDensity, RelativeSource={RelativeSource AncestorType=local:MainWindow}}" Value="Compact">
-                                                                    <Setter Property="Visibility" Value="Collapsed" />
-                                                                </DataTrigger>
-                                                                <DataTrigger Binding="{Binding DataContext.Layout.CardStatusPosition, RelativeSource={RelativeSource AncestorType=local:MainWindow}}" Value="Hidden">
-                                                                    <Setter Property="Visibility" Value="Collapsed" />
-                                                                </DataTrigger>
-                                                                <DataTrigger Binding="{Binding DataContext.Layout.CardStatusPosition, RelativeSource={RelativeSource AncestorType=local:MainWindow}}" Value="TopCenter">
-                                                                    <Setter Property="Grid.Column" Value="0" />
-                                                                    <Setter Property="Grid.ColumnSpan" Value="2" />
-                                                                    <Setter Property="HorizontalAlignment" Value="Center" />
-                                                                </DataTrigger>
-                                                            </Style.Triggers>
-                                                        </Style>
-                                                    </Border.Style>
-                                                    <TextBlock Text="{Binding StatusDisplay}"
-                                                               FontSize="{DynamicResource SmallFontSize}"
-                                                               Foreground="{DynamicResource AccentTextBrush}" />
-                                                </Border>
-                                            </Grid>
-
-                                            <!-- 中间：站点和箭头 -->
-                                            <Grid Grid.Row="1" Margin="12,6">
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="*" />
-                                                    <ColumnDefinition Width="Auto" />
-                                                    <ColumnDefinition Width="*" />
-                                                </Grid.ColumnDefinitions>
-                                                <StackPanel Grid.Column="0" HorizontalAlignment="Center">
-                                                    <TextBlock Text="{Binding DepartStation}"
-                                                               FontSize="{DynamicResource BaseFontSize}"
+                                                <!-- 顶部：车次和状态 -->
+                                                <Grid Grid.Row="0" Margin="12,10,12,6">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Grid.Column="0"
+                                                               Text="{Binding TrainNo}"
+                                                               FontSize="{DynamicResource LargeFontSize}"
                                                                FontWeight="Bold"
-                                                               Foreground="{DynamicResource TextPrimaryBrush}"
-                                                               HorizontalAlignment="Center" />
-                                                    <TextBlock Text="{Binding DepartTime}"
+                                                               Foreground="{DynamicResource TextPrimaryBrush}" />
+                                                    <Border Background="{DynamicResource AccentBrush}"
+                                                            CornerRadius="4"
+                                                            Padding="6,2">
+                                                        <Border.Style>
+                                                            <Style TargetType="Border">
+                                                                <Setter Property="Visibility" Value="Visible" />
+                                                                <Setter Property="Grid.Column" Value="1" />
+                                                                <Setter Property="Grid.ColumnSpan" Value="1" />
+                                                                <Setter Property="HorizontalAlignment" Value="Right" />
+                                                                <Setter Property="VerticalAlignment" Value="Center" />
+                                                                <Style.Triggers>
+                                                                    <DataTrigger
+                                                                        Binding="{Binding DataContext.Layout.CardContentDensity, RelativeSource={RelativeSource AncestorType=local:MainWindow}}"
+                                                                        Value="Compact">
+                                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                                    </DataTrigger>
+                                                                    <DataTrigger
+                                                                        Binding="{Binding DataContext.Layout.CardStatusPosition, RelativeSource={RelativeSource AncestorType=local:MainWindow}}"
+                                                                        Value="Hidden">
+                                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                                    </DataTrigger>
+                                                                    <DataTrigger
+                                                                        Binding="{Binding DataContext.Layout.CardStatusPosition, RelativeSource={RelativeSource AncestorType=local:MainWindow}}"
+                                                                        Value="TopCenter">
+                                                                        <Setter Property="Grid.Column" Value="0" />
+                                                                        <Setter Property="Grid.ColumnSpan" Value="2" />
+                                                                        <Setter Property="HorizontalAlignment"
+                                                                                Value="Center" />
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Border.Style>
+                                                        <TextBlock Text="{Binding StatusDisplay}"
+                                                                   FontSize="{DynamicResource SmallFontSize}"
+                                                                   Foreground="{DynamicResource AccentTextBrush}" />
+                                                    </Border>
+                                                </Grid>
+
+                                                <!-- 中间：站点和箭头 -->
+                                                <Grid Grid.Row="1" Margin="12,6">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <StackPanel Grid.Column="0" HorizontalAlignment="Center">
+                                                        <TextBlock Text="{Binding DepartStation}"
+                                                                   FontSize="{DynamicResource BaseFontSize}"
+                                                                   FontWeight="Bold"
+                                                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                                                   HorizontalAlignment="Center" />
+                                                        <TextBlock Text="{Binding DepartTime}"
+                                                                   FontSize="{DynamicResource SmallFontSize}"
+                                                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                                                   HorizontalAlignment="Center" />
+                                                    </StackPanel>
+                                                    <TextBlock Grid.Column="1"
+                                                               Text="→"
+                                                               FontSize="20"
+                                                               Foreground="{DynamicResource AccentBrush}"
+                                                               VerticalAlignment="Center"
+                                                               Margin="10,0" />
+                                                    <StackPanel Grid.Column="2" HorizontalAlignment="Center">
+                                                        <TextBlock Text="{Binding ArriveStation}"
+                                                                   FontSize="{DynamicResource BaseFontSize}"
+                                                                   FontWeight="Bold"
+                                                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                                                   HorizontalAlignment="Center" />
+                                                        <TextBlock Text="{Binding ArriveTime}"
+                                                                   FontSize="{DynamicResource SmallFontSize}"
+                                                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                                                   HorizontalAlignment="Center" />
+                                                    </StackPanel>
+                                                </Grid>
+
+                                                <!-- 标准/详细/完整模式：日期、席别 -->
+                                                <Grid Grid.Row="2" Margin="12,4"
+                                                      Visibility="{Binding DataContext.Layout.CardContentDensity, RelativeSource={RelativeSource AncestorType=local:MainWindow}, Converter={StaticResource CardDensityToVisibilityConverter}, ConverterParameter='Standard|Detailed|Full'}">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Grid.Column="0"
+                                                               Text="{Binding DepartDate, Converter={StaticResource DateFormatConverter}}"
+                                                               FontSize="{DynamicResource SmallFontSize}"
+                                                               Foreground="{DynamicResource TextSecondaryBrush}" />
+                                                    <TextBlock Grid.Column="1"
+                                                               Text="{Binding SeatType}"
+                                                               FontSize="{DynamicResource SmallFontSize}"
+                                                               Foreground="{DynamicResource TextSecondaryBrush}" />
+                                                </Grid>
+
+                                                <!-- 详细/完整模式：车厢号、座位号、检票口 -->
+                                                <Grid Grid.Row="3" Margin="12,4"
+                                                      Visibility="{Binding DataContext.Layout.CardContentDensity, RelativeSource={RelativeSource AncestorType=local:MainWindow}, Converter={StaticResource CardDensityToVisibilityConverter}, ConverterParameter='Detailed|Full'}">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Grid.Column="0"
+                                                               Text="{Binding CoachNo, StringFormat='车厢: {0}'}"
                                                                FontSize="{DynamicResource SmallFontSize}"
                                                                Foreground="{DynamicResource TextSecondaryBrush}"
-                                                               HorizontalAlignment="Center" />
-                                                </StackPanel>
-                                                <TextBlock Grid.Column="1"
-                                                           Text="→"
-                                                           FontSize="20"
-                                                           Foreground="{DynamicResource AccentBrush}"
-                                                           VerticalAlignment="Center"
-                                                           Margin="10,0" />
-                                                <StackPanel Grid.Column="2" HorizontalAlignment="Center">
-                                                    <TextBlock Text="{Binding ArriveStation}"
-                                                               FontSize="{DynamicResource BaseFontSize}"
-                                                               FontWeight="Bold"
-                                                               Foreground="{DynamicResource TextPrimaryBrush}"
-                                                               HorizontalAlignment="Center" />
-                                                    <TextBlock Text="{Binding ArriveTime}"
+                                                               Visibility="{Binding CoachNo, Converter={StaticResource StringToVisibilityConverter}}" />
+                                                    <TextBlock Grid.Column="1"
+                                                               Text="{Binding SeatNo, StringFormat='座位: {0}'}"
                                                                FontSize="{DynamicResource SmallFontSize}"
                                                                Foreground="{DynamicResource TextSecondaryBrush}"
-                                                               HorizontalAlignment="Center" />
-                                                </StackPanel>
-                                            </Grid>
+                                                               HorizontalAlignment="Center"
+                                                               Visibility="{Binding SeatNo, Converter={StaticResource StringToVisibilityConverter}}" />
+                                                    <TextBlock Grid.Column="2"
+                                                               Text="{Binding CheckInLocation, StringFormat='检票: {0}'}"
+                                                               FontSize="{DynamicResource SmallFontSize}"
+                                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                                               HorizontalAlignment="Right"
+                                                               Visibility="{Binding CheckInLocation, Converter={StaticResource StringToVisibilityConverter}}" />
+                                                </Grid>
 
-                                            <!-- 标准/详细/完整模式：日期、席别 -->
-                                            <Grid Grid.Row="2" Margin="12,4"
-                                                  Visibility="{Binding DataContext.Layout.CardContentDensity, RelativeSource={RelativeSource AncestorType=local:MainWindow}, Converter={StaticResource CardDensityToVisibilityConverter}, ConverterParameter='Standard|Detailed|Full'}">
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="*" />
-                                                    <ColumnDefinition Width="Auto" />
-                                                </Grid.ColumnDefinitions>
-                                                <TextBlock Grid.Column="0"
-                                                           Text="{Binding DepartDate, Converter={StaticResource DateFormatConverter}}"
-                                                           FontSize="{DynamicResource SmallFontSize}"
-                                                           Foreground="{DynamicResource TextSecondaryBrush}" />
-                                                <TextBlock Grid.Column="1"
-                                                           Text="{Binding SeatType}"
-                                                           FontSize="{DynamicResource SmallFontSize}"
-                                                           Foreground="{DynamicResource TextSecondaryBrush}" />
-                                            </Grid>
-
-                                            <!-- 详细/完整模式：车厢号、座位号、检票口 -->
-                                            <Grid Grid.Row="3" Margin="12,4"
-                                                  Visibility="{Binding DataContext.Layout.CardContentDensity, RelativeSource={RelativeSource AncestorType=local:MainWindow}, Converter={StaticResource CardDensityToVisibilityConverter}, ConverterParameter='Detailed|Full'}">
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="*" />
-                                                    <ColumnDefinition Width="*" />
-                                                    <ColumnDefinition Width="*" />
-                                                </Grid.ColumnDefinitions>
-                                                <TextBlock Grid.Column="0"
-                                                           Text="{Binding CoachNo, StringFormat='车厢: {0}'}"
+                                                <!-- 详细/完整模式：备注 -->
+                                                <TextBlock Grid.Row="4" Margin="12,4"
+                                                           Text="{Binding Hint, StringFormat='备注: {0}'}"
                                                            FontSize="{DynamicResource SmallFontSize}"
                                                            Foreground="{DynamicResource TextSecondaryBrush}"
-                                                           Visibility="{Binding CoachNo, Converter={StaticResource StringToVisibilityConverter}}" />
-                                                <TextBlock Grid.Column="1"
-                                                           Text="{Binding SeatNo, StringFormat='座位: {0}'}"
+                                                           TextTrimming="CharacterEllipsis"
+                                                           Visibility="{Binding DataContext.Layout.CardContentDensity, RelativeSource={RelativeSource AncestorType=local:MainWindow}, Converter={StaticResource CardDensityToVisibilityConverter}, ConverterParameter='Detailed|Full'}" />
+
+                                                <!-- 完整模式：票号、用途 -->
+                                                <Grid Grid.Row="5" Margin="12,4"
+                                                      Visibility="{Binding DataContext.Layout.CardContentDensity, RelativeSource={RelativeSource AncestorType=local:MainWindow}, Converter={StaticResource CardDensityToVisibilityConverter}, ConverterParameter='Full'}">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Grid.Column="0"
+                                                               Text="{Binding TicketNumber, StringFormat='票号: {0}'}"
+                                                               FontSize="{DynamicResource SmallFontSize}"
+                                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                                               Visibility="{Binding TicketNumber, Converter={StaticResource StringToVisibilityConverter}}" />
+                                                    <TextBlock Grid.Column="1"
+                                                               Text="{Binding TicketPurpose}"
+                                                               FontSize="{DynamicResource SmallFontSize}"
+                                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                                               Visibility="{Binding TicketPurpose, Converter={StaticResource StringToVisibilityConverter}}" />
+                                                </Grid>
+
+                                                <!-- 完整模式：改签/退票标记 -->
+                                                <TextBlock Grid.Row="6" Margin="12,4"
+                                                           Text="{Binding TicketModificationType}"
                                                            FontSize="{DynamicResource SmallFontSize}"
-                                                           Foreground="{DynamicResource TextSecondaryBrush}"
-                                                           HorizontalAlignment="Center"
-                                                           Visibility="{Binding SeatNo, Converter={StaticResource StringToVisibilityConverter}}" />
-                                                <TextBlock Grid.Column="2"
-                                                           Text="{Binding CheckInLocation, StringFormat='检票: {0}'}"
-                                                           FontSize="{DynamicResource SmallFontSize}"
-                                                           Foreground="{DynamicResource TextSecondaryBrush}"
-                                                           HorizontalAlignment="Right"
-                                                           Visibility="{Binding CheckInLocation, Converter={StaticResource StringToVisibilityConverter}}" />
+                                                           Foreground="{DynamicResource WarningBrush}"
+                                                           Visibility="{Binding DataContext.Layout.CardContentDensity, RelativeSource={RelativeSource AncestorType=local:MainWindow}, Converter={StaticResource CardDensityToVisibilityConverter}, ConverterParameter='Full'}" />
+
+                                                <!-- 完整模式：标签 -->
+                                                <ItemsControl Grid.Row="7" Margin="12,4"
+                                                              ItemsSource="{Binding Tags}"
+                                                              Visibility="{Binding DataContext.Layout.CardContentDensity, RelativeSource={RelativeSource AncestorType=local:MainWindow}, Converter={StaticResource CardDensityToVisibilityConverter}, ConverterParameter='Full'}">
+                                                    <ItemsControl.ItemsPanel>
+                                                        <ItemsPanelTemplate>
+                                                            <WrapPanel Orientation="Horizontal" />
+                                                        </ItemsPanelTemplate>
+                                                    </ItemsControl.ItemsPanel>
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <Border Background="{DynamicResource AccentBrush}"
+                                                                    CornerRadius="3"
+                                                                    Padding="4,2"
+                                                                    Margin="0,0,4,2">
+                                                                <TextBlock Text="{Binding Name}"
+                                                                           FontSize="{DynamicResource SmallFontSize}"
+                                                                           Foreground="{DynamicResource AccentTextBrush}" />
+                                                            </Border>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+
+                                                <!-- 底部：金额（所有模式都显示） -->
+                                                <Grid Grid.Row="8" Margin="12,6,12,10">
+                                                    <TextBlock Text="{Binding Money, StringFormat='{}{0:C}'}"
+                                                               FontSize="{DynamicResource BaseFontSize}"
+                                                               FontWeight="Bold"
+                                                               Foreground="{DynamicResource AccentBrush}"
+                                                               HorizontalAlignment="Right" />
+                                                </Grid>
                                             </Grid>
-
-                                            <!-- 详细/完整模式：备注 -->
-                                            <TextBlock Grid.Row="4" Margin="12,4"
-                                                       Text="{Binding Hint, StringFormat='备注: {0}'}"
-                                                       FontSize="{DynamicResource SmallFontSize}"
-                                                       Foreground="{DynamicResource TextSecondaryBrush}"
-                                                       TextTrimming="CharacterEllipsis"
-                                                       Visibility="{Binding DataContext.Layout.CardContentDensity, RelativeSource={RelativeSource AncestorType=local:MainWindow}, Converter={StaticResource CardDensityToVisibilityConverter}, ConverterParameter='Detailed|Full'}" />
-
-                                            <!-- 完整模式：票号、用途 -->
-                                            <Grid Grid.Row="5" Margin="12,4"
-                                                  Visibility="{Binding DataContext.Layout.CardContentDensity, RelativeSource={RelativeSource AncestorType=local:MainWindow}, Converter={StaticResource CardDensityToVisibilityConverter}, ConverterParameter='Full'}">
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="*" />
-                                                    <ColumnDefinition Width="Auto" />
-                                                </Grid.ColumnDefinitions>
-                                                <TextBlock Grid.Column="0"
-                                                           Text="{Binding TicketNumber, StringFormat='票号: {0}'}"
-                                                           FontSize="{DynamicResource SmallFontSize}"
-                                                           Foreground="{DynamicResource TextSecondaryBrush}"
-                                                           Visibility="{Binding TicketNumber, Converter={StaticResource StringToVisibilityConverter}}" />
-                                                <TextBlock Grid.Column="1"
-                                                           Text="{Binding TicketPurpose}"
-                                                           FontSize="{DynamicResource SmallFontSize}"
-                                                           Foreground="{DynamicResource TextSecondaryBrush}"
-                                                           Visibility="{Binding TicketPurpose, Converter={StaticResource StringToVisibilityConverter}}" />
-                                            </Grid>
-
-                                            <!-- 完整模式：改签/退票标记 -->
-                                            <TextBlock Grid.Row="6" Margin="12,4"
-                                                       Text="{Binding TicketModificationType}"
-                                                       FontSize="{DynamicResource SmallFontSize}"
-                                                       Foreground="{DynamicResource WarningBrush}"
-                                                       Visibility="{Binding DataContext.Layout.CardContentDensity, RelativeSource={RelativeSource AncestorType=local:MainWindow}, Converter={StaticResource CardDensityToVisibilityConverter}, ConverterParameter='Full'}" />
-
-                                            <!-- 完整模式：标签 -->
-                                            <ItemsControl Grid.Row="7" Margin="12,4"
-                                                          ItemsSource="{Binding Tags}"
-                                                          Visibility="{Binding DataContext.Layout.CardContentDensity, RelativeSource={RelativeSource AncestorType=local:MainWindow}, Converter={StaticResource CardDensityToVisibilityConverter}, ConverterParameter='Full'}">
-                                                <ItemsControl.ItemsPanel>
-                                                    <ItemsPanelTemplate>
-                                                        <WrapPanel Orientation="Horizontal" />
-                                                    </ItemsPanelTemplate>
-                                                </ItemsControl.ItemsPanel>
-                                                <ItemsControl.ItemTemplate>
-                                                    <DataTemplate>
-                                                        <Border Background="{DynamicResource AccentBrush}" 
-                                                                CornerRadius="3" 
-                                                                Padding="4,2" 
-                                                                Margin="0,0,4,2">
-                                                            <TextBlock Text="{Binding Name}" 
-                                                                       FontSize="{DynamicResource SmallFontSize}"
-                                                                       Foreground="{DynamicResource AccentTextBrush}" />
-                                                        </Border>
-                                                    </DataTemplate>
-                                                </ItemsControl.ItemTemplate>
-                                            </ItemsControl>
-
-                                            <!-- 底部：金额（所有模式都显示） -->
-                                            <Grid Grid.Row="8" Margin="12,6,12,10">
-                                                <TextBlock Text="{Binding Money, StringFormat='{}{0:C}'}"
-                                                           FontSize="{DynamicResource BaseFontSize}"
-                                                           FontWeight="Bold"
-                                                           Foreground="{DynamicResource AccentBrush}"
-                                                           HorizontalAlignment="Right" />
-                                            </Grid>
-                                        </Grid>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </ScrollViewer>
-                </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Grid>
                     <TextBlock Text="暂无数据"
                                HorizontalAlignment="Center"
                                VerticalAlignment="Center"

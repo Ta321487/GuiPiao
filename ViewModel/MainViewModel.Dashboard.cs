@@ -7,6 +7,42 @@ namespace GuiPiao.ViewModel;
 
 public partial class MainViewModel
 {
+    private void SubscribeToDashboardChanges()
+    {
+        _dashboardPropertyChangedHandler = (s, e) =>
+        {
+            OnPropertyChanged(e.PropertyName);
+            switch (e.PropertyName)
+            {
+                case nameof(Dashboard.DashboardCharts):
+                case nameof(Dashboard.HasDashboardCharts):
+                    OnPropertyChanged(nameof(DashboardCharts));
+                    OnPropertyChanged(nameof(HasDashboardCharts));
+                    TripMenuCommandCommand.NotifyCanExecuteChanged();
+                    SetTemporaryStatus(Dashboard.HasDashboardCharts
+                        ? $"仪表盘已加载 {Dashboard.DashboardCharts.Count} 个图表"
+                        : "仪表盘暂无图表");
+                    break;
+                case nameof(Dashboard.DashboardColumns):
+                    OnPropertyChanged(nameof(DashboardColumns));
+                    break;
+                case nameof(Dashboard.IsFullscreenMode):
+                    OnPropertyChanged(nameof(IsFullscreenMode));
+                    break;
+                case nameof(Dashboard.FullscreenChart):
+                    OnPropertyChanged(nameof(FullscreenChart));
+                    break;
+                case nameof(Dashboard.FullscreenChartIndex):
+                    OnPropertyChanged(nameof(FullscreenChartIndex));
+                    OnPropertyChanged(nameof(CanNavigatePrevious));
+                    OnPropertyChanged(nameof(CanNavigateNext));
+                    OnPropertyChanged(nameof(FullscreenIndicator));
+                    break;
+            }
+        };
+        Dashboard.PropertyChanged += _dashboardPropertyChangedHandler;
+    }
+
     #region 转发属性 - 仪表盘相关
 
     public ObservableCollection<DashboardChartViewModel> DashboardCharts => Dashboard.DashboardCharts;
@@ -61,40 +97,4 @@ public partial class MainViewModel
     }
 
     #endregion
-
-    private void SubscribeToDashboardChanges()
-    {
-        _dashboardPropertyChangedHandler = (s, e) =>
-        {
-            OnPropertyChanged(e.PropertyName);
-            switch (e.PropertyName)
-            {
-                case nameof(Dashboard.DashboardCharts):
-                case nameof(Dashboard.HasDashboardCharts):
-                    OnPropertyChanged(nameof(DashboardCharts));
-                    OnPropertyChanged(nameof(HasDashboardCharts));
-                    TripMenuCommandCommand.NotifyCanExecuteChanged();
-                    SetTemporaryStatus(Dashboard.HasDashboardCharts
-                        ? $"仪表盘已加载 {Dashboard.DashboardCharts.Count} 个图表"
-                        : "仪表盘暂无图表");
-                    break;
-                case nameof(Dashboard.DashboardColumns):
-                    OnPropertyChanged(nameof(DashboardColumns));
-                    break;
-                case nameof(Dashboard.IsFullscreenMode):
-                    OnPropertyChanged(nameof(IsFullscreenMode));
-                    break;
-                case nameof(Dashboard.FullscreenChart):
-                    OnPropertyChanged(nameof(FullscreenChart));
-                    break;
-                case nameof(Dashboard.FullscreenChartIndex):
-                    OnPropertyChanged(nameof(FullscreenChartIndex));
-                    OnPropertyChanged(nameof(CanNavigatePrevious));
-                    OnPropertyChanged(nameof(CanNavigateNext));
-                    OnPropertyChanged(nameof(FullscreenIndicator));
-                    break;
-            }
-        };
-        Dashboard.PropertyChanged += _dashboardPropertyChangedHandler;
-    }
 }

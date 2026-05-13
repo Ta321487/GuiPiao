@@ -180,7 +180,7 @@ public partial class DashboardChartViewModel : ObservableObject, IDisposable
             if (ChartData != null)
             {
                 var config = BuildConfigFromCard(Card);
-                
+
                 // 1. 先清空图表，让 LiveCharts 完成清理
                 Series = null;
                 XAxes = null;
@@ -188,7 +188,7 @@ public partial class DashboardChartViewModel : ObservableObject, IDisposable
                 OnPropertyChanged(nameof(Series));
                 OnPropertyChanged(nameof(XAxes));
                 OnPropertyChanged(nameof(YAxes));
-                
+
                 // 2. 释放旧资源
                 DisposeSkiaResources();
 
@@ -286,17 +286,17 @@ public partial class DashboardChartViewModel : ObservableObject, IDisposable
                 OnPropertyChanged(nameof(Series));
                 OnPropertyChanged(nameof(XAxes));
                 OnPropertyChanged(nameof(YAxes));
-                
+
                 // 2. 释放旧资源
                 DisposeSkiaResources();
-                
+
                 // 3. 延迟以确保 LiveCharts 完成清理
                 await Task.Delay(50);
-                
+
                 // 4. 生成新资源
                 GenerateSeries(config.ChartType);
                 GenerateAxes(config.ChartType);
-                
+
                 Debug.WriteLine($"[DashboardChartViewModel] Series 生成完成: {Series?.Length ?? 0}");
                 OnPropertyChanged(nameof(HasData));
             }

@@ -18,27 +18,27 @@ public partial class MainViewModel : ObservableObject, IDisposable
 {
     private readonly GeneralSettingsService _generalSettingsService;
     private readonly LogService _logService;
+    private DashboardViewModel? _dashboard;
+    private PropertyChangedEventHandler? _dashboardPropertyChangedHandler;
     private bool _isDisposed;
     private bool _isInitialized;
+
+    private LayoutViewModel? _layout;
+
+    private PropertyChangedEventHandler? _layoutPropertyChangedHandler;
+    private LogPanelViewModel? _logPanel;
+    private PropertyChangedEventHandler? _logPanelPropertyChangedHandler;
+    private MenuViewModel? _menu;
+    private QuickActionsViewModel? _quickActions;
+    private PropertyChangedEventHandler? _quickActionsPropertyChangedHandler;
+    private SearchPanelViewModel? _searchPanel;
+    private PropertyChangedEventHandler? _searchPanelPropertyChangedHandler;
 
     [ObservableProperty] private string _statusMessage = "就绪";
 
     private DispatcherTimer? _statusResetTimer;
-
-    private PropertyChangedEventHandler? _layoutPropertyChangedHandler;
-    private PropertyChangedEventHandler? _tripListPropertyChangedHandler;
-    private PropertyChangedEventHandler? _dashboardPropertyChangedHandler;
-    private PropertyChangedEventHandler? _logPanelPropertyChangedHandler;
-    private PropertyChangedEventHandler? _quickActionsPropertyChangedHandler;
-    private PropertyChangedEventHandler? _searchPanelPropertyChangedHandler;
-
-    private LayoutViewModel? _layout;
     private TripListViewModel? _tripList;
-    private DashboardViewModel? _dashboard;
-    private LogPanelViewModel? _logPanel;
-    private MenuViewModel? _menu;
-    private QuickActionsViewModel? _quickActions;
-    private SearchPanelViewModel? _searchPanel;
+    private PropertyChangedEventHandler? _tripListPropertyChangedHandler;
 
     public MainViewModel()
     {
@@ -72,33 +72,22 @@ public partial class MainViewModel : ObservableObject, IDisposable
         Debug.WriteLine("[MainViewModel] 初始化完成");
     }
 
-    private void EnsureInitialized()
-    {
-        if (_isInitialized) return;
-        _isInitialized = true;
-
-        Debug.WriteLine("[MainViewModel] 延迟初始化子ViewModel");
-
-        _layout = new LayoutViewModel();
-        _tripList = new TripListViewModel();
-        _logPanel = new LogPanelViewModel();
-        _menu = new MenuViewModel();
-        _quickActions = new QuickActionsViewModel();
-        _searchPanel = new SearchPanelViewModel();
-
-        SubscribeToChildViewModels();
-
-        if (_generalSettingsService.Config.AutoRefreshOnStartup) _ = _tripList.LoadTripItemsAsync();
-    }
-
     public LayoutViewModel Layout
     {
-        get { EnsureInitialized(); return _layout!; }
+        get
+        {
+            EnsureInitialized();
+            return _layout!;
+        }
     }
 
     public TripListViewModel TripList
     {
-        get { EnsureInitialized(); return _tripList!; }
+        get
+        {
+            EnsureInitialized();
+            return _tripList!;
+        }
     }
 
     public DashboardViewModel Dashboard
@@ -109,29 +98,47 @@ public partial class MainViewModel : ObservableObject, IDisposable
             {
                 Debug.WriteLine("[MainViewModel] 延迟初始化DashboardViewModel");
                 _dashboard = new DashboardViewModel();
+                if (_menu != null) _menu.Dashboard = _dashboard;
             }
+
             return _dashboard;
         }
     }
 
     public LogPanelViewModel LogPanel
     {
-        get { EnsureInitialized(); return _logPanel!; }
+        get
+        {
+            EnsureInitialized();
+            return _logPanel!;
+        }
     }
 
     public MenuViewModel Menu
     {
-        get { EnsureInitialized(); return _menu!; }
+        get
+        {
+            EnsureInitialized();
+            return _menu!;
+        }
     }
 
     public QuickActionsViewModel QuickActions
     {
-        get { EnsureInitialized(); return _quickActions!; }
+        get
+        {
+            EnsureInitialized();
+            return _quickActions!;
+        }
     }
 
     public SearchPanelViewModel SearchPanel
     {
-        get { EnsureInitialized(); return _searchPanel!; }
+        get
+        {
+            EnsureInitialized();
+            return _searchPanel!;
+        }
     }
 
     public UISettingsService UISettingsService => Layout.UISettingsService;
@@ -172,6 +179,27 @@ public partial class MainViewModel : ObservableObject, IDisposable
     }
 
     #endregion
+
+    private void EnsureInitialized()
+    {
+        if (_isInitialized) return;
+        _isInitialized = true;
+
+        Debug.WriteLine("[MainViewModel] 延迟初始化子ViewModel");
+
+        _layout = new LayoutViewModel();
+        _tripList = new TripListViewModel();
+        _logPanel = new LogPanelViewModel();
+        _menu = new MenuViewModel();
+        _quickActions = new QuickActionsViewModel();
+        _searchPanel = new SearchPanelViewModel();
+
+        if (_dashboard != null) _menu.Dashboard = _dashboard;
+
+        SubscribeToChildViewModels();
+
+        if (_generalSettingsService.Config.AutoRefreshOnStartup) _ = _tripList.LoadTripItemsAsync();
+    }
 
     private void SetTemporaryStatus(string message, int delaySeconds = 2)
     {

@@ -60,7 +60,8 @@
                         <DataTemplate.Triggers>
                             <DataTrigger Binding="{Binding IsSelected}" Value="True">
                                 <Setter TargetName="TagBorder" Property="Opacity" Value="1" />
-                                <Setter TargetName="TagBorder" Property="BorderBrush" Value="{DynamicResource TextPrimaryBrush}" />
+                                <Setter TargetName="TagBorder" Property="BorderBrush"
+                                        Value="{DynamicResource TextPrimaryBrush}" />
                             </DataTrigger>
                         </DataTemplate.Triggers>
                     </DataTemplate>

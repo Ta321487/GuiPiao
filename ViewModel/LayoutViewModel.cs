@@ -11,9 +11,45 @@ namespace GuiPiao.ViewModel;
 
 public partial class LayoutViewModel : ObservableObject, IDisposable
 {
+    public const int LeftPanelMinWidth = 175;
+    public const int LeftPanelMaxWidth = 300;
+    public const int RightPanelMinWidth = 180;
+    public const int RightPanelMaxWidth = 350;
+    public const int BottomPanelMinHeight = 150;
+    public const int BottomPanelMaxHeight = 400;
     private int _bottomPanelHeight = 250;
 
     private bool _bottomPanelLocked = true;
+    [ObservableProperty] private string _cardActionTrigger = "DoubleClick";
+    [ObservableProperty] private bool _cardBatchShowDelete = true;
+    [ObservableProperty] private bool _cardBatchShowEdit = true;
+    [ObservableProperty] private bool _cardBatchShowRefund = true;
+    [ObservableProperty] private bool _cardBatchShowReschedule = true;
+
+    // 批量操作工具栏按钮显示
+    [ObservableProperty] private bool _cardBatchShowView = true;
+    [ObservableProperty] private string _cardContentDensity = "Standard";
+    [ObservableProperty] private int _cardCornerRadius = 8;
+    [ObservableProperty] private string _cardDefaultAction = "View";
+
+    [ObservableProperty] private bool _cardEnableMultiSelect = true;
+    [ObservableProperty] private bool _cardHoverHighlight = true;
+    [ObservableProperty] private bool _cardHoverScale;
+    [ObservableProperty] private bool _cardShowDeleteAction = true;
+    [ObservableProperty] private bool _cardShowEditAction = true;
+    [ObservableProperty] private bool _cardShowRefundAction = true;
+    [ObservableProperty] private bool _cardShowRescheduleAction = true;
+    [ObservableProperty] private bool _cardShowShadow = true;
+    [ObservableProperty] private bool _cardShowViewAction = true;
+    [ObservableProperty] private int _cardSpacing = 8;
+
+    // 卡片视图设置
+    [ObservableProperty] private int _cardsPerRow;
+
+    // 卡片外观效果
+    [ObservableProperty] private string _cardStatusPosition = "TopRight";
+    [ObservableProperty] private int _cardWidth = 280;
+    [ObservableProperty] private bool _isCardActionRightClick;
 
     private bool _isDisposed;
 
@@ -45,36 +81,6 @@ public partial class LayoutViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _showTimestamp = true;
 
     [ObservableProperty] private bool _showViewButton = true;
-
-    // 卡片视图设置
-    [ObservableProperty] private int _cardsPerRow = 0;
-    [ObservableProperty] private int _cardWidth = 280;
-    [ObservableProperty] private int _cardSpacing = 8;
-    [ObservableProperty] private int _cardCornerRadius = 8;
-    [ObservableProperty] private string _cardContentDensity = "Standard";
-    [ObservableProperty] private string _cardActionTrigger = "DoubleClick";
-    [ObservableProperty] private string _cardDefaultAction = "View";
-    [ObservableProperty] private bool _isCardActionRightClick = false;
-    [ObservableProperty] private bool _cardShowViewAction = true;
-    [ObservableProperty] private bool _cardShowEditAction = true;
-    [ObservableProperty] private bool _cardShowRescheduleAction = true;
-    [ObservableProperty] private bool _cardShowRefundAction = true;
-    [ObservableProperty] private bool _cardShowDeleteAction = true;
-
-    [ObservableProperty] private bool _cardEnableMultiSelect = true;
-
-    // 卡片外观效果
-    [ObservableProperty] private string _cardStatusPosition = "TopRight";
-    [ObservableProperty] private bool _cardHoverHighlight = true;
-    [ObservableProperty] private bool _cardShowShadow = true;
-    [ObservableProperty] private bool _cardHoverScale = false;
-
-    // 批量操作工具栏按钮显示
-    [ObservableProperty] private bool _cardBatchShowView = true;
-    [ObservableProperty] private bool _cardBatchShowEdit = true;
-    [ObservableProperty] private bool _cardBatchShowReschedule = true;
-    [ObservableProperty] private bool _cardBatchShowRefund = true;
-    [ObservableProperty] private bool _cardBatchShowDelete = true;
 
     public LayoutViewModel()
     {
@@ -167,13 +173,6 @@ public partial class LayoutViewModel : ObservableObject, IDisposable
             }
         });
     }
-
-    public const int LeftPanelMinWidth = 175;
-    public const int LeftPanelMaxWidth = 300;
-    public const int RightPanelMinWidth = 180;
-    public const int RightPanelMaxWidth = 350;
-    public const int BottomPanelMinHeight = 150;
-    public const int BottomPanelMaxHeight = 400;
 
     public int LeftPanelWidth
     {

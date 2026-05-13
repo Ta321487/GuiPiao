@@ -32,19 +32,14 @@ public class ShortcutSettingsService
         var existingIds = config.Shortcuts.Select(s => s.ActionId).ToHashSet();
         var hasNewShortcuts = false;
         foreach (var defaultShortcut in defaultConfig.Shortcuts)
-        {
             if (!existingIds.Contains(defaultShortcut.ActionId))
             {
                 config.Shortcuts.Add(defaultShortcut);
                 hasNewShortcuts = true;
             }
-        }
 
         // 如果有新增快捷键，保存合并后的配置
-        if (hasNewShortcuts)
-        {
-            SaveConfig(config);
-        }
+        if (hasNewShortcuts) SaveConfig(config);
 
         return config;
     }

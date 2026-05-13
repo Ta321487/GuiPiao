@@ -7,7 +7,6 @@ using System.Text;
 using System.Threading.Tasks;
 using GuiPiao.DataAccess;
 using GuiPiao.Model;
-using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
 using PdfSharpCore.Drawing;
 using PdfSharpCore.Pdf;
@@ -239,7 +238,8 @@ public class ExportService
                     if (config.ExportSeatType) row.CreateCell(colIndex++).SetCellValue(ride.SeatType ?? "");
                     if (config.ExportMoney)
                         row.CreateCell(colIndex++).SetCellValue(FormatMoney(ride.Money, config.ExcelMoneyFormat));
-                    if (config.ExportCheckInLocation) row.CreateCell(colIndex++).SetCellValue(ride.CheckInLocation ?? "");
+                    if (config.ExportCheckInLocation)
+                        row.CreateCell(colIndex++).SetCellValue(ride.CheckInLocation ?? "");
                     if (config.ExportTags) row.CreateCell(colIndex++).SetCellValue(""); // 标签字段待实现
                     if (config.ExportAdditionalInfo) row.CreateCell(colIndex++).SetCellValue(ride.AdditionalInfo ?? "");
                 }
@@ -420,7 +420,8 @@ public class ExportService
                 var totalPages = (int)Math.Ceiling((double)trainRides.Count / rowsPerPage);
                 if (totalPages == 0) totalPages = 1;
 
-                _logService?.Info("ExportService", $"PDF导出：共 {trainRides.Count} 条记录，每页 {rowsPerPage} 行，预计 {totalPages} 页");
+                _logService?.Info("ExportService",
+                    $"PDF导出：共 {trainRides.Count} 条记录，每页 {rowsPerPage} 行，预计 {totalPages} 页");
 
                 for (var pageIndex = 0; pageIndex < totalPages; pageIndex++)
                 {
@@ -463,6 +464,7 @@ public class ExportService
                         _logService?.Error("ExportService", "PDF导出失败：没有可导出的列");
                         return new ExportResult { Success = false, Message = "PDF导出失败：没有可导出的列" };
                     }
+
                     var tableWidth = marginRight - marginLeft;
                     var colWidth = tableWidth / columns.Count;
 

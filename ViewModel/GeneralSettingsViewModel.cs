@@ -285,10 +285,7 @@ public partial class GeneralSettingsViewModel : ObservableObject, ISettingsViewM
             _settingsService.SaveConfig(config);
             _originalConfig = GetCurrentConfig();
 
-            if (wasMultiInstance)
-            {
-                WindowManager.EnforceSingleInstance();
-            }
+            if (wasMultiInstance) WindowManager.EnforceSingleInstance();
 
             // 应用主题设置（字体大小、强调色、行高等）
             await Task.Run(() =>

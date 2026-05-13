@@ -34,7 +34,7 @@ public class BoolToBrushConverter : IValueConverter
                 "warning" => new SolidColorBrush(Color.FromRgb(253, 126, 20)), // #FD7E14
                 "info" => new SolidColorBrush(Color.FromRgb(0, 123, 255)), // #007BFF
                 "primary" => Application.Current?.TryFindResource("AccentBrush") as SolidColorBrush
-                    ?? new SolidColorBrush(Color.FromRgb(0, 123, 255)),
+                             ?? new SolidColorBrush(Color.FromRgb(0, 123, 255)),
                 _ => new SolidColorBrush(Colors.Gray)
             };
         }

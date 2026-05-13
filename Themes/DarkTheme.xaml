@@ -140,10 +140,8 @@
                                     Value="{DynamicResource AccentBrush}" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="false">
-                            <Setter Property="Foreground" Value="#666666" />
-                            <Setter TargetName="checkBoxBorder" Property="Opacity" Value="0.6" />
-                            <Setter TargetName="checkMark" Property="Fill" Value="#666666" />
-                            <Setter TargetName="checkMark" Property="Stroke" Value="#666666" />
+                            <Setter Property="Foreground" Value="{DynamicResource TextDisabledBrush}" />
+                            <Setter Property="Opacity" Value="{DynamicResource DisabledOpacity}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -189,9 +187,8 @@
                                     Value="{DynamicResource AccentBrush}" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="false">
-                            <Setter Property="Foreground" Value="#666666" />
-                            <Setter TargetName="radioButtonBorder" Property="Opacity" Value="0.6" />
-                            <Setter TargetName="radioButtonCheck" Property="Fill" Value="#666666" />
+                            <Setter Property="Foreground" Value="{DynamicResource TextDisabledBrush}" />
+                            <Setter Property="Opacity" Value="{DynamicResource DisabledOpacity}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

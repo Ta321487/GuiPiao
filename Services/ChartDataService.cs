@@ -15,14 +15,14 @@ namespace GuiPiao.Services;
 /// </summary>
 public class ChartDataService : IChartDataService
 {
+    private readonly TimeSpan _cacheExpiration = TimeSpan.FromMinutes(5);
+    private readonly SemaphoreSlim _cacheLock = new(1, 1);
     private readonly string _connectionString;
     private readonly TrainRideRepository _trainRideRepository;
 
     // 缓存字段
     private List<TrainRideInfo>? _cachedRides;
     private DateTime _cacheTimestamp = DateTime.MinValue;
-    private readonly TimeSpan _cacheExpiration = TimeSpan.FromMinutes(5);
-    private readonly SemaphoreSlim _cacheLock = new(1, 1);
 
     public ChartDataService()
     {
@@ -56,44 +56,6 @@ public class ChartDataService : IChartDataService
         InvalidateCache();
         DataRefreshed?.Invoke(this, EventArgs.Empty);
         Debug.WriteLine("[ChartDataService] 缓存已清除");
-    }
-
-    /// <summary>
-    ///     使缓存失效
-    /// </summary>
-    private void InvalidateCache()
-    {
-        _cachedRides = null;
-        _cacheTimestamp = DateTime.MinValue;
-    }
-
-    /// <summary>
-    ///     获取所有行程数据（带缓存）
-    /// </summary>
-    private async Task<List<TrainRideInfo>> GetAllTrainRidesCachedAsync()
-    {
-        if (_cachedRides != null && DateTime.Now - _cacheTimestamp < _cacheExpiration)
-        {
-            Debug.WriteLine("[ChartDataService] 使用缓存数据");
-            return _cachedRides;
-        }
-
-        await _cacheLock.WaitAsync();
-        try
-        {
-            // 双重检查
-            if (_cachedRides != null && DateTime.Now - _cacheTimestamp < _cacheExpiration)
-                return _cachedRides;
-
-            Debug.WriteLine("[ChartDataService] 从数据库加载数据");
-            _cachedRides = (await _trainRideRepository.GetAllTrainRidesAsync()).ToList();
-            _cacheTimestamp = DateTime.Now;
-            return _cachedRides;
-        }
-        finally
-        {
-            _cacheLock.Release();
-        }
     }
 
     public async Task<ChartData> GetMonthlyTripStatsAsync(StatisticCardConfig config)
@@ -642,6 +604,44 @@ public class ChartDataService : IChartDataService
                 Value = values[index].ToString("F2")
             }).ToList()
         };
+    }
+
+    /// <summary>
+    ///     使缓存失效
+    /// </summary>
+    private void InvalidateCache()
+    {
+        _cachedRides = null;
+        _cacheTimestamp = DateTime.MinValue;
+    }
+
+    /// <summary>
+    ///     获取所有行程数据（带缓存）
+    /// </summary>
+    private async Task<List<TrainRideInfo>> GetAllTrainRidesCachedAsync()
+    {
+        if (_cachedRides != null && DateTime.Now - _cacheTimestamp < _cacheExpiration)
+        {
+            Debug.WriteLine("[ChartDataService] 使用缓存数据");
+            return _cachedRides;
+        }
+
+        await _cacheLock.WaitAsync();
+        try
+        {
+            // 双重检查
+            if (_cachedRides != null && DateTime.Now - _cacheTimestamp < _cacheExpiration)
+                return _cachedRides;
+
+            Debug.WriteLine("[ChartDataService] 从数据库加载数据");
+            _cachedRides = (await _trainRideRepository.GetAllTrainRidesAsync()).ToList();
+            _cacheTimestamp = DateTime.Now;
+            return _cachedRides;
+        }
+        finally
+        {
+            _cacheLock.Release();
+        }
     }
 
     /// <summary>

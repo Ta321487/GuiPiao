@@ -449,7 +449,8 @@
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsHighlighted" Value="True">
-                                    <Setter TargetName="Border" Property="Background" Value="{DynamicResource AccentBrush}" />
+                                    <Setter TargetName="Border" Property="Background"
+                                            Value="{DynamicResource AccentBrush}" />
                                     <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}" />
                                 </Trigger>
                                 <Trigger Property="IsEnabled" Value="False">

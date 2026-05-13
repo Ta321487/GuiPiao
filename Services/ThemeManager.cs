@@ -47,6 +47,7 @@ public static class ThemeManager
             brush.Freeze();
             _colorToBrushCache[color] = brush;
         }
+
         return brush;
     }
 
@@ -61,6 +62,7 @@ public static class ThemeManager
             brush = GetOrCreateBrush(color);
             _brushCache[colorHex] = brush;
         }
+
         return brush;
     }
 

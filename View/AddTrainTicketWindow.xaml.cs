@@ -175,13 +175,9 @@ public partial class AddTrainTicketWindow : Window
                     if (vm.SaveCommand.CanExecute(null))
                     {
                         if (vm.SaveCommand is IAsyncRelayCommand asyncCommand)
-                        {
                             await asyncCommand.ExecuteAsync(null);
-                        }
                         else
-                        {
                             vm.SaveCommand.Execute(null);
-                        }
 
                         if (!vm.HasUnsavedChanges)
                         {

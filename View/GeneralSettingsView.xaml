@@ -230,7 +230,8 @@
                                    Foreground="{DynamicResource TextPrimaryBrush}" />
 
                         <WrapPanel Margin="20,0,0,10">
-                            <StackPanel Orientation="Horizontal" Visibility="{Binding IsCardDefaultActionVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <StackPanel Orientation="Horizontal"
+                                        Visibility="{Binding IsCardDefaultActionVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
                                 <TextBlock Text="双击执行：" VerticalAlignment="Center" Margin="0,0,5,5"
                                            Foreground="{DynamicResource TextPrimaryBrush}" />
                                 <ComboBox MinWidth="120" SelectedValue="{Binding CardDefaultAction}"
@@ -252,7 +253,8 @@
                                 <ComboBoxItem Content="完整" Tag="Full" />
                             </ComboBox>
                         </WrapPanel>
-                        <Border Background="{DynamicResource ContentBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}"
+                        <Border Background="{DynamicResource ContentBackgroundBrush}"
+                                BorderBrush="{DynamicResource BorderBrush}"
                                 BorderThickness="1" Padding="8" Margin="20,0,0,10">
                             <StackPanel>
                                 <TextBlock Text="简洁：车次号、出发站→到达站、出发/到达时间、票价" FontSize="12" Margin="0,0,0,4"

@@ -141,7 +141,7 @@ function initMap() {
         }
     });
 
-    map.on('popupclose', function(e) {
+    map.on('popupclose', function (e) {
         currentPopup = null;
         currentPopupTicket = null;
     });
@@ -264,19 +264,19 @@ function setMapInteractions(interactionSettings) {
 // 设置地图样式
 function setMapStyles(styleSettings) {
     // 检查是否有状态筛选变化（已完成/未出行/已退票改签）
-    const hasStatusFilterChange = styleSettings.colors !== undefined || 
-                                  styleSettings.lineWidth !== undefined;
-    
+    const hasStatusFilterChange = styleSettings.colors !== undefined ||
+        styleSettings.lineWidth !== undefined;
+
     // 检查是否有显示设置变化
     const hasDisplaySettingChange = styleSettings.showStationLabels !== undefined ||
-                                    styleSettings.showDateLabels !== undefined ||
-                                    styleSettings.showHoverCard !== undefined;
-    
+        styleSettings.showDateLabels !== undefined ||
+        styleSettings.showHoverCard !== undefined;
+
     // 如果有筛选变化，关闭已打开的卡片
     if (hasStatusFilterChange || styleSettings.directionFilter !== undefined) {
         closeAllPopups();
     }
-    
+
     if (styleSettings.colors) {
         Object.assign(currentTheme.colors, styleSettings.colors);
     }
@@ -329,21 +329,21 @@ function updateTripStyles() {
 // 更新日期标注显示
 function updateDateLabels() {
     const filter = currentTheme.directionFilter;
-    
+
     tripLayers.forEach(item => {
         const ticket = item.ticket;
         const ticketYear = safeGetYear(ticket.departDate);
         const yearMatch = currentYearFilter === null || ticketYear === currentYearFilter;
-        
+
         // 检查方向过滤条件
         let directionMatch = true;
         if (filter !== 'All') {
             directionMatch = shouldShowLayerForFilter(item, filter);
         }
-        
+
         // 只有在符合所有过滤条件且设置显示日期标签时才显示
         const shouldShow = currentTheme.showDateLabels && yearMatch && directionMatch;
-        
+
         if (item.dateLabelMarker) {
             if (shouldShow) {
                 item.dateLabelMarker.addTo(map);
@@ -365,7 +365,7 @@ function updateHoverCards() {
     tripLayers.forEach(item => {
         const ticket = item.ticket;
         const weight = getTripWeight(ticket.status);
-        
+
         item.layer.off('mouseover');
         item.layer.off('mouseout');
         item.layer.off('mousemove');
@@ -384,8 +384,8 @@ function updateHoverCards() {
             item.layer.bindPopup(popup);
 
             item.layer.on('mouseover', function (e) {
-                this.setStyle({ weight: weight * 2, opacity: 1 });
-                
+                this.setStyle({weight: weight * 2, opacity: 1});
+
                 if (currentPopup && currentPopupTicket) {
                     return;
                 }
@@ -409,8 +409,8 @@ function updateHoverCards() {
             });
 
             item.layer.on('mouseout', function (e) {
-                this.setStyle({ weight: weight, opacity: 0.8 });
-                
+                this.setStyle({weight: weight, opacity: 0.8});
+
                 window.popupCloseTimer = setTimeout(() => {
                     const popupElement = popup.getElement();
                     if (popupElement) {
@@ -429,19 +429,19 @@ function updateHoverCards() {
                 }, 500);
             });
 
-            popup.on('add', function() {
+            popup.on('add', function () {
                 const popupElement = popup.getElement();
                 if (popupElement && !popupElement._hoverEventsBound) {
                     popupElement._hoverEventsBound = true;
-                    
-                    popupElement.addEventListener('mouseenter', function() {
+
+                    popupElement.addEventListener('mouseenter', function () {
                         if (window.popupCloseTimer) {
                             clearTimeout(window.popupCloseTimer);
                             window.popupCloseTimer = null;
                         }
                     });
-                    
-                    popupElement.addEventListener('mouseleave', function() {
+
+                    popupElement.addEventListener('mouseleave', function () {
                         window.popupCloseTimer = setTimeout(() => {
                             if (hoverPopup === popup) {
                                 item.layer.closePopup();
@@ -453,11 +453,11 @@ function updateHoverCards() {
             });
         } else {
             item.layer.on('mouseover', function () {
-                this.setStyle({ weight: weight * 2, opacity: 1 });
+                this.setStyle({weight: weight * 2, opacity: 1});
             });
-            
+
             item.layer.on('mouseout', function () {
-                this.setStyle({ weight: weight, opacity: 0.8 });
+                this.setStyle({weight: weight, opacity: 0.8});
             });
         }
     });
@@ -476,7 +476,7 @@ function updateStationMarkerStyles() {
             }
         }
     });
-    
+
     // 更新车站标签显示（由 updateStationsVisibility 统一处理）
     updateStationsVisibility();
 }
@@ -499,21 +499,21 @@ function getTrainDirection(trainNo) {
 function updateDirectionFilter() {
     // 关闭已打开的卡片
     closeAllPopups();
-    
+
     const filter = currentTheme.directionFilter;
-    
+
     tripLayers.forEach(item => {
         const ticketYear = safeGetYear(item.ticket.departDate);
         const yearMatch = currentYearFilter === null || ticketYear === currentYearFilter;
-        
+
         // 检查方向过滤条件
         let directionMatch = true;
         if (filter !== 'All') {
             directionMatch = shouldShowLayerForFilter(item, filter);
         }
-        
+
         const shouldShow = yearMatch && directionMatch;
-        
+
         if (shouldShow) {
             item.layer.addTo(map);
             if (item.dateLabelMarker && currentTheme.showDateLabels) {
@@ -526,7 +526,7 @@ function updateDirectionFilter() {
             }
         }
     });
-    
+
     // 更新车站可见性（包括标签）
     updateStationsVisibility();
     // 更新聚合显示
@@ -536,13 +536,13 @@ function updateDirectionFilter() {
 // 判断图层是否应该在当前过滤条件下显示
 function shouldShowLayerForFilter(layerItem, filter) {
     const ticket = layerItem.ticket;
-    
+
     if (!ticket.routeGroup || ticket.routeGroup.length <= 1) {
         const direction = getTrainDirection(ticket.trainNo);
         return (filter === 'Up' && direction === 'up') ||
-               (filter === 'Down' && direction === 'down');
+            (filter === 'Down' && direction === 'down');
     }
-    
+
     for (const groupedTicket of ticket.routeGroup) {
         const direction = getTrainDirection(groupedTicket.trainNo);
         if ((filter === 'Up' && direction === 'up') ||
@@ -550,7 +550,7 @@ function shouldShowLayerForFilter(layerItem, filter) {
             return true;
         }
     }
-    
+
     return false;
 }
 
@@ -696,7 +696,7 @@ function loadTickets(tickets) {
         tickets = tickets.filter(ticket => {
             const routeKey = `${ticket.departStation}-${ticket.arriveStation}-${ticket.trainNo}`;
             const group = tempRouteGroups.get(routeKey) || [ticket];
-            
+
             // 检查该路线组内是否有符合方向过滤条件的车次
             for (const groupedTicket of group) {
                 const direction = getTrainDirection(groupedTicket.trainNo);
@@ -948,7 +948,7 @@ function drawTrip(ticket) {
         popup.openOn(map);
         currentPopup = popup;
 
-        popup.on('popupclose', function() {
+        popup.on('popupclose', function () {
             currentPopup = null;
             currentPopupTicket = null;
         });
@@ -981,13 +981,13 @@ function addDateLabel(ticket, latlngs) {
 function createDateLabelMarker(ticket, latlngs) {
     const start = L.latLng(latlngs[0]);
     const end = L.latLng(latlngs[1]);
-    
+
     const startPoint = map.latLngToContainerPoint(start);
     const endPoint = map.latLngToContainerPoint(end);
-    
+
     const midX = (startPoint.x + endPoint.x) / 2;
     const midY = (startPoint.y + endPoint.y) / 2;
-    
+
     const midLatLng = map.containerPointToLatLng([midX, midY]);
 
     const dateLabelIcon = L.divIcon({
@@ -1014,12 +1014,12 @@ function createDateLabelMarker(ticket, latlngs) {
 // 重新计算所有日期标签位置
 function updateAllDateLabels() {
     const filter = currentTheme.directionFilter;
-    
+
     dateLabelData.forEach(data => {
         const ticket = data.ticket;
         const ticketYear = safeGetYear(ticket.departDate);
         const yearMatch = currentYearFilter === null || ticketYear === currentYearFilter;
-        
+
         // 同时检查方向过滤条件
         let directionMatch = true;
         if (filter !== 'All') {
@@ -1028,7 +1028,7 @@ function updateAllDateLabels() {
                 directionMatch = shouldShowLayerForFilter(tripLayer, filter);
             }
         }
-        
+
         // 只有符合过滤条件的才创建日期标签
         if (yearMatch && directionMatch) {
             const latlngs = [[data.start.lat, data.start.lng], [data.end.lat, data.end.lng]];
@@ -1092,22 +1092,22 @@ function addStationMarker(station) {
 function switchToPrevTicket() {
     const isHover = !currentPopup && hoverPopup;
     const currentTicket = isHover ? hoverPopupTicket : currentPopupTicket;
-    
+
     if (!currentTicket || !currentTicket.routeGroup) return;
     const group = currentTicket.routeGroup;
     let newIndex = currentTicket.routeIndex;
-    
+
     for (let i = 0; i < group.length; i++) {
         newIndex--;
         if (newIndex < 0) newIndex = group.length - 1;
-        
+
         const newTicket = group[newIndex];
         if (isTicketAllowedByFilter(newTicket)) {
             updatePopupContent(newTicket);
             return;
         }
     }
-    
+
     updatePopupContent(currentTicket);
 }
 
@@ -1115,22 +1115,22 @@ function switchToPrevTicket() {
 function switchToNextTicket() {
     const isHover = !currentPopup && hoverPopup;
     const currentTicket = isHover ? hoverPopupTicket : currentPopupTicket;
-    
+
     if (!currentTicket || !currentTicket.routeGroup) return;
     const group = currentTicket.routeGroup;
     let newIndex = currentTicket.routeIndex;
-    
+
     for (let i = 0; i < group.length; i++) {
         newIndex++;
         if (newIndex >= group.length) newIndex = 0;
-        
+
         const newTicket = group[newIndex];
         if (isTicketAllowedByFilter(newTicket)) {
             updatePopupContent(newTicket);
             return;
         }
     }
-    
+
     updatePopupContent(currentTicket);
 }
 
@@ -1138,10 +1138,10 @@ function switchToNextTicket() {
 function isTicketAllowedByFilter(ticket) {
     const filter = currentTheme.directionFilter;
     if (filter === 'All') return true;
-    
+
     const direction = getTrainDirection(ticket.trainNo);
     return (filter === 'Up' && direction === 'up') ||
-           (filter === 'Down' && direction === 'down');
+        (filter === 'Down' && direction === 'down');
 }
 
 // 更新popup内容
@@ -1211,22 +1211,32 @@ function createPopupContent(ticket, isHover = false) {
 // 获取行程颜色
 function getTripColor(status) {
     switch (status) {
-        case '已完成': return currentTheme.colors.completed;
-        case '未出行': return currentTheme.colors.pending;
-        case '已改签': return currentTheme.colors.rescheduled;
-        case '已退票': return currentTheme.colors.refunded;
-        default: return currentTheme.colors.completed;
+        case '已完成':
+            return currentTheme.colors.completed;
+        case '未出行':
+            return currentTheme.colors.pending;
+        case '已改签':
+            return currentTheme.colors.rescheduled;
+        case '已退票':
+            return currentTheme.colors.refunded;
+        default:
+            return currentTheme.colors.completed;
     }
 }
 
 // 获取行程线宽
 function getTripWeight(status) {
     switch (status) {
-        case '已完成': return currentTheme.lineWidth.completed;
-        case '未出行': return currentTheme.lineWidth.pending;
-        case '已改签': return currentTheme.lineWidth.rescheduled;
-        case '已退票': return currentTheme.lineWidth.refunded;
-        default: return currentTheme.lineWidth.completed;
+        case '已完成':
+            return currentTheme.lineWidth.completed;
+        case '未出行':
+            return currentTheme.lineWidth.pending;
+        case '已改签':
+            return currentTheme.lineWidth.rescheduled;
+        case '已退票':
+            return currentTheme.lineWidth.refunded;
+        default:
+            return currentTheme.lineWidth.completed;
     }
 }
 
@@ -1348,7 +1358,7 @@ function showTripInfoCard(tripId) {
     if (!tripLayer) {
         const ticketInfo = currentTickets.find(t => t.id === tripId);
         if (ticketInfo) {
-            const sameTrainLayer = tripLayers.find(item => 
+            const sameTrainLayer = tripLayers.find(item =>
                 item.ticket.trainNo === ticketInfo.trainNo &&
                 item.ticket.departStation === ticketInfo.departStation &&
                 item.ticket.arriveStation === ticketInfo.arriveStation
@@ -1362,7 +1372,7 @@ function showTripInfoCard(tripId) {
     }
 
     const ticket = currentTickets.find(t => t.id === tripId) || tripLayer.ticket;
-    
+
     showTripInfoCardWithTicket(ticket, tripLayer);
 }
 
@@ -1393,8 +1403,8 @@ function showTripInfoCardWithTicket(ticket, tripLayer) {
     popup.setLatLng(popupLatLng);
     popup.openOn(map);
     currentPopup = popup;
-    
-    popup.on('popupclose', function() {
+
+    popup.on('popupclose', function () {
         currentPopup = null;
         currentPopupTicket = null;
     });
@@ -1479,8 +1489,8 @@ function fitHighlightedTrips(highlightedItems) {
     highlightedItems.forEach((item, index) => {
         const ticket = item.ticket;
         setTimeout(() => {
-            addTripPulseMarkers(ticket.departLat, ticket.departLng, ticket.departStation, 
-                               ticket.arriveLat, ticket.arriveLng, ticket.arriveStation);
+            addTripPulseMarkers(ticket.departLat, ticket.departLng, ticket.departStation,
+                ticket.arriveLat, ticket.arriveLng, ticket.arriveStation);
         }, 1600 + (index * 200));
     });
 }
@@ -1543,10 +1553,10 @@ function addPulseMarker(lat, lng, title, type) {
 // 添加行程的脉冲标记
 function addTripPulseMarkers(departLat, departLng, departStation, arriveLat, arriveLng, arriveStation) {
     clearPulseMarkers();
-    
+
     addPulseMarker(departLat, departLng, departStation, 'start');
     addPulseMarker(arriveLat, arriveLng, arriveStation, 'end');
-    
+
     setTimeout(() => {
         clearPulseMarkers();
     }, 5000);
@@ -1806,19 +1816,19 @@ function safeGetYear(dateStr) {
 function applyYearFilter() {
     // 关闭已打开的卡片
     closeAllPopups();
-    
+
     const filter = currentTheme.directionFilter;
-    
+
     tripLayers.forEach(item => {
         const ticketYear = safeGetYear(item.ticket.departDate);
         const yearMatch = currentYearFilter === null || ticketYear === currentYearFilter;
-        
+
         // 同时检查方向过滤条件
         let directionMatch = true;
         if (filter !== 'All') {
             directionMatch = shouldShowLayerForFilter(item, filter);
         }
-        
+
         const shouldShow = yearMatch && directionMatch;
 
         if (shouldShow) {
@@ -1842,17 +1852,17 @@ function applyYearFilter() {
 function updateStationsVisibility() {
     const visibleStations = new Set();
     const filter = currentTheme.directionFilter;
-    
+
     tripLayers.forEach(item => {
         const ticketYear = safeGetYear(item.ticket.departDate);
         const yearMatch = currentYearFilter === null || ticketYear === currentYearFilter;
-        
+
         // 同时检查方向过滤条件
         let directionMatch = true;
         if (filter !== 'All') {
             directionMatch = shouldShowLayerForFilter(item, filter);
         }
-        
+
         if (yearMatch && directionMatch) {
             visibleStations.add(item.ticket.departStation);
             visibleStations.add(item.ticket.arriveStation);
@@ -1983,13 +1993,13 @@ function updateClusters() {
     tripLayers.forEach(item => {
         const ticketYear = safeGetYear(item.ticket.departDate);
         const yearMatch = currentYearFilter === null || ticketYear === currentYearFilter;
-        
+
         // 同时检查方向过滤条件
         let directionMatch = true;
         if (filter !== 'All') {
             directionMatch = shouldShowLayerForFilter(item, filter);
         }
-        
+
         if (yearMatch && directionMatch) {
             visibleTrips.push(item.ticket);
         }
@@ -2024,7 +2034,7 @@ function setupClusterListener() {
     map.on('zoomend', function () {
         const zoom = map.getZoom();
         const filter = currentTheme.directionFilter;
-        
+
         if (currentTheme.showDateLabels && dateLabelData.length > 0) {
             if (zoom <= 13) {
                 updateAllDateLabels();
@@ -2043,13 +2053,13 @@ function setupClusterListener() {
             tripLayers.forEach(item => {
                 const ticketYear = safeGetYear(item.ticket.departDate);
                 const yearMatch = currentYearFilter === null || ticketYear === currentYearFilter;
-                
+
                 // 同时检查方向过滤条件
                 let directionMatch = true;
                 if (filter !== 'All') {
                     directionMatch = shouldShowLayerForFilter(item, filter);
                 }
-                
+
                 const shouldShow = yearMatch && directionMatch;
 
                 if (shouldShow) {
@@ -2061,7 +2071,7 @@ function setupClusterListener() {
             });
 
             updateClusters();
-            
+
             // 更新车站可见性（包括标签）
             updateStationsVisibility();
         }

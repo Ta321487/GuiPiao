@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
-using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
@@ -43,12 +42,12 @@ public partial class TripListViewModel : ObservableObject, IDisposable
 
     private string _currentSortColumn = "id";
     private bool _currentSortDesc = true;
+
+    [ObservableProperty] private ViewType _currentViewType = ViewType.List;
     private bool _isAdvancedSearchMode;
     private bool _isDisposed;
 
     [ObservableProperty] private bool _isOperationButtonsVisible = true;
-
-    [ObservableProperty] private ViewType _currentViewType = ViewType.List;
 
     private bool _isTripListExpanded = true;
 
@@ -57,16 +56,6 @@ public partial class TripListViewModel : ObservableObject, IDisposable
     [ObservableProperty] private TripItem? _selectedTripItem;
 
     [ObservableProperty] private int _totalItems;
-
-    /// <summary>
-    ///     是否有选中的卡片项
-    /// </summary>
-    public bool HasSelectedItems => TripItems.Any(t => t.IsSelected);
-
-    /// <summary>
-    ///     选中的卡片项数量
-    /// </summary>
-    public int SelectedItemsCount => TripItems.Count(t => t.IsSelected);
 
     private int _totalPages = 1;
 
@@ -177,6 +166,16 @@ public partial class TripListViewModel : ObservableObject, IDisposable
         // 加载初始数据
         _ = LoadTripItemsAsync();
     }
+
+    /// <summary>
+    ///     是否有选中的卡片项
+    /// </summary>
+    public bool HasSelectedItems => TripItems.Any(t => t.IsSelected);
+
+    /// <summary>
+    ///     选中的卡片项数量
+    /// </summary>
+    public int SelectedItemsCount => TripItems.Count(t => t.IsSelected);
 
     public ICollectionView? TripItemsView
     {
@@ -380,6 +379,7 @@ public partial class TripListViewModel : ObservableObject, IDisposable
                     pageSize = rows * cardsPerRow;
                 }
             }
+
             Debug.WriteLine(
                 $"[LoadTripItemsAsync] PageSize: {pageSize}, LoadRange: {config.LoadRange}, IsAdvancedSearch: {_isAdvancedSearchMode}");
             Debug.WriteLine($"[LoadTripItemsAsync] DatabasePath: {ConfigManager.Instance.DatabaseConnectionString}");
@@ -781,10 +781,7 @@ public partial class TripListViewModel : ObservableObject, IDisposable
             // 使用单例模式打开编辑窗口
             var editWindow = EditTrainTicketWindow.GetInstance(rideId.Value);
             editWindow.Owner = Application.Current.MainWindow;
-            if (!editWindow.IsVisible)
-            {
-                editWindow.ShowDialog();
-            }
+            if (!editWindow.IsVisible) editWindow.ShowDialog();
 
             // 刷新列表
             await LoadTripItemsAsync();

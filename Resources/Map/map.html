@@ -2,56 +2,56 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <title>车票地图</title>
-    
+
     <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    <link crossorigin="" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
           integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-          crossorigin=""/>
-    
+          rel="stylesheet"/>
+
     <!-- 外部样式文件 -->
-    <link rel="stylesheet" href="map.css">
+    <link href="map.css" rel="stylesheet">
 </head>
 <body>
-    <div id="map"></div>
+<div id="map"></div>
 
-    <!-- 时间轴抽屉 -->
-    <div class="timeline-drawer" id="timelineContainer">
-        <div class="timeline-toggle" onclick="toggleTimelineDrawer()">
-            <span class="timeline-toggle-text">按年份筛选</span>
-            <span class="timeline-toggle-icon"></span>
-        </div>
-        <div class="timeline-content">
-            <div class="timeline-header">
-                <span class="timeline-title">选择年份</span>
-                <span class="timeline-reset" onclick="resetTimeline()">重置</span>
-            </div>
-            <input type="range" class="timeline-slider" id="timelineSlider" min="0" max="0" value="0">
-            <div class="timeline-labels" id="timelineLabels"></div>
-            <div class="timeline-current" id="timelineCurrent">全部年份</div>
-        </div>
+<!-- 时间轴抽屉 -->
+<div class="timeline-drawer" id="timelineContainer">
+    <div class="timeline-toggle" onclick="toggleTimelineDrawer()">
+        <span class="timeline-toggle-text">按年份筛选</span>
+        <span class="timeline-toggle-icon"></span>
     </div>
-
-    <!-- 缺少经纬度车站警告 -->
-    <div class="missing-coords-warning" id="missingCoordsWarning">
-        <button class="close-btn" onclick="hideMissingCoordsWarning()">×</button>
-        <div class="warning-header">
-            <span class="warning-icon">⚠️</span>
-            <span class="warning-title">部分车站缺少经纬度</span>
+    <div class="timeline-content">
+        <div class="timeline-header">
+            <span class="timeline-title">选择年份</span>
+            <span class="timeline-reset" onclick="resetTimeline()">重置</span>
         </div>
-        <div class="warning-content">
-            以下车站因缺少经纬度信息，无法在地图上显示：
-            <ul class="station-list" id="missingStationsList"></ul>
-        </div>
+        <input class="timeline-slider" id="timelineSlider" max="0" min="0" type="range" value="0">
+        <div class="timeline-labels" id="timelineLabels"></div>
+        <div class="timeline-current" id="timelineCurrent">全部年份</div>
     </div>
+</div>
 
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-            crossorigin=""></script>
+<!-- 缺少经纬度车站警告 -->
+<div class="missing-coords-warning" id="missingCoordsWarning">
+    <button class="close-btn" onclick="hideMissingCoordsWarning()">×</button>
+    <div class="warning-header">
+        <span class="warning-icon">⚠️</span>
+        <span class="warning-title">部分车站缺少经纬度</span>
+    </div>
+    <div class="warning-content">
+        以下车站因缺少经纬度信息，无法在地图上显示：
+        <ul class="station-list" id="missingStationsList"></ul>
+    </div>
+</div>
 
-    <!-- 外部脚本文件 -->
-    <script src="map.js"></script>
+<!-- Leaflet JS -->
+<script crossorigin=""
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+        src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- 外部脚本文件 -->
+<script src="map.js"></script>
 </body>
 </html>

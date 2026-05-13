@@ -93,38 +93,36 @@ public class CardViewPanel : Panel
             maxHeight += currentRowHeight;
             return new Size(availableWidth, maxHeight);
         }
-        else
+
+        // 自动换行模式（使用设置的CardWidth和CardSpacing）
+        var currentX = 0.0;
+        var currentY = 0.0;
+        var rowHeight = 0.0;
+        var totalWidth = 0.0;
+        var totalHeight = 0.0;
+        var itemWidth = CardWidth + CardSpacing;
+
+        foreach (UIElement child in InternalChildren)
         {
-            // 自动换行模式（使用设置的CardWidth和CardSpacing）
-            var currentX = 0.0;
-            var currentY = 0.0;
-            var rowHeight = 0.0;
-            var totalWidth = 0.0;
-            var totalHeight = 0.0;
-            var itemWidth = CardWidth + CardSpacing;
+            // 强制使用设置的CardWidth作为测量宽度
+            child.Measure(new Size(CardWidth, double.PositiveInfinity));
 
-            foreach (UIElement child in InternalChildren)
+            // 检查是否需要换行
+            if (currentX + CardWidth > availableWidth && currentX > 0)
             {
-                // 强制使用设置的CardWidth作为测量宽度
-                child.Measure(new Size(CardWidth, double.PositiveInfinity));
-                
-                // 检查是否需要换行
-                if (currentX + CardWidth > availableWidth && currentX > 0)
-                {
-                    currentX = 0;
-                    currentY += rowHeight + CardSpacing;
-                    rowHeight = 0;
-                }
-
-                currentX += itemWidth;
-                // 使用实际测量高度，但宽度使用设置的CardWidth
-                rowHeight = Math.Max(rowHeight, child.DesiredSize.Height);
-                totalWidth = Math.Max(totalWidth, currentX);
+                currentX = 0;
+                currentY += rowHeight + CardSpacing;
+                rowHeight = 0;
             }
 
-            totalHeight = currentY + rowHeight;
-            return new Size(Math.Min(totalWidth, availableWidth), totalHeight);
+            currentX += itemWidth;
+            // 使用实际测量高度，但宽度使用设置的CardWidth
+            rowHeight = Math.Max(rowHeight, child.DesiredSize.Height);
+            totalWidth = Math.Max(totalWidth, currentX);
         }
+
+        totalHeight = currentY + rowHeight;
+        return new Size(Math.Min(totalWidth, availableWidth), totalHeight);
     }
 
     protected override Size ArrangeOverride(Size finalSize)

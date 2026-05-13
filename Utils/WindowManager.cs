@@ -46,7 +46,6 @@ public static class WindowManager
             {
                 var existing = existingList[0];
                 if (activateExisting)
-                {
                     try
                     {
                         existing.Activate();
@@ -55,7 +54,7 @@ public static class WindowManager
                     catch
                     {
                     }
-                }
+
                 return (T)existing;
             }
         }
@@ -110,6 +109,7 @@ public static class WindowManager
                 catch
                 {
                 }
+
                 continue;
             }
 
@@ -144,6 +144,7 @@ public static class WindowManager
             list = new List<Window>();
             _trackedWindows[windowType] = list;
         }
+
         return list;
     }
 

@@ -261,7 +261,8 @@
                         <WrapPanel Margin="0,0,0,8">
                             <TextBlock Text="每行卡片数：" VerticalAlignment="Center" Margin="0,0,5,5"
                                        Foreground="{DynamicResource TextPrimaryBrush}" />
-                            <ComboBox Width="80" SelectedValue="{Binding CardsPerRow}" SelectedValuePath="Tag" Margin="0,0,20,5">
+                            <ComboBox Width="80" SelectedValue="{Binding CardsPerRow}" SelectedValuePath="Tag"
+                                      Margin="0,0,20,5">
                                 <ComboBoxItem Content="自动" Tag="0" />
                                 <ComboBoxItem Content="2" Tag="2" />
                                 <ComboBoxItem Content="3" Tag="3" />
@@ -271,12 +272,15 @@
                         </WrapPanel>
 
                         <!-- 卡片宽度仅在自动模式下显示 -->
-                        <WrapPanel Margin="0,0,0,8" Visibility="{Binding CardsPerRow, Converter={StaticResource IntToVisibilityConverter}, ConverterParameter='0'}">
+                        <WrapPanel Margin="0,0,0,8"
+                                   Visibility="{Binding CardsPerRow, Converter={StaticResource IntToVisibilityConverter}, ConverterParameter='0'}">
                             <TextBlock Text="卡片宽度：" VerticalAlignment="Center" Margin="0,0,5,5"
                                        Foreground="{DynamicResource TextPrimaryBrush}" />
                             <Slider Width="150" Minimum="240" Maximum="320" Value="{Binding CardWidth}"
-                                    TickFrequency="10" TickPlacement="BottomRight" IsSnapToTickEnabled="True" Margin="0,0,10,5" />
-                            <TextBox MinWidth="50" Text="{Binding CardWidth, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                                    TickFrequency="10" TickPlacement="BottomRight" IsSnapToTickEnabled="True"
+                                    Margin="0,0,10,5" />
+                            <TextBox MinWidth="50"
+                                     Text="{Binding CardWidth, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
                                      Margin="0,0,5,5" VerticalAlignment="Center" Tag="240,320" />
                             <TextBlock Text="px" VerticalAlignment="Center" Margin="0,0,15,5"
                                        Foreground="{DynamicResource TextSecondaryBrush}" />
@@ -293,8 +297,10 @@
                             <TextBlock Text="卡片间距：" VerticalAlignment="Center" Margin="0,0,5,5"
                                        Foreground="{DynamicResource TextPrimaryBrush}" />
                             <Slider Width="150" Minimum="4" Maximum="16" Value="{Binding CardSpacing}"
-                                    TickFrequency="2" TickPlacement="BottomRight" IsSnapToTickEnabled="True" Margin="0,0,10,5" />
-                            <TextBox MinWidth="50" Text="{Binding CardSpacing, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                                    TickFrequency="2" TickPlacement="BottomRight" IsSnapToTickEnabled="True"
+                                    Margin="0,0,10,5" />
+                            <TextBox MinWidth="50"
+                                     Text="{Binding CardSpacing, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
                                      Margin="0,0,5,5" VerticalAlignment="Center" Tag="4,16" />
                             <TextBlock Text="px" VerticalAlignment="Center" Margin="0,0,15,5"
                                        Foreground="{DynamicResource TextSecondaryBrush}" />
@@ -304,8 +310,10 @@
                             <TextBlock Text="卡片圆角：" VerticalAlignment="Center" Margin="0,0,5,5"
                                        Foreground="{DynamicResource TextPrimaryBrush}" />
                             <Slider Width="150" Minimum="0" Maximum="16" Value="{Binding CardCornerRadius}"
-                                    TickFrequency="2" TickPlacement="BottomRight" IsSnapToTickEnabled="True" Margin="0,0,10,5" />
-                            <TextBox MinWidth="50" Text="{Binding CardCornerRadius, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                                    TickFrequency="2" TickPlacement="BottomRight" IsSnapToTickEnabled="True"
+                                    Margin="0,0,10,5" />
+                            <TextBox MinWidth="50"
+                                     Text="{Binding CardCornerRadius, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
                                      Margin="0,0,5,5" VerticalAlignment="Center" Tag="0,16" />
                             <TextBlock Text="px" VerticalAlignment="Center" Margin="0,0,15,5"
                                        Foreground="{DynamicResource TextSecondaryBrush}" />
@@ -336,7 +344,8 @@
                             <WrapPanel>
                                 <CheckBox Content="👁 查看" IsChecked="{Binding CardBatchShowView}" Margin="0,0,15,5" />
                                 <CheckBox Content="✏️ 编辑" IsChecked="{Binding CardBatchShowEdit}" Margin="0,0,15,5" />
-                                <CheckBox Content="🔄 改签" IsChecked="{Binding CardBatchShowReschedule}" Margin="0,0,15,5" />
+                                <CheckBox Content="🔄 改签" IsChecked="{Binding CardBatchShowReschedule}"
+                                          Margin="0,0,15,5" />
                                 <CheckBox Content="💰 退票" IsChecked="{Binding CardBatchShowRefund}" Margin="0,0,15,5" />
                                 <CheckBox Content="🗑️ 删除" IsChecked="{Binding CardBatchShowDelete}" Margin="0,0,0,5" />
                             </WrapPanel>
@@ -349,7 +358,8 @@
                         <WrapPanel Margin="0,0,0,8">
                             <TextBlock Text="状态标签位置：" VerticalAlignment="Center" Margin="0,0,5,5"
                                        Foreground="{DynamicResource TextPrimaryBrush}" />
-                            <ComboBox Width="100" SelectedValue="{Binding CardStatusPosition}" SelectedValuePath="Tag" Margin="0,0,0,5">
+                            <ComboBox Width="100" SelectedValue="{Binding CardStatusPosition}" SelectedValuePath="Tag"
+                                      Margin="0,0,0,5">
                                 <ComboBoxItem Content="右上角" Tag="TopRight" />
                                 <ComboBoxItem Content="顶部居中" Tag="TopCenter" />
                                 <ComboBoxItem Content="隐藏" Tag="Hidden" />

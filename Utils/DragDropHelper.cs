@@ -72,6 +72,7 @@ public class DragDropHelper
         catch
         {
         }
+
         ResetDragState();
     }
 

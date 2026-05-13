@@ -9,6 +9,55 @@ namespace GuiPiao.ViewModel;
 
 public partial class MainViewModel
 {
+    private void SubscribeToTripListChanges()
+    {
+        _tripListPropertyChangedHandler = (s, e) =>
+        {
+            OnPropertyChanged(e.PropertyName);
+            switch (e.PropertyName)
+            {
+                case nameof(TripList.TripItems):
+                    OnPropertyChanged(nameof(TripItems));
+                    SetTemporaryStatus($"行程已更新，共 {TripList.TotalItems} 条记录");
+                    break;
+                case nameof(TripList.SelectedTripItem):
+                    OnPropertyChanged(nameof(SelectedTripItem));
+                    if (TripList.SelectedTripItem != null)
+                        SetTemporaryStatus(
+                            $"已选择：{TripList.SelectedTripItem.TrainNo} {TripList.SelectedTripItem.DepartStation}→{TripList.SelectedTripItem.ArriveStation}");
+                    break;
+                case nameof(TripList.TripItemsView):
+                    OnPropertyChanged(nameof(TripItemsView));
+                    break;
+                case nameof(TripList.CurrentPage):
+                    OnPropertyChanged(nameof(CurrentPage));
+                    SetTemporaryStatus($"已切换到第 {TripList.CurrentPage} 页");
+                    break;
+                case nameof(TripList.TotalPages):
+                    OnPropertyChanged(nameof(TotalPages));
+                    break;
+                case nameof(TripList.TotalItems):
+                    OnPropertyChanged(nameof(TotalItems));
+                    break;
+                case nameof(TripList.PaginationButtons):
+                    OnPropertyChanged(nameof(PaginationButtons));
+                    break;
+                case nameof(TripList.IsTripListExpanded):
+                    Debug.WriteLine(
+                        $"[MainViewModel] TripList.IsTripListExpanded changed to: {TripList.IsTripListExpanded}");
+                    OnPropertyChanged(nameof(IsTripListExpanded));
+                    OnPropertyChanged(nameof(IsDataGridVisible));
+                    OnPropertyChanged(nameof(CollapseButtonContent));
+                    SetTemporaryStatus(TripList.IsTripListExpanded ? "行程已展开" : "行程已收起");
+                    break;
+                case nameof(TripList.IsOperationButtonsVisible):
+                    OnPropertyChanged(nameof(IsOperationButtonsVisible));
+                    break;
+            }
+        };
+        TripList.PropertyChanged += _tripListPropertyChangedHandler;
+    }
+
     #region 转发属性 - 行程列表相关
 
     public ObservableCollection<TripItem> TripItems => TripList.TripItems;
@@ -82,53 +131,4 @@ public partial class MainViewModel
     }
 
     #endregion
-
-    private void SubscribeToTripListChanges()
-    {
-        _tripListPropertyChangedHandler = (s, e) =>
-        {
-            OnPropertyChanged(e.PropertyName);
-            switch (e.PropertyName)
-            {
-                case nameof(TripList.TripItems):
-                    OnPropertyChanged(nameof(TripItems));
-                    SetTemporaryStatus($"行程已更新，共 {TripList.TotalItems} 条记录");
-                    break;
-                case nameof(TripList.SelectedTripItem):
-                    OnPropertyChanged(nameof(SelectedTripItem));
-                    if (TripList.SelectedTripItem != null)
-                        SetTemporaryStatus(
-                            $"已选择：{TripList.SelectedTripItem.TrainNo} {TripList.SelectedTripItem.DepartStation}→{TripList.SelectedTripItem.ArriveStation}");
-                    break;
-                case nameof(TripList.TripItemsView):
-                    OnPropertyChanged(nameof(TripItemsView));
-                    break;
-                case nameof(TripList.CurrentPage):
-                    OnPropertyChanged(nameof(CurrentPage));
-                    SetTemporaryStatus($"已切换到第 {TripList.CurrentPage} 页");
-                    break;
-                case nameof(TripList.TotalPages):
-                    OnPropertyChanged(nameof(TotalPages));
-                    break;
-                case nameof(TripList.TotalItems):
-                    OnPropertyChanged(nameof(TotalItems));
-                    break;
-                case nameof(TripList.PaginationButtons):
-                    OnPropertyChanged(nameof(PaginationButtons));
-                    break;
-                case nameof(TripList.IsTripListExpanded):
-                    Debug.WriteLine(
-                        $"[MainViewModel] TripList.IsTripListExpanded changed to: {TripList.IsTripListExpanded}");
-                    OnPropertyChanged(nameof(IsTripListExpanded));
-                    OnPropertyChanged(nameof(IsDataGridVisible));
-                    OnPropertyChanged(nameof(CollapseButtonContent));
-                    SetTemporaryStatus(TripList.IsTripListExpanded ? "行程已展开" : "行程已收起");
-                    break;
-                case nameof(TripList.IsOperationButtonsVisible):
-                    OnPropertyChanged(nameof(IsOperationButtonsVisible));
-                    break;
-            }
-        };
-        TripList.PropertyChanged += _tripListPropertyChangedHandler;
-    }
 }

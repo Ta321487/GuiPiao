@@ -13,11 +13,22 @@ namespace GuiPiao.View;
 
 public partial class EditTrainTicketWindow : Window
 {
+    private static readonly Dictionary<int, EditTrainTicketWindow> _openEditWindows = new();
+    private static readonly object _lock = new();
     private readonly int? _ticketId;
     private bool _isUndoRedoMessageRegistered;
 
-    private static readonly Dictionary<int, EditTrainTicketWindow> _openEditWindows = new();
-    private static readonly object _lock = new();
+    public EditTrainTicketWindow()
+    {
+        InitializeComponent();
+        Loaded += OnWindowLoaded;
+        Closing += OnWindowClosing;
+    }
+
+    public EditTrainTicketWindow(int ticketId) : this()
+    {
+        _ticketId = ticketId;
+    }
 
     public static EditTrainTicketWindow GetInstance(int ticketId)
     {
@@ -34,18 +45,6 @@ public partial class EditTrainTicketWindow : Window
             _openEditWindows[ticketId] = newWindow;
             return newWindow;
         }
-    }
-
-    public EditTrainTicketWindow()
-    {
-        InitializeComponent();
-        Loaded += OnWindowLoaded;
-        Closing += OnWindowClosing;
-    }
-
-    public EditTrainTicketWindow(int ticketId) : this()
-    {
-        _ticketId = ticketId;
     }
 
     private async void OnWindowLoaded(object sender, RoutedEventArgs e)
@@ -141,13 +140,9 @@ public partial class EditTrainTicketWindow : Window
                 try
                 {
                     if (vm.SaveCommand is IAsyncRelayCommand asyncCommand)
-                    {
                         await asyncCommand.ExecuteAsync(null);
-                    }
                     else
-                    {
                         vm.SaveCommand.Execute(null);
-                    }
 
                     if (!vm.HasUnsavedChanges)
                     {
@@ -186,10 +181,7 @@ public partial class EditTrainTicketWindow : Window
 
         lock (_lock)
         {
-            if (_ticketId.HasValue)
-            {
-                _openEditWindows.Remove(_ticketId.Value);
-            }
+            if (_ticketId.HasValue) _openEditWindows.Remove(_ticketId.Value);
         }
     }
 }

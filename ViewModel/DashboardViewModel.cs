@@ -23,12 +23,10 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
 {
     private readonly IChartDataService _chartDataService;
 
+    private readonly ObservableCollection<DashboardChartViewModel> _dashboardCharts = new();
+
     private readonly DashboardSettingsService _dashboardSettingsService;
     private readonly SemaphoreSlim _loadChartsLock = new(1, 1);
-
-    private ObservableCollection<DashboardChartViewModel> _dashboardCharts = new();
-    private bool _isInitialized;
-    private bool _isPendingAutoRefresh;
 
     [ObservableProperty] private int _dashboardColumns = 2;
 
@@ -39,8 +37,10 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
     private bool _isDisposed;
 
     [ObservableProperty] private bool _isFullscreenMode;
+    private bool _isInitialized;
 
     private bool _isInitializingDashboard;
+    private bool _isPendingAutoRefresh;
     private Timer? _weeklyRefreshTimer;
 
     public DashboardViewModel()
@@ -75,47 +75,6 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
 
     public bool HasDashboardCharts => _dashboardCharts.Count > 0;
 
-    private void EnsureInitialized()
-    {
-        if (_isInitialized) return;
-        _isInitialized = true;
-
-        Debug.WriteLine("[DashboardViewModel] 延迟初始化开始");
-
-        // 订阅仪表盘配置保存事件
-        DashboardSettingsViewModel.DashboardConfigSaved += OnDashboardConfigSaved;
-        _dashboardSettingsService.ConfigSaved += OnDashboardConfigSavedFromService;
-
-        // 订阅统计数据刷新事件
-        DashboardSettingsViewModel.StatisticsRefreshRequested += OnStatisticsRefreshRequested;
-        DashboardSettingsViewModel.StatisticsCacheClearRequested += OnStatisticsCacheClearRequested;
-
-        // 初始化仪表盘
-        _ = InitializeDashboardAsync();
-
-        // 应用自动刷新策略
-        ApplyAutoRefreshStrategy();
-
-        // 如果配置为 OnStartup，延迟后自动刷新数据
-        if (_dashboardSettingsService.Config.AutoRefresh == AutoRefreshType.OnStartup)
-        {
-            _isPendingAutoRefresh = true;
-            _ = Task.Run(async () =>
-            {
-                await Task.Delay(3000);
-                if (_isInitialized && !_isDisposed)
-                {
-                    await Application.Current.Dispatcher.InvokeAsync(async () =>
-                    {
-                        await RefreshDashboardDataAsync();
-                    });
-                }
-            });
-        }
-
-        Debug.WriteLine("[DashboardViewModel] 延迟初始化完成");
-    }
-
     public bool CanNavigatePrevious => IsFullscreenMode && FullscreenChartIndex > 0;
 
     public bool CanNavigateNext => IsFullscreenMode && FullscreenChartIndex < DashboardCharts.Count - 1;
@@ -146,6 +105,45 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         WeakReferenceMessenger.Default.UnregisterAll(this);
     }
 
+    private void EnsureInitialized()
+    {
+        if (_isInitialized) return;
+        _isInitialized = true;
+
+        Debug.WriteLine("[DashboardViewModel] 延迟初始化开始");
+
+        // 订阅仪表盘配置保存事件
+        DashboardSettingsViewModel.DashboardConfigSaved += OnDashboardConfigSaved;
+        _dashboardSettingsService.ConfigSaved += OnDashboardConfigSavedFromService;
+
+        // 订阅统计数据刷新事件
+        DashboardSettingsViewModel.StatisticsRefreshRequested += OnStatisticsRefreshRequested;
+        DashboardSettingsViewModel.StatisticsCacheClearRequested += OnStatisticsCacheClearRequested;
+
+        // 初始化仪表盘
+        _ = InitializeDashboardAsync();
+
+        // 应用自动刷新策略
+        ApplyAutoRefreshStrategy();
+
+        // 如果配置为 OnStartup，延迟后自动刷新数据
+        if (_dashboardSettingsService.Config.AutoRefresh == AutoRefreshType.OnStartup)
+        {
+            _isPendingAutoRefresh = true;
+            _ = Task.Run(async () =>
+            {
+                await Task.Delay(3000);
+                if (_isInitialized && !_isDisposed)
+                    await Application.Current.Dispatcher.InvokeAsync(async () =>
+                    {
+                        await RefreshDashboardDataAsync();
+                    });
+            });
+        }
+
+        Debug.WriteLine("[DashboardViewModel] 延迟初始化完成");
+    }
+
     private async Task InitializeDashboardAsync()
     {
         if (_isInitializingDashboard)
@@ -163,7 +161,8 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
             const int maxCards = 20;
             if (config.Cards != null && config.Cards.Count > maxCards)
             {
-                Debug.WriteLine($"[InitializeDashboardAsync] 警告：卡片数量({config.Cards.Count})超过限制({maxCards})，只加载前{maxCards}个");
+                Debug.WriteLine(
+                    $"[InitializeDashboardAsync] 警告：卡片数量({config.Cards.Count})超过限制({maxCards})，只加载前{maxCards}个");
                 // 创建新的配置副本，只包含前20个卡片
                 var limitedCards = config.Cards.Take(maxCards).ToList();
                 config.Cards.Clear();
