@@ -23,6 +23,7 @@ namespace GuiPiao.ViewModel;
 public partial class MenuViewModel : ObservableObject
 {
     private readonly DatabaseBackupService _backupService;
+    private readonly ChartExportService _chartExportService;
     private readonly DatabaseDangerousService _dangerousService;
     private readonly DatabaseInfoService _databaseInfoService;
     private readonly IncrementalBackupService _incrementalBackupService;
@@ -43,7 +44,10 @@ public partial class MenuViewModel : ObservableObject
         _databaseInfoService = new DatabaseInfoService();
         _incrementalBackupService = new IncrementalBackupService();
         _logService = ServiceManager.Instance.LogService;
+        _chartExportService = new ChartExportService();
     }
+
+    public DashboardViewModel? Dashboard { get; set; }
 
     [RelayCommand]
     public async Task StorageMenuCommand(string action)
@@ -438,7 +442,7 @@ public partial class MenuViewModel : ObservableObject
             }
 
             // 创建标签选择对话框
-            var dialog = new View.TagSelectWindow(tags.ToList());
+            var dialog = new TagSelectWindow(tags.ToList());
             dialog.Owner = Application.Current.MainWindow;
 
             if (dialog.ShowDialog() == true && dialog.SelectedTags.Count > 0)
@@ -1018,7 +1022,60 @@ public partial class MenuViewModel : ObservableObject
 
     private async Task ExportChartAsync()
     {
-        MessageBoxWindow.Show(Application.Current.MainWindow, "导出统计图表功能即将推出");
+        var owner = Application.Current.MainWindow;
+
+        if (Dashboard == null || Dashboard.DashboardCharts.Count == 0)
+        {
+            MessageBoxWindow.Show(owner, "当前没有可导出的统计图表。");
+            return;
+        }
+
+        try
+        {
+            var dialog = new ExportChartWindow(Dashboard.DashboardCharts.ToList(), null, null);
+            dialog.Owner = owner;
+
+            if (dialog.ShowDialog() == true)
+            {
+                var progressWindow = MessageBoxWindow.ShowProgress("正在导出图表，请稍候...", "导出中");
+
+                await Task.Delay(100);
+
+                var result = await _chartExportService.ExportAsync(
+                    dialog.SaveFilePath,
+                    dialog.ExportFormat,
+                    dialog.SelectedCharts,
+                    dialog.IncludeRawData,
+                    dialog.IncludeChartImage,
+                    dialog.UseDefaultChartNames,
+                    dialog.FolderName,
+                    dialog.BaseFileName);
+
+                progressWindow?.Close();
+
+                if (result.Success)
+                {
+                    var message = "导出成功！\n\n";
+                    message += $"文件位置: {result.FilePath}\n";
+                    message += $"导出图表数: {dialog.SelectedCharts.Count}";
+
+                    MessageBoxWindow.Show(owner, message, "导出完成");
+
+                    _logService.Info("MenuViewModel", $"图表导出成功: {result.FilePath}, 图表数: {dialog.SelectedCharts.Count}");
+                }
+                else
+                {
+                    MessageBoxWindow.Show(owner, $"导出失败: {result.Message}", "导出失败", MessageBoxButton.OK,
+                        MessageBoxImage.Error);
+                    _logService.Error("MenuViewModel", $"图表导出失败: {result.Message}");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBoxWindow.Show(owner, $"导出图表时发生错误:\n{ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+            _logService.Error("MenuViewModel", $"导出图表异常: {ex.Message}");
+        }
     }
 
     #endregion
@@ -1058,10 +1115,7 @@ public partial class MenuViewModel : ObservableObject
             uiSettingsService.Config.DataGridColumns = dialog.ColumnConfigs;
             uiSettingsService.SaveConfig(uiSettingsService.Config);
 
-            if (Application.Current.MainWindow is MainWindow mainWindow)
-            {
-                mainWindow.RefreshDataGridColumns();
-            }
+            if (Application.Current.MainWindow is MainWindow mainWindow) mainWindow.RefreshDataGridColumns();
 
             WeakReferenceMessenger.Default.Send(new DataGridColumnsChangedMessage(dialog.ColumnConfigs));
             WeakReferenceMessenger.Default.Send(new StatusMessageMessage("显示列配置已更新"));
