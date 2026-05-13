@@ -2,8 +2,8 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="自定义列表字段"
-        Width="500"
-        Height="500"
+        Width="520"
+        Height="560"
         WindowStartupLocation="CenterScreen"
         ResizeMode="CanMinimize"
         Background="{DynamicResource WindowBackgroundBrush}">
@@ -100,7 +100,7 @@
                                              Width="50"
                                              VerticalAlignment="Center"
                                              IsEnabled="{Binding IsVisible}"
-                                             ToolTip="输入数字(像素)或*(自动填充剩余空间)"
+                                             ToolTip="数字＝固定像素；*＝可伸缩（详见下方说明）"
                                              PreviewTextInput="WidthTextBox_PreviewTextInput"
                                              DataObject.Pasting="WidthTextBox_Pasting" />
                                 </Grid>
@@ -112,12 +112,29 @@
         </Border>
 
         <!-- 说明文字 -->
-        <TextBlock Grid.Row="2"
-                   Text="提示：勾选字段以显示，拖拽 ☰ 可调整顺序；宽度输入数字(像素)或*(自动填充剩余空间)"
-                   FontSize="{DynamicResource SmallFontSize}"
-                   Foreground="{DynamicResource TextSecondaryBrush}"
-                   Margin="0,10,0,10"
-                   TextWrapping="Wrap" />
+        <StackPanel Grid.Row="2" Margin="0,10,0,10">
+            <TextBlock FontSize="{DynamicResource SmallFontSize}"
+                       Foreground="{DynamicResource TextSecondaryBrush}"
+                       TextWrapping="Wrap"
+                       Margin="0,0,0,8">
+                <Run Text="提示：勾选字段以显示，拖拽 ☰ 可调整顺序。" />
+                <LineBreak />
+                <Run Text="「操作」列不在此列表中，宽度由界面设置里的操作按钮显隐决定。" />
+            </TextBlock>
+            <TextBlock FontSize="{DynamicResource SmallFontSize}"
+                       Foreground="{DynamicResource TextSecondaryBrush}"
+                       TextWrapping="Wrap">
+                <Run FontWeight="Bold" Text="列宽与铺满：" />
+                <LineBreak />
+                <Run Text="• 填数字＝该列固定为对应像素宽。" />
+                <LineBreak />
+                <Run Text="• 填 *＝可伸缩：在「当前已勾选且可见」的列里，从右往左第一个宽度为 * 的列会随窗口变宽，吸收表格剩余宽度（同一时刻只有这一列伸缩）。" />
+                <LineBreak />
+                <Run Text="• 若所有可见列都未填 *，则最后一列可见数据列会自动当作伸缩列，避免右侧大块空白（仍遵守各列「最小宽度」）。" />
+                <LineBreak />
+                <Run Text="• 若各列宽度与最小宽度之和大于窗口，会出现横向滚动条，属正常现象。" />
+            </TextBlock>
+        </StackPanel>
 
         <!-- 按钮 -->
         <StackPanel Grid.Row="3"

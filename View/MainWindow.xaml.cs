@@ -1111,12 +1111,15 @@ public partial class MainWindow : Window
         var sortedConfigs = columnConfigs.Where(c => c.IsVisible).OrderBy(c => c.DisplayOrder).ToList();
         Debug.WriteLine($"[InitializeDataGridColumns] 可见列数: {sortedConfigs.Count}");
 
+        // 唯一使用 Star 伸缩的列：从右起第一个配置为「*」的列；若全无「*」则最后一列自动伸缩（否则全固定宽无法铺满表格右侧）
+        var flexColumnIndex = GetFlexDataColumnIndex(sortedConfigs);
+
         double totalWidth = 0;
         for (var i = 0; i < sortedConfigs.Count; i++)
         {
             var config = sortedConfigs[i];
-            var isLastVisibleColumn = i == sortedConfigs.Count - 1;
-            var column = CreateColumnFromConfig(config, isLastVisibleColumn);
+            var useStarSizing = i == flexColumnIndex;
+            var column = CreateColumnFromConfig(config, useStarSizing);
             if (column != null)
             {
                 TripDataGrid.Columns.Add(column);
@@ -1139,13 +1142,28 @@ public partial class MainWindow : Window
             if (vm.Layout.ShowRescheduleButton) visibleButtonCount++;
             if (vm.Layout.ShowRefundButton) visibleButtonCount++;
             if (vm.Layout.ShowDeleteButton) visibleButtonCount++;
-            double actionColumnWidth = visibleButtonCount * 32 + 20;
+            double actionColumnWidth = visibleButtonCount * 36 + 24;
             totalWidth += actionColumnWidth;
             Debug.WriteLine($"[InitializeDataGridColumns] 操作列宽度: {actionColumnWidth}");
         }
 
         Debug.WriteLine($"[InitializeDataGridColumns] 列总宽度: {totalWidth}");
         Debug.WriteLine($"[InitializeDataGridColumns] DataGrid.ActualWidth: {TripDataGrid.ActualWidth}");
+    }
+
+    private static bool IsStarColumnWidth(string? width) =>
+        string.Equals(width?.Trim(), "*", StringComparison.Ordinal);
+
+    /// <summary>
+    ///     唯一参与 Star 比例伸缩的数据列下标：从右起第一个 Width 为 * 的列；若没有 * 则用最后一列，避免全固定宽时无法铺满表格。
+    /// </summary>
+    private static int GetFlexDataColumnIndex(IReadOnlyList<DataGridColumnConfig> sortedVisibleConfigs)
+    {
+        if (sortedVisibleConfigs.Count == 0) return -1;
+        for (var j = sortedVisibleConfigs.Count - 1; j >= 0; j--)
+            if (IsStarColumnWidth(sortedVisibleConfigs[j].Width))
+                return j;
+        return sortedVisibleConfigs.Count - 1;
     }
 
     /// <summary>
@@ -1163,8 +1181,8 @@ public partial class MainWindow : Window
         if (viewModel.Layout.ShowRefundButton) visibleButtonCount++;
         if (viewModel.Layout.ShowDeleteButton) visibleButtonCount++;
 
-        // 每个按钮约32px（包括margin），加上padding和border
-        double columnWidth = visibleButtonCount * 32 + 20;
+        // 按钮在列内 CellTemplate 中；略放宽估算以免裁切（padding/emoji）
+        var columnWidth = visibleButtonCount * 36 + 24;
 
         var actionColumn = new DataGridTemplateColumn
         {
@@ -1176,15 +1194,10 @@ public partial class MainWindow : Window
             CanUserResize = false // 禁止拖动改变宽度
         };
 
-        // 创建单元格模板（空模板，因为按钮是在RowStyle中定义的）
-        var cellTemplate = new DataTemplate();
-        var textBlockFactory = new FrameworkElementFactory(typeof(TextBlock));
-        textBlockFactory.SetValue(TextBlock.TextProperty, "...");
-        textBlockFactory.SetValue(HorizontalAlignmentProperty, HorizontalAlignment.Center);
-        textBlockFactory.SetValue(VerticalAlignmentProperty, VerticalAlignment.Center);
-        textBlockFactory.SetValue(TextBlock.ForegroundProperty, Brushes.Transparent);
-        cellTemplate.VisualTree = textBlockFactory;
-        actionColumn.CellTemplate = cellTemplate;
+        if (FindResource("TripListActionCellTemplate") is DataTemplate actionCellTemplate)
+            actionColumn.CellTemplate = actionCellTemplate;
+        else
+            Debug.WriteLine("[AddActionColumn] 未找到 TripListActionCellTemplate，操作列为空");
 
         TripDataGrid.Columns.Add(actionColumn);
     }
@@ -1192,16 +1205,14 @@ public partial class MainWindow : Window
     /// <summary>
     ///     根据配置创建列
     /// </summary>
-    private DataGridColumn CreateColumnFromConfig(DataGridColumnConfig config, bool isLastVisibleColumn)
+    /// <param name="useStarSizing">为 true 时使用 Star 吸收 DataGrid 剩余宽度（唯一伸缩列）</param>
+    private DataGridColumn CreateColumnFromConfig(DataGridColumnConfig config, bool useStarSizing)
     {
         DataGridLength columnWidth;
-        if (config.Width == "*")
-        {
-            if (isLastVisibleColumn)
-                columnWidth = new DataGridLength(1, DataGridLengthUnitType.Star);
-            else
-                columnWidth = new DataGridLength(config.MinWidth > 0 ? config.MinWidth : 120);
-        }
+        if (useStarSizing)
+            columnWidth = new DataGridLength(1, DataGridLengthUnitType.Star);
+        else if (IsStarColumnWidth(config.Width))
+            columnWidth = new DataGridLength(config.MinWidth > 0 ? config.MinWidth : 120);
         else if (double.TryParse(config.Width, out var widthValue) && widthValue > 0)
         {
             columnWidth = new DataGridLength(widthValue);
