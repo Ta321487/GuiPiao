@@ -61,4 +61,7 @@ desktop.ini
 *_wpftmp.vbproj
 
 /Docs/
+# 放行小写 docs 下的测试说明（/Docs/ 在 Windows 上可能与 docs 等价）
+!docs/
+!docs/TESTING.md
 /CODE_WIKI.md

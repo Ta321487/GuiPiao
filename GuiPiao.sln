@@ -5,6 +5,8 @@ VisualStudioVersion = 18.3.11512.155 d18.3
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GuiPiao", "GuiPiao.csproj", "{C7664872-2829-7404-FA4F-C30DD3438D28}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GuiPiao.Tests", "GuiPiao.Tests\GuiPiao.Tests.csproj", "{A2F3519C-87FD-47A0-983A-EC05242FC510}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{C7664872-2829-7404-FA4F-C30DD3438D28}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C7664872-2829-7404-FA4F-C30DD3438D28}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C7664872-2829-7404-FA4F-C30DD3438D28}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A2F3519C-87FD-47A0-983A-EC05242FC510}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A2F3519C-87FD-47A0-983A-EC05242FC510}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A2F3519C-87FD-47A0-983A-EC05242FC510}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A2F3519C-87FD-47A0-983A-EC05242FC510}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

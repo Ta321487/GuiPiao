@@ -23,6 +23,12 @@
         </Content>
     </ItemGroup>
 
+    <!-- 测试项目位于本目录子文件夹时，须显式排除，否则会被 SDK 默认 **/*.cs 一并编译进主程序 -->
+    <ItemGroup>
+        <Compile Remove="GuiPiao.Tests\**\*"/>
+        <None Remove="GuiPiao.Tests\**\*"/>
+    </ItemGroup>
+
     <ItemGroup>
         <!-- 核心 MVVM -->
         <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2"/>
