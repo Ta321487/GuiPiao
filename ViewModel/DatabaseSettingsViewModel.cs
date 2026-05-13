@@ -1055,7 +1055,7 @@ public partial class DatabaseSettingsViewModel : ObservableObject, ISettingsView
                 {
                     Application.Current.Dispatcher.Invoke(() =>
                     {
-                        MessageBoxWindow.Show(settingsWindow, "设置已保存", "成功");
+                        MessageBoxWindow.Show(settingsWindow, "数据库设置已保存", SettingsDialogMessages.SuccessTitle);
                     });
                 });
         }
@@ -1065,7 +1065,9 @@ public partial class DatabaseSettingsViewModel : ObservableObject, ISettingsView
             {
                 Application.Current.Dispatcher.Invoke(() =>
                 {
-                    MessageBoxWindow.Show(settingsWindow, $"保存设置失败: {ex.Message}", "错误", MessageBoxButton.OK,
+                    MessageBoxWindow.Show(settingsWindow,
+                        $"{SettingsDialogMessages.SaveFailedPrefix}{ex.Message}", SettingsDialogMessages.ErrorTitle,
+                        MessageBoxButton.OK,
                         MessageBoxImage.Error);
                 });
             });
@@ -1082,6 +1084,11 @@ public partial class DatabaseSettingsViewModel : ObservableObject, ISettingsView
         var settingsWindow = Application.Current.Windows
             .OfType<Window>()
             .FirstOrDefault(w => w.DataContext is SettingsViewModel);
+
+        var confirm = MessageBoxWindow.Show(settingsWindow, SettingsDialogMessages.RestoreConfirmBody,
+            SettingsDialogMessages.ConfirmTitle, MessageBoxButton.YesNo, MessageBoxImage.Question);
+        if (confirm != MessageBoxResult.Yes)
+            return;
 
         try
         {
@@ -1102,7 +1109,11 @@ public partial class DatabaseSettingsViewModel : ObservableObject, ISettingsView
 
             await Task.Run(() =>
             {
-                Application.Current.Dispatcher.Invoke(() => { MessageBoxWindow.Show(settingsWindow, "已恢复默认设置"); });
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    MessageBoxWindow.Show(settingsWindow, SettingsDialogMessages.RestoreSavedHint,
+                        SettingsDialogMessages.SuccessTitle);
+                });
             });
         }
         catch (Exception ex)
@@ -1111,7 +1122,9 @@ public partial class DatabaseSettingsViewModel : ObservableObject, ISettingsView
             {
                 Application.Current.Dispatcher.Invoke(() =>
                 {
-                    MessageBoxWindow.Show(settingsWindow, $"恢复默认设置失败: {ex.Message}", "错误", MessageBoxButton.OK,
+                    MessageBoxWindow.Show(settingsWindow,
+                        $"{SettingsDialogMessages.RestoreFailedPrefix}{ex.Message}", SettingsDialogMessages.ErrorTitle,
+                        MessageBoxButton.OK,
                         MessageBoxImage.Error);
                 });
             });

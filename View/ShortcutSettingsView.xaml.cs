@@ -1,6 +1,8 @@
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Threading;
 using GuiPiao.ViewModel;
 
 namespace GuiPiao.View;
@@ -10,45 +12,121 @@ namespace GuiPiao.View;
 /// </summary>
 public partial class ShortcutSettingsView : UserControl
 {
+    private ShortcutSettingsViewModel? _shortcutVm;
+
     public ShortcutSettingsView()
     {
         InitializeComponent();
-        DataContext = new ShortcutSettingsViewModel();
 
-        // 订阅键盘事件
-        Loaded += (s, e) =>
-        {
-            var window = Window.GetWindow(this);
-            if (window != null) window.PreviewKeyDown += Window_PreviewKeyDown;
-        };
+        Loaded += OnLoaded;
+        Unloaded += OnUnloaded;
+        DataContextChanged += OnDataContextChanged;
+    }
 
-        Unloaded += (s, e) =>
+    private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+    {
+        DetachViewModel();
+        if (DataContext is ShortcutSettingsViewModel vm)
         {
-            var window = Window.GetWindow(this);
-            if (window != null) window.PreviewKeyDown -= Window_PreviewKeyDown;
-        };
+            _shortcutVm = vm;
+            vm.PropertyChanged += ShortcutVmOnPropertyChanged;
+            ApplyImeForWaitingState(vm.IsWaitingForKey);
+        }
+    }
+
+    private void DetachViewModel()
+    {
+        if (_shortcutVm != null)
+        {
+            _shortcutVm.PropertyChanged -= ShortcutVmOnPropertyChanged;
+            _shortcutVm = null;
+        }
+    }
+
+    private void ShortcutVmOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != nameof(ShortcutSettingsViewModel.IsWaitingForKey))
+            return;
+
+        if (sender is not ShortcutSettingsViewModel vm)
+            return;
+
+        // 等布局与点击处理结束后再抢焦点，否则焦点仍留在搜索框/DataGrid，IME 仍会抢键
+        Dispatcher.BeginInvoke(DispatcherPriority.Input, () => ApplyImeForWaitingState(vm.IsWaitingForKey));
     }
 
     /// <summary>
-    ///     处理键盘输入
+    ///     录制快捷键时关闭本控件子树的 IME，并把焦点收到本页，避免中文输入法吞键后出现 ImeProcessed 等无效绑定。
     /// </summary>
-    private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
+    private void ApplyImeForWaitingState(bool waitingForKey)
+    {
+        InputMethod.SetIsInputMethodEnabled(this, !waitingForKey);
+        if (waitingForKey)
+            Keyboard.Focus(this);
+    }
+
+    private void OnLoaded(object sender, RoutedEventArgs e)
+    {
+        // 勿仅用 Window.GetWindow(this)：在部分宿主/加载顺序下 Loaded 时仍为 null，会导致从未订阅按键。
+        // 在 UserControl 上监听 PreviewKeyDown：隧道从根到焦点，焦点在本页子控件时仍会经过本控件。
+        PreviewKeyDown -= ShortcutSettings_PreviewKeyDown;
+        PreviewKeyDown += ShortcutSettings_PreviewKeyDown;
+
+        if (DataContext is ShortcutSettingsViewModel vm)
+            ApplyImeForWaitingState(vm.IsWaitingForKey);
+    }
+
+    private void OnUnloaded(object sender, RoutedEventArgs e)
+    {
+        PreviewKeyDown -= ShortcutSettings_PreviewKeyDown;
+        DetachViewModel();
+        InputMethod.SetIsInputMethodEnabled(this, true);
+    }
+
+    /// <summary>
+    ///     <see cref="Key.System" /> 与中文 IME 下的 <see cref="Key.ImeProcessed" /> / <see cref="Key.DeadCharProcessed" /> 用 <see cref="KeyEventArgs.SystemKey" /> 取真实键。
+    /// </summary>
+    private static Key ResolveLogicalKey(KeyEventArgs e)
+    {
+        if (e.Key == Key.System)
+        {
+            var sk = e.SystemKey;
+            if (sk != Key.None && sk is not (Key.ImeProcessed or Key.DeadCharProcessed))
+                return sk;
+        }
+
+        if (e.Key is Key.ImeProcessed or Key.DeadCharProcessed)
+        {
+            var sk = e.SystemKey;
+            if (sk != Key.None && sk is not (Key.ImeProcessed or Key.DeadCharProcessed))
+                return sk;
+        }
+
+        return e.Key;
+    }
+
+    private void ShortcutSettings_PreviewKeyDown(object sender, KeyEventArgs e)
     {
         var viewModel = DataContext as ShortcutSettingsViewModel;
-        if (viewModel?.IsWaitingForKey == true)
-        {
-            // 处理 Esc 键取消编辑
-            if (e.Key == Key.Escape)
-            {
-                viewModel.CancelEditCommand.Execute(null);
-                e.Handled = true;
-                return;
-            }
+        if (viewModel?.IsWaitingForKey != true)
+            return;
 
-            // 将按键传递给 ViewModel
-            viewModel.HandleKeyInput(e.Key, Keyboard.Modifiers);
+        if (e.Key == Key.Escape)
+        {
+            viewModel.CancelEditCommand.Execute(null);
             e.Handled = true;
+            return;
         }
+
+        var key = ResolveLogicalKey(e);
+        if (key is Key.ImeProcessed or Key.DeadCharProcessed)
+        {
+            e.Handled = true;
+            return;
+        }
+
+        viewModel.HandleKeyInput(key, Keyboard.Modifiers);
+        e.Handled = true;
     }
 
     /// <summary>
@@ -56,7 +134,7 @@ public partial class ShortcutSettingsView : UserControl
     /// </summary>
     private void ShortcutKeyBorder_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
-        if (sender is Border border && border.Tag is ShortcutItemViewModel shortcut)
+        if (sender is Border { Tag: ShortcutItemViewModel shortcut })
         {
             var viewModel = DataContext as ShortcutSettingsViewModel;
             viewModel?.StartEditCommand.Execute(shortcut);

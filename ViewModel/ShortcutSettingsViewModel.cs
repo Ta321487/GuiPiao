@@ -11,6 +11,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using GuiPiao.Messages;
 using GuiPiao.Model;
 using GuiPiao.Services;
+using GuiPiao.Utils;
 using GuiPiao.View;
 
 namespace GuiPiao.ViewModel;
@@ -229,6 +230,10 @@ public partial class ShortcutSettingsViewModel : ObservableObject, ISettingsView
             key == Key.LWin || key == Key.RWin)
             return;
 
+        // 中文输入法下 IME 会吞掉按键并产生 ImeProcessed / DeadCharProcessed，勿当作快捷键保存
+        if (key == Key.ImeProcessed || key == Key.DeadCharProcessed)
+            return;
+
         // 构建快捷键字符串
         var keyString = BuildKeyString(key, modifiers);
         if (string.IsNullOrEmpty(keyString))
@@ -256,6 +261,9 @@ public partial class ShortcutSettingsViewModel : ObservableObject, ISettingsView
     /// </summary>
     private string BuildKeyString(Key key, ModifierKeys modifiers)
     {
+        if (key == Key.ImeProcessed || key == Key.DeadCharProcessed)
+            return string.Empty;
+
         var parts = new List<string>();
 
         if (modifiers.HasFlag(ModifierKeys.Control))
@@ -265,8 +273,11 @@ public partial class ShortcutSettingsViewModel : ObservableObject, ISettingsView
         if (modifiers.HasFlag(ModifierKeys.Shift))
             parts.Add("Shift");
 
-        // 转换键名为标准格式
+        // 转换键名为标准格式（防御：IME 未完全关闭时仍可能落到此分支）
         var keyName = key.ToString();
+        if (keyName is "ImeProcessed" or "DeadCharProcessed")
+            return string.Empty;
+
         switch (key)
         {
             case Key.Delete:
@@ -404,11 +415,12 @@ public partial class ShortcutSettingsViewModel : ObservableObject, ISettingsView
             // 发送消息通知菜单更新快捷键显示
             WeakReferenceMessenger.Default.Send(new ShortcutsChangedMessage());
 
-            if (showMessage) MessageBoxWindow.Show(settingsWindow, "快捷键设置已保存", "成功");
+            if (showMessage) MessageBoxWindow.Show(settingsWindow, "快捷键设置已保存", SettingsDialogMessages.SuccessTitle);
         }
         catch (Exception ex)
         {
-            MessageBoxWindow.Show(settingsWindow, $"保存失败：{ex.Message}", "错误", MessageBoxButton.OK,
+            MessageBoxWindow.Show(settingsWindow, $"{SettingsDialogMessages.SaveFailedPrefix}{ex.Message}",
+                SettingsDialogMessages.ErrorTitle, MessageBoxButton.OK,
                 MessageBoxImage.Error);
         }
     }
@@ -424,7 +436,8 @@ public partial class ShortcutSettingsViewModel : ObservableObject, ISettingsView
             .OfType<Window>()
             .FirstOrDefault(w => w.DataContext is SettingsViewModel);
 
-        var result = MessageBoxWindow.Show(settingsWindow, "确定要恢复所有快捷键的默认设置吗？", "确认", MessageBoxButton.YesNo,
+        var result = MessageBoxWindow.Show(settingsWindow, SettingsDialogMessages.RestoreConfirmBody,
+            SettingsDialogMessages.ConfirmTitle, MessageBoxButton.YesNo,
             MessageBoxImage.Question);
         if (result != MessageBoxResult.Yes) return;
 
@@ -437,11 +450,13 @@ public partial class ShortcutSettingsViewModel : ObservableObject, ISettingsView
             // 重新加载快捷键到应用程序
             ShortcutManager.Instance.ReloadShortcuts();
 
-            MessageBoxWindow.Show(settingsWindow, "已恢复默认快捷键设置", "成功");
+            MessageBoxWindow.Show(settingsWindow, SettingsDialogMessages.RestoreSavedHint,
+                SettingsDialogMessages.SuccessTitle);
         }
         catch (Exception ex)
         {
-            MessageBoxWindow.Show(settingsWindow, $"恢复默认设置失败：{ex.Message}", "错误", MessageBoxButton.OK,
+            MessageBoxWindow.Show(settingsWindow, $"{SettingsDialogMessages.RestoreFailedPrefix}{ex.Message}",
+                SettingsDialogMessages.ErrorTitle, MessageBoxButton.OK,
                 MessageBoxImage.Error);
         }
     }

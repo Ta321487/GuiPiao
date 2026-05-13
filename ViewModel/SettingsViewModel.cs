@@ -11,6 +11,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GuiPiao.Model;
 using GuiPiao.Services;
+using GuiPiao.Utils;
 using GuiPiao.View;
 using Microsoft.Win32;
 
@@ -191,7 +192,7 @@ public partial class SettingsViewModel : ObservableObject
             progressWindow?.Close();
 
             // 显示成功消息
-            MessageBoxWindow.Show(settingsWindow, "所有设置已保存", "成功");
+            MessageBoxWindow.Show(settingsWindow, "所有设置已保存", SettingsDialogMessages.SuccessTitle);
         }
         catch (Exception ex)
         {
@@ -199,7 +200,8 @@ public partial class SettingsViewModel : ObservableObject
             progressWindow?.Close();
 
             // 显示错误消息
-            MessageBoxWindow.Show(settingsWindow, $"保存设置时发生错误: {ex.Message}", "错误", MessageBoxButton.OK,
+            MessageBoxWindow.Show(settingsWindow, $"{SettingsDialogMessages.SaveFailedPrefix}{ex.Message}",
+                SettingsDialogMessages.ErrorTitle, MessageBoxButton.OK,
                 MessageBoxImage.Error);
         }
     }

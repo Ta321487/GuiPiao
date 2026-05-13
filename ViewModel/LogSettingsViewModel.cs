@@ -11,6 +11,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using GuiPiao.Messages;
 using GuiPiao.Model;
 using GuiPiao.Services;
+using GuiPiao.Utils;
 using GuiPiao.View;
 
 namespace GuiPiao.ViewModel;
@@ -143,21 +144,33 @@ public partial class LogSettingsViewModel : ObservableObject, ISettingsViewModel
             // 发送设置变更消息
             WeakReferenceMessenger.Default.Send(new SettingsChangedMessage("Log"));
 
-            if (showMessage) MessageBoxWindow.Show(owner, "设置已保存", "成功");
+            if (showMessage) MessageBoxWindow.Show(owner, "日志设置已保存", SettingsDialogMessages.SuccessTitle);
         }
         catch (Exception ex)
         {
-            MessageBoxWindow.Show(owner, $"保存失败：{ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBoxWindow.Show(owner, $"{SettingsDialogMessages.SaveFailedPrefix}{ex.Message}",
+                SettingsDialogMessages.ErrorTitle, MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 
     [RelayCommand]
     private void RestoreDefaults()
     {
+        var owner = Application.Current.Windows
+            .OfType<Window>()
+            .FirstOrDefault(w => w.DataContext is SettingsViewModel);
+
+        var result = MessageBoxWindow.Show(owner, SettingsDialogMessages.RestoreConfirmBody,
+            SettingsDialogMessages.ConfirmTitle, MessageBoxButton.YesNo, MessageBoxImage.Question);
+        if (result != MessageBoxResult.Yes)
+            return;
+
         SelectedLogLevel = LogLevel.INFO;
         AutoCleanup = true;
         RetentionDays = 7;
         MaxLogCount = 1000;
+
+        MessageBoxWindow.Show(owner, SettingsDialogMessages.RestoreNeedSaveHint);
     }
 
     [RelayCommand]

@@ -11,6 +11,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GuiPiao.Model;
 using GuiPiao.Services;
+using GuiPiao.Utils;
 using GuiPiao.View;
 using Microsoft.Win32;
 
@@ -1226,11 +1227,12 @@ public partial class OcrSettingsViewModel : ObservableObject, ISettingsViewModel
             _settingsService.SaveConfig(config);
             _originalConfig = GetCurrentConfig();
 
-            if (showMessage) MessageBoxWindow.Show(settingsWindow, "OCR设置已保存", "成功");
+            if (showMessage) MessageBoxWindow.Show(settingsWindow, "OCR设置已保存", SettingsDialogMessages.SuccessTitle);
         }
         catch (Exception ex)
         {
-            MessageBoxWindow.Show(settingsWindow, $"保存失败：{ex.Message}", "错误", MessageBoxButton.OK,
+            MessageBoxWindow.Show(settingsWindow, $"{SettingsDialogMessages.SaveFailedPrefix}{ex.Message}",
+                SettingsDialogMessages.ErrorTitle, MessageBoxButton.OK,
                 MessageBoxImage.Error);
         }
     }
@@ -1246,8 +1248,8 @@ public partial class OcrSettingsViewModel : ObservableObject, ISettingsViewModel
             .OfType<Window>()
             .FirstOrDefault(w => w.DataContext is SettingsViewModel);
 
-        var result = MessageBoxWindow.Show(settingsWindow, "确定要恢复默认OCR设置吗？", "确认", MessageBoxButton.YesNo,
-            MessageBoxImage.Question);
+        var result = MessageBoxWindow.Show(settingsWindow, SettingsDialogMessages.RestoreConfirmBody,
+            SettingsDialogMessages.ConfirmTitle, MessageBoxButton.YesNo, MessageBoxImage.Question);
         if (result != MessageBoxResult.Yes)
             return;
 
@@ -1261,7 +1263,7 @@ public partial class OcrSettingsViewModel : ObservableObject, ISettingsViewModel
         AutoRotateImage = defaultConfig.AutoRotateImage;
         MaxImageSize = defaultConfig.MaxImageSize;
 
-        MessageBoxWindow.Show(settingsWindow, "已恢复默认设置，请点击保存设置按钮保存更改。");
+        MessageBoxWindow.Show(settingsWindow, SettingsDialogMessages.RestoreNeedSaveHint);
     }
 
     #endregion

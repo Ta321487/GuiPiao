@@ -9,6 +9,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GuiPiao.Model;
 using GuiPiao.Services;
+using GuiPiao.Utils;
 using GuiPiao.View;
 using Application = System.Windows.Application;
 
@@ -837,12 +838,12 @@ public partial class ExportSettingsViewModel : ObservableObject, ISettingsViewMo
             _originalConfig = CloneConfig(Config);
             HasUnsavedChanges = false;
 
-            if (showMessage) MessageBoxWindow.Show(settingsWindow, "导出设置已保存", "成功");
+            if (showMessage) MessageBoxWindow.Show(settingsWindow, "导出设置已保存", SettingsDialogMessages.SuccessTitle);
         }
         catch (Exception ex)
         {
-            MessageBoxWindow.Show(settingsWindow, $"保存失败：{ex.Message}", "错误", MessageBoxButton.OK,
-                MessageBoxImage.Error);
+            MessageBoxWindow.Show(settingsWindow, $"{SettingsDialogMessages.SaveFailedPrefix}{ex.Message}",
+                SettingsDialogMessages.ErrorTitle, MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 
@@ -894,8 +895,8 @@ public partial class ExportSettingsViewModel : ObservableObject, ISettingsViewMo
             .OfType<Window>()
             .FirstOrDefault(w => w.DataContext is SettingsViewModel);
 
-        var result = MessageBoxWindow.Show(settingsWindow, "确定要恢复默认设置吗？", "确认", MessageBoxButton.YesNo,
-            MessageBoxImage.Question);
+        var result = MessageBoxWindow.Show(settingsWindow, SettingsDialogMessages.RestoreConfirmBody,
+            SettingsDialogMessages.ConfirmTitle, MessageBoxButton.YesNo, MessageBoxImage.Question);
         if (result != MessageBoxResult.Yes)
             return;
 
@@ -953,7 +954,7 @@ public partial class ExportSettingsViewModel : ObservableObject, ISettingsViewMo
 
         HasUnsavedChanges = true;
 
-        MessageBoxWindow.Show(settingsWindow, "已恢复默认设置，请点击保存设置按钮保存更改。");
+        MessageBoxWindow.Show(settingsWindow, SettingsDialogMessages.RestoreNeedSaveHint);
     }
 
     /// <summary>

@@ -321,12 +321,13 @@ public partial class GeneralSettingsViewModel : ObservableObject, ISettingsViewM
                 if (restartHints.Count > 0)
                     message += $"\n\n以下设置需重启程序后生效：\n{string.Join("\n", restartHints)}";
 
-                MessageBoxWindow.Show(settingsWindow, message, "成功");
+                MessageBoxWindow.Show(settingsWindow, message, SettingsDialogMessages.SuccessTitle);
             }
         }
         catch (Exception ex)
         {
-            MessageBoxWindow.Show(settingsWindow, $"保存失败：{ex.Message}", "错误", MessageBoxButton.OK,
+            MessageBoxWindow.Show(settingsWindow, $"{SettingsDialogMessages.SaveFailedPrefix}{ex.Message}",
+                SettingsDialogMessages.ErrorTitle, MessageBoxButton.OK,
                 MessageBoxImage.Error);
         }
     }
@@ -398,7 +399,8 @@ public partial class GeneralSettingsViewModel : ObservableObject, ISettingsViewM
             .OfType<Window>()
             .FirstOrDefault(w => w.DataContext is SettingsViewModel);
 
-        var result = MessageBoxWindow.Show(settingsWindow, "确定要恢复默认设置吗？", "确认", MessageBoxButton.YesNo,
+        var result = MessageBoxWindow.Show(settingsWindow, SettingsDialogMessages.RestoreConfirmBody,
+            SettingsDialogMessages.ConfirmTitle, MessageBoxButton.YesNo,
             MessageBoxImage.Question);
         if (result != MessageBoxResult.Yes)
             return;
@@ -464,7 +466,7 @@ public partial class GeneralSettingsViewModel : ObservableObject, ISettingsViewM
             });
         });
 
-        MessageBoxWindow.Show(settingsWindow, "已恢复默认设置，请点击保存设置按钮保存更改。");
+        MessageBoxWindow.Show(settingsWindow, SettingsDialogMessages.RestoreNeedSaveHint);
     }
 
     #region 外观与显示

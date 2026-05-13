@@ -10,6 +10,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GuiPiao.Model;
 using GuiPiao.Services;
+using GuiPiao.Utils;
 using GuiPiao.View;
 
 namespace GuiPiao.ViewModel;
@@ -278,7 +279,7 @@ public partial class MapSettingsViewModel : ObservableObject, ISettingsViewModel
                         if (restartHints.Count > 0)
                             message += $"\n\n以下设置需重新打开地图窗口后生效：\n{string.Join("\n", restartHints)}";
 
-                        MessageBoxWindow.Show(settingsWindow, message, "成功");
+                        MessageBoxWindow.Show(settingsWindow, message, SettingsDialogMessages.SuccessTitle);
                     });
                 });
         }
@@ -288,7 +289,9 @@ public partial class MapSettingsViewModel : ObservableObject, ISettingsViewModel
             {
                 Application.Current.Dispatcher.Invoke(() =>
                 {
-                    MessageBoxWindow.Show(settingsWindow, $"保存失败：{ex.Message}", "错误", MessageBoxButton.OK,
+                    MessageBoxWindow.Show(settingsWindow,
+                        $"{SettingsDialogMessages.SaveFailedPrefix}{ex.Message}", SettingsDialogMessages.ErrorTitle,
+                        MessageBoxButton.OK,
                         MessageBoxImage.Error);
                 });
             });
@@ -310,7 +313,8 @@ public partial class MapSettingsViewModel : ObservableObject, ISettingsViewModel
         {
             return Application.Current.Dispatcher.Invoke(() =>
             {
-                return MessageBoxWindow.Show(settingsWindow, "确定要恢复默认设置吗？", "确认", MessageBoxButton.YesNo,
+                return MessageBoxWindow.Show(settingsWindow, SettingsDialogMessages.RestoreConfirmBody,
+                    SettingsDialogMessages.ConfirmTitle, MessageBoxButton.YesNo,
                     MessageBoxImage.Question);
             });
         });
@@ -366,7 +370,7 @@ public partial class MapSettingsViewModel : ObservableObject, ISettingsViewModel
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
-                MessageBoxWindow.Show(settingsWindow, "已恢复默认设置，请点击保存设置按钮保存更改。");
+                MessageBoxWindow.Show(settingsWindow, SettingsDialogMessages.RestoreNeedSaveHint);
             });
         });
     }
@@ -465,7 +469,7 @@ public partial class MapSettingsViewModel : ObservableObject, ISettingsViewModel
                 else
                     message += "\n\n可以重新打开地图窗口继续使用。";
 
-                MessageBoxWindow.Show(settingsWindow, message, "成功");
+                MessageBoxWindow.Show(settingsWindow, message, SettingsDialogMessages.SuccessTitle);
             }
             else
             {

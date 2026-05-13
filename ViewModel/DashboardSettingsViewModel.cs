@@ -10,6 +10,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GuiPiao.Model;
 using GuiPiao.Services;
+using GuiPiao.Utils;
 using GuiPiao.View;
 
 namespace GuiPiao.ViewModel;
@@ -612,7 +613,7 @@ public partial class DashboardSettingsViewModel : ObservableObject, ISettingsVie
                 {
                     Application.Current.Dispatcher.Invoke(() =>
                     {
-                        MessageBoxWindow.Show(settingsWindow, "仪表盘配置已保存", "成功");
+                        MessageBoxWindow.Show(settingsWindow, "仪表盘设置已保存", SettingsDialogMessages.SuccessTitle);
                     });
                 });
         }
@@ -622,7 +623,9 @@ public partial class DashboardSettingsViewModel : ObservableObject, ISettingsVie
             {
                 Application.Current.Dispatcher.Invoke(() =>
                 {
-                    MessageBoxWindow.Show(settingsWindow, $"保存失败：{ex.Message}", "错误", MessageBoxButton.OK,
+                    MessageBoxWindow.Show(settingsWindow,
+                        $"{SettingsDialogMessages.SaveFailedPrefix}{ex.Message}", SettingsDialogMessages.ErrorTitle,
+                        MessageBoxButton.OK,
                         MessageBoxImage.Error);
                 });
             });
@@ -640,7 +643,8 @@ public partial class DashboardSettingsViewModel : ObservableObject, ISettingsVie
             .OfType<Window>()
             .FirstOrDefault(w => w.DataContext is SettingsViewModel);
 
-        var result = MessageBoxWindow.Show(settingsWindow, "确定要恢复默认设置吗？", "确认", MessageBoxButton.YesNo,
+        var result = MessageBoxWindow.Show(settingsWindow, SettingsDialogMessages.RestoreConfirmBody,
+            SettingsDialogMessages.ConfirmTitle, MessageBoxButton.YesNo,
             MessageBoxImage.Question);
         if (result != MessageBoxResult.Yes)
             return;
@@ -674,7 +678,11 @@ public partial class DashboardSettingsViewModel : ObservableObject, ISettingsVie
 
         await Task.Run(() =>
         {
-            Application.Current.Dispatcher.Invoke(() => { MessageBoxWindow.Show(settingsWindow, "已恢复默认设置并保存。"); });
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                MessageBoxWindow.Show(settingsWindow, SettingsDialogMessages.RestoreSavedHint,
+                    SettingsDialogMessages.SuccessTitle);
+            });
         });
     }
 

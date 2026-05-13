@@ -459,7 +459,7 @@ public partial class UISettingsViewModel : ObservableObject, ISettingsViewModel
                 {
                     Application.Current.Dispatcher.Invoke(() =>
                     {
-                        MessageBoxWindow.Show(settingsWindow, "界面设置已保存", "成功");
+                        MessageBoxWindow.Show(settingsWindow, "界面设置已保存", SettingsDialogMessages.SuccessTitle);
                     });
                 });
         }
@@ -469,7 +469,9 @@ public partial class UISettingsViewModel : ObservableObject, ISettingsViewModel
             {
                 Application.Current.Dispatcher.Invoke(() =>
                 {
-                    MessageBoxWindow.Show(settingsWindow, $"保存失败：{ex.Message}", "错误", MessageBoxButton.OK,
+                    MessageBoxWindow.Show(settingsWindow,
+                        $"{SettingsDialogMessages.SaveFailedPrefix}{ex.Message}", SettingsDialogMessages.ErrorTitle,
+                        MessageBoxButton.OK,
                         MessageBoxImage.Error);
                 });
             });
@@ -491,7 +493,8 @@ public partial class UISettingsViewModel : ObservableObject, ISettingsViewModel
         {
             return Application.Current.Dispatcher.Invoke(() =>
             {
-                return MessageBoxWindow.Show(settingsWindow, "确定要恢复默认设置吗？", "确认", MessageBoxButton.YesNo,
+                return MessageBoxWindow.Show(settingsWindow, SettingsDialogMessages.RestoreConfirmBody,
+                    SettingsDialogMessages.ConfirmTitle, MessageBoxButton.YesNo,
                     MessageBoxImage.Question);
             });
         });
@@ -550,7 +553,7 @@ public partial class UISettingsViewModel : ObservableObject, ISettingsViewModel
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
-                MessageBoxWindow.Show(settingsWindow, "已恢复默认设置，请点击保存设置按钮保存更改。");
+                MessageBoxWindow.Show(settingsWindow, SettingsDialogMessages.RestoreNeedSaveHint);
             });
         });
     }
@@ -584,8 +587,8 @@ public partial class UISettingsViewModel : ObservableObject, ISettingsViewModel
             var settingsWindow = Application.Current.Windows
                 .OfType<Window>()
                 .FirstOrDefault(w => w.DataContext is SettingsViewModel);
-            MessageBoxWindow.Show(settingsWindow, $"保存失败：{ex.Message}", "错误", MessageBoxButton.OK,
-                MessageBoxImage.Error);
+            MessageBoxWindow.Show(settingsWindow, $"{SettingsDialogMessages.SaveFailedPrefix}{ex.Message}",
+                SettingsDialogMessages.ErrorTitle, MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 

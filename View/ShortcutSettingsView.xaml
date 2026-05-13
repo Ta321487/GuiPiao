@@ -1,6 +1,7 @@
 <UserControl x:Class="GuiPiao.View.ShortcutSettingsView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Focusable="True"
              FontSize="{DynamicResource BaseFontSize}">
     <Grid>
         <Grid.RowDefinitions>
@@ -34,10 +35,17 @@
                 <Border Background="{DynamicResource PanelBackgroundBrush}" BorderBrush="{DynamicResource AccentBrush}"
                         BorderThickness="1" Margin="0,0,0,10" Padding="10"
                         Visibility="{Binding IsWaitingForKey, Converter={StaticResource BooleanToVisibilityConverter}}">
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                        <TextBlock Text="⌨️ 请按下新的快捷键组合..." FontWeight="Bold" Foreground="{DynamicResource AccentBrush}" />
-                        <Button Content="取消" Command="{Binding CancelEditCommand}" Margin="15,0,0,0" Padding="10,5"
-                                Style="{StaticResource StandardButtonStyle}" />
+                    <StackPanel HorizontalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <TextBlock Text="⌨️ 请按下新的快捷键组合…" FontWeight="Bold"
+                                       Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap" />
+                            <Button Content="取消" Command="{Binding CancelEditCommand}" Margin="15,0,0,0" Padding="10,5"
+                                    Style="{StaticResource StandardButtonStyle}" />
+                        </StackPanel>
+                        <TextBlock Margin="0,8,0,0" HorizontalAlignment="Center" TextWrapping="Wrap"
+                                   TextAlignment="Center" FontSize="{DynamicResource SmallFontSize}"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                   Text="已临时关闭本页中文输入法，请直接按物理键；若需使用搜索框请先点「取消」。" />
                     </StackPanel>
                 </Border>
 
