@@ -520,6 +520,13 @@
                         </ControlTemplate>
                     </Setter.Value>
                 </Setter>
+                <Style.Triggers>
+                    <Trigger Property="IsEnabled" Value="False">
+                        <Setter Property="Background" Value="{DynamicResource ControlDisabledBrush}" />
+                        <Setter Property="Foreground" Value="{DynamicResource TextDisabledBrush}" />
+                        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+                    </Trigger>
+                </Style.Triggers>
             </Style>
 
             <Style TargetType="ComboBox">
@@ -597,6 +604,13 @@
                         </ControlTemplate>
                     </Setter.Value>
                 </Setter>
+                <Style.Triggers>
+                    <Trigger Property="IsEnabled" Value="False">
+                        <Setter Property="Background" Value="{DynamicResource ControlDisabledBrush}" />
+                        <Setter Property="Foreground" Value="{DynamicResource TextDisabledBrush}" />
+                        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+                    </Trigger>
+                </Style.Triggers>
             </Style>
 
             <!-- ComboBoxItem 样式 -->

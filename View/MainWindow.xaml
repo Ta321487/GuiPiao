@@ -14,6 +14,30 @@
         ResizeMode="CanResize"
         Background="{DynamicResource WindowBackgroundBrush}">
     <Window.Resources>
+        <!-- 继承 BaseButtonStyle：悬停/按下仍用设置里的强调色背景；默认文字与全窗一致（覆盖 BaseButton 的 Accent 字色） -->
+        <Style x:Key="SidebarQuickActionStyle" BasedOn="{StaticResource BaseButtonStyle}" TargetType="Button">
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Padding" Value="8,6" />
+            <Setter Property="MinHeight" Value="38" />
+        </Style>
+        <Style x:Key="SidebarQuickGlyphStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+        </Style>
+        <Style x:Key="SidebarQuickCaptionStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Margin" Value="6,0,0,0" />
+            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+        </Style>
+
         <!-- 操作列单元格：按钮放在列内，避免整行右侧悬浮与「操作」表头错位 -->
         <DataTemplate x:Key="TripListActionCellTemplate">
             <Border HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -267,128 +291,261 @@
                                 <StackPanel>
                                     <TextBlock Text="🔍 高级检索区" FontSize="{DynamicResource LargeFontSize}"
                                                FontWeight="Bold" Margin="0,0,0,10" TextWrapping="Wrap" />
-                                    <StackPanel>
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" MinWidth="72" />
+                                            <ColumnDefinition Width="*" MinWidth="0" />
+                                        </Grid.ColumnDefinitions>
+
                                         <!-- 出发站 -->
-                                        <WrapPanel Margin="0,0,0,5">
-                                            <TextBlock Text="出发站：" VerticalAlignment="Center" Margin="0,0,5,5"
-                                                       FontSize="{DynamicResource BaseFontSize}" />
-                                            <controls:AutoCompleteTextBox Text="{Binding DepartStation}"
+                                        <TextBlock Grid.Row="0" Grid.Column="0"
+                                                   Text="出发站："
+                                                   VerticalAlignment="Center"
+                                                   TextAlignment="Right"
+                                                   Margin="0,0,10,8"
+                                                   FontSize="{DynamicResource BaseFontSize}"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+                                        <Grid Grid.Row="0" Grid.Column="1" Margin="0,0,0,8">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" MinWidth="0" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <controls:AutoCompleteTextBox Grid.Column="0"
+                                                                          Text="{Binding DepartStation}"
                                                                           Suggestions="{Binding DepartStationSuggestions}"
                                                                           IsDropDownOpen="{Binding IsDepartStationDropDownOpen}"
                                                                           TextChangedCommand="{Binding DepartStationTextChangedCommand}"
                                                                           SelectItemCommand="{Binding SelectDepartStationCommand}"
-                                                                          MinWidth="80" Margin="0,0,0,5" />
-                                            <TextBlock Text="站" VerticalAlignment="Center" Margin="0,0,0,5"
-                                                       FontSize="{DynamicResource BaseFontSize}" />
-                                        </WrapPanel>
+                                                                          MinWidth="0"
+                                                                          HorizontalAlignment="Stretch"
+                                                                          FontSize="{DynamicResource BaseFontSize}" />
+                                            <TextBlock Grid.Column="1"
+                                                       Text="站"
+                                                       VerticalAlignment="Center"
+                                                       Margin="6,0,0,0"
+                                                       FontSize="{DynamicResource BaseFontSize}"
+                                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                                        </Grid>
 
                                         <!-- 到达站 -->
-                                        <WrapPanel Margin="0,0,0,5">
-                                            <TextBlock Text="到达站：" VerticalAlignment="Center" Margin="0,0,5,5"
-                                                       FontSize="{DynamicResource BaseFontSize}" />
-                                            <controls:AutoCompleteTextBox Text="{Binding ArriveStation}"
+                                        <TextBlock Grid.Row="1" Grid.Column="0"
+                                                   Text="到达站："
+                                                   VerticalAlignment="Center"
+                                                   TextAlignment="Right"
+                                                   Margin="0,0,10,8"
+                                                   FontSize="{DynamicResource BaseFontSize}"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+                                        <Grid Grid.Row="1" Grid.Column="1" Margin="0,0,0,8">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" MinWidth="0" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <controls:AutoCompleteTextBox Grid.Column="0"
+                                                                          Text="{Binding ArriveStation}"
                                                                           Suggestions="{Binding ArriveStationSuggestions}"
                                                                           IsDropDownOpen="{Binding IsArriveStationDropDownOpen}"
                                                                           TextChangedCommand="{Binding ArriveStationTextChangedCommand}"
                                                                           SelectItemCommand="{Binding SelectArriveStationCommand}"
-                                                                          MinWidth="80" Margin="0,0,0,5" />
-                                            <TextBlock Text="站" VerticalAlignment="Center" Margin="0,0,0,5"
-                                                       FontSize="{DynamicResource BaseFontSize}" />
-                                        </WrapPanel>
+                                                                          MinWidth="0"
+                                                                          HorizontalAlignment="Stretch"
+                                                                          FontSize="{DynamicResource BaseFontSize}" />
+                                            <TextBlock Grid.Column="1"
+                                                       Text="站"
+                                                       VerticalAlignment="Center"
+                                                       Margin="6,0,0,0"
+                                                       FontSize="{DynamicResource BaseFontSize}"
+                                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                                        </Grid>
 
-                                        <!-- 车次 -->
-                                        <StackPanel Margin="0,0,0,5">
-                                            <TextBlock Text="车次：" Margin="0,0,0,5"
-                                                       FontSize="{DynamicResource BaseFontSize}" />
-                                            <Grid>
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="Auto" />
-                                                    <ColumnDefinition Width="4" />
-                                                    <ColumnDefinition Width="*" />
-                                                </Grid.ColumnDefinitions>
-                                                <ComboBox Grid.Column="0"
-                                                          ItemsSource="{Binding TrainNoPrefixes}"
-                                                          SelectedItem="{Binding SelectedTrainNoPrefix}"
-                                                          Width="60"
-                                                          FontSize="{DynamicResource BaseFontSize}"
-                                                          Padding="4,2"
-                                                          MinHeight="24" />
-                                                <TextBox Grid.Column="2"
-                                                         Text="{Binding TrainNoNumber}"
-                                                         IsEnabled="{Binding IsTrainNoNumberEnabled}"
-                                                         FontSize="{DynamicResource BaseFontSize}"
-                                                         Padding="4,2"
-                                                         MinHeight="24"
-                                                         MinWidth="50" />
-                                            </Grid>
+                                        <!-- 车次：窄面板下列+框横排会挤没输入框，改为下拉一行、数字框单独一行拉满 -->
+                                        <TextBlock Grid.Row="2" Grid.Column="0"
+                                                   Text="车次："
+                                                   VerticalAlignment="Top"
+                                                   Margin="0,4,10,0"
+                                                   TextAlignment="Right"
+                                                   FontSize="{DynamicResource BaseFontSize}"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+                                        <StackPanel Grid.Row="2" Grid.Column="1" Margin="0,0,0,8">
+                                            <ComboBox ItemsSource="{Binding TrainNoPrefixes}"
+                                                      SelectedItem="{Binding SelectedTrainNoPrefix}"
+                                                      MinWidth="52"
+                                                      MaxWidth="200"
+                                                      HorizontalAlignment="Left"
+                                                      FontSize="{DynamicResource BaseFontSize}"
+                                                      Padding="4,2"
+                                                      MinHeight="24" />
+                                            <TextBox Margin="0,6,0,0"
+                                                     Text="{Binding TrainNoNumber}"
+                                                     IsEnabled="{Binding IsTrainNoNumberEnabled}"
+                                                     FontSize="{DynamicResource BaseFontSize}"
+                                                     Padding="4,2"
+                                                     MinHeight="24"
+                                                     MinWidth="0"
+                                                     HorizontalAlignment="Stretch" />
                                         </StackPanel>
 
                                         <!-- 日期范围 -->
-                                        <WrapPanel Margin="0,0,0,5">
-                                            <TextBlock Text="日期范围：" VerticalAlignment="Center" Margin="0,0,5,5"
-                                                       FontSize="{DynamicResource BaseFontSize}" />
-                                            <ComboBox Text="{Binding DateRange}" MinWidth="100" Margin="0,0,0,5"
-                                                      FontSize="{DynamicResource BaseFontSize}">
-                                                <ComboBoxItem>今年</ComboBoxItem>
-                                                <ComboBoxItem>去年</ComboBoxItem>
-                                                <ComboBoxItem>最近3个月</ComboBoxItem>
-                                                <ComboBoxItem>最近6个月</ComboBoxItem>
-                                            </ComboBox>
-                                        </WrapPanel>
+                                        <TextBlock Grid.Row="3" Grid.Column="0"
+                                                   Text="日期范围："
+                                                   VerticalAlignment="Center"
+                                                   TextAlignment="Right"
+                                                   Margin="0,0,10,8"
+                                                   FontSize="{DynamicResource BaseFontSize}"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+                                        <ComboBox Grid.Row="3" Grid.Column="1"
+                                                  Text="{Binding DateRange}"
+                                                  MinWidth="0"
+                                                  HorizontalAlignment="Stretch"
+                                                  Margin="0,0,0,8"
+                                                  FontSize="{DynamicResource BaseFontSize}"
+                                                  VerticalAlignment="Center"
+                                                  Padding="4,2"
+                                                  MinHeight="24">
+                                            <ComboBoxItem>今年</ComboBoxItem>
+                                            <ComboBoxItem>去年</ComboBoxItem>
+                                            <ComboBoxItem>最近3个月</ComboBoxItem>
+                                            <ComboBoxItem>最近6个月</ComboBoxItem>
+                                        </ComboBox>
 
                                         <!-- 状态 -->
-                                        <WrapPanel Margin="0,0,0,5">
-                                            <TextBlock Text="状态：" VerticalAlignment="Center" Margin="0,0,5,5"
-                                                       FontSize="{DynamicResource BaseFontSize}" />
-                                            <ComboBox Text="{Binding Status}" MinWidth="100" Margin="0,0,0,5"
-                                                      FontSize="{DynamicResource BaseFontSize}">
-                                                <ComboBoxItem>全部</ComboBoxItem>
-                                                <ComboBoxItem>未出行</ComboBoxItem>
-                                                <ComboBoxItem>已完成</ComboBoxItem>
-                                            </ComboBox>
-                                        </WrapPanel>
+                                        <TextBlock Grid.Row="4" Grid.Column="0"
+                                                   Text="状态："
+                                                   VerticalAlignment="Center"
+                                                   TextAlignment="Right"
+                                                   Margin="0,0,10,8"
+                                                   FontSize="{DynamicResource BaseFontSize}"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+                                        <ComboBox Grid.Row="4" Grid.Column="1"
+                                                  Text="{Binding Status}"
+                                                  MinWidth="0"
+                                                  HorizontalAlignment="Stretch"
+                                                  Margin="0,0,0,8"
+                                                  FontSize="{DynamicResource BaseFontSize}"
+                                                  VerticalAlignment="Center"
+                                                  Padding="4,2"
+                                                  MinHeight="24">
+                                            <ComboBoxItem>全部</ComboBoxItem>
+                                            <ComboBoxItem>未出行</ComboBoxItem>
+                                            <ComboBoxItem>已完成</ComboBoxItem>
+                                        </ComboBox>
 
                                         <!-- 按钮 -->
-                                        <WrapPanel HorizontalAlignment="Right" Margin="0,10,0,0">
+                                        <StackPanel Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2"
+                                                    Orientation="Horizontal"
+                                                    HorizontalAlignment="Right"
+                                                    Margin="0,6,0,0">
                                             <Button Content="🔎" ToolTip="检索" Command="{Binding SearchCommandCommand}"
-                                                    Style="{StaticResource StandardButtonStyle}" Margin="0,0,4,5"
+                                                    Style="{StaticResource StandardButtonStyle}" Margin="0,0,6,0"
                                                     MinWidth="40" Padding="4,2" FontSize="12" />
                                             <Button Content="🗑️" ToolTip="清空条件"
                                                     Command="{Binding ClearConditionCommandCommand}"
-                                                    Style="{StaticResource StandardButtonStyle}" Margin="0,0,0,5"
+                                                    Style="{StaticResource StandardButtonStyle}"
                                                     MinWidth="40" Padding="4,2" FontSize="12" />
-                                        </WrapPanel>
-                                    </StackPanel>
+                                        </StackPanel>
+                                    </Grid>
                                 </StackPanel>
                             </Border>
 
-                            <!-- 快捷功能区 -->
+                            <!-- 快捷功能区：侧栏「图标+文案」列表 + 分组圆角容器（常见桌面应用范式） -->
                             <Border Background="{DynamicResource PanelBackgroundBrush}" Margin="10">
                                 <StackPanel>
                                     <TextBlock Text="📌 快捷功能区" FontSize="{DynamicResource LargeFontSize}"
-                                               FontWeight="Bold" Margin="0,10,0,10" TextWrapping="Wrap" />
-                                    <WrapPanel>
-                                        <Button Content="🆕" ToolTip="新增" Command="{Binding NewTicketRecordCommand}"
-                                                Style="{StaticResource StandardButtonStyle}" Margin="0,0,4,4"
-                                                MinWidth="40" Padding="4,2" FontSize="12" />
-                                        <Button Content="🔍" ToolTip="OCR识别"
-                                                Command="{Binding OcrRecognizeTicketCommand}"
-                                                Style="{StaticResource StandardButtonStyle}" Margin="0,0,4,4"
-                                                MinWidth="40" Padding="4,2" FontSize="12" />
-                                        <Button Content="🗺️" ToolTip="地图" Command="{Binding OpenTicketMapCommand}"
-                                                Style="{StaticResource StandardButtonStyle}" Margin="0,0,4,4"
-                                                MinWidth="40" Padding="4,2" FontSize="12" />
-                                        <Button Content="🎫" ToolTip="预览" Command="{Binding TicketPreviewCommand}"
-                                                Style="{StaticResource StandardButtonStyle}" Margin="0,0,4,4"
-                                                MinWidth="40" Padding="4,2" FontSize="12" />
-                                        <Button Content="🔐" ToolTip="备份"
-                                                Command="{Binding BackupRestoreDatabaseCommand}"
-                                                Style="{StaticResource StandardButtonStyle}" Margin="0,0,4,4"
-                                                MinWidth="40" Padding="4,2" FontSize="12" />
-                                        <Button Content="⚙️" ToolTip="配置" Command="{Binding SystemConfigCommand}"
-                                                Style="{StaticResource StandardButtonStyle}" Margin="0,0,0,4"
-                                                MinWidth="40" Padding="4,2" FontSize="12" />
-                                    </WrapPanel>
+                                               FontWeight="Bold" Margin="0,10,0,8" TextWrapping="Wrap"
+                                               Foreground="{DynamicResource TextPrimaryBrush}" />
+                                    <Border Background="{DynamicResource ControlBackgroundBrush}"
+                                            BorderBrush="{DynamicResource BorderBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="8"
+                                            Padding="4,6">
+                                        <StackPanel>
+                                            <Button Style="{StaticResource SidebarQuickActionStyle}"
+                                                    Command="{Binding NewTicketRecordCommand}"
+                                                    ToolTip="新增车票记录"
+                                                    Margin="0,0,0,2">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="28" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Grid.Column="0" Text="🆕" Style="{StaticResource SidebarQuickGlyphStyle}" />
+                                                    <TextBlock Grid.Column="1" Text="新增车票" Style="{StaticResource SidebarQuickCaptionStyle}" />
+                                                </Grid>
+                                            </Button>
+                                            <Button Style="{StaticResource SidebarQuickActionStyle}"
+                                                    Command="{Binding OcrRecognizeTicketCommand}"
+                                                    ToolTip="OCR 识别票面"
+                                                    Margin="0,0,0,2">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="28" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Grid.Column="0" Text="🔍" Style="{StaticResource SidebarQuickGlyphStyle}" />
+                                                    <TextBlock Grid.Column="1" Text="OCR 识别" Style="{StaticResource SidebarQuickCaptionStyle}" />
+                                                </Grid>
+                                            </Button>
+                                            <Button Style="{StaticResource SidebarQuickActionStyle}"
+                                                    Command="{Binding OpenTicketMapCommand}"
+                                                    ToolTip="打开车票地图"
+                                                    Margin="0,0,0,2">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="28" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Grid.Column="0" Text="🗺️" Style="{StaticResource SidebarQuickGlyphStyle}" />
+                                                    <TextBlock Grid.Column="1" Text="车票地图" Style="{StaticResource SidebarQuickCaptionStyle}" />
+                                                </Grid>
+                                            </Button>
+                                            <Button Style="{StaticResource SidebarQuickActionStyle}"
+                                                    Command="{Binding TicketPreviewCommand}"
+                                                    ToolTip="预览票面"
+                                                    Margin="0,0,0,2">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="28" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Grid.Column="0" Text="🎫" Style="{StaticResource SidebarQuickGlyphStyle}" />
+                                                    <TextBlock Grid.Column="1" Text="票面预览" Style="{StaticResource SidebarQuickCaptionStyle}" />
+                                                </Grid>
+                                            </Button>
+                                            <Button Style="{StaticResource SidebarQuickActionStyle}"
+                                                    Command="{Binding BackupRestoreDatabaseCommand}"
+                                                    ToolTip="备份与恢复数据库"
+                                                    Margin="0,0,0,2">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="28" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Grid.Column="0" Text="🔐" Style="{StaticResource SidebarQuickGlyphStyle}" />
+                                                    <TextBlock Grid.Column="1" Text="备份 / 恢复" Style="{StaticResource SidebarQuickCaptionStyle}" />
+                                                </Grid>
+                                            </Button>
+                                            <Button Style="{StaticResource SidebarQuickActionStyle}"
+                                                    Command="{Binding SystemConfigCommand}"
+                                                    ToolTip="打开系统配置"
+                                                    Margin="0,0,0,0">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="28" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Grid.Column="0" Text="⚙️" Style="{StaticResource SidebarQuickGlyphStyle}" />
+                                                    <TextBlock Grid.Column="1" Text="系统配置" Style="{StaticResource SidebarQuickCaptionStyle}" />
+                                                </Grid>
+                                            </Button>
+                                        </StackPanel>
+                                    </Border>
                                 </StackPanel>
                             </Border>
                         </StackPanel>
