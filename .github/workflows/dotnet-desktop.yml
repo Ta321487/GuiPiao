@@ -1,0 +1,45 @@
+name: .NET Desktop
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    env:
+      Solution_Name: GuiPiao.sln
+      Test_Project_Path: ''
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Install .NET Core
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore ${{ env.Solution_Name }}
+
+    - name: Build the solution
+      run: dotnet build ${{ env.Solution_Name }} --configuration Release --no-restore
+
+    - name: Run tests
+      if: env.Test_Project_Path != ''
+      run: dotnet test ${{ env.Test_Project_Path }} --configuration Release --no-build
+
+    - name: Publish the application
+      run: dotnet publish ${{ env.Solution_Name }} --configuration Release --no-build --output publish
+
+    - name: Upload build artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: GuiPiao-release
+        path: publish
