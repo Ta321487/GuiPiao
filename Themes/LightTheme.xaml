@@ -64,6 +64,30 @@
     <SolidColorBrush x:Key="ErrorBrush" Color="#DC3545" />
     <SolidColorBrush x:Key="InfoBrush" Color="#17A2B8" />
 
+    <!-- 车票报销凭证预览：除票号红色外正文均为黑字 -->
+    <LinearGradientBrush x:Key="TicketVoucherBlueSurfaceBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#D4EBF5" Offset="0" />
+        <GradientStop Color="#E8F6FC" Offset="1" />
+    </LinearGradientBrush>
+    <LinearGradientBrush x:Key="TicketVoucherWarmSurfaceBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#F5D4D4" Offset="0" />
+        <GradientStop Color="#FCE8E8" Offset="1" />
+    </LinearGradientBrush>
+    <SolidColorBrush x:Key="TicketVoucherSerialTextBrush" Color="#C62828" />
+    <SolidColorBrush x:Key="TicketVoucherPrimaryTextBrush" Color="#000000" />
+    <SolidColorBrush x:Key="TicketVoucherSecondaryTextBrush" Color="#000000" />
+    <SolidColorBrush x:Key="TicketVoucherMutedTextBrush" Color="#000000" />
+    <SolidColorBrush x:Key="TicketVoucherSubtleTextBrush" Color="#000000" />
+    <SolidColorBrush x:Key="TicketVoucherAccentBrush" Color="#1565C0" />
+    <SolidColorBrush x:Key="TicketVoucherWatermarkBrush" Color="#1A6B9C" />
+    <SolidColorBrush x:Key="TicketVoucherCardBorderBrush" Color="#7FA8C4" />
+    <SolidColorBrush x:Key="TicketVoucherFooterBackgroundBrush" Color="#E8EEF2" />
+    <SolidColorBrush x:Key="TicketVoucherFooterForegroundBrush" Color="#000000" />
+    <SolidColorBrush x:Key="TicketVoucherQrPlaceholderBackgroundBrush" Color="#ECEFF1" />
+    <SolidColorBrush x:Key="TicketVoucherQrPlaceholderBorderBrush" Color="#90A4AE" />
+    <SolidColorBrush x:Key="TicketVoucherQrPlaceholderForegroundBrush" Color="#000000" />
+    <SolidColorBrush x:Key="TicketVoucherDisclaimerBorderBrush" Color="#78909C" />
+
     <!-- ============================================ -->
     <!-- Tooltip 样式 - 适配浅色模式，响应式字体大小 -->
     <!-- ============================================ -->

@@ -27,4 +27,5 @@
 <converters:IntComparisonToVisibilityConverter x:Key="IntToVisibilityConverter" />
 <converters:InverseIntComparisonToVisibilityConverter x:Key="InverseIntToVisibilityConverter" />
 <converters:CardDensityToVisibilityConverter x:Key="CardDensityToVisibilityConverter" />
+<converters:LayoutFontFamilyMultiConverter x:Key="LayoutFontFamilyMultiConverter" />
 </ResourceDictionary>

@@ -16,13 +16,13 @@ public partial class TripItem : ObservableObject
     /// </summary>
     public int DatabaseId { get; set; }
 
-    public string TrainNo { get; set; }
-    public string DepartStation { get; set; }
-    public string ArriveStation { get; set; }
-    public string DepartDate { get; set; }
-    public string DepartTime { get; set; }
-    public string SeatType { get; set; }
-    public string Money { get; set; }
+    [ObservableProperty] private string _trainNo = string.Empty;
+    [ObservableProperty] private string _departStation = string.Empty;
+    [ObservableProperty] private string _arriveStation = string.Empty;
+    [ObservableProperty] private string _departDate = string.Empty;
+    [ObservableProperty] private string _departTime = string.Empty;
+    [ObservableProperty] private string _seatType = string.Empty;
+    [ObservableProperty] private string _money = string.Empty;
     public int Status { get; set; }
 
     /// <summary>
@@ -49,18 +49,18 @@ public partial class TripItem : ObservableObject
     public List<TicketTag> Tags { get; set; } = new();
 
     // 可选列（票面信息）
-    public string CoachNo { get; set; }
-    public string SeatNo { get; set; }
-    public string TicketNumber { get; set; }
-    public string DepartStationPinyin { get; set; }
-    public string ArriveStationPinyin { get; set; }
-    public string CheckInLocation { get; set; }
-    public string Hint { get; set; }
-    public string AdditionalInfo { get; set; }
-    public string TicketPurpose { get; set; }
-    public string TicketModificationType { get; set; }
+    [ObservableProperty] private string _coachNo = string.Empty;
+    [ObservableProperty] private string _seatNo = string.Empty;
+    [ObservableProperty] private string _ticketNumber = string.Empty;
+    [ObservableProperty] private string _departStationPinyin = string.Empty;
+    [ObservableProperty] private string _arriveStationPinyin = string.Empty;
+    [ObservableProperty] private string _checkInLocation = string.Empty;
+    [ObservableProperty] private string _hint = string.Empty;
+    [ObservableProperty] private string _additionalInfo = string.Empty;
+    [ObservableProperty] private string _ticketPurpose = string.Empty;
+    [ObservableProperty] private string _ticketModificationType = string.Empty;
 
     // 票种类型和支付渠道
-    public string TicketType { get; set; }
-    public string PaymentChannel { get; set; }
+    [ObservableProperty] private string _ticketType = string.Empty;
+    [ObservableProperty] private string _paymentChannel = string.Empty;
 }

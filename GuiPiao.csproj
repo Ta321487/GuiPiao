@@ -21,6 +21,9 @@
         <Content Include="Resources\**\*" Exclude="Resources\**\*.xaml">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
+        <Content Include="Config\**\*">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
     </ItemGroup>
 
     <!-- 测试项目位于本目录子文件夹时，须显式排除，否则会被 SDK 默认 **/*.cs 一并编译进主程序 -->
@@ -49,6 +52,7 @@
         <!-- WebView2 浏览器控件 -->
         <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2651.64"/>
         <PackageReference Include="PdfSharpCore" Version="1.3.65"/>
+        <PackageReference Include="QRCoder" Version="1.6.0"/>
     </ItemGroup>
 
 </Project>

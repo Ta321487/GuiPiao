@@ -1,0 +1,19 @@
+<UserControl x:Class="GuiPiao.View.Controls.TicketFaceArrowControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             Background="Transparent"
+             SnapsToDevicePixels="True"
+             d:DesignHeight="14" d:DesignWidth="64">
+    <Canvas x:Name="ArrowCanvas" Height="14" SnapsToDevicePixels="True">
+        <!-- 水平段 + 右端一条向左上倾斜的勾线（无下半斜线、非三角） -->
+        <Polyline x:Name="ArrowPoly"
+                  StrokeStartLineCap="Flat"
+                  StrokeEndLineCap="Flat"
+                  StrokeLineJoin="Miter"
+                  StrokeMiterLimit="2"
+                  Fill="Transparent" />
+    </Canvas>
+</UserControl>

@@ -895,7 +895,7 @@ public partial class MainWindow : Window
     {
         if (DataContext is not MainViewModel viewModel) return;
         var selectedItems = viewModel.TripList.TripItems.Where(t => t.IsSelected).ToList();
-        foreach (var item in selectedItems) viewModel.TripList.ViewTripCommand(item);
+        viewModel.TripList.OpenTicketPreviewForTrips(selectedItems);
     }
 
     /// <summary>

@@ -527,6 +527,20 @@
                                       Margin="{TemplateBinding Padding}"
                                       VerticalAlignment="Center"
                                       HorizontalAlignment="Left" />
+                    <!-- 可编辑 ComboBox 必须由模板提供此命名元素，否则 Text 绑定与选后回显无效 -->
+                    <TextBox x:Name="PART_EditableTextBox"
+                             HorizontalAlignment="Stretch"
+                             VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                             Margin="{TemplateBinding Padding}"
+                             Padding="2,0,22,0"
+                             Visibility="Collapsed"
+                             Focusable="True"
+                             Background="Transparent"
+                             BorderThickness="0"
+                             Foreground="{TemplateBinding Foreground}"
+                             CaretBrush="{DynamicResource TextPrimaryBrush}"
+                             FontSize="{TemplateBinding FontSize}"
+                             IsReadOnly="{Binding IsReadOnly, RelativeSource={RelativeSource TemplatedParent}}" />
                     <Popup x:Name="Popup"
                            Placement="Bottom"
                            IsOpen="{TemplateBinding IsDropDownOpen}"
@@ -549,6 +563,12 @@
                         </Grid>
                     </Popup>
                 </Grid>
+                <ControlTemplate.Triggers>
+                    <Trigger Property="IsEditable" Value="True">
+                        <Setter TargetName="ContentSite" Property="Visibility" Value="Collapsed" />
+                        <Setter TargetName="PART_EditableTextBox" Property="Visibility" Value="Visible" />
+                    </Trigger>
+                </ControlTemplate.Triggers>
             </ControlTemplate>
         </Setter.Value>
     </Setter>

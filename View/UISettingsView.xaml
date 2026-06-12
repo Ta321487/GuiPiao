@@ -33,18 +33,12 @@
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
                             <TextBlock Text="默认缩放：" VerticalAlignment="Center"
                                        Foreground="{DynamicResource TextPrimaryBrush}" />
-                            <ComboBox MinWidth="120" SelectedValue="{Binding DefaultZoom}" SelectedValuePath="Tag"
-                                      Margin="0,0,20,0">
-                                <ComboBoxItem Content="适应窗口" Tag="FitWindow" />
-                                <ComboBoxItem Content="50%" Tag="50" />
-                                <ComboBoxItem Content="75%" Tag="75" />
-                                <ComboBoxItem Content="100%" Tag="100" />
-                                <ComboBoxItem Content="125%" Tag="125" />
-                                <ComboBoxItem Content="150%" Tag="150" />
-                                <ComboBoxItem Content="200%" Tag="200" />
-                                <ComboBoxItem Content="300%" Tag="300" />
-                                <ComboBoxItem Content="400%" Tag="400" />
-                            </ComboBox>
+                            <ComboBox MinWidth="120" MaxWidth="160"
+                                      ItemsSource="{x:Static model:TicketPreviewZoomOptions.ComboItems}"
+                                      DisplayMemberPath="Display"
+                                      SelectedValuePath="Tag"
+                                      SelectedValue="{Binding DefaultZoom}"
+                                      Margin="0,0,20,0" />
                             <CheckBox Content="允许鼠标滚轮缩放" IsChecked="{Binding AllowMouseWheelZoom}"
                                       VerticalAlignment="Center" />
                         </StackPanel>
@@ -61,7 +55,7 @@
                         </StackPanel>
 
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,0">
-                            <Button Content="👁 测试预览效果" Command="{Binding TestTicketPreviewCommand}"
+                            <Button Content="票面参数调整…" Command="{Binding TestTicketPreviewCommand}"
                                     Style="{StaticResource StandardButtonStyle}" Padding="10,5" />
                         </StackPanel>
                     </StackPanel>

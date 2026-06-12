@@ -665,7 +665,7 @@ public partial class UISettingsViewModel : ObservableObject, ISettingsViewModel
     }
 
     /// <summary>
-    ///     测试票面预览命令
+    ///     打开票面参数调整窗口（布局 JSON、示例行程）。
     /// </summary>
     [RelayCommand]
     private void TestTicketPreview()
@@ -680,17 +680,23 @@ public partial class UISettingsViewModel : ObservableObject, ISettingsViewModel
             // 打开预览窗口
             var testTrip = new TripItem
             {
-                TrainNo = "G1234",
-                DepartStation = "北京南",
-                ArriveStation = "上海虹桥",
-                DepartDate = DateTime.Now.ToString("yyyy-MM-dd"),
-                DepartTime = "08:00",
+                TrainNo = "K1020",
+                DepartStation = "深圳东",
+                ArriveStation = "九江",
+                DepartDate = "2024-01-25",
+                DepartTime = "18:55",
                 SeatType = "二等座",
-                Money = "553.5",
+                Money = "163.5",
+                CoachNo = "11车",
+                SeatNo = "104",
+                CheckInLocation = "候车室5",
+                TicketPurpose = "仅供报销使用",
+                Hint = "报销凭证 遗失不补|退票改签时须交回车站",
+                TicketNumber = "L098229",
                 Status = 0
             };
 
-            var previewWindow = new TicketPreviewWindow(testTrip);
+            var previewWindow = new TicketPreviewWindow(testTrip, TicketPreviewSessionMode.LayoutWorkbench);
             // 不设置 Owner，避免最小化时影响主窗口
             previewWindow.ShowDialog();
 

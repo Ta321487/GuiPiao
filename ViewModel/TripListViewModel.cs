@@ -751,9 +751,37 @@ public partial class TripListViewModel : ObservableObject, IDisposable
     }
 
     [RelayCommand]
-    public void ViewTripCommand(TripItem trip)
+    public void ViewTripCommand(TripItem? trip)
     {
-        MessageBoxWindow.Show("查看功能暂未实现");
+        if (trip == null) return;
+        OpenTicketPreviewForTrips(new[] { trip });
+    }
+
+    /// <summary>
+    ///     主界面「查看」：在车票预览窗口中打开（只读行程字段，不写回数据库）。
+    /// </summary>
+    public void OpenTicketPreviewForTrips(IEnumerable<TripItem> trips)
+    {
+        var list = trips?.Where(t => t != null).ToList() ?? new List<TripItem>();
+        if (list.Count == 0)
+        {
+            MessageBoxWindow.Show(Application.Current.MainWindow, "请先选择要查看的车票。", "车票预览", MessageBoxButton.OK,
+                MessageBoxImage.Information);
+            return;
+        }
+
+        try
+        {
+            var w = new TicketPreviewWindow(list, TicketPreviewSessionMode.UserTripPreview);
+            w.Owner = Application.Current.MainWindow;
+            w.ShowDialog();
+        }
+        catch (Exception ex)
+        {
+            _logService.Error("TripListViewModel", $"打开车票预览失败: {ex.Message}");
+            MessageBoxWindow.Show(Application.Current.MainWindow, $"打开车票预览失败：{ex.Message}", "错误", MessageBoxButton.OK,
+                MessageBoxImage.Error);
+        }
     }
 
     [RelayCommand]
@@ -1031,8 +1059,7 @@ public partial class TripListViewModel : ObservableObject, IDisposable
 
     private void ShowTicketPreview(TripItem trip)
     {
-        var previewWindow = new TicketPreviewWindow(trip);
-        previewWindow.ShowDialog();
+        OpenTicketPreviewForTrips(new[] { trip });
     }
 
     private void ShowTripOnMap(TripItem trip)
