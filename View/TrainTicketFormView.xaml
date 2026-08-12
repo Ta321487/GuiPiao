@@ -129,6 +129,33 @@
                                                    MinHeight="{DynamicResource StandardRowHeight}" />
                         </StackPanel>
 
+                        <!-- 到达时间（非票面字段，仅行程管理用；可标跨天） -->
+                        <StackPanel Margin="0,0,0,12">
+                            <TextBlock Text="到达时间" FontSize="{DynamicResource BaseFontSize}"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4" />
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <view:ThemedTimePicker Grid.Column="0"
+                                                       SelectedTime="{Binding ArriveTimeValue, Mode=TwoWay}"
+                                                       Watermark="选择到达时间（可选）"
+                                                       HeaderText="选择到达时间"
+                                                       FontSize="{DynamicResource BaseFontSize}"
+                                                       MinHeight="{DynamicResource StandardRowHeight}" />
+                                <ComboBox Grid.Column="1"
+                                          ItemsSource="{Binding ArriveDayOffsetOptions}"
+                                          SelectedIndex="{Binding ArriveDayOffset, Mode=TwoWay}"
+                                          Width="88"
+                                          Margin="8,0,0,0"
+                                          ToolTip="相对出发日期的到达日"
+                                          FontSize="{DynamicResource BaseFontSize}"
+                                          MinHeight="{DynamicResource StandardRowHeight}"
+                                          VerticalContentAlignment="Center" />
+                            </Grid>
+                        </StackPanel>
+
                         <!-- 席别 -->
                         <StackPanel Margin="0,0,0,12">
                             <TextBlock Text="席别 *" FontSize="{DynamicResource BaseFontSize}"
@@ -178,15 +205,24 @@
                                        Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4" />
                             <Grid>
                                 <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
-                                <TextBox Grid.Column="0"
+                                <CheckBox Grid.Column="0"
+                                          Content="加车"
+                                          IsChecked="{Binding IsJiaChe}"
+                                          VerticalAlignment="Center"
+                                          Margin="0,0,10,0"
+                                          FontSize="{DynamicResource BaseFontSize}"
+                                          Foreground="{DynamicResource TextPrimaryBrush}"
+                                          ToolTip="勾选后保存为「加N车」（加挂车厢）" />
+                                <TextBox Grid.Column="1"
                                          Text="{Binding CoachNoInput}"
                                          FontSize="{DynamicResource BaseFontSize}"
                                          Padding="8,6"
                                          MinHeight="{DynamicResource StandardRowHeight}" />
-                                <TextBlock Grid.Column="1"
+                                <TextBlock Grid.Column="2"
                                            Text="车"
                                            VerticalAlignment="Center"
                                            Margin="8,0,0,0"

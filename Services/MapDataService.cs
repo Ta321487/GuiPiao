@@ -102,9 +102,11 @@ public class MapDataService
                         TrainNo = ride.TrainNo ?? string.Empty,
                         DepartStation = ride.DepartStation ?? string.Empty,
                         ArriveStation = ride.ArriveStation ?? string.Empty,
-                        DepartDate = NormalizeDate(ride.DepartDate),
-                        DepartTime = NormalizeTime(ride.DepartTime ?? string.Empty),
-                        ArriveTime = string.Empty, // 数据库中没有到达时间字段
+                        DepartDate = RideDateTime.NormalizeDate(ride.DepartDate),
+                        DepartTime = RideDateTime.NormalizeTime(ride.DepartTime ?? string.Empty),
+                        ArriveTime = ArriveTimeFormat.Format(
+                            RideDateTime.NormalizeTime(ride.ArriveTime ?? string.Empty),
+                            ride.ArriveDayOffset),
                         Status = ConvertStatusToString(ride.Status),
                         SeatType = ride.SeatType ?? string.Empty,
                         Price = (double)ride.Money,
@@ -253,99 +255,6 @@ public class MapDataService
         }
 
         return false;
-    }
-
-    /// <summary>
-    ///     标准化日期格式为 yyyy-MM-dd，兼容多种日期格式
-    /// </summary>
-    private string NormalizeDate(string dateStr)
-    {
-        if (string.IsNullOrWhiteSpace(dateStr))
-            return dateStr;
-
-        // 支持的日期格式列表（包含带前导零和不带前导零的格式）
-        string[] formats =
-        {
-            "yyyy-MM-dd",
-            "yyyy/MM/dd",
-            "dd/MM/yyyy",
-            "dd-MM-yyyy",
-            "MM/dd/yyyy",
-            "yyyy年MM月dd日",
-            "yyyy.MM.dd",
-            "dd.MM.yyyy",
-            // 不带前导零的格式
-            "yyyy-M-d",
-            "yyyy/M/d",
-            "d/M/yyyy",
-            "d-M-yyyy",
-            "M/d/yyyy",
-            "d.M.yyyy",
-            "M.d.yyyy"
-        };
-
-        // 尝试使用指定格式解析
-        if (DateTime.TryParseExact(dateStr.Trim(), formats, CultureInfo.InvariantCulture, DateTimeStyles.None,
-                out var parsedDate)) return parsedDate.ToString("yyyy-MM-dd");
-
-        // 如果无法解析，尝试通用解析
-        if (DateTime.TryParse(dateStr.Trim(), out var generalParsedDate))
-            return generalParsedDate.ToString("yyyy-MM-dd");
-
-        // 最后尝试手动解析（针对 d/M/yyyy 格式）
-        var parts = dateStr.Trim().Split('/');
-        if (parts.Length == 3)
-            if (int.TryParse(parts[0], out var day) && int.TryParse(parts[1], out var month) &&
-                int.TryParse(parts[2], out var year))
-                if (day >= 1 && day <= 31 && month >= 1 && month <= 12 && year >= 1900 && year <= 2100)
-                    return new DateTime(year, month, day).ToString("yyyy-MM-dd");
-
-        // 返回原始值（可能格式不正确，但避免数据丢失）
-        return dateStr;
-    }
-
-    /// <summary>
-    ///     标准化时间格式为 HH:mm:ss，兼容多种时间格式（包括包含日期的时间字符串）
-    /// </summary>
-    private string NormalizeTime(string timeStr)
-    {
-        if (string.IsNullOrWhiteSpace(timeStr))
-            return timeStr;
-
-        // 支持的时间格式列表（包括包含日期的格式）
-        string[] formats =
-        {
-            "HH:mm:ss",
-            "HH:mm",
-            "hh:mm:ss tt",
-            "hh:mm tt",
-            "yyyy-MM-dd HH:mm:ss",
-            "yyyy/MM/dd HH:mm:ss",
-            "dd/MM/yyyy HH:mm:ss",
-            "MM/dd/yyyy HH:mm:ss",
-            "yyyy-MM-dd HH:mm",
-            "yyyy/MM/dd HH:mm",
-            "dd/MM/yyyy HH:mm",
-            "MM/dd/yyyy HH:mm"
-        };
-
-        // 尝试使用指定格式解析
-        if (DateTime.TryParseExact(timeStr.Trim(), formats, CultureInfo.InvariantCulture, DateTimeStyles.None,
-                out var parsedTime)) return parsedTime.ToString("HH:mm:ss");
-
-        // 如果无法解析，尝试通用解析
-        if (DateTime.TryParse(timeStr.Trim(), out var generalParsedTime)) return generalParsedTime.ToString("HH:mm:ss");
-
-        // 最后尝试提取时间部分（简单处理：取最后一个空格后的内容）
-        var lastSpaceIndex = timeStr.LastIndexOf(' ');
-        if (lastSpaceIndex > 0 && lastSpaceIndex < timeStr.Length - 1)
-        {
-            var timePart = timeStr.Substring(lastSpaceIndex + 1).Trim();
-            if (DateTime.TryParse(timePart, out var timeOnlyParsed)) return timeOnlyParsed.ToString("HH:mm:ss");
-        }
-
-        // 返回原始值（可能格式不正确，但避免数据丢失）
-        return timeStr;
     }
 
     /// <summary>

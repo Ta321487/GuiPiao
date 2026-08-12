@@ -66,6 +66,13 @@ public partial class MainWindow : Window
                         Debug.WriteLine($"[MainWindow] IsTripListExpanded changed to: {viewModel.IsTripListExpanded}");
                         Dispatcher.BeginInvoke(() => UpdateTripListLayout(viewModel), DispatcherPriority.Render);
                     }
+                    else if (args.PropertyName == nameof(viewModel.LeftColumnWidth) ||
+                             args.PropertyName == nameof(viewModel.RightColumnWidth) ||
+                             args.PropertyName == nameof(viewModel.BottomRowHeight))
+                    {
+                        // GridSplitter / 钳位会写入本地 Width/Height 并冲掉绑定；设置页改布局后需重新挂上
+                        Dispatcher.BeginInvoke(() => RestorePanelSizeBindings(viewModel), DispatcherPriority.Render);
+                    }
                     else if (args.PropertyName == nameof(viewModel.LogRowHeightValue) ||
                              args.PropertyName == nameof(viewModel.ShowTimestamp) ||
                              args.PropertyName == nameof(viewModel.ShowModuleSource))
@@ -591,12 +598,7 @@ public partial class MainWindow : Window
         {
             TripListBorder.ClearValue(HeightProperty);
             TripListBorder.MaxHeight = double.PositiveInfinity;
-            var binding = new Binding("BottomRowHeight")
-            {
-                Source = viewModel,
-                Mode = BindingMode.OneWay
-            };
-            MainGrid.RowDefinitions[2].SetBinding(RowDefinition.HeightProperty, binding);
+            RestoreBottomRowHeightBinding(viewModel);
             MainGrid.RowDefinitions[0].Height = new GridLength(1, GridUnitType.Star);
             Debug.WriteLine($"[UpdateTripListLayout] 展开状态，恢复高度绑定: {viewModel.BottomRowHeight}");
         }
@@ -608,6 +610,41 @@ public partial class MainWindow : Window
             TripListBorder.MaxHeight = 40;
             Debug.WriteLine("[UpdateTripListLayout] 折叠状态，设置行高度为Auto，Border高度为40px");
         }
+    }
+
+    /// <summary>
+    ///     GridSplitter 拖动会给 ColumnDefinition/RowDefinition 写入本地值并拆除绑定；
+    ///     在拖动结束或设置页改布局后重新挂上 OneWay 绑定，保证后续 VM 变更能反映到界面。
+    /// </summary>
+    private void RestorePanelSizeBindings(MainViewModel viewModel)
+    {
+        if (TopGrid != null)
+        {
+            TopGrid.ColumnDefinitions[0].SetBinding(ColumnDefinition.WidthProperty, new Binding(nameof(MainViewModel.LeftColumnWidth))
+            {
+                Source = viewModel,
+                Mode = BindingMode.OneWay
+            });
+            TopGrid.ColumnDefinitions[4].SetBinding(ColumnDefinition.WidthProperty, new Binding(nameof(MainViewModel.RightColumnWidth))
+            {
+                Source = viewModel,
+                Mode = BindingMode.OneWay
+            });
+        }
+
+        if (viewModel.IsTripListExpanded)
+            RestoreBottomRowHeightBinding(viewModel);
+    }
+
+    private void RestoreBottomRowHeightBinding(MainViewModel viewModel)
+    {
+        if (MainGrid == null) return;
+
+        MainGrid.RowDefinitions[2].SetBinding(RowDefinition.HeightProperty, new Binding(nameof(MainViewModel.BottomRowHeight))
+        {
+            Source = viewModel,
+            Mode = BindingMode.OneWay
+        });
     }
 
     /// <summary>
@@ -1490,6 +1527,7 @@ public partial class MainWindow : Window
             var limitedWidth = (int)Math.Max(LayoutViewModel.LeftPanelMinWidth,
                 Math.Min(LayoutViewModel.LeftPanelMaxWidth, actualWidth));
             viewModel.Layout.LeftPanelWidth = limitedWidth;
+            RestorePanelSizeBindings(viewModel);
             viewModel.SaveLayoutSettings();
         }
     }
@@ -1531,6 +1569,7 @@ public partial class MainWindow : Window
             var limitedWidth = (int)Math.Max(LayoutViewModel.RightPanelMinWidth,
                 Math.Min(LayoutViewModel.RightPanelMaxWidth, actualWidth));
             viewModel.Layout.RightPanelWidth = limitedWidth;
+            RestorePanelSizeBindings(viewModel);
             viewModel.SaveLayoutSettings();
         }
     }
@@ -1599,6 +1638,7 @@ public partial class MainWindow : Window
             var limitedHeight = (int)Math.Max(LayoutViewModel.BottomPanelMinHeight,
                 Math.Min(LayoutViewModel.BottomPanelMaxHeight, actualHeight));
             viewModel.Layout.BottomPanelHeight = limitedHeight;
+            RestorePanelSizeBindings(viewModel);
             viewModel.SaveLayoutSettings();
         }
     }
@@ -1639,46 +1679,6 @@ public partial class MainWindow : Window
             // 将滚动条样式添加到DataGrid的资源中
             if (TripDataGrid.Resources.Contains(typeof(ScrollBar))) TripDataGrid.Resources.Remove(typeof(ScrollBar));
             TripDataGrid.Resources.Add(typeof(ScrollBar), scrollBarStyle);
-        }
-    }
-
-    /// <summary>
-    ///     统计配置按钮点击事件
-    /// </summary>
-    private void OnStatisticsConfigClick(object sender, RoutedEventArgs e)
-    {
-        Debug.WriteLine("[MainWindow] 统计配置按钮被点击");
-        // 直接调用 ViewModel 方法
-        if (DataContext is MainViewModel vm)
-        {
-            Debug.WriteLine("[MainWindow] 调用 StatisticsConfigCommand");
-            var method = typeof(MainViewModel).GetMethod("StatisticsConfigCommand",
-                BindingFlags.NonPublic | BindingFlags.Instance);
-            method?.Invoke(vm, null);
-        }
-        else
-        {
-            Debug.WriteLine($"[MainWindow] DataContext 不是 MainViewModel，而是 {DataContext?.GetType().Name}");
-        }
-    }
-
-    /// <summary>
-    ///     刷新统计按钮点击事件
-    /// </summary>
-    private void OnRefreshStatisticsClick(object sender, RoutedEventArgs e)
-    {
-        Debug.WriteLine("[MainWindow] 刷新统计按钮被点击");
-        // 直接调用 ViewModel 方法
-        if (DataContext is MainViewModel vm)
-        {
-            Debug.WriteLine("[MainWindow] 调用 RefreshStatisticsCommand");
-            var method = typeof(MainViewModel).GetMethod("RefreshStatisticsCommand",
-                BindingFlags.NonPublic | BindingFlags.Instance);
-            method?.Invoke(vm, null);
-        }
-        else
-        {
-            Debug.WriteLine($"[MainWindow] DataContext 不是 MainViewModel，而是 {DataContext?.GetType().Name}");
         }
     }
 

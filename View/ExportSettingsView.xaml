@@ -246,6 +246,7 @@
                             <CheckBox Content="到达站" IsChecked="{Binding ExportArriveStation}" Margin="0,0,20,10" />
                             <CheckBox Content="出发日期" IsChecked="{Binding ExportDepartDate}" Margin="0,0,20,10" />
                             <CheckBox Content="出发时间" IsChecked="{Binding ExportDepartTime}" Margin="0,0,20,10" />
+                            <CheckBox Content="到达时间" IsChecked="{Binding ExportArriveTime}" Margin="0,0,20,10" />
                             <CheckBox Content="车厢号" IsChecked="{Binding ExportCoachNo}" Margin="0,0,20,10" />
                             <CheckBox Content="座位号" IsChecked="{Binding ExportSeatNo}" Margin="0,0,20,10" />
                             <CheckBox Content="席别" IsChecked="{Binding ExportSeatType}" Margin="0,0,20,10" />

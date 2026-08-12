@@ -235,14 +235,53 @@
                                                           HorizontalAlignment="Center"
                                                           VerticalAlignment="Center" />
                                                 </Button>
-                                                <TextBlock x:Name="PART_HourText"
-                                                           Grid.Row="1"
-                                                           Text="{Binding SelectedHour, RelativeSource={RelativeSource TemplatedParent}, StringFormat='{}{0:D2}'}"
-                                                           Foreground="{DynamicResource TextPrimaryBrush}"
-                                                           FontSize="24"
-                                                           FontWeight="SemiBold"
-                                                           HorizontalAlignment="Center"
-                                                           VerticalAlignment="Center" />
+                                                <TextBox x:Name="PART_HourInput"
+                                                         Grid.Row="1"
+                                                         Text="00"
+                                                         MaxLength="2"
+                                                         CaretBrush="{DynamicResource AccentBrush}"
+                                                         Foreground="{DynamicResource TextPrimaryBrush}"
+                                                         Background="Transparent"
+                                                         BorderBrush="Transparent"
+                                                         BorderThickness="1"
+                                                         FontSize="24"
+                                                         FontWeight="SemiBold"
+                                                         HorizontalContentAlignment="Center"
+                                                         VerticalContentAlignment="Center"
+                                                         Padding="0"
+                                                         Cursor="IBeam"
+                                                         ToolTip="点击输入小时（0-23）">
+                                                    <TextBox.Style>
+                                                        <Style TargetType="TextBox">
+                                                            <Setter Property="Template">
+                                                                <Setter.Value>
+                                                                    <ControlTemplate TargetType="TextBox">
+                                                                        <Border x:Name="Bd"
+                                                                                Background="{TemplateBinding Background}"
+                                                                                BorderBrush="{TemplateBinding BorderBrush}"
+                                                                                BorderThickness="{TemplateBinding BorderThickness}"
+                                                                                CornerRadius="2"
+                                                                                SnapsToDevicePixels="True">
+                                                                            <ScrollViewer x:Name="PART_ContentHost"
+                                                                                          Margin="0"
+                                                                                          Focusable="False"
+                                                                                          HorizontalScrollBarVisibility="Hidden"
+                                                                                          VerticalScrollBarVisibility="Hidden" />
+                                                                        </Border>
+                                                                        <ControlTemplate.Triggers>
+                                                                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                                                                <Setter TargetName="Bd" Property="BorderBrush"
+                                                                                        Value="{DynamicResource AccentBrush}" />
+                                                                                <Setter TargetName="Bd" Property="BorderThickness"
+                                                                                        Value="1.5" />
+                                                                            </Trigger>
+                                                                        </ControlTemplate.Triggers>
+                                                                    </ControlTemplate>
+                                                                </Setter.Value>
+                                                            </Setter>
+                                                        </Style>
+                                                    </TextBox.Style>
+                                                </TextBox>
                                                 <Button x:Name="PART_HourDown"
                                                         Grid.Row="2"
                                                         Style="{StaticResource TimeAdjustButtonStyle}">
@@ -285,14 +324,53 @@
                                                           HorizontalAlignment="Center"
                                                           VerticalAlignment="Center" />
                                                 </Button>
-                                                <TextBlock x:Name="PART_MinuteText"
-                                                           Grid.Row="1"
-                                                           Text="{Binding SelectedMinute, RelativeSource={RelativeSource TemplatedParent}, StringFormat='{}{0:D2}'}"
-                                                           Foreground="{DynamicResource TextPrimaryBrush}"
-                                                           FontSize="24"
-                                                           FontWeight="SemiBold"
-                                                           HorizontalAlignment="Center"
-                                                           VerticalAlignment="Center" />
+                                                <TextBox x:Name="PART_MinuteInput"
+                                                         Grid.Row="1"
+                                                         Text="00"
+                                                         MaxLength="2"
+                                                         CaretBrush="{DynamicResource AccentBrush}"
+                                                         Foreground="{DynamicResource TextPrimaryBrush}"
+                                                         Background="Transparent"
+                                                         BorderBrush="Transparent"
+                                                         BorderThickness="1"
+                                                         FontSize="24"
+                                                         FontWeight="SemiBold"
+                                                         HorizontalContentAlignment="Center"
+                                                         VerticalContentAlignment="Center"
+                                                         Padding="0"
+                                                         Cursor="IBeam"
+                                                         ToolTip="点击输入分钟（0-59）">
+                                                    <TextBox.Style>
+                                                        <Style TargetType="TextBox">
+                                                            <Setter Property="Template">
+                                                                <Setter.Value>
+                                                                    <ControlTemplate TargetType="TextBox">
+                                                                        <Border x:Name="Bd"
+                                                                                Background="{TemplateBinding Background}"
+                                                                                BorderBrush="{TemplateBinding BorderBrush}"
+                                                                                BorderThickness="{TemplateBinding BorderThickness}"
+                                                                                CornerRadius="2"
+                                                                                SnapsToDevicePixels="True">
+                                                                            <ScrollViewer x:Name="PART_ContentHost"
+                                                                                          Margin="0"
+                                                                                          Focusable="False"
+                                                                                          HorizontalScrollBarVisibility="Hidden"
+                                                                                          VerticalScrollBarVisibility="Hidden" />
+                                                                        </Border>
+                                                                        <ControlTemplate.Triggers>
+                                                                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                                                                <Setter TargetName="Bd" Property="BorderBrush"
+                                                                                        Value="{DynamicResource AccentBrush}" />
+                                                                                <Setter TargetName="Bd" Property="BorderThickness"
+                                                                                        Value="1.5" />
+                                                                            </Trigger>
+                                                                        </ControlTemplate.Triggers>
+                                                                    </ControlTemplate>
+                                                                </Setter.Value>
+                                                            </Setter>
+                                                        </Style>
+                                                    </TextBox.Style>
+                                                </TextBox>
                                                 <Button x:Name="PART_MinuteDown"
                                                         Grid.Row="2"
                                                         Style="{StaticResource TimeAdjustButtonStyle}">

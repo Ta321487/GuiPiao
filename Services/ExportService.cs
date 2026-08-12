@@ -208,6 +208,7 @@ public class ExportService
                     if (config.ExportArriveStation) headerRow.CreateCell(colIndex++).SetCellValue("到达站");
                     if (config.ExportDepartDate) headerRow.CreateCell(colIndex++).SetCellValue("出发日期");
                     if (config.ExportDepartTime) headerRow.CreateCell(colIndex++).SetCellValue("出发时间");
+                    if (config.ExportArriveTime) headerRow.CreateCell(colIndex++).SetCellValue("到达时间");
                     if (config.ExportCoachNo) headerRow.CreateCell(colIndex++).SetCellValue("车厢号");
                     if (config.ExportSeatNo) headerRow.CreateCell(colIndex++).SetCellValue("座位号");
                     if (config.ExportSeatType) headerRow.CreateCell(colIndex++).SetCellValue("席别");
@@ -233,6 +234,7 @@ public class ExportService
                     if (config.ExportDepartDate)
                         row.CreateCell(colIndex++).SetCellValue(FormatDate(ride.DepartDate, config.ExcelDateFormat));
                     if (config.ExportDepartTime) row.CreateCell(colIndex++).SetCellValue(ride.DepartTime ?? "");
+                    if (config.ExportArriveTime) row.CreateCell(colIndex++).SetCellValue(ride.ArriveTimeDisplay ?? "");
                     if (config.ExportCoachNo) row.CreateCell(colIndex++).SetCellValue(ride.CoachNo ?? "");
                     if (config.ExportSeatNo) row.CreateCell(colIndex++).SetCellValue(ride.SeatNo ?? "");
                     if (config.ExportSeatType) row.CreateCell(colIndex++).SetCellValue(ride.SeatType ?? "");
@@ -332,6 +334,7 @@ public class ExportService
                         if (config.ExportArriveStation) headers.Add("到达站");
                         if (config.ExportDepartDate) headers.Add("出发日期");
                         if (config.ExportDepartTime) headers.Add("出发时间");
+                        if (config.ExportArriveTime) headers.Add("到达时间");
                         if (config.ExportCoachNo) headers.Add("车厢号");
                         if (config.ExportSeatNo) headers.Add("座位号");
                         if (config.ExportSeatType) headers.Add("席别");
@@ -354,6 +357,7 @@ public class ExportService
                         if (config.ExportArriveStation) values.Add(ride.ArriveStation ?? "");
                         if (config.ExportDepartDate) values.Add(FormatDate(ride.DepartDate, config.CsvDateFormat));
                         if (config.ExportDepartTime) values.Add(ride.DepartTime ?? "");
+                        if (config.ExportArriveTime) values.Add(ride.ArriveTimeDisplay ?? "");
                         if (config.ExportCoachNo) values.Add(ride.CoachNo ?? "");
                         if (config.ExportSeatNo) values.Add(ride.SeatNo ?? "");
                         if (config.ExportSeatType) values.Add(ride.SeatType ?? "");
@@ -575,6 +579,7 @@ public class ExportService
         if (config.ExportArriveStation) columns.Add("到达站");
         if (config.ExportDepartDate) columns.Add("出发日期");
         if (config.ExportDepartTime) columns.Add("出发时间");
+        if (config.ExportArriveTime) columns.Add("到达时间");
         if (config.ExportCoachNo) columns.Add("车厢号");
         if (config.ExportSeatNo) columns.Add("座位号");
         if (config.ExportSeatType) columns.Add("席别");
@@ -597,6 +602,7 @@ public class ExportService
         if (config.ExportArriveStation) values.Add(ride.ArriveStation);
         if (config.ExportDepartDate) values.Add(FormatDate(ride.DepartDate, DateFormatOption.yyyyMMdd));
         if (config.ExportDepartTime) values.Add(ride.DepartTime);
+        if (config.ExportArriveTime) values.Add(ride.ArriveTimeDisplay);
         if (config.ExportCoachNo) values.Add(ride.CoachNo);
         if (config.ExportSeatNo) values.Add(ride.SeatNo);
         if (config.ExportSeatType) values.Add(ride.SeatType);
@@ -810,6 +816,7 @@ public class ExportService
                     if (config.ExportArriveStation) headerRow.CreateCell(colIndex++).SetCellValue("到达站");
                     if (config.ExportDepartDate) headerRow.CreateCell(colIndex++).SetCellValue("出发日期");
                     if (config.ExportDepartTime) headerRow.CreateCell(colIndex++).SetCellValue("出发时间");
+                    if (config.ExportArriveTime) headerRow.CreateCell(colIndex++).SetCellValue("到达时间");
                     if (config.ExportCoachNo) headerRow.CreateCell(colIndex++).SetCellValue("车厢号");
                     if (config.ExportSeatNo) headerRow.CreateCell(colIndex++).SetCellValue("座位号");
                     if (config.ExportSeatType) headerRow.CreateCell(colIndex++).SetCellValue("席别");
@@ -835,6 +842,7 @@ public class ExportService
                     if (config.ExportDepartDate)
                         row.CreateCell(colIndex++).SetCellValue(FormatDate(ride.DepartDate, config.ExcelDateFormat));
                     if (config.ExportDepartTime) row.CreateCell(colIndex++).SetCellValue(ride.DepartTime);
+                    if (config.ExportArriveTime) row.CreateCell(colIndex++).SetCellValue(ride.ArriveTimeDisplay);
                     if (config.ExportCoachNo) row.CreateCell(colIndex++).SetCellValue(ride.CoachNo);
                     if (config.ExportSeatNo) row.CreateCell(colIndex++).SetCellValue(ride.SeatNo);
                     if (config.ExportSeatType) row.CreateCell(colIndex++).SetCellValue(ride.SeatType);
@@ -930,6 +938,7 @@ public class ExportService
                     if (config.ExportArriveStation) headers.Add("到达站");
                     if (config.ExportDepartDate) headers.Add("出发日期");
                     if (config.ExportDepartTime) headers.Add("出发时间");
+                    if (config.ExportArriveTime) headers.Add("到达时间");
                     if (config.ExportCoachNo) headers.Add("车厢号");
                     if (config.ExportSeatNo) headers.Add("座位号");
                     if (config.ExportSeatType) headers.Add("席别");
@@ -958,6 +967,7 @@ public class ExportService
                     if (config.ExportArriveStation) values.Add(ride.ArriveStation);
                     if (config.ExportDepartDate) values.Add(FormatDate(ride.DepartDate, config.CsvDateFormat));
                     if (config.ExportDepartTime) values.Add(ride.DepartTime);
+                    if (config.ExportArriveTime) values.Add(ride.ArriveTimeDisplay);
                     if (config.ExportCoachNo) values.Add(ride.CoachNo);
                     if (config.ExportSeatNo) values.Add(ride.SeatNo);
                     if (config.ExportSeatType) values.Add(ride.SeatType);

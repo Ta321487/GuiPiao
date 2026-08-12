@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using GuiPiao.DataAccess;
 using GuiPiao.Model;
+using GuiPiao.Utils;
 
 namespace GuiPiao.Services;
 
@@ -40,7 +41,7 @@ public class TrainTicketService
 
             using (var writer = new StreamWriter(filePath))
             {
-                writer.WriteLine("取票号,检票位置,出发车站,车次号,到达车站,出发日期,出发时间,车厢号,座位号,金额,席别");
+                writer.WriteLine("取票号,检票位置,出发车站,车次号,到达车站,出发日期,出发时间,到达时间,到达跨天,车厢号,座位号,金额,席别");
 
                 while (true)
                 {
@@ -52,7 +53,7 @@ public class TrainTicketService
 
                     foreach (var ride in rides)
                         writer.WriteLine(
-                            $"{ride.TicketNumber},{ride.CheckInLocation},{ride.DepartStation},{ride.TrainNo},{ride.ArriveStation},{ride.DepartDate},{ride.DepartTime},{ride.CoachNo},{ride.SeatNo},{ride.Money},{ride.SeatType}");
+                            $"{ride.TicketNumber},{ride.CheckInLocation},{ride.DepartStation},{ride.TrainNo},{ride.ArriveStation},{ride.DepartDate},{ride.DepartTime},{ride.ArriveTime},{ride.ArriveDayOffset},{ride.CoachNo},{ride.SeatNo},{ride.Money},{ride.SeatType}");
 
                     totalExported += rides.Count;
 
@@ -86,7 +87,7 @@ public class TrainTicketService
                 while ((line = await reader.ReadLineAsync()) != null)
                 {
                     var parts = line.Split(',');
-                    if (parts.Length >= 11)
+                    if (parts.Length >= 13)
                     {
                         var trainRide = new TrainRideInfo
                         {
@@ -95,12 +96,14 @@ public class TrainTicketService
                             DepartStation = parts[2],
                             TrainNo = parts[3],
                             ArriveStation = parts[4],
-                            DepartDate = parts[5],
-                            DepartTime = parts[6],
-                            CoachNo = parts[7],
-                            SeatNo = parts[8],
-                            Money = decimal.TryParse(parts[9], out var money) ? money : 0m,
-                            SeatType = parts[10]
+                            DepartDate = RideDateTime.NormalizeDate(parts[5]),
+                            DepartTime = RideDateTime.NormalizeTime(parts[6]),
+                            ArriveTime = RideDateTime.NormalizeTime(parts[7]),
+                            ArriveDayOffset = int.TryParse(parts[8], out var dayOffset) ? dayOffset : 0,
+                            CoachNo = parts[9],
+                            SeatNo = parts[10],
+                            Money = decimal.TryParse(parts[11], out var money) ? money : 0m,
+                            SeatType = parts[12]
                         };
 
                         await TrainRideRepository.AddTrainRideAsync(trainRide);

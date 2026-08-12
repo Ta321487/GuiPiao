@@ -508,7 +508,7 @@
                                             </Button>
                                             <Button Style="{StaticResource SidebarQuickActionStyle}"
                                                     Command="{Binding TicketPreviewCommand}"
-                                                    ToolTip="预览票面"
+                                                    ToolTip="查看票面"
                                                     Margin="0,0,0,2">
                                                 <Grid>
                                                     <Grid.ColumnDefinitions>
@@ -767,13 +767,11 @@
                             <Button Content="📝 统计配置"
                                     Command="{Binding StatisticsConfigCommand}"
                                     Style="{StaticResource StandardButtonStyle}"
-                                    Margin="0,0,8,0"
-                                    Click="OnStatisticsConfigClick" />
+                                    Margin="0,0,8,0" />
                             <Button Content="🔄 刷新统计"
                                     Command="{Binding RefreshStatisticsCommand}"
                                     IsEnabled="{Binding HasDashboardCharts}"
-                                    Style="{StaticResource StandardButtonStyle}"
-                                    Click="OnRefreshStatisticsClick" />
+                                    Style="{StaticResource StandardButtonStyle}" />
                         </WrapPanel>
                     </Grid>
                 </Border>
@@ -1036,6 +1034,9 @@
                         </Border>
 
                         <ScrollViewer Grid.Row="1"
+                                      Margin="0,8,0,0"
+                                      Padding="8,0,8,8"
+                                      ClipToBounds="True"
                                       VerticalScrollBarVisibility="Auto"
                                       HorizontalScrollBarVisibility="Disabled">
                             <ItemsControl ItemsSource="{Binding TripItemsView}">
@@ -1050,11 +1051,10 @@
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
                                         <Border
-                                            Width="{Binding DataContext.Layout.CardWidth, RelativeSource={RelativeSource AncestorType=local:MainWindow}}"
-                                            MaxWidth="{Binding DataContext.Layout.CardWidth, RelativeSource={RelativeSource AncestorType=local:MainWindow}}"
-                                            Margin="{Binding DataContext.Layout.CardMargin, RelativeSource={RelativeSource AncestorType=local:MainWindow}}"
+                                            HorizontalAlignment="Stretch"
+                                            VerticalAlignment="Top"
                                             Background="{DynamicResource PanelBackgroundBrush}"
-                                            CornerRadius="{Binding DataContext.Layout.CardCornerRadius, RelativeSource={RelativeSource AncestorType=local:MainWindow}}"
+                                            CornerRadius="{Binding DataContext.Layout.CardCornerRadiusValue, RelativeSource={RelativeSource AncestorType=local:MainWindow}}"
                                             Tag="{Binding}"
                                             MouseLeftButtonDown="CardViewBorder_MouseLeftButtonDown"
                                             MouseLeftButtonUp="CardViewBorder_MouseLeftButtonUp">
@@ -1253,10 +1253,24 @@
                                                                    FontWeight="Bold"
                                                                    Foreground="{DynamicResource TextPrimaryBrush}"
                                                                    HorizontalAlignment="Center" />
-                                                        <TextBlock Text="{Binding ArriveTime}"
-                                                                   FontSize="{DynamicResource SmallFontSize}"
-                                                                   Foreground="{DynamicResource TextSecondaryBrush}"
-                                                                   HorizontalAlignment="Center" />
+                                                        <!-- 画布宽度=时刻宽度，保证与站名居中对齐；角标画在右侧外侧 -->
+                                                        <Canvas HorizontalAlignment="Center"
+                                                                ClipToBounds="False"
+                                                                Width="{Binding ActualWidth, ElementName=ArriveTimeTb}"
+                                                                Height="{Binding ActualHeight, ElementName=ArriveTimeTb}">
+                                                            <TextBlock x:Name="ArriveTimeTb"
+                                                                       Text="{Binding ArriveTime}"
+                                                                       FontSize="{DynamicResource SmallFontSize}"
+                                                                       Foreground="{DynamicResource TextSecondaryBrush}" />
+                                                            <TextBlock Text="{Binding ArriveDayOffsetBadge}"
+                                                                       FontSize="9"
+                                                                       FontWeight="SemiBold"
+                                                                       Foreground="{DynamicResource AccentBrush}"
+                                                                       Canvas.Top="-5"
+                                                                       Margin="7,0,0,0"
+                                                                       IsHitTestVisible="False"
+                                                                       Canvas.Left="{Binding ActualWidth, ElementName=ArriveTimeTb}" />
+                                                        </Canvas>
                                                     </StackPanel>
                                                 </Grid>
 

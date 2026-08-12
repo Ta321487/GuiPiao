@@ -480,6 +480,20 @@ public partial class ExportSettingsViewModel : ObservableObject, ISettingsViewMo
         }
     }
 
+    public bool ExportArriveTime
+    {
+        get => Config.ExportArriveTime;
+        set
+        {
+            if (Config.ExportArriveTime != value)
+            {
+                Config.ExportArriveTime = value;
+                OnPropertyChanged();
+                CheckForChanges();
+            }
+        }
+    }
+
     public bool ExportCoachNo
     {
         get => Config.ExportCoachNo;
@@ -652,6 +666,7 @@ public partial class ExportSettingsViewModel : ObservableObject, ISettingsViewMo
             ExportArriveStation = source.ExportArriveStation,
             ExportDepartDate = source.ExportDepartDate,
             ExportDepartTime = source.ExportDepartTime,
+            ExportArriveTime = source.ExportArriveTime,
             ExportCoachNo = source.ExportCoachNo,
             ExportSeatNo = source.ExportSeatNo,
             ExportSeatType = source.ExportSeatType,
@@ -706,6 +721,7 @@ public partial class ExportSettingsViewModel : ObservableObject, ISettingsViewMo
                a.ExportArriveStation == b.ExportArriveStation &&
                a.ExportDepartDate == b.ExportDepartDate &&
                a.ExportDepartTime == b.ExportDepartTime &&
+               a.ExportArriveTime == b.ExportArriveTime &&
                a.ExportCoachNo == b.ExportCoachNo &&
                a.ExportSeatNo == b.ExportSeatNo &&
                a.ExportSeatType == b.ExportSeatType &&
@@ -734,6 +750,7 @@ public partial class ExportSettingsViewModel : ObservableObject, ISettingsViewMo
         if (Config.ExportArriveStation) selectedFieldCount++;
         if (Config.ExportDepartDate) selectedFieldCount++;
         if (Config.ExportDepartTime) selectedFieldCount++;
+        if (Config.ExportArriveTime) selectedFieldCount++;
         if (Config.ExportCoachNo) selectedFieldCount++;
         if (Config.ExportSeatNo) selectedFieldCount++;
         if (Config.ExportSeatType) selectedFieldCount++;
@@ -941,6 +958,7 @@ public partial class ExportSettingsViewModel : ObservableObject, ISettingsViewMo
         ExportArriveStation = defaultConfig.ExportArriveStation;
         ExportDepartDate = defaultConfig.ExportDepartDate;
         ExportDepartTime = defaultConfig.ExportDepartTime;
+        ExportArriveTime = defaultConfig.ExportArriveTime;
         ExportCoachNo = defaultConfig.ExportCoachNo;
         ExportSeatNo = defaultConfig.ExportSeatNo;
         ExportSeatType = defaultConfig.ExportSeatType;

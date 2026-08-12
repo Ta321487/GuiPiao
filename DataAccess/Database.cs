@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using GuiPiao.Services;
 using GuiPiao.Utils;
@@ -92,6 +93,8 @@ public static class Database
                         depart_station_code TEXT,
                         arrive_station_code TEXT,
                         status INTEGER DEFAULT 0,
+                        arrive_time TEXT,
+                        arrive_day_offset INTEGER DEFAULT 0,
                         FOREIGN KEY (arrive_station_code) REFERENCES station_info (station_code) ON DELETE CASCADE ON UPDATE CASCADE,
                         FOREIGN KEY (depart_station_code) REFERENCES station_info (station_code) ON DELETE CASCADE ON UPDATE CASCADE
                     );
@@ -232,12 +235,109 @@ public static class Database
                     _logService.Value.Info("Database", "已创建 idx_status 索引");
                 }
             }
+
+            // 检查并添加 arrive_time 列
+            var checkArriveTimeColumn = @"
+                    SELECT COUNT(*) FROM pragma_table_info('train_ride_info') WHERE name = 'arrive_time';
+                ";
+            using (var command = new SqliteCommand(checkArriveTimeColumn, connection))
+            {
+                var count = Convert.ToInt32(command.ExecuteScalar());
+                if (count == 0)
+                {
+                    var addArriveTimeColumn = @"
+                            ALTER TABLE train_ride_info ADD COLUMN arrive_time TEXT;
+                        ";
+                    using (var alterCommand = new SqliteCommand(addArriveTimeColumn, connection))
+                    {
+                        alterCommand.ExecuteNonQuery();
+                    }
+
+                    _logService.Value.Info("Database", "已添加 arrive_time 列到 train_ride_info 表");
+                }
+            }
+
+            // 检查并添加 arrive_day_offset 列（相对出发日的跨天数）
+            var checkArriveDayOffsetColumn = @"
+                    SELECT COUNT(*) FROM pragma_table_info('train_ride_info') WHERE name = 'arrive_day_offset';
+                ";
+            using (var command = new SqliteCommand(checkArriveDayOffsetColumn, connection))
+            {
+                var count = Convert.ToInt32(command.ExecuteScalar());
+                if (count == 0)
+                {
+                    var addArriveDayOffsetColumn = @"
+                            ALTER TABLE train_ride_info ADD COLUMN arrive_day_offset INTEGER DEFAULT 0;
+                        ";
+                    using (var alterCommand = new SqliteCommand(addArriveDayOffsetColumn, connection))
+                    {
+                        alterCommand.ExecuteNonQuery();
+                    }
+
+                    _logService.Value.Info("Database", "已添加 arrive_day_offset 列到 train_ride_info 表");
+                }
+            }
+
+            // 将已有行程的日期/时间归一化为 yyyy-MM-dd / HH:mm
+            NormalizeExistingRideDateTimes(connection);
         }
         catch (Exception ex)
         {
             _logService.Value.Error("Database", $"数据库迁移失败: {ex.Message}");
             throw;
         }
+    }
+
+    /// <summary>
+    ///     把历史杂乱的日期/时间字符串规范为 yyyy-MM-dd / HH:mm（幂等）。
+    /// </summary>
+    private static void NormalizeExistingRideDateTimes(SqliteConnection connection)
+    {
+        using var select = new SqliteCommand(
+            "SELECT id, depart_date, depart_time, arrive_time FROM train_ride_info",
+            connection);
+        using var reader = select.ExecuteReader();
+        var updates = new List<(long Id, string DepartDate, string DepartTime, string ArriveTime)>();
+        while (reader.Read())
+        {
+            var id = reader.GetInt64(0);
+            var departDate = reader.IsDBNull(1) ? string.Empty : reader.GetString(1);
+            var departTime = reader.IsDBNull(2) ? string.Empty : reader.GetString(2);
+            var arriveTime = reader.IsDBNull(3) ? string.Empty : reader.GetString(3);
+
+            var normDate = RideDateTime.NormalizeDate(departDate);
+            var normDepartTime = RideDateTime.NormalizeTime(departTime);
+            var normArriveTime = RideDateTime.NormalizeTime(arriveTime);
+
+            if (normDate != departDate || normDepartTime != departTime || normArriveTime != arriveTime)
+                updates.Add((id, normDate, normDepartTime, normArriveTime));
+        }
+
+        reader.Close();
+
+        if (updates.Count == 0)
+            return;
+
+        using var update = connection.CreateCommand();
+        update.CommandText =
+            @"UPDATE train_ride_info
+              SET depart_date = @DepartDate, depart_time = @DepartTime, arrive_time = @ArriveTime
+              WHERE id = @Id";
+        var pId = update.Parameters.Add("@Id", SqliteType.Integer);
+        var pDate = update.Parameters.Add("@DepartDate", SqliteType.Text);
+        var pDepartTime = update.Parameters.Add("@DepartTime", SqliteType.Text);
+        var pArriveTime = update.Parameters.Add("@ArriveTime", SqliteType.Text);
+
+        foreach (var row in updates)
+        {
+            pId.Value = row.Id;
+            pDate.Value = row.DepartDate;
+            pDepartTime.Value = string.IsNullOrEmpty(row.DepartTime) ? (object)DBNull.Value : row.DepartTime;
+            pArriveTime.Value = string.IsNullOrEmpty(row.ArriveTime) ? (object)DBNull.Value : row.ArriveTime;
+            update.ExecuteNonQuery();
+        }
+
+        _logService.Value.Info("Database", $"已归一化 {updates.Count} 条行程的日期/时间格式");
     }
 
     public static SqliteConnection GetConnection()

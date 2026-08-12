@@ -166,7 +166,9 @@ public class IncrementalBackupService
                         hint AS Hint,
                         depart_station_code AS DepartStationCode,
                         arrive_station_code AS ArriveStationCode,
-                        status AS Status
+                        status AS Status,
+                        arrive_time AS ArriveTime,
+                        arrive_day_offset AS ArriveDayOffset
                     FROM train_ride_info
                     WHERE id > (SELECT COALESCE(MAX(id), 0) FROM train_ride_info WHERE rowid <= (
                         SELECT COALESCE(MAX(rowid), 0) FROM train_ride_info 
@@ -241,7 +243,9 @@ public class IncrementalBackupService
                         hint TEXT,
                         depart_station_code TEXT,
                         arrive_station_code TEXT,
-                        status INTEGER DEFAULT 0
+                        status INTEGER DEFAULT 0,
+                        arrive_time TEXT,
+                        arrive_day_offset INTEGER DEFAULT 0
                     );
 
                     CREATE TABLE IF NOT EXISTS backup_metadata (
@@ -273,12 +277,12 @@ public class IncrementalBackupService
                             id, ticket_number, check_in_location, depart_station, train_no, arrive_station,
                             depart_station_pinyin, arrive_station_pinyin, depart_date, depart_time, coach_no,
                             seat_no, money, seat_type, additional_info, ticket_purpose, ticket_modification_type,
-                            ticket_type_flags, payment_channel_flags, hint, depart_station_code, arrive_station_code, status
+                            ticket_type_flags, payment_channel_flags, hint, depart_station_code, arrive_station_code, status, arrive_time, arrive_day_offset
                         ) VALUES (
                             @Id, @TicketNumber, @CheckInLocation, @DepartStation, @TrainNo, @ArriveStation,
                             @DepartStationPinyin, @ArriveStationPinyin, @DepartDate, @DepartTime, @CoachNo,
                             @SeatNo, @Money, @SeatType, @AdditionalInfo, @TicketPurpose, @TicketModificationType,
-                            @TicketTypeFlags, @PaymentChannelFlags, @Hint, @DepartStationCode, @ArriveStationCode, @Status
+                            @TicketTypeFlags, @PaymentChannelFlags, @Hint, @DepartStationCode, @ArriveStationCode, @Status, @ArriveTime, @ArriveDayOffset
                         )
                     ";
 
@@ -310,6 +314,8 @@ public class IncrementalBackupService
                     cmd.Parameters.AddWithValue("@DepartStationCode", record.DepartStationCode ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@ArriveStationCode", record.ArriveStationCode ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Status", record.Status);
+                    cmd.Parameters.AddWithValue("@ArriveTime", record.ArriveTime ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@ArriveDayOffset", record.ArriveDayOffset);
 
                     await cmd.ExecuteNonQueryAsync();
                 }
@@ -533,7 +539,9 @@ public class IncrementalBackupService
             Hint = reader.IsDBNull(19) ? null : reader.GetString(19),
             DepartStationCode = reader.IsDBNull(20) ? null : reader.GetString(20),
             ArriveStationCode = reader.IsDBNull(21) ? null : reader.GetString(21),
-            Status = reader.IsDBNull(22) ? 0 : reader.GetInt32(22)
+            Status = reader.IsDBNull(22) ? 0 : reader.GetInt32(22),
+            ArriveTime = reader.IsDBNull(23) ? null : reader.GetString(23),
+            ArriveDayOffset = reader.IsDBNull(24) ? 0 : reader.GetInt32(24)
         };
     }
 }

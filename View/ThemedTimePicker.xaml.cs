@@ -1,9 +1,11 @@
 using System;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Input;
 using System.Windows.Media;
 
 namespace GuiPiao.View;
@@ -125,6 +127,8 @@ public class ThemedTimePicker : Control
     private Button? _hourDownButton;
     private Button? _minuteUpButton;
     private Button? _minuteDownButton;
+    private TextBox? _hourInput;
+    private TextBox? _minuteInput;
     private Button? _time00Button;
     private Button? _time06Button;
     private Button? _time08Button;
@@ -142,6 +146,7 @@ public class ThemedTimePicker : Control
     // 临时存储选择的时间，点击确定后才应用到 SelectedTime
     private int _tempHour;
     private int _tempMinute;
+    private bool _syncingSegmentText;
 
     #endregion
 
@@ -165,7 +170,6 @@ public class ThemedTimePicker : Control
 
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
-        // 初始化时间值
         if (SelectedTime.HasValue)
         {
             SelectedHour = SelectedTime.Value.Hour;
@@ -173,34 +177,27 @@ public class ThemedTimePicker : Control
             _tempHour = SelectedHour;
             _tempMinute = SelectedMinute;
         }
-        // 如果 SelectedTime 为 null，保持小时和分钟为 0，文本框会显示空
     }
 
     public override void OnApplyTemplate()
     {
         base.OnApplyTemplate();
 
-        // 获取模板部件
         _textBox = GetTemplateChild("PART_TextBox") as TextBox;
         _popup = GetTemplateChild("PART_Popup") as Popup;
         _border = GetTemplateChild("Border") as Border;
         _hourUpButton = GetTemplateChild("PART_HourUp") as Button;
 
-        // Border 点击事件
         if (_border != null)
         {
-            Debug.WriteLine("Border found, attaching MouseLeftButtonDown event");
             _border.MouseLeftButtonDown += (s, e) =>
             {
-                Debug.WriteLine($"Border MouseLeftButtonDown fired, current IsDropDownOpen: {IsDropDownOpen}");
                 if (_popup != null)
                 {
                     if (!IsDropDownOpen)
                     {
-                        // 要打开 Popup，先设置 StaysOpen = true
                         _popup.StaysOpen = true;
                         IsDropDownOpen = true;
-                        // 延迟恢复 StaysOpen，确保 Popup 完全打开且鼠标事件处理完毕
                         Task.Run(async () =>
                         {
                             await Task.Delay(100);
@@ -213,7 +210,6 @@ public class ThemedTimePicker : Control
                     }
                     else
                     {
-                        // 要关闭 Popup，直接关闭
                         IsDropDownOpen = false;
                     }
                 }
@@ -222,18 +218,15 @@ public class ThemedTimePicker : Control
                     IsDropDownOpen = !IsDropDownOpen;
                 }
 
-                Debug.WriteLine($"After toggle, IsDropDownOpen: {IsDropDownOpen}");
                 e.Handled = true;
             };
-        }
-        else
-        {
-            Debug.WriteLine("Border is null!");
         }
 
         _hourDownButton = GetTemplateChild("PART_HourDown") as Button;
         _minuteUpButton = GetTemplateChild("PART_MinuteUp") as Button;
         _minuteDownButton = GetTemplateChild("PART_MinuteDown") as Button;
+        _hourInput = GetTemplateChild("PART_HourInput") as TextBox;
+        _minuteInput = GetTemplateChild("PART_MinuteInput") as TextBox;
         _time00Button = GetTemplateChild("PART_Time00") as Button;
         _time06Button = GetTemplateChild("PART_Time06") as Button;
         _time08Button = GetTemplateChild("PART_Time08") as Button;
@@ -248,13 +241,12 @@ public class ThemedTimePicker : Control
         _confirmButton = GetTemplateChild("PART_Confirm") as Button;
         _cancelButton = GetTemplateChild("PART_Cancel") as Button;
 
-        // Popup 打开时，从当前 SelectedTime 初始化临时值
+        WireSegmentInputs();
+
         if (_popup != null)
         {
             _popup.Opened += (s, e) =>
             {
-                Debug.WriteLine("Popup Opened event fired");
-                // 打开时从当前值初始化临时值
                 if (SelectedTime.HasValue)
                 {
                     _tempHour = SelectedTime.Value.Hour;
@@ -266,29 +258,26 @@ public class ThemedTimePicker : Control
                     _tempMinute = 0;
                 }
 
-                // 更新显示
                 SelectedHour = _tempHour;
                 SelectedMinute = _tempMinute;
+                SyncSegmentInputsFromTemp();
             };
 
             _popup.Closed += (s, e) => { Debug.WriteLine("Popup Closed event fired"); };
         }
 
-        // 小时调整按钮 - 只调整临时值
         if (_hourUpButton != null)
             _hourUpButton.Click += (s, e) => ChangeTempHour(1);
 
         if (_hourDownButton != null)
             _hourDownButton.Click += (s, e) => ChangeTempHour(-1);
 
-        // 分钟调整按钮 - 只调整临时值
         if (_minuteUpButton != null)
             _minuteUpButton.Click += (s, e) => ChangeTempMinute(1);
 
         if (_minuteDownButton != null)
             _minuteDownButton.Click += (s, e) => ChangeTempMinute(-1);
 
-        // 快速选择按钮 - 只设置临时值
         if (_time00Button != null)
             _time00Button.Click += (s, e) => SetTempTime(0, 0);
 
@@ -319,40 +308,217 @@ public class ThemedTimePicker : Control
         if (_time23Button != null)
             _time23Button.Click += (s, e) => SetTempTime(23, 0);
 
-        // 现在按钮 - 只设置临时值
         if (_nowButton != null)
             _nowButton.Click += (s, e) => SetTempTimeToNow();
 
-        // 确定按钮 - 应用临时值到 SelectedTime
         if (_confirmButton != null)
             _confirmButton.Click += (s, e) => ConfirmTime();
 
-        // 取消按钮 - 关闭 Popup，不应用更改
         if (_cancelButton != null)
             _cancelButton.Click += (s, e) => CancelTime();
 
-        // 初始化文本框内容
         UpdateTextBox();
-
-        // 设置 Popup 的滚动处理
+        SyncSegmentInputsFromTemp();
         SetupPopupScrollHandling();
     }
 
-    /// <summary>
-    ///     设置 Popup 的滚动处理，当父容器滚动时关闭 Popup
-    /// </summary>
+    private void WireSegmentInputs()
+    {
+        if (_hourInput != null)
+        {
+            _hourInput.PreviewTextInput += (_, e) => OnSegmentPreviewTextInput(_hourInput, e, 23);
+            _hourInput.PreviewKeyDown += OnHourPreviewKeyDown;
+            _hourInput.GotKeyboardFocus += (_, _) => _hourInput.SelectAll();
+            _hourInput.LostKeyboardFocus += (_, _) => CommitHourInput();
+            _hourInput.TextChanged += (_, _) => OnHourTextChanged();
+            DataObject.AddPastingHandler(_hourInput, OnSegmentPaste);
+        }
+
+        if (_minuteInput != null)
+        {
+            _minuteInput.PreviewTextInput += (_, e) => OnSegmentPreviewTextInput(_minuteInput, e, 59);
+            _minuteInput.PreviewKeyDown += OnMinutePreviewKeyDown;
+            _minuteInput.GotKeyboardFocus += (_, _) => _minuteInput.SelectAll();
+            _minuteInput.LostKeyboardFocus += (_, _) => CommitMinuteInput();
+            _minuteInput.TextChanged += (_, _) => OnMinuteTextChanged();
+            DataObject.AddPastingHandler(_minuteInput, OnSegmentPaste);
+        }
+    }
+
+    private void OnHourTextChanged()
+    {
+        if (_syncingSegmentText || _hourInput == null) return;
+        if (_hourInput.Text?.Length == 2 &&
+            int.TryParse(_hourInput.Text, out var hour) &&
+            hour <= 23)
+        {
+            CommitHourInput();
+            _minuteInput?.Focus();
+            _minuteInput?.SelectAll();
+        }
+    }
+
+    private void OnMinuteTextChanged()
+    {
+        if (_syncingSegmentText || _minuteInput == null) return;
+        if (_minuteInput.Text?.Length == 2 &&
+            int.TryParse(_minuteInput.Text, out var minute) &&
+            minute <= 59)
+            CommitMinuteInput();
+    }
+
+    private static void OnSegmentPaste(object sender, DataObjectPastingEventArgs e)
+    {
+        if (e.DataObject.GetDataPresent(DataFormats.Text))
+        {
+            var text = e.DataObject.GetData(DataFormats.Text) as string ?? string.Empty;
+            if (!Regex.IsMatch(text, @"^\d{1,2}$"))
+                e.CancelCommand();
+        }
+        else
+        {
+            e.CancelCommand();
+        }
+    }
+
+    private void OnSegmentPreviewTextInput(TextBox box, TextCompositionEventArgs e, int maxValue)
+    {
+        if (e.Text.Length == 0 || !char.IsDigit(e.Text[0]))
+        {
+            e.Handled = true;
+            return;
+        }
+
+        var digit = e.Text[0];
+        var selectionStart = box.SelectionStart;
+        var selectionLength = box.SelectionLength;
+        var current = box.Text ?? string.Empty;
+        var next = current.Remove(selectionStart, selectionLength).Insert(selectionStart, digit.ToString());
+
+        if (next.Length > 2)
+        {
+            e.Handled = true;
+            return;
+        }
+
+        if (next.Length == 2)
+        {
+            if (!int.TryParse(next, out var value) || value > maxValue)
+            {
+                e.Handled = true;
+                return;
+            }
+        }
+        else if (next.Length == 1)
+        {
+            var d = digit - '0';
+            if (maxValue == 23 && d > 2)
+            {
+                e.Handled = true;
+                return;
+            }
+
+            if (maxValue == 59 && d > 5)
+            {
+                e.Handled = true;
+                return;
+            }
+        }
+    }
+
+    private void OnHourPreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key is Key.Enter or Key.Tab)
+        {
+            CommitHourInput();
+            _minuteInput?.Focus();
+            e.Handled = true;
+            return;
+        }
+
+        if (e.Key == Key.Right && _hourInput != null &&
+            _hourInput.CaretIndex >= (_hourInput.Text?.Length ?? 0) &&
+            _hourInput.SelectionLength == 0)
+        {
+            _minuteInput?.Focus();
+            e.Handled = true;
+        }
+    }
+
+    private void OnMinutePreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter)
+        {
+            CommitMinuteInput();
+            e.Handled = true;
+            return;
+        }
+
+        if (e.Key == Key.Left && _minuteInput != null &&
+            _minuteInput.CaretIndex == 0 &&
+            _minuteInput.SelectionLength == 0)
+        {
+            _hourInput?.Focus();
+            e.Handled = true;
+        }
+    }
+
+    private void CommitHourInput()
+    {
+        if (_hourInput == null) return;
+        var text = (_hourInput.Text ?? string.Empty).Trim();
+        if (!int.TryParse(text, out var hour))
+            hour = _tempHour;
+        hour = Math.Clamp(hour, 0, 23);
+        _tempHour = hour;
+        SelectedHour = hour;
+        SetSegmentText(_hourInput, hour);
+    }
+
+    private void CommitMinuteInput()
+    {
+        if (_minuteInput == null) return;
+        var text = (_minuteInput.Text ?? string.Empty).Trim();
+        if (!int.TryParse(text, out var minute))
+            minute = _tempMinute;
+        minute = Math.Clamp(minute, 0, 59);
+        _tempMinute = minute;
+        SelectedMinute = minute;
+        SetSegmentText(_minuteInput, minute);
+    }
+
+    private void SyncSegmentInputsFromTemp()
+    {
+        SetSegmentText(_hourInput, _tempHour);
+        SetSegmentText(_minuteInput, _tempMinute);
+    }
+
+    private void SetSegmentText(TextBox? box, int value)
+    {
+        if (box == null) return;
+        _syncingSegmentText = true;
+        try
+        {
+            var text = value.ToString("D2");
+            if (box.Text != text)
+                box.Text = text;
+        }
+        finally
+        {
+            _syncingSegmentText = false;
+        }
+    }
+
     private void SetupPopupScrollHandling()
     {
         if (_popup == null) return;
 
-        // 当 Popup 打开时，监听父容器的滚动事件
         _popup.Opened += (s, e) =>
         {
             var scrollViewer = FindParentScrollViewer(this);
             if (scrollViewer != null) scrollViewer.ScrollChanged += OnParentScrollChanged;
         };
 
-        // 当 Popup 关闭时，移除监听
         _popup.Closed += (s, e) =>
         {
             var scrollViewer = FindParentScrollViewer(this);
@@ -360,18 +526,11 @@ public class ThemedTimePicker : Control
         };
     }
 
-    /// <summary>
-    ///     父容器滚动时关闭 Popup
-    /// </summary>
     private void OnParentScrollChanged(object sender, ScrollChangedEventArgs e)
     {
-        // 当发生滚动时，关闭 Popup
         if (e.VerticalChange != 0 || e.HorizontalChange != 0) IsDropDownOpen = false;
     }
 
-    /// <summary>
-    ///     查找父级 ScrollViewer
-    /// </summary>
     private ScrollViewer? FindParentScrollViewer(DependencyObject child)
     {
         var parent = VisualTreeHelper.GetParent(child);
@@ -383,11 +542,6 @@ public class ThemedTimePicker : Control
         }
 
         return null;
-    }
-
-    private void OnDropDownButtonClick(object sender, RoutedEventArgs e)
-    {
-        IsDropDownOpen = !IsDropDownOpen;
     }
 
     #endregion
@@ -402,6 +556,9 @@ public class ThemedTimePicker : Control
         {
             picker.SelectedHour = newTime.Hour;
             picker.SelectedMinute = newTime.Minute;
+            picker._tempHour = newTime.Hour;
+            picker._tempMinute = newTime.Minute;
+            picker.SyncSegmentInputsFromTemp();
         }
 
         picker.UpdateTextBox();
@@ -410,25 +567,16 @@ public class ThemedTimePicker : Control
 
     private static void OnSelectedHourChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        // 只更新显示，不自动更新 SelectedTime
-        // 临时值通过 ChangeTempHour 方法更新
+        var picker = (ThemedTimePicker)d;
+        if (!picker._syncingSegmentText)
+            picker.SetSegmentText(picker._hourInput, picker.SelectedHour);
     }
 
     private static void OnSelectedMinuteChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        // 只更新显示，不自动更新 SelectedTime
-        // 临时值通过 ChangeTempMinute 方法更新
-    }
-
-    private void UpdateSelectedTime()
-    {
-        // 确保小时和分钟在有效范围内
-        var hour = Math.Max(0, Math.Min(23, SelectedHour));
-        var minute = Math.Max(0, Math.Min(59, SelectedMinute));
-
-        // 更新 SelectedTime - 只在 ConfirmTime 中调用
-        var today = SelectedTime?.Date ?? DateTime.Today;
-        SelectedTime = new DateTime(today.Year, today.Month, today.Day, hour, minute, 0);
+        var picker = (ThemedTimePicker)d;
+        if (!picker._syncingSegmentText)
+            picker.SetSegmentText(picker._minuteInput, picker.SelectedMinute);
     }
 
     private void UpdateTextBox()
@@ -442,50 +590,18 @@ public class ThemedTimePicker : Control
         }
     }
 
-    private void ChangeHour(int delta)
-    {
-        SelectedHour = (SelectedHour + delta + 24) % 24;
-    }
-
-    private void ChangeMinute(int delta)
-    {
-        SelectedMinute = (SelectedMinute + delta + 60) % 60;
-    }
-
-    private void SetTime(int hour, int minute)
-    {
-        SelectedHour = hour;
-        SelectedMinute = minute;
-        IsDropDownOpen = false;
-    }
-
-    private void SetTimeToNow()
-    {
-        var now = DateTime.Now;
-        SelectedHour = now.Hour;
-        SelectedMinute = now.Minute;
-        IsDropDownOpen = false;
-    }
-
-    private void ClearTime()
-    {
-        SelectedTime = null;
-        UpdateTextBox();
-        IsDropDownOpen = false;
-    }
-
-    // ========== 临时值操作方法（不立即应用到 SelectedTime）==========
-
     private void ChangeTempHour(int delta)
     {
         _tempHour = (_tempHour + delta + 24) % 24;
-        SelectedHour = _tempHour; // 更新显示
+        SelectedHour = _tempHour;
+        SyncSegmentInputsFromTemp();
     }
 
     private void ChangeTempMinute(int delta)
     {
         _tempMinute = (_tempMinute + delta + 60) % 60;
-        SelectedMinute = _tempMinute; // 更新显示
+        SelectedMinute = _tempMinute;
+        SyncSegmentInputsFromTemp();
     }
 
     private void SetTempTime(int hour, int minute)
@@ -494,6 +610,7 @@ public class ThemedTimePicker : Control
         _tempMinute = minute;
         SelectedHour = _tempHour;
         SelectedMinute = _tempMinute;
+        SyncSegmentInputsFromTemp();
     }
 
     private void SetTempTimeToNow()
@@ -503,11 +620,13 @@ public class ThemedTimePicker : Control
         _tempMinute = now.Minute;
         SelectedHour = _tempHour;
         SelectedMinute = _tempMinute;
+        SyncSegmentInputsFromTemp();
     }
 
     private void ConfirmTime()
     {
-        // 应用临时值到 SelectedTime
+        CommitHourInput();
+        CommitMinuteInput();
         var today = DateTime.Today;
         SelectedTime = new DateTime(today.Year, today.Month, today.Day, _tempHour, _tempMinute, 0);
         IsDropDownOpen = false;
@@ -515,7 +634,6 @@ public class ThemedTimePicker : Control
 
     private void CancelTime()
     {
-        // 不应用更改，直接关闭
         IsDropDownOpen = false;
     }
 

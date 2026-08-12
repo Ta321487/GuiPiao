@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using GuiPiao.Model;
+using GuiPiao.Utils;
 
 namespace GuiPiao.ViewModel.TrainTicketForm;
 
@@ -24,7 +25,11 @@ public class DataTransformer
             ArriveStation = data.ArriveStation,
             DepartDate = data.DepartDate,
             DepartTime = data.DepartTime,
-            CoachNo = FormatCoachNo(data.CoachNoInput),
+            ArriveTime = data.ArriveTime,
+            ArriveDayOffset = string.IsNullOrEmpty(data.ArriveTime)
+                ? 0
+                : ArriveTimeFormat.NormalizeOffset(data.ArriveDayOffset),
+            CoachNo = FormatCoachNo(data),
             SeatNo = FormatSeatNo(data),
             Money = data.Money,
             SeatType = data.SeatType ?? string.Empty,
@@ -46,18 +51,21 @@ public class DataTransformer
     }
 
     /// <summary>
-    ///     格式化车厢号（补齐为2位数字，如：9 → 09车）
+    ///     格式化车厢号（普通：09车；加挂：加09车）。
     /// </summary>
-    private string FormatCoachNo(string coachNoInput)
+    private string FormatCoachNo(TrainTicketFormData data)
     {
+        var coachNoInput = data.CoachNoInput;
         if (string.IsNullOrWhiteSpace(coachNoInput))
             return string.Empty;
 
-        if (!int.TryParse(coachNoInput, out var coachNo))
-            return coachNoInput + "车";
+        string body;
+        if (int.TryParse(coachNoInput, out var coachNo))
+            body = coachNo.ToString("D2");
+        else
+            body = coachNoInput.Trim();
 
-        // 补齐为2位数字
-        return coachNo.ToString("D2") + "车";
+        return data.IsJiaChe ? $"加{body}车" : $"{body}车";
     }
 
     /// <summary>
@@ -100,9 +108,14 @@ public class DataTransformer
     {
         var data = new TrainTicketFormData
         {
-            DepartDateTime = DateTime.TryParse(entity.DepartDate, out var date) ? date : DateTime.Now,
-            DepartTimeValue = DateTime.TryParse($"2000-01-01 {entity.DepartTime}", out var time) ? time : DateTime.Now,
-            CoachNoInput = ExtractCoachNo(entity.CoachNo),
+            DepartDateTime = RideDateTime.TryParseDate(entity.DepartDate, out var date) ? date : DateTime.Now,
+            DepartTimeValue = RideDateTime.TryParseTimeAsDateTime(entity.DepartTime, out var time) ? time : DateTime.Now,
+            ArriveTimeValue = RideDateTime.TryParseTimeAsDateTime(entity.ArriveTime, out var arriveTime)
+                ? arriveTime
+                : null,
+            ArriveDayOffset = string.IsNullOrWhiteSpace(entity.ArriveTime)
+                ? 0
+                : ArriveTimeFormat.NormalizeOffset(entity.ArriveDayOffset),
             MoneyText = entity.Money.ToString("0.00"),
             SeatType = entity.SeatType ?? string.Empty,
             AdditionalInfo = entity.AdditionalInfo ?? string.Empty,
@@ -134,6 +147,9 @@ public class DataTransformer
         // 解析车站（去掉"站"字）
         data.DepartStationInput = ExtractStationName(entity.DepartStation);
         data.ArriveStationInput = ExtractStationName(entity.ArriveStation);
+
+        // 解析车厢号（含加挂）
+        ParseCoachNo(entity.CoachNo, data);
 
         // 解析座位号
         ParseSeatNo(entity.SeatNo, data);
@@ -174,14 +190,32 @@ public class DataTransformer
     }
 
     /// <summary>
-    ///     提取车厢号（去掉"车"字）
+    ///     解析车厢号：去掉「车」；若含「加挂/加」则勾选加车，输入框只保留数字。
     /// </summary>
-    private string ExtractCoachNo(string coachNo)
+    private void ParseCoachNo(string coachNo, TrainTicketFormData data)
     {
-        if (string.IsNullOrEmpty(coachNo))
-            return string.Empty;
+        if (string.IsNullOrWhiteSpace(coachNo))
+        {
+            data.IsJiaChe = false;
+            data.CoachNoInput = string.Empty;
+            return;
+        }
 
-        return coachNo.EndsWith("车") ? coachNo.Substring(0, coachNo.Length - 1) : coachNo;
+        var s = coachNo.Trim();
+        if (s.EndsWith("车", StringComparison.Ordinal) && s.Length > 1)
+            s = s[..^1];
+
+        var isJia = s.Contains("加挂", StringComparison.Ordinal) ||
+                    s.Contains("加", StringComparison.Ordinal);
+        if (isJia)
+        {
+            s = s.Replace("加挂", "", StringComparison.Ordinal)
+                .Replace("加", "", StringComparison.Ordinal)
+                .Trim();
+        }
+
+        data.IsJiaChe = isJia;
+        data.CoachNoInput = s;
     }
 
     /// <summary>

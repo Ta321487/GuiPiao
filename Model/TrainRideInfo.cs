@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using GuiPiao.Utils;
 
 namespace GuiPiao.Model;
 
@@ -14,6 +15,16 @@ public class TrainRideInfo
     public string ArriveStationPinyin { get; set; }
     public string DepartDate { get; set; }
     public string DepartTime { get; set; }
+    public string ArriveTime { get; set; }
+
+    /// <summary>
+    ///     到达相对出发日期的跨天数：0 当日，1 次日，2 第三天。
+    /// </summary>
+    public int ArriveDayOffset { get; set; }
+
+    /// <summary>到达时间展示（含跨天）。</summary>
+    public string ArriveTimeDisplay => ArriveTimeFormat.Format(ArriveTime, ArriveDayOffset);
+
     public string CoachNo { get; set; }
     public string SeatNo { get; set; }
     public decimal Money { get; set; }

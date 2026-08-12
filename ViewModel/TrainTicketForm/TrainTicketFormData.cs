@@ -1,5 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
+using GuiPiao.Utils;
 
 namespace GuiPiao.ViewModel.TrainTicketForm;
 
@@ -22,12 +23,32 @@ public class TrainTicketFormData
     // 日期时间相关
     public DateTime? DepartDateTime { get; set; } = DateTime.Now;
     public DateTime? DepartTimeValue { get; set; } = DateTime.Now;
-    public string DepartDate => DepartDateTime?.ToString("yyyy-MM-dd") ?? string.Empty;
-    public string DepartTime => DepartTimeValue?.ToString("HH:mm") ?? string.Empty;
+    public DateTime? ArriveTimeValue { get; set; }
+
+    /// <summary>到达相对出发日的跨天数：0 当日，1 次日，2 第三天。</summary>
+    public int ArriveDayOffset { get; set; }
+
+    public string DepartDate =>
+        DepartDateTime.HasValue ? RideDateTime.FormatDate(DepartDateTime.Value) : string.Empty;
+
+    public string DepartTime =>
+        DepartTimeValue.HasValue ? RideDateTime.FormatTime(DepartTimeValue.Value) : string.Empty;
+
+    public string ArriveTime =>
+        ArriveTimeValue.HasValue ? RideDateTime.FormatTime(ArriveTimeValue.Value) : string.Empty;
 
     // 车厢号
     public string CoachNoInput { get; set; } = string.Empty;
-    public string CoachNo => string.IsNullOrEmpty(CoachNoInput) ? string.Empty : $"{CoachNoInput}车";
+
+    /// <summary>加挂车厢（票面「加N车」）。</summary>
+    public bool IsJiaChe { get; set; }
+
+    public string CoachNo =>
+        string.IsNullOrEmpty(CoachNoInput)
+            ? string.Empty
+            : IsJiaChe
+                ? $"加{CoachNoInput}车"
+                : $"{CoachNoInput}车";
 
     // 座位号相关
     public string SeatNoNumber { get; set; } = string.Empty;
@@ -156,7 +177,10 @@ public class TrainTicketFormData
             ArriveStationInput = ArriveStationInput,
             DepartDateTime = DepartDateTime,
             DepartTimeValue = DepartTimeValue,
+            ArriveTimeValue = ArriveTimeValue,
+            ArriveDayOffset = ArriveDayOffset,
             CoachNoInput = CoachNoInput,
+            IsJiaChe = IsJiaChe,
             SeatNoNumber = SeatNoNumber,
             SelectedSeatLetter = SelectedSeatLetter,
             IsNoSeat = IsNoSeat,
@@ -202,7 +226,10 @@ public class TrainTicketFormData
         target.ArriveStationInput = ArriveStationInput;
         target.DepartDateTime = DepartDateTime;
         target.DepartTimeValue = DepartTimeValue;
+        target.ArriveTimeValue = ArriveTimeValue;
+        target.ArriveDayOffset = ArriveDayOffset;
         target.CoachNoInput = CoachNoInput;
+        target.IsJiaChe = IsJiaChe;
         target.SeatNoNumber = SeatNoNumber;
         target.SelectedSeatLetter = SelectedSeatLetter;
         target.IsNoSeat = IsNoSeat;

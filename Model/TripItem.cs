@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using CommunityToolkit.Mvvm.ComponentModel;
+using GuiPiao.Utils;
 
 namespace GuiPiao.Model;
 
@@ -21,9 +22,27 @@ public partial class TripItem : ObservableObject
     [ObservableProperty] private string _arriveStation = string.Empty;
     [ObservableProperty] private string _departDate = string.Empty;
     [ObservableProperty] private string _departTime = string.Empty;
+    [ObservableProperty] private string _arriveTime = string.Empty;
+    [ObservableProperty] private int _arriveDayOffset;
     [ObservableProperty] private string _seatType = string.Empty;
     [ObservableProperty] private string _money = string.Empty;
     public int Status { get; set; }
+
+    /// <summary>
+    ///     到达时间展示（含跨天，如「04:52(+1)」）
+    /// </summary>
+    public string ArriveTimeDisplay => ArriveTimeFormat.Format(ArriveTime, ArriveDayOffset);
+
+    /// <summary>卡片用跨天角标（+1 / +2，当日为空）。</summary>
+    public string ArriveDayOffsetBadge => ArriveTimeFormat.FormatBadge(ArriveDayOffset);
+
+    partial void OnArriveTimeChanged(string value) => OnPropertyChanged(nameof(ArriveTimeDisplay));
+
+    partial void OnArriveDayOffsetChanged(int value)
+    {
+        OnPropertyChanged(nameof(ArriveTimeDisplay));
+        OnPropertyChanged(nameof(ArriveDayOffsetBadge));
+    }
 
     /// <summary>
     ///     状态显示文本（中文）

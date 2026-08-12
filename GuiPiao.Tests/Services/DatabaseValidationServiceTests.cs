@@ -111,7 +111,7 @@ public class DatabaseValidationServiceTests : IDisposable
           arrive_station TEXT, depart_station_pinyin TEXT, arrive_station_pinyin TEXT, depart_date TEXT,
           depart_time TEXT, coach_no TEXT, seat_no TEXT, money TEXT, seat_type TEXT, additional_info TEXT,
           ticket_purpose TEXT, ticket_modification_type TEXT, ticket_type_flags INTEGER, payment_channel_flags INTEGER,
-          hint TEXT, depart_station_code TEXT, arrive_station_code TEXT, status INTEGER
+          hint TEXT, depart_station_code TEXT, arrive_station_code TEXT, status INTEGER, arrive_time TEXT, arrive_day_offset INTEGER
         );
         """,
         """

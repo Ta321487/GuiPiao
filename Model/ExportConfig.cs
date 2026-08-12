@@ -96,6 +96,7 @@ public class ExportConfig
     public bool ExportArriveStation { get; set; } = true;
     public bool ExportDepartDate { get; set; } = true;
     public bool ExportDepartTime { get; set; } = true;
+    public bool ExportArriveTime { get; set; } = true;
     public bool ExportCoachNo { get; set; } = true;
     public bool ExportSeatNo { get; set; } = true;
     public bool ExportSeatType { get; set; } = true;

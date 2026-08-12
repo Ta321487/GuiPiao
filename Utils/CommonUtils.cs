@@ -7,35 +7,21 @@ namespace GuiPiao.Utils;
 public static class CommonUtils
 {
     /// <summary>
-    ///     格式化日期时间
+    ///     格式化日期（yyyy-MM-dd）
     /// </summary>
-    /// <param name="dateTime">日期时间对象</param>
-    /// <returns>格式化后的日期字符串 (YYYY-MM-DD)</returns>
-    public static string FormatDate(DateTime dateTime)
-    {
-        return dateTime.ToString("yyyy-MM-dd");
-    }
+    public static string FormatDate(DateTime dateTime) => RideDateTime.FormatDate(dateTime);
 
     /// <summary>
-    ///     格式化时间
+    ///     格式化时间（HH:mm）
     /// </summary>
-    /// <param name="dateTime">日期时间对象</param>
-    /// <returns>格式化后的时间字符串 (HH:MM)</returns>
-    public static string FormatTime(DateTime dateTime)
-    {
-        return dateTime.ToString("HH:mm");
-    }
+    public static string FormatTime(DateTime dateTime) => RideDateTime.FormatTime(dateTime);
 
     /// <summary>
-    ///     解析日期字符串
+    ///     解析日期字符串（yyyy-MM-dd）
     /// </summary>
-    /// <param name="dateString">日期字符串 (YYYY-MM-DD)</param>
-    /// <returns>日期时间对象</returns>
     public static DateTime ParseDate(string dateString)
     {
-        if (DateTime.TryParseExact(dateString, "yyyy-MM-dd", null, DateTimeStyles.None, out var result))
-            return result;
-        return DateTime.MinValue;
+        return RideDateTime.TryParseDate(dateString, out var result) ? result : DateTime.MinValue;
     }
 
     /// <summary>

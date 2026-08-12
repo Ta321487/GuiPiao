@@ -372,7 +372,9 @@ public partial class TripListViewModel : ObservableObject, IDisposable
 
             if (CurrentViewType == ViewType.Card)
             {
-                var cardsPerRow = new UISettingsService().Config.CardsPerRow;
+                // 与界面设置共用 ConfigManager，避免另起 UISettingsService 读到过期 CardsPerRow
+                ConfigManager.Instance.RefreshUISettingsConfig();
+                var cardsPerRow = ConfigManager.Instance.UISettingsService.Config.CardsPerRow;
                 if (cardsPerRow > 0)
                 {
                     var rows = (int)Math.Ceiling((double)pageSize / cardsPerRow);
@@ -463,6 +465,8 @@ public partial class TripListViewModel : ObservableObject, IDisposable
                     ArriveStation = ride.ArriveStation,
                     DepartDate = ride.DepartDate,
                     DepartTime = ride.DepartTime,
+                    ArriveTime = ride.ArriveTime,
+                    ArriveDayOffset = ride.ArriveDayOffset,
                     SeatType = ride.SeatType,
                     Money = ride.Money.ToString(),
                     Status = ride.Status,
@@ -504,23 +508,23 @@ public partial class TripListViewModel : ObservableObject, IDisposable
             {
                 new()
                 {
-                    Id = 1, TrainNo = "G123", DepartStation = "北京南", ArriveStation = "上海虹桥", DepartDate = "2026-02-20",
-                    DepartTime = "08:00", SeatType = "二等座", Money = "553.00", Status = 0
+                    Id = 1, TrainNo = "G123", DepartStation = "北京南", ArriveStation = "上海虹桥",                     DepartDate = "2026-02-20",
+                    DepartTime = "08:00", ArriveTime = "12:30", ArriveDayOffset = 0, SeatType = "二等座", Money = "553.00", Status = 0
                 },
                 new()
                 {
                     Id = 2, TrainNo = "D456", DepartStation = "上海虹桥", ArriveStation = "广州南", DepartDate = "2026-02-18",
-                    DepartTime = "14:30", SeatType = "一等座", Money = "876.50", Status = 1
+                    DepartTime = "14:30", ArriveTime = "21:00", ArriveDayOffset = 0, SeatType = "一等座", Money = "876.50", Status = 1
                 },
                 new()
                 {
                     Id = 3, TrainNo = "Z789", DepartStation = "广州南", ArriveStation = "深圳北", DepartDate = "2026-02-25",
-                    DepartTime = "09:15", SeatType = "硬座", Money = "74.50", Status = 0
+                    DepartTime = "09:15", ArriveTime = "00:10", ArriveDayOffset = 1, SeatType = "硬座", Money = "74.50", Status = 0
                 },
                 new()
                 {
                     Id = 4, TrainNo = "G789", DepartStation = "深圳北", ArriveStation = "杭州东", DepartDate = "2026-02-10",
-                    DepartTime = "10:20", SeatType = "二等座", Money = "689.00", Status = 1
+                    DepartTime = "10:20", ArriveTime = "00:10", ArriveDayOffset = 2, SeatType = "二等座", Money = "689.00", Status = 1
                 }
             };
             TotalItems = TripItems.Count;
@@ -824,43 +828,53 @@ public partial class TripListViewModel : ObservableObject, IDisposable
     [RelayCommand]
     public async Task DeleteTripCommand(TripItem trip)
     {
-        if (trip != null)
-        {
-            var itemName = $"车次 {trip.TrainNo} ({trip.DepartStation} → {trip.ArriveStation}) 的行程";
-            if (!_confirmationService.ConfirmDelete(itemName)) return;
+        if (trip == null) return;
 
-            try
+        var itemName = $"车次 {trip.TrainNo} ({trip.DepartStation} → {trip.ArriveStation}) 的行程";
+        if (!_confirmationService.ConfirmDelete(itemName)) return;
+
+        try
+        {
+            var rideId = trip.DatabaseId;
+            if (rideId <= 0)
             {
-                var rideId = await _trainRideRepository.FindTrainRideIdAsync(
+                var found = await _trainRideRepository.FindTrainRideIdAsync(
                     trip.TrainNo,
                     trip.DepartStation,
                     trip.ArriveStation,
                     trip.DepartDate,
-                    trip.DepartTime
-                );
-
-                if (rideId.HasValue)
-                {
-                    await _trainRideRepository.DeleteTrainRideAsync(rideId.Value);
-                    _logService.Info("TripListViewModel",
-                        $"删除行程: {trip.TrainNo} {trip.DepartStation}->{trip.ArriveStation}");
-                }
+                    trip.DepartTime);
+                rideId = found ?? 0;
             }
-            catch (Exception ex)
+
+            if (rideId <= 0)
             {
-                _logService.Error("TripListViewModel", $"删除行程失败: {ex.Message}");
                 MessageBoxWindow.Show(
                     Application.Current.MainWindow,
-                    $"删除失败: {ex.Message}",
+                    "删除失败：未找到对应记录",
                     "错误",
                     MessageBoxButton.OK,
-                    MessageBoxImage.Error
-                );
+                    MessageBoxImage.Error);
+                return;
             }
 
+            await _trainRideRepository.DeleteTrainRideAsync(rideId);
+            _logService.Info("TripListViewModel",
+                $"删除行程: {trip.TrainNo} {trip.DepartStation}->{trip.ArriveStation}");
             TripItems.Remove(trip);
             TotalItems--;
             await LoadTripItemsAsync();
+        }
+        catch (Exception ex)
+        {
+            _logService.Error("TripListViewModel", $"删除行程失败: {ex.Message}");
+            MessageBoxWindow.Show(
+                Application.Current.MainWindow,
+                $"删除失败: {ex.Message}",
+                "错误",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error
+            );
         }
     }
 
@@ -1349,10 +1363,20 @@ public partial class TripListViewModel : ObservableObject, IDisposable
                 return;
             }
 
-            // 2. 确认对话框（与「批量删除/清空数据时弹出二次确认」通用设置一致）
-            var confirmMessage = $"确定要删除选中的 {selectedItems.Count} 张车票吗？\n\n此操作不可恢复！";
-            if (!_confirmationService.ConfirmBatchDelete(confirmMessage, true))
-                return;
+            // 2. 确认：仅 1 条走单删开关，多条走批量开关
+            if (selectedItems.Count == 1)
+            {
+                var t = selectedItems[0];
+                var itemName = $"车次 {t.TrainNo} ({t.DepartStation} → {t.ArriveStation}) 的行程";
+                if (!_confirmationService.ConfirmDelete(itemName))
+                    return;
+            }
+            else
+            {
+                var confirmMessage = $"确定要删除选中的 {selectedItems.Count} 张车票吗？\n\n此操作不可恢复！";
+                if (!_confirmationService.ConfirmBatchDelete(confirmMessage, true))
+                    return;
+            }
 
             // 3. 执行批量删除
             var successCount = 0;
@@ -1360,8 +1384,17 @@ public partial class TripListViewModel : ObservableObject, IDisposable
             foreach (var ticket in selectedItems)
                 try
                 {
-                    // 使用数据库真实ID
                     var rideId = ticket.DatabaseId;
+                    if (rideId <= 0)
+                    {
+                        var found = await _trainRideRepository.FindTrainRideIdAsync(
+                            ticket.TrainNo,
+                            ticket.DepartStation,
+                            ticket.ArriveStation,
+                            ticket.DepartDate,
+                            ticket.DepartTime);
+                        rideId = found ?? 0;
+                    }
 
                     if (rideId > 0)
                     {
@@ -1520,6 +1553,8 @@ public partial class TripListViewModel : ObservableObject, IDisposable
                     ArriveStationPinyin = t.ArriveStationPinyin ?? "",
                     DepartDate = t.DepartDate ?? "",
                     DepartTime = t.DepartTime ?? "",
+                    ArriveTime = t.ArriveTime ?? "",
+                    ArriveDayOffset = t.ArriveDayOffset,
                     CoachNo = t.CoachNo ?? "",
                     SeatNo = t.SeatNo ?? "",
                     SeatType = t.SeatType ?? "",
@@ -1617,6 +1652,8 @@ public partial class TripListViewModel : ObservableObject, IDisposable
                     ArriveStation = ride.ArriveStation,
                     DepartDate = ride.DepartDate,
                     DepartTime = ride.DepartTime,
+                    ArriveTime = ride.ArriveTime,
+                    ArriveDayOffset = ride.ArriveDayOffset,
                     SeatType = ride.SeatType,
                     Money = ride.Money.ToString(),
                     Status = ride.Status,

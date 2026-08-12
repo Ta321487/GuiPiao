@@ -233,11 +233,14 @@ public partial class UISettingsViewModel : ObservableObject, ISettingsViewModel
             TicketCentered = TicketCentered,
 
             // 主界面布局配置
-            LeftPanelWidth = LeftPanelWidth,
+            LeftPanelWidth = Math.Clamp(LeftPanelWidth, LayoutViewModel.LeftPanelMinWidth,
+                LayoutViewModel.LeftPanelMaxWidth),
             LeftPanelLocked = LeftPanelLocked,
-            RightPanelWidth = RightPanelWidth,
+            RightPanelWidth = Math.Clamp(RightPanelWidth, LayoutViewModel.RightPanelMinWidth,
+                LayoutViewModel.RightPanelMaxWidth),
             RightPanelLocked = RightPanelLocked,
-            BottomPanelHeight = BottomPanelHeight,
+            BottomPanelHeight = Math.Clamp(BottomPanelHeight, LayoutViewModel.BottomPanelMinHeight,
+                LayoutViewModel.BottomPanelMaxHeight),
             BottomPanelLocked = BottomPanelLocked,
 
             // 行程列表显示设置
@@ -579,6 +582,8 @@ public partial class UISettingsViewModel : ObservableObject, ISettingsViewModel
                 BottomPanelHeight,
                 BottomPanelLocked));
 
+            ConfigManager.Instance.RefreshUISettingsConfig();
+
             MessageBoxWindow.Show(Application.Current.MainWindow, "当前布局已保存", "成功");
         }
         catch (Exception ex)
@@ -665,7 +670,7 @@ public partial class UISettingsViewModel : ObservableObject, ISettingsViewModel
     }
 
     /// <summary>
-    ///     打开票面参数调整窗口（布局 JSON、示例行程）。
+    ///     打开票面版式编辑窗口（布局、字体、示例行程对照）。
     /// </summary>
     [RelayCommand]
     private void TestTicketPreview()
@@ -685,6 +690,7 @@ public partial class UISettingsViewModel : ObservableObject, ISettingsViewModel
                 ArriveStation = "九江",
                 DepartDate = "2024-01-25",
                 DepartTime = "18:55",
+                ArriveTime = "21:10",
                 SeatType = "二等座",
                 Money = "163.5",
                 CoachNo = "11车",

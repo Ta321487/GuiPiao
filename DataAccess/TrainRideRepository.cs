@@ -24,6 +24,7 @@ public class TrainRideRepository
         {
             "date" => "DATE(depart_date)",
             "departtime" => "TIME(depart_time)",
+            "arrivetime" => "TIME(arrive_time)",
             "money" => "money",
             "train_no" => "train_no",
             "depart_station" => "depart_station",
@@ -31,31 +32,16 @@ public class TrainRideRepository
         };
     }
 
-    /// <summary>
-    ///     标准化日期格式为 yyyy-MM-dd
-    /// </summary>
-    private string NormalizeDate(string dateStr)
+    private static void NormalizeRideDateTimes(TrainRideInfo trainRide)
     {
-        if (string.IsNullOrWhiteSpace(dateStr))
-            return dateStr;
-
-        // 尝试解析各种日期格式
-        string[] formats = { "yyyy-MM-dd", "yyyy/MM/dd", "dd/MM/yyyy", "dd-MM-yyyy", "MM/dd/yyyy" };
-
-        if (DateTime.TryParseExact(dateStr, formats, CultureInfo.InvariantCulture, DateTimeStyles.None,
-                out var parsedDate)) return parsedDate.ToString("yyyy-MM-dd");
-
-        // 如果无法解析，尝试通用解析
-        if (DateTime.TryParse(dateStr, out var generalParsedDate)) return generalParsedDate.ToString("yyyy-MM-dd");
-
-        // 返回原始值（可能格式不正确，但避免数据丢失）
-        return dateStr;
+        trainRide.DepartDate = RideDateTime.NormalizeDate(trainRide.DepartDate);
+        trainRide.DepartTime = RideDateTime.NormalizeTime(trainRide.DepartTime);
+        trainRide.ArriveTime = RideDateTime.NormalizeTime(trainRide.ArriveTime);
     }
 
     public async Task<int> AddTrainRideAsync(TrainRideInfo trainRide)
     {
-        // 标准化日期格式
-        trainRide.DepartDate = NormalizeDate(trainRide.DepartDate);
+        NormalizeRideDateTimes(trainRide);
 
         using (var connection = new SqliteConnection(_connectionString))
         {
@@ -63,12 +49,12 @@ public class TrainRideRepository
             var sql = @"
                     INSERT INTO train_ride_info (
                         ticket_number, check_in_location, depart_station, train_no, arrive_station,
-                        depart_station_pinyin, arrive_station_pinyin, depart_date, depart_time, coach_no,
+                        depart_station_pinyin, arrive_station_pinyin, depart_date, depart_time, arrive_time, arrive_day_offset, coach_no,
                         seat_no, money, seat_type, additional_info, ticket_purpose, ticket_modification_type,
                         ticket_type_flags, payment_channel_flags, hint, depart_station_code, arrive_station_code, status
                     ) VALUES (
                         @TicketNumber, @CheckInLocation, @DepartStation, @TrainNo, @ArriveStation,
-                        @DepartStationPinyin, @ArriveStationPinyin, @DepartDate, @DepartTime, @CoachNo,
+                        @DepartStationPinyin, @ArriveStationPinyin, @DepartDate, @DepartTime, @ArriveTime, @ArriveDayOffset, @CoachNo,
                         @SeatNo, @Money, @SeatType, @AdditionalInfo, @TicketPurpose, @TicketModificationType,
                         @TicketTypeFlags, @PaymentChannelFlags, @Hint, @DepartStationCode, @ArriveStationCode, @Status
                     );
@@ -96,7 +82,9 @@ public class TrainRideRepository
                     depart_station_pinyin AS DepartStationPinyin, 
                     arrive_station_pinyin AS ArriveStationPinyin, 
                     depart_date AS DepartDate, 
-                    depart_time AS DepartTime, 
+                    depart_time AS DepartTime,
+                    arrive_time AS ArriveTime,
+                    arrive_day_offset AS ArriveDayOffset, 
                     coach_no AS CoachNo, 
                     seat_no AS SeatNo, 
                     money AS Money, 
@@ -149,7 +137,9 @@ public class TrainRideRepository
                     depart_station_pinyin AS DepartStationPinyin, 
                     arrive_station_pinyin AS ArriveStationPinyin, 
                     depart_date AS DepartDate, 
-                    depart_time AS DepartTime, 
+                    depart_time AS DepartTime,
+                    arrive_time AS ArriveTime,
+                    arrive_day_offset AS ArriveDayOffset, 
                     coach_no AS CoachNo, 
                     seat_no AS SeatNo, 
                     money AS Money, 
@@ -184,7 +174,9 @@ public class TrainRideRepository
                         depart_station_pinyin AS DepartStationPinyin, 
                         arrive_station_pinyin AS ArriveStationPinyin, 
                         depart_date AS DepartDate, 
-                        depart_time AS DepartTime, 
+                        depart_time AS DepartTime,
+                    arrive_time AS ArriveTime,
+                    arrive_day_offset AS ArriveDayOffset, 
                         coach_no AS CoachNo, 
                         seat_no AS SeatNo, 
                         money AS Money, 
@@ -219,7 +211,9 @@ public class TrainRideRepository
                     depart_station_pinyin AS DepartStationPinyin, 
                     arrive_station_pinyin AS ArriveStationPinyin, 
                     depart_date AS DepartDate, 
-                    depart_time AS DepartTime, 
+                    depart_time AS DepartTime,
+                    arrive_time AS ArriveTime,
+                    arrive_day_offset AS ArriveDayOffset, 
                     coach_no AS CoachNo, 
                     seat_no AS SeatNo, 
                     money AS Money, 
@@ -240,8 +234,7 @@ public class TrainRideRepository
 
     public async Task<int> UpdateTrainRideAsync(TrainRideInfo trainRide)
     {
-        // 标准化日期格式
-        trainRide.DepartDate = NormalizeDate(trainRide.DepartDate);
+        NormalizeRideDateTimes(trainRide);
 
         using (var connection = new SqliteConnection(_connectionString))
         {
@@ -250,7 +243,7 @@ public class TrainRideRepository
                     UPDATE train_ride_info
                     SET ticket_number = @TicketNumber, check_in_location = @CheckInLocation, depart_station = @DepartStation,
                         train_no = @TrainNo, arrive_station = @ArriveStation, depart_station_pinyin = @DepartStationPinyin,
-                        arrive_station_pinyin = @ArriveStationPinyin, depart_date = @DepartDate, depart_time = @DepartTime,
+                        arrive_station_pinyin = @ArriveStationPinyin, depart_date = @DepartDate, depart_time = @DepartTime, arrive_time = @ArriveTime, arrive_day_offset = @ArriveDayOffset,
                         coach_no = @CoachNo, seat_no = @SeatNo, money = @Money, seat_type = @SeatType,
                         additional_info = @AdditionalInfo, ticket_purpose = @TicketPurpose,
                         ticket_modification_type = @TicketModificationType, ticket_type_flags = @TicketTypeFlags,
@@ -375,7 +368,9 @@ public class TrainRideRepository
                         depart_station_pinyin AS DepartStationPinyin, 
                         arrive_station_pinyin AS ArriveStationPinyin, 
                         depart_date AS DepartDate, 
-                        depart_time AS DepartTime, 
+                        depart_time AS DepartTime,
+                    arrive_time AS ArriveTime,
+                    arrive_day_offset AS ArriveDayOffset, 
                         coach_no AS CoachNo, 
                         seat_no AS SeatNo, 
                         money AS Money, 
@@ -412,7 +407,9 @@ public class TrainRideRepository
                     depart_station_pinyin AS DepartStationPinyin, 
                     arrive_station_pinyin AS ArriveStationPinyin, 
                     depart_date AS DepartDate, 
-                    depart_time AS DepartTime, 
+                    depart_time AS DepartTime,
+                    arrive_time AS ArriveTime,
+                    arrive_day_offset AS ArriveDayOffset, 
                     coach_no AS CoachNo, 
                     seat_no AS SeatNo, 
                     money AS Money, 
@@ -456,7 +453,9 @@ public class TrainRideRepository
                         depart_station_pinyin AS DepartStationPinyin, 
                         arrive_station_pinyin AS ArriveStationPinyin, 
                         depart_date AS DepartDate, 
-                        depart_time AS DepartTime, 
+                        depart_time AS DepartTime,
+                    arrive_time AS ArriveTime,
+                    arrive_day_offset AS ArriveDayOffset, 
                         coach_no AS CoachNo, 
                         seat_no AS SeatNo, 
                         money AS Money, 
@@ -512,7 +511,9 @@ public class TrainRideRepository
                         depart_station_pinyin AS DepartStationPinyin, 
                         arrive_station_pinyin AS ArriveStationPinyin, 
                         depart_date AS DepartDate, 
-                        depart_time AS DepartTime, 
+                        depart_time AS DepartTime,
+                    arrive_time AS ArriveTime,
+                    arrive_day_offset AS ArriveDayOffset, 
                         coach_no AS CoachNo, 
                         seat_no AS SeatNo, 
                         money AS Money, 
@@ -601,7 +602,9 @@ public class TrainRideRepository
                         t.depart_station_pinyin AS DepartStationPinyin, 
                         t.arrive_station_pinyin AS ArriveStationPinyin, 
                         t.depart_date AS DepartDate, 
-                        t.depart_time AS DepartTime, 
+                        t.depart_time AS DepartTime,
+                            t.arrive_time AS ArriveTime,
+                            t.arrive_day_offset AS ArriveDayOffset, 
                         t.coach_no AS CoachNo, 
                         t.seat_no AS SeatNo, 
                         t.money AS Money, 
@@ -644,7 +647,9 @@ public class TrainRideRepository
                     depart_station_pinyin AS DepartStationPinyin, 
                     arrive_station_pinyin AS ArriveStationPinyin, 
                     depart_date AS DepartDate, 
-                    depart_time AS DepartTime, 
+                    depart_time AS DepartTime,
+                    arrive_time AS ArriveTime,
+                    arrive_day_offset AS ArriveDayOffset, 
                     coach_no AS CoachNo, 
                     seat_no AS SeatNo, 
                     money AS Money, 
@@ -719,7 +724,9 @@ public class TrainRideRepository
                         depart_station_pinyin AS DepartStationPinyin, 
                         arrive_station_pinyin AS ArriveStationPinyin, 
                         depart_date AS DepartDate, 
-                        depart_time AS DepartTime, 
+                        depart_time AS DepartTime,
+                    arrive_time AS ArriveTime,
+                    arrive_day_offset AS ArriveDayOffset, 
                         coach_no AS CoachNo, 
                         seat_no AS SeatNo, 
                         money AS Money, 
@@ -1135,7 +1142,9 @@ public class TrainRideRepository
                             t.depart_station_pinyin AS DepartStationPinyin, 
                             t.arrive_station_pinyin AS ArriveStationPinyin, 
                             t.depart_date AS DepartDate, 
-                            t.depart_time AS DepartTime, 
+                            t.depart_time AS DepartTime,
+                            t.arrive_time AS ArriveTime,
+                            t.arrive_day_offset AS ArriveDayOffset, 
                             t.coach_no AS CoachNo, 
                             t.seat_no AS SeatNo, 
                             t.money AS Money, 
@@ -1165,7 +1174,9 @@ public class TrainRideRepository
                             depart_station_pinyin AS DepartStationPinyin, 
                             arrive_station_pinyin AS ArriveStationPinyin, 
                             depart_date AS DepartDate, 
-                            depart_time AS DepartTime, 
+                            depart_time AS DepartTime,
+                    arrive_time AS ArriveTime,
+                    arrive_day_offset AS ArriveDayOffset, 
                             coach_no AS CoachNo, 
                             seat_no AS SeatNo, 
                             money AS Money, 

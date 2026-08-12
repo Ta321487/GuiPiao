@@ -26,7 +26,7 @@ public class DatabaseValidationService
         {
             "id", "ticket_number", "check_in_location", "depart_station", "train_no",
             "arrive_station", "depart_station_pinyin", "arrive_station_pinyin", "depart_date",
-            "depart_time", "coach_no", "seat_no", "money", "seat_type", "additional_info",
+            "depart_time", "arrive_time", "arrive_day_offset", "coach_no", "seat_no", "money", "seat_type", "additional_info",
             "ticket_purpose", "ticket_modification_type", "ticket_type_flags", "payment_channel_flags",
             "hint", "depart_station_code", "arrive_station_code", "status"
         },

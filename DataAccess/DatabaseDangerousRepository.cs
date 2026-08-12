@@ -191,7 +191,9 @@ public class DatabaseDangerousRepository
                         payment_channel_flags TEXT,
                         hint TEXT,
                         depart_station_code TEXT,
-                        arrive_station_code TEXT
+                        arrive_station_code TEXT,
+                        arrive_time TEXT,
+                        arrive_day_offset INTEGER DEFAULT 0
                     );
                 ";
             await connection.ExecuteAsync(createTrainRideTable);

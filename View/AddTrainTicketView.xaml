@@ -65,6 +65,10 @@
                             <TextBlock Text="出发时间:" Width="80" VerticalAlignment="Center" />
                             <TextBox Text="{Binding DepartTime}" Width="200" />
                         </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                            <TextBlock Text="到达时间:" Width="80" VerticalAlignment="Center" />
+                            <TextBox Text="{Binding ArriveTime}" Width="200" />
+                        </StackPanel>
                     </StackPanel>
 
                     <!-- 右侧表单 -->

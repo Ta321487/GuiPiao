@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using CommunityToolkit.Mvvm.ComponentModel;
+using GuiPiao.Utils;
 
 namespace GuiPiao.Model;
 
@@ -13,11 +14,6 @@ namespace GuiPiao.Model;
 /// </summary>
 public partial class TicketPreviewDraft : ObservableObject, IDisposable
 {
-    private static readonly string[] DateFormats =
-    {
-        "yyyy-MM-dd", "yyyy/MM/dd", "yyyy-M-d", "yyyy/M/d"
-    };
-
     public TripItem Source { get; }
 
     [ObservableProperty] private string _idNumber = string.Empty;
@@ -55,9 +51,13 @@ public partial class TicketPreviewDraft : ObservableObject, IDisposable
         nameof(ArrowOffsetAdjustPx),
         nameof(CoachBodyWithoutChe),
         nameof(CoachShowChe),
+        nameof(ShowCoachCheOnFace),
         nameof(IsJiaGuaCoach),
+        nameof(ShowCoachJiaOnFace),
         nameof(SeatBodyWithoutHao),
         nameof(SeatShowHao),
+        nameof(ShowSeatHaoOnFace),
+        nameof(ShowCoachSeatFaceSegments),
         nameof(IsWuzuo),
         nameof(IsSleeperBerth),
         nameof(SleeperBerthNumberPart),
@@ -137,13 +137,9 @@ public partial class TicketPreviewDraft : ObservableObject, IDisposable
         {
             var t = Source.DepartTime?.Trim() ?? string.Empty;
             if (string.IsNullOrEmpty(t)) return string.Empty;
-            if (TimeSpan.TryParse(t, out var ts)) return ts.ToString(@"hh\:mm", CultureInfo.InvariantCulture);
-            if (DateTime.TryParse(t, CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt))
-                return dt.ToString("HH:mm", CultureInfo.InvariantCulture);
-            // 常见 "8:00" / "08:00"
-            if (DateTime.TryParseExact(t, new[] { "H:mm", "HH:mm", "H:m", "HH:m" }, CultureInfo.InvariantCulture,
-                    DateTimeStyles.None, out dt)) return dt.ToString("HH:mm", CultureInfo.InvariantCulture);
-            return t;
+            return RideDateTime.TryParseTime(t, out var ts)
+                ? RideDateTime.FormatTime(ts)
+                : t;
         }
     }
 
@@ -152,14 +148,8 @@ public partial class TicketPreviewDraft : ObservableObject, IDisposable
             ? "报销凭证"
             : $"{Source.TicketNumber.Trim()} 报销凭证";
 
-    public bool TryParseDepartDate(out DateTime date)
-    {
-        date = default;
-        if (string.IsNullOrWhiteSpace(Source.DepartDate)) return false;
-        if (DateTime.TryParseExact(Source.DepartDate.Trim(), DateFormats, CultureInfo.InvariantCulture,
-                DateTimeStyles.None, out date)) return true;
-        return DateTime.TryParse(Source.DepartDate, CultureInfo.InvariantCulture, DateTimeStyles.None, out date);
-    }
+    public bool TryParseDepartDate(out DateTime date) =>
+        RideDateTime.TryParseDate(Source.DepartDate, out date);
 
     public string DepartDateYear =>
         TryParseDepartDate(out var d) ? d.Year.ToString(CultureInfo.InvariantCulture) : string.Empty;
@@ -266,6 +256,9 @@ public partial class TicketPreviewDraft : ObservableObject, IDisposable
     public bool ShowCoachSeatFaceSegments => !IsSleeperBerth;
 
     public bool ShowCoachCheOnFace => CoachShowChe && ShowCoachSeatFaceSegments;
+
+    /// <summary>加挂车厢时显示「加」字。</summary>
+    public bool ShowCoachJiaOnFace => IsJiaGuaCoach && ShowCoachSeatFaceSegments;
 
     public bool ShowSeatHaoOnFace => SeatShowHao && ShowCoachSeatFaceSegments;
 

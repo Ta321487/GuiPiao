@@ -12,6 +12,7 @@ using GuiPiao.DataAccess;
 using GuiPiao.Messages;
 using GuiPiao.Model;
 using GuiPiao.Services;
+using GuiPiao.Utils;
 using GuiPiao.View;
 
 namespace GuiPiao.ViewModel.TrainTicketForm;
@@ -38,8 +39,8 @@ public abstract partial class TrainTicketFormViewModelBase : ObservableObject
     {
         nameof(TrainNoNumber), nameof(SelectedTrainNoPrefix),
         nameof(DepartStationInput), nameof(ArriveStationInput),
-        nameof(DepartDateTime), nameof(DepartTimeValue),
-        nameof(CoachNoInput), nameof(SeatNoNumber), nameof(SelectedSeatLetter),
+        nameof(DepartDateTime), nameof(DepartTimeValue), nameof(ArriveTimeValue), nameof(ArriveDayOffset),
+        nameof(CoachNoInput), nameof(IsJiaChe), nameof(SeatNoNumber), nameof(SelectedSeatLetter),
         nameof(IsNoSeat), nameof(MoneyText), nameof(SeatType),
         nameof(AdditionalInfo), nameof(TicketPurpose), nameof(TicketModificationType),
         nameof(Hint), nameof(SelectedStatus),
@@ -93,7 +94,10 @@ public abstract partial class TrainTicketFormViewModelBase : ObservableObject
         _arriveStationInput = _formData.ArriveStationInput;
         _departDateTime = _formData.DepartDateTime;
         _departTimeValue = _formData.DepartTimeValue;
+        _arriveTimeValue = _formData.ArriveTimeValue;
+        _arriveDayOffset = _formData.ArriveDayOffset;
         _coachNoInput = _formData.CoachNoInput;
+        _isJiaChe = _formData.IsJiaChe;
         _seatNoNumber = _formData.SeatNoNumber;
         _selectedSeatLetter = _formData.SelectedSeatLetter;
         _isNoSeat = _formData.IsNoSeat;
@@ -332,8 +336,14 @@ public abstract partial class TrainTicketFormViewModelBase : ObservableObject
             _formData.DepartDateTime = DepartDateTime;
         if (string.IsNullOrEmpty(propertyName) || propertyName == nameof(DepartTimeValue))
             _formData.DepartTimeValue = DepartTimeValue;
+        if (string.IsNullOrEmpty(propertyName) || propertyName == nameof(ArriveTimeValue))
+            _formData.ArriveTimeValue = ArriveTimeValue;
+        if (string.IsNullOrEmpty(propertyName) || propertyName == nameof(ArriveDayOffset))
+            _formData.ArriveDayOffset = ArriveDayOffset;
         if (string.IsNullOrEmpty(propertyName) || propertyName == nameof(CoachNoInput))
             _formData.CoachNoInput = CoachNoInput;
+        if (string.IsNullOrEmpty(propertyName) || propertyName == nameof(IsJiaChe))
+            _formData.IsJiaChe = IsJiaChe;
         if (string.IsNullOrEmpty(propertyName) || propertyName == nameof(SeatNoNumber))
             _formData.SeatNoNumber = SeatNoNumber;
         if (string.IsNullOrEmpty(propertyName) || propertyName == nameof(SelectedSeatLetter))
@@ -409,7 +419,10 @@ public abstract partial class TrainTicketFormViewModelBase : ObservableObject
         ArriveStationInput = _formData.ArriveStationInput;
         DepartDateTime = _formData.DepartDateTime;
         DepartTimeValue = _formData.DepartTimeValue;
+        ArriveTimeValue = _formData.ArriveTimeValue;
+        ArriveDayOffset = _formData.ArriveDayOffset;
         CoachNoInput = _formData.CoachNoInput;
+        IsJiaChe = _formData.IsJiaChe;
         SeatNoNumber = _formData.SeatNoNumber;
         SelectedSeatLetter = _formData.SelectedSeatLetter;
         IsNoSeat = _formData.IsNoSeat;
@@ -902,7 +915,10 @@ public abstract partial class TrainTicketFormViewModelBase : ObservableObject
                a.ArriveStationInput == b.ArriveStationInput &&
                a.DepartDateTime == b.DepartDateTime &&
                a.DepartTimeValue == b.DepartTimeValue &&
+               a.ArriveTimeValue == b.ArriveTimeValue &&
+               a.ArriveDayOffset == b.ArriveDayOffset &&
                a.CoachNoInput == b.CoachNoInput &&
+               a.IsJiaChe == b.IsJiaChe &&
                a.SeatNoNumber == b.SeatNoNumber &&
                a.SelectedSeatLetter == b.SelectedSeatLetter &&
                a.IsNoSeat == b.IsNoSeat &&
@@ -968,7 +984,10 @@ public abstract partial class TrainTicketFormViewModelBase : ObservableObject
             nameof(ArriveStationInput) => "修改到达车站",
             nameof(DepartDateTime) => "修改出发日期",
             nameof(DepartTimeValue) => "修改出发时间",
+            nameof(ArriveTimeValue) => "修改到达时间",
+            nameof(ArriveDayOffset) => "修改到达跨天",
             nameof(CoachNoInput) => "修改车厢号",
+            nameof(IsJiaChe) => "修改加车",
             nameof(SeatNoNumber) => "修改座位号",
             nameof(SelectedSeatLetter) => "修改座位字母",
             nameof(IsNoSeat) => "修改无座状态",
@@ -1010,9 +1029,18 @@ public abstract partial class TrainTicketFormViewModelBase : ObservableObject
             nameof(SelectedTrainNoPrefix) => SelectedTrainNoPrefix ?? string.Empty,
             nameof(DepartStationInput) => DepartStationInput ?? string.Empty,
             nameof(ArriveStationInput) => ArriveStationInput ?? string.Empty,
-            nameof(DepartDateTime) => DepartDateTime?.ToString("yyyy-MM-dd") ?? string.Empty,
-            nameof(DepartTimeValue) => DepartTimeValue?.ToString("HH:mm") ?? string.Empty,
+            nameof(DepartDateTime) => DepartDateTime.HasValue
+                ? RideDateTime.FormatDate(DepartDateTime.Value)
+                : string.Empty,
+            nameof(DepartTimeValue) => DepartTimeValue.HasValue
+                ? RideDateTime.FormatTime(DepartTimeValue.Value)
+                : string.Empty,
+            nameof(ArriveTimeValue) => ArriveTimeValue.HasValue
+                ? RideDateTime.FormatTime(ArriveTimeValue.Value)
+                : string.Empty,
+            nameof(ArriveDayOffset) => ArriveTimeFormat.ToLabel(ArriveDayOffset),
             nameof(CoachNoInput) => CoachNoInput ?? string.Empty,
+            nameof(IsJiaChe) => IsJiaChe ? "是" : "否",
             nameof(SeatNoNumber) => SeatNoNumber ?? string.Empty,
             nameof(SelectedSeatLetter) => SelectedSeatLetter ?? string.Empty,
             nameof(IsNoSeat) => IsNoSeat ? "是" : "否",
@@ -1394,10 +1422,16 @@ public abstract partial class TrainTicketFormViewModelBase : ObservableObject
 
     [ObservableProperty] private DateTime? _departTimeValue;
 
+    [ObservableProperty] private DateTime? _arriveTimeValue;
+
+    [ObservableProperty] private int _arriveDayOffset;
+
     public string DepartTime => _formData.DepartTime;
 
     // 车厢号相关属性
     [ObservableProperty] private string _coachNoInput;
+
+    [ObservableProperty] private bool _isJiaChe;
 
     public string CoachNo => _formData.CoachNo;
 
@@ -1447,6 +1481,9 @@ public abstract partial class TrainTicketFormViewModelBase : ObservableObject
     [ObservableProperty] private bool _isStatusVisible;
 
     public ObservableCollection<string> StatusOptions => _optionsProvider.StatusOptions;
+
+    public ObservableCollection<string> ArriveDayOffsetOptions { get; } =
+        new(ArriveTimeFormat.DayOffsetLabels);
 
     [ObservableProperty] private string _selectedStatus;
 

@@ -65,6 +65,7 @@
                                     Binding="{Binding DepartDate, Converter={StaticResource DateFormatConverter}}"
                                     Width="100" />
                 <DataGridTextColumn Header="出发时间" Binding="{Binding DepartTime}" Width="80" />
+                <DataGridTextColumn Header="到达时间" Binding="{Binding ArriveTimeDisplay}" Width="100" />
                 <DataGridTextColumn Header="车厢" Binding="{Binding CoachNo}" Width="60" />
                 <DataGridTextColumn Header="座位" Binding="{Binding SeatNo}" Width="60" />
                 <DataGridTextColumn Header="金额" Binding="{Binding Money}" Width="80" />

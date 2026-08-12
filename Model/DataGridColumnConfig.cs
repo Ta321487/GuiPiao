@@ -86,83 +86,88 @@ public class DataGridColumnConfig
             },
             new()
             {
-                FieldName = "SeatType", Header = "席别", IsVisible = true, DisplayOrder = 6, Width = "80", MinWidth = 80,
+                FieldName = "ArriveTimeDisplay", Header = "到达时间", IsVisible = true, DisplayOrder = 6, Width = "90",
+                MinWidth = 90, CanSort = true, IsReadOnly = true
+            },
+            new()
+            {
+                FieldName = "SeatType", Header = "席别", IsVisible = true, DisplayOrder = 7, Width = "80", MinWidth = 80,
                 CanSort = true, IsReadOnly = true
             },
             new()
             {
-                FieldName = "Money", Header = "金额", IsVisible = true, DisplayOrder = 7, Width = "65", MinWidth = 65,
+                FieldName = "Money", Header = "金额", IsVisible = true, DisplayOrder = 8, Width = "65", MinWidth = 65,
                 CanSort = true, IsReadOnly = true
             },
             new()
             {
-                FieldName = "StatusDisplay", Header = "状态", IsVisible = true, DisplayOrder = 8, Width = "70",
+                FieldName = "StatusDisplay", Header = "状态", IsVisible = true, DisplayOrder = 9, Width = "70",
                 MinWidth = 70, CanSort = true, IsReadOnly = true
             },
             new()
             {
-                FieldName = "Tags", Header = "标签", IsVisible = true, DisplayOrder = 9, Width = "*", MinWidth = 120,
+                FieldName = "Tags", Header = "标签", IsVisible = true, DisplayOrder = 10, Width = "*", MinWidth = 120,
                 CanSort = false, IsReadOnly = true
             },
             // 可选列
             new()
             {
-                FieldName = "CoachNo", Header = "车厢号", IsVisible = false, DisplayOrder = 10, Width = "70",
+                FieldName = "CoachNo", Header = "车厢号", IsVisible = false, DisplayOrder = 11, Width = "70",
                 MinWidth = 70, CanSort = true, IsReadOnly = true
             },
             new()
             {
-                FieldName = "SeatNo", Header = "座位号", IsVisible = false, DisplayOrder = 11, Width = "70", MinWidth = 70,
+                FieldName = "SeatNo", Header = "座位号", IsVisible = false, DisplayOrder = 12, Width = "70", MinWidth = 70,
                 CanSort = true, IsReadOnly = true
             },
             new()
             {
-                FieldName = "TicketNumber", Header = "票号", IsVisible = false, DisplayOrder = 12, Width = "120",
+                FieldName = "TicketNumber", Header = "票号", IsVisible = false, DisplayOrder = 13, Width = "120",
                 MinWidth = 120, CanSort = true, IsReadOnly = true
             },
             new()
             {
-                FieldName = "DepartStationPinyin", Header = "出发站拼音", IsVisible = false, DisplayOrder = 13,
+                FieldName = "DepartStationPinyin", Header = "出发站拼音", IsVisible = false, DisplayOrder = 14,
                 Width = "100", MinWidth = 100, CanSort = true, IsReadOnly = true
             },
             new()
             {
-                FieldName = "ArriveStationPinyin", Header = "到达站拼音", IsVisible = false, DisplayOrder = 14,
+                FieldName = "ArriveStationPinyin", Header = "到达站拼音", IsVisible = false, DisplayOrder = 15,
                 Width = "100", MinWidth = 100, CanSort = true, IsReadOnly = true
             },
             new()
             {
-                FieldName = "CheckInLocation", Header = "检票地点", IsVisible = false, DisplayOrder = 15, Width = "100",
+                FieldName = "CheckInLocation", Header = "检票地点", IsVisible = false, DisplayOrder = 16, Width = "100",
                 MinWidth = 100, CanSort = true, IsReadOnly = true
             },
             new()
             {
-                FieldName = "Hint", Header = "提示信息", IsVisible = false, DisplayOrder = 16, Width = "120",
+                FieldName = "Hint", Header = "提示信息", IsVisible = false, DisplayOrder = 17, Width = "120",
                 MinWidth = 120, CanSort = true, IsReadOnly = true
             },
             new()
             {
-                FieldName = "AdditionalInfo", Header = "票面附加信息", IsVisible = false, DisplayOrder = 17, Width = "150",
+                FieldName = "AdditionalInfo", Header = "票面附加信息", IsVisible = false, DisplayOrder = 18, Width = "150",
                 MinWidth = 150, CanSort = false, IsReadOnly = true
             },
             new()
             {
-                FieldName = "TicketPurpose", Header = "购票用途", IsVisible = false, DisplayOrder = 18, Width = "100",
+                FieldName = "TicketPurpose", Header = "购票用途", IsVisible = false, DisplayOrder = 19, Width = "100",
                 MinWidth = 100, CanSort = true, IsReadOnly = true
             },
             new()
             {
-                FieldName = "TicketModificationType", Header = "改签类型", IsVisible = false, DisplayOrder = 19,
+                FieldName = "TicketModificationType", Header = "改签类型", IsVisible = false, DisplayOrder = 20,
                 Width = "100", MinWidth = 100, CanSort = true, IsReadOnly = true
             },
             new()
             {
-                FieldName = "TicketType", Header = "票种类型", IsVisible = false, DisplayOrder = 20, Width = "100",
+                FieldName = "TicketType", Header = "票种类型", IsVisible = false, DisplayOrder = 21, Width = "100",
                 MinWidth = 100, CanSort = true, IsReadOnly = true
             },
             new()
             {
-                FieldName = "PaymentChannel", Header = "支付渠道", IsVisible = false, DisplayOrder = 21, Width = "100",
+                FieldName = "PaymentChannel", Header = "支付渠道", IsVisible = false, DisplayOrder = 22, Width = "100",
                 MinWidth = 100, CanSort = true, IsReadOnly = true
             }
         };
