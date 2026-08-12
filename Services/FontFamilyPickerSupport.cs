@@ -8,13 +8,30 @@ using System.Windows.Media;
 namespace GuiPiao.Services;
 
 /// <summary>
-///     票面工作台：系统字体列表与从 ttf/otf/ttc 解析 WPF <see cref="FontFamily.Source" />。
+///     票面工作台：推荐字体、系统字体列表与从 ttf/otf/ttc 解析 WPF <see cref="FontFamily.Source" />。
 /// </summary>
 public static class FontFamilyPickerSupport
 {
     private static readonly Lazy<List<string>> SystemFontSourcesLazy = new(BuildSystemFontSources);
+    private static readonly Lazy<List<string>> RecommendedLazy = new(BuildRecommendedInstalled);
+
+    /// <summary>偏好顺序：票面常用中文，其次常见西文（仅保留本机已安装的）。</summary>
+    private static readonly string[] RecommendedCandidates =
+    [
+        "微软雅黑", "Microsoft YaHei UI", "Microsoft YaHei",
+        "宋体", "SimSun", "NSimSun",
+        "黑体", "SimHei",
+        "楷体", "KaiTi",
+        "仿宋", "FangSong",
+        "等线", "DengXian",
+        "思源黑体", "Source Han Sans SC", "Noto Sans CJK SC",
+        "Arial", "Times New Roman", "Segoe UI"
+    ];
 
     public static IReadOnlyList<string> SystemFontFamilySources => SystemFontSourcesLazy.Value;
+
+    /// <summary>本机已安装的推荐字体（短列表，供下拉「推荐」分组）。</summary>
+    public static IReadOnlyList<string> RecommendedInstalledSources => RecommendedLazy.Value;
 
     private static List<string> BuildSystemFontSources()
     {
@@ -33,6 +50,51 @@ public static class FontFamilyPickerSupport
         }
 
         return set.OrderBy(s => s, StringComparer.CurrentCultureIgnoreCase).ToList();
+    }
+
+    private static List<string> BuildRecommendedInstalled()
+    {
+        var sys = SystemFontFamilySources;
+        var list = new List<string>();
+        foreach (var cand in RecommendedCandidates)
+        {
+            var hit = sys.FirstOrDefault(s => string.Equals(s, cand, StringComparison.OrdinalIgnoreCase));
+            if (hit == null) continue;
+            if (list.Any(x => string.Equals(x, hit, StringComparison.OrdinalIgnoreCase))) continue;
+            list.Add(hit);
+        }
+
+        return list;
+    }
+
+    /// <summary>若与系统/推荐列表大小写不同，规范成列表中的写法。</summary>
+    public static string CanonicalizeSource(string? source)
+    {
+        var cur = (source ?? string.Empty).Trim();
+        if (string.IsNullOrEmpty(cur)) return string.Empty;
+        foreach (var s in RecommendedInstalledSources)
+            if (string.Equals(s, cur, StringComparison.OrdinalIgnoreCase))
+                return s;
+        foreach (var s in SystemFontFamilySources)
+            if (string.Equals(s, cur, StringComparison.OrdinalIgnoreCase))
+                return s;
+        return cur;
+    }
+
+    public static bool IsInRecommended(string? source) =>
+        !string.IsNullOrWhiteSpace(source) &&
+        RecommendedInstalledSources.Any(s =>
+            string.Equals(s, source.Trim(), StringComparison.OrdinalIgnoreCase));
+
+    /// <summary>下拉显示名：file URI 取 # 后族名。</summary>
+    public static string ShortDisplayName(string? source)
+    {
+        var s = (source ?? string.Empty).Trim();
+        if (string.IsNullOrEmpty(s)) return "默认";
+        var i = s.LastIndexOf('#');
+        if (i >= 0 && i < s.Length - 1)
+            return s[(i + 1)..].Trim();
+        return s;
     }
 
     /// <summary>

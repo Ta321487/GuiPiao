@@ -41,6 +41,9 @@ public enum TicketFaceLayoutElementKind
     /// <summary>兼容旧工作台/JSON；等同 <see cref="MoneySymbol"/>。</summary>
     MoneyRow,
 
+    /// <summary>车厢号前的「加」字（加挂车厢）。</summary>
+    CoachJia,
+
     /// <summary>车厢号数字（不含「车」字）。</summary>
     CoachNumber,
 

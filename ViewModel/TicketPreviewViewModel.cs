@@ -158,13 +158,15 @@ public partial class TicketPreviewViewModel : ObservableObject
 
     public bool HasMultipleDrafts => PreviewDrafts.Count > 1;
 
-    /// <summary>当前草稿出发站去掉「站」后为 1～5 个汉字时，可调校票面字间距与按字数左边距。</summary>
+    /// <summary>选中出发站且当前站名为 1～5 汉字时，可调字间距。</summary>
     public bool DepartStationCharacterSpacingAdjustable =>
+        SelectedLayoutElementItem?.Kind == TicketFaceLayoutElementKind.DepartStation &&
         SelectedDraft != null &&
         StationFaceHanCountLayout.IsAdjustableHanCount(CurrentDepartStationHanCount);
 
-    /// <summary>当前草稿到达站满足同上条件时，可调校票面字间距与按字数左边距。</summary>
+    /// <summary>选中到达站且当前站名为 1～5 汉字时，可调字间距。</summary>
     public bool ArriveStationCharacterSpacingAdjustable =>
+        SelectedLayoutElementItem?.Kind == TicketFaceLayoutElementKind.ArriveStation &&
         SelectedDraft != null &&
         StationFaceHanCountLayout.IsAdjustableHanCount(CurrentArriveStationHanCount);
 
@@ -180,12 +182,12 @@ public partial class TicketPreviewViewModel : ObservableObject
 
     public string WorkbenchDepartStationLayoutCaption =>
         CurrentDepartStationHanCount > 0
-            ? $"当前出发站 {CurrentDepartStationHanCount} 字：X 写入该字数左边距（{StationFaceHanCountLayout.ReferenceHanCount} 字档同时更新基准）"
+            ? $"当前站名 {CurrentDepartStationHanCount} 字"
             : string.Empty;
 
     public string WorkbenchArriveStationLayoutCaption =>
         CurrentArriveStationHanCount > 0
-            ? $"当前到达站 {CurrentArriveStationHanCount} 字：X 写入该字数左边距（{StationFaceHanCountLayout.ReferenceHanCount} 字档同时更新基准）"
+            ? $"当前站名 {CurrentArriveStationHanCount} 字"
             : string.Empty;
 
     /// <summary>票面出发站主体（1～5 汉字时含该字数档布局字间距）。</summary>
@@ -268,10 +270,42 @@ public partial class TicketPreviewViewModel : ObservableObject
     public bool IsTripFieldsReadOnly => SessionMode == TicketPreviewSessionMode.UserTripPreview;
 
     public string WindowTitle =>
-        SessionMode == TicketPreviewSessionMode.LayoutWorkbench ? "票面参数调整" : "车票预览";
+        SessionMode == TicketPreviewSessionMode.LayoutWorkbench ? "编辑票面版式" : "票面预览";
 
-    public string IdentitySectionTitle =>
-        IsTripFieldsReadOnly ? "身份信息（预览只读）" : "身份信息（可编辑）";
+    public string IdentitySectionTitle => "乘客信息";
+
+    /// <summary>行程预览：侧栏行程信息是否展开（默认收起，优先看票面）。版式编辑始终显示侧栏。</summary>
+    [ObservableProperty] private bool _isTripInfoPanelVisible;
+
+    /// <summary>左侧栏是否打开（版式编辑始终打开；预览由用户切换）。</summary>
+    public bool IsSidePanelOpen => IsLayoutWorkbench || IsTripInfoPanelVisible;
+
+    /// <summary>左侧栏列宽；预览收起侧栏时为 0。</summary>
+    public GridLength SidePanelColumnWidth =>
+        IsSidePanelOpen
+            ? new GridLength(IsLayoutWorkbench ? 400 : 340)
+            : new GridLength(0);
+
+    /// <summary>版式编辑区行高：仅工作台占满上半。</summary>
+    public GridLength LayoutEditorRowHeight =>
+        IsLayoutWorkbench ? new GridLength(1, GridUnitType.Star) : new GridLength(0);
+
+    /// <summary>行程对照行高：预览占满侧栏；工作台为底部可折叠区。</summary>
+    public GridLength TripPanelRowHeight =>
+        IsLayoutWorkbench ? GridLength.Auto : new GridLength(1, GridUnitType.Star);
+
+    public bool ShowTripInfoPanelToggle => !IsLayoutWorkbench;
+
+    public string TripInfoPanelToggleText =>
+        IsTripInfoPanelVisible ? "隐藏行程信息" : "行程信息";
+
+    public string TripDataSectionTitle =>
+        IsLayoutWorkbench ? "示例行程" : "行程信息";
+
+    public string TripDataSectionHint =>
+        IsLayoutWorkbench
+            ? "用于对照版式效果，不会写入数据库。"
+            : "只读对照，修改不会写回行程列表。";
 
     partial void OnSessionModeChanged(TicketPreviewSessionMode value)
     {
@@ -279,8 +313,35 @@ public partial class TicketPreviewViewModel : ObservableObject
         OnPropertyChanged(nameof(IsTripFieldsReadOnly));
         OnPropertyChanged(nameof(WindowTitle));
         OnPropertyChanged(nameof(IdentitySectionTitle));
+        OnPropertyChanged(nameof(ShowTripInfoPanelToggle));
+        OnPropertyChanged(nameof(TripDataSectionTitle));
+        OnPropertyChanged(nameof(TripDataSectionHint));
+        OnPropertyChanged(nameof(IsSidePanelOpen));
+        // 预览：默认全幅票面；版式编辑：始终展开侧栏
+        IsTripInfoPanelVisible = value == TicketPreviewSessionMode.LayoutWorkbench;
+        NotifySidePanelLayoutChanged();
         if (value == TicketPreviewSessionMode.UserTripPreview)
             IsVisualLayoutEdit = false;
+    }
+
+    partial void OnIsTripInfoPanelVisibleChanged(bool value)
+    {
+        OnPropertyChanged(nameof(TripInfoPanelToggleText));
+        OnPropertyChanged(nameof(IsSidePanelOpen));
+        NotifySidePanelLayoutChanged();
+    }
+
+    private void NotifySidePanelLayoutChanged()
+    {
+        OnPropertyChanged(nameof(SidePanelColumnWidth));
+        OnPropertyChanged(nameof(LayoutEditorRowHeight));
+        OnPropertyChanged(nameof(TripPanelRowHeight));
+    }
+    [RelayCommand]
+    private void ToggleTripInfoPanel()
+    {
+        if (IsLayoutWorkbench) return;
+        IsTripInfoPanelVisible = !IsTripInfoPanelVisible;
     }
 
     [ObservableProperty] private string _currentZoom = "FitWindow";
@@ -690,23 +751,13 @@ public partial class TicketPreviewViewModel : ObservableObject
         OnPropertyChanged(nameof(ArrowCanvasLeft));
         OnPropertyChanged(nameof(PreviewDepartStationText));
         OnPropertyChanged(nameof(PreviewArriveStationText));
-        OnPropertyChanged(nameof(BadgeCornerRadius));
+        NotifyBadgeMetrics();
+        PackTypeBadgeLetters();
         RefreshTicketBackgroundImage();
         PullEditorFromLayout();
     }
 
     partial void OnEncodingTextChanged(string value) => RegenerateQr();
-
-    partial void OnShowFramedTicketBadgesChanged(bool value)
-    {
-        OnPropertyChanged(nameof(ActiveLayout));
-        OnPropertyChanged(nameof(BadgeCornerRadius));
-    }
-
-    public CornerRadius BadgeCornerRadius =>
-        ShowFramedTicketBadges
-            ? (IsRedTicket ? new CornerRadius(2) : new CornerRadius(11))
-            : new CornerRadius(0);
 
     public void SetTripItem(TripRecord? tripItem)
     {
@@ -766,6 +817,7 @@ public partial class TicketPreviewViewModel : ObservableObject
             if (!string.IsNullOrEmpty(ch))
                 PaymentBadgeLetters.Add(ch);
         HasPaymentBadgeLetters = PaymentBadgeLetters.Count > 0;
+        PackTypeBadgeLetters();
     }
 
     private void LoadSettings()

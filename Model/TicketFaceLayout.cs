@@ -141,6 +141,9 @@ public sealed class TicketFaceLayout
     public double CoachSeatTop { get; init; }
     public double CoachSeatFont { get; init; } = 16;
 
+    public double CoachJiaLeft { get; init; }
+    public double CoachJiaTop { get; init; }
+    public double CoachJiaFont { get; init; } = 16;
     public double CoachNumberLeft { get; init; }
     public double CoachNumberTop { get; init; }
     public double CoachNumberFont { get; init; } = 16;
@@ -176,7 +179,7 @@ public sealed class TicketFaceLayout
 
     public double HintBoxLeft { get; init; }
     public double HintBoxTop { get; init; }
-    public double HintBoxWidth { get; init; } = 420;
+    public double HintBoxWidth { get; init; } = 480;
     public double HintFont { get; init; } = 11;
 
     public double FooterLeft { get; init; }
@@ -242,6 +245,7 @@ public sealed class TicketFaceLayout
         MoneyAmountLeft = 64, MoneyAmountTop = 248, MoneyAmountFont = 18,
         MoneyUnitLeft = 118, MoneyUnitTop = 248, MoneyUnitFont = 18,
         CoachSeatRight = 760, CoachSeatTop = 210, CoachSeatFont = 16,
+        CoachJiaLeft = 648, CoachJiaTop = 210, CoachJiaFont = 16,
         CoachNumberLeft = 668, CoachNumberTop = 210, CoachNumberFont = 16,
         CoachCheLeft = 692, CoachCheTop = 210, CoachCheFont = 16,
         SeatNumberLeft = 712, SeatNumberTop = 210, SeatNumberFont = 16,
@@ -256,10 +260,10 @@ public sealed class TicketFaceLayout
         QrLeft = 620, QrTop = 300,
         BadgeRowLeft = 200, BadgeRowTop = 248,
         BadgeLetterXueLeft = 200, BadgeLetterXueTop = 248, BadgeLetterXueFont = 12,
-        BadgeLetterHaiLeft = 214, BadgeLetterHaiTop = 248, BadgeLetterHaiFont = 12,
-        BadgeLetterWangLeft = 228, BadgeLetterWangTop = 248, BadgeLetterWangFont = 12,
-        BadgeLetterDiscountLeft = 242, BadgeLetterDiscountTop = 248, BadgeLetterDiscountFont = 12,
-        BadgePaymentRowLeft = 258, BadgePaymentRowTop = 248, BadgePaymentRowFont = 12
+        BadgeLetterHaiLeft = 212, BadgeLetterHaiTop = 248, BadgeLetterHaiFont = 12,
+        BadgeLetterWangLeft = 224, BadgeLetterWangTop = 248, BadgeLetterWangFont = 12,
+        BadgeLetterDiscountLeft = 236, BadgeLetterDiscountTop = 248, BadgeLetterDiscountFont = 12,
+        BadgePaymentRowLeft = 248, BadgePaymentRowTop = 248, BadgePaymentRowFont = 12
     };
 
     /// <summary>红票布局（与蓝票略有偏移）</summary>
@@ -293,6 +297,7 @@ public sealed class TicketFaceLayout
         MoneyAmountLeft = 68, MoneyAmountTop = 252, MoneyAmountFont = 18,
         MoneyUnitLeft = 122, MoneyUnitTop = 252, MoneyUnitFont = 18,
         CoachSeatRight = 764, CoachSeatTop = 214, CoachSeatFont = 16,
+        CoachJiaLeft = 652, CoachJiaTop = 214, CoachJiaFont = 16,
         CoachNumberLeft = 672, CoachNumberTop = 214, CoachNumberFont = 16,
         CoachCheLeft = 696, CoachCheTop = 214, CoachCheFont = 16,
         SeatNumberLeft = 716, SeatNumberTop = 214, SeatNumberFont = 16,
@@ -307,9 +312,9 @@ public sealed class TicketFaceLayout
         QrLeft = 624, QrTop = 304,
         BadgeRowLeft = 204, BadgeRowTop = 252,
         BadgeLetterXueLeft = 204, BadgeLetterXueTop = 252, BadgeLetterXueFont = 12,
-        BadgeLetterHaiLeft = 218, BadgeLetterHaiTop = 252, BadgeLetterHaiFont = 12,
-        BadgeLetterWangLeft = 232, BadgeLetterWangTop = 252, BadgeLetterWangFont = 12,
-        BadgeLetterDiscountLeft = 246, BadgeLetterDiscountTop = 252, BadgeLetterDiscountFont = 12,
-        BadgePaymentRowLeft = 262, BadgePaymentRowTop = 252, BadgePaymentRowFont = 12
+        BadgeLetterHaiLeft = 216, BadgeLetterHaiTop = 252, BadgeLetterHaiFont = 12,
+        BadgeLetterWangLeft = 228, BadgeLetterWangTop = 252, BadgeLetterWangFont = 12,
+        BadgeLetterDiscountLeft = 240, BadgeLetterDiscountTop = 252, BadgeLetterDiscountFont = 12,
+        BadgePaymentRowLeft = 252, BadgePaymentRowTop = 252, BadgePaymentRowFont = 12
     };
 }

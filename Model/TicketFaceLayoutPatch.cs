@@ -163,6 +163,9 @@ public static class TicketFaceLayoutPatch
             case "coachseatright": o.CoachSeatRight = d; return true;
             case "coachseattop": o.CoachSeatTop = d; return true;
             case "coachseatfont": o.CoachSeatFont = d; return true;
+            case "coachjialeft": o.CoachJiaLeft = d; return true;
+            case "coachjiatop": o.CoachJiaTop = d; return true;
+            case "coachjiafont": o.CoachJiaFont = d; return true;
             case "coachnumberleft": o.CoachNumberLeft = d; return true;
             case "coachnumbertop": o.CoachNumberTop = d; return true;
             case "coachnumberfont": o.CoachNumberFont = d; return true;

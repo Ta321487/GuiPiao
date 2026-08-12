@@ -106,6 +106,9 @@ public partial class ObservableTicketFaceLayout : ObservableObject
         CoachSeatRight = t.CoachSeatRight;
         CoachSeatTop = t.CoachSeatTop;
         CoachSeatFont = t.CoachSeatFont;
+        CoachJiaLeft = t.CoachJiaLeft;
+        CoachJiaTop = t.CoachJiaTop;
+        CoachJiaFont = t.CoachJiaFont;
         CoachNumberLeft = t.CoachNumberLeft;
         CoachNumberTop = t.CoachNumberTop;
         CoachNumberFont = t.CoachNumberFont;
@@ -208,6 +211,9 @@ public partial class ObservableTicketFaceLayout : ObservableObject
         if (unset && (Math.Abs(CoachSeatRight) > eps || Math.Abs(CoachSeatTop) > eps))
         {
             var anchor = CoachSeatRight;
+            CoachJiaLeft = anchor - 112;
+            CoachJiaTop = top;
+            CoachJiaFont = baseFont;
             CoachNumberLeft = anchor - 92;
             CoachNumberTop = top;
             CoachNumberFont = baseFont;
@@ -223,10 +229,19 @@ public partial class ObservableTicketFaceLayout : ObservableObject
         }
         else
         {
+            if (Math.Abs(CoachJiaFont) < eps) CoachJiaFont = baseFont;
             if (Math.Abs(CoachNumberFont) < eps) CoachNumberFont = baseFont;
             if (Math.Abs(CoachCheFont) < eps) CoachCheFont = baseFont;
             if (Math.Abs(SeatNumberFont) < eps) SeatNumberFont = baseFont;
             if (Math.Abs(SeatHaoFont) < eps) SeatHaoFont = baseFont;
+            // 旧版式无「加」字锚点时，默认放在车厢号左侧
+            if (Math.Abs(CoachJiaLeft) < eps && Math.Abs(CoachNumberLeft) > eps)
+            {
+                CoachJiaLeft = CoachNumberLeft - 20;
+                CoachJiaTop = CoachNumberTop;
+                if (Math.Abs(CoachJiaFont) < eps)
+                    CoachJiaFont = CoachNumberFont > eps ? CoachNumberFont : baseFont;
+            }
         }
     }
 
@@ -321,16 +336,16 @@ public partial class ObservableTicketFaceLayout : ObservableObject
             BadgeLetterXueLeft = bl;
             BadgeLetterXueTop = bt;
             BadgeLetterXueFont = bf;
-            BadgeLetterHaiLeft = bl + 14;
+            BadgeLetterHaiLeft = bl + 12;
             BadgeLetterHaiTop = bt;
             BadgeLetterHaiFont = bf;
-            BadgeLetterWangLeft = bl + 28;
+            BadgeLetterWangLeft = bl + 24;
             BadgeLetterWangTop = bt;
             BadgeLetterWangFont = bf;
-            BadgeLetterDiscountLeft = bl + 42;
+            BadgeLetterDiscountLeft = bl + 36;
             BadgeLetterDiscountTop = bt;
             BadgeLetterDiscountFont = bf;
-            BadgePaymentRowLeft = bl + 58;
+            BadgePaymentRowLeft = bl + 48;
             BadgePaymentRowTop = bt;
             BadgePaymentRowFont = bf;
         }
@@ -558,6 +573,9 @@ public partial class ObservableTicketFaceLayout : ObservableObject
         CoachSeatRight = CoachSeatRight,
         CoachSeatTop = CoachSeatTop,
         CoachSeatFont = CoachSeatFont,
+        CoachJiaLeft = CoachJiaLeft,
+        CoachJiaTop = CoachJiaTop,
+        CoachJiaFont = CoachJiaFont,
         CoachNumberLeft = CoachNumberLeft,
         CoachNumberTop = CoachNumberTop,
         CoachNumberFont = CoachNumberFont,
@@ -752,6 +770,9 @@ public partial class ObservableTicketFaceLayout : ObservableObject
     [ObservableProperty] private double _coachSeatFont = 16;
     [ObservableProperty] private string? _coachSeatFontFamily;
 
+    [ObservableProperty] private double _coachJiaLeft;
+    [ObservableProperty] private double _coachJiaTop;
+    [ObservableProperty] private double _coachJiaFont = 16;
     [ObservableProperty] private double _coachNumberLeft;
     [ObservableProperty] private double _coachNumberTop;
     [ObservableProperty] private double _coachNumberFont = 16;
@@ -792,7 +813,7 @@ public partial class ObservableTicketFaceLayout : ObservableObject
 
     [ObservableProperty] private double _hintBoxLeft;
     [ObservableProperty] private double _hintBoxTop;
-    [ObservableProperty] private double _hintBoxWidth = 420;
+    [ObservableProperty] private double _hintBoxWidth = 480;
     [ObservableProperty] private double _hintFont = 11;
     [ObservableProperty] private string? _hintFontFamily;
 

@@ -86,7 +86,7 @@
     <SolidColorBrush x:Key="TicketVoucherQrPlaceholderBackgroundBrush" Color="#ECEFF1" />
     <SolidColorBrush x:Key="TicketVoucherQrPlaceholderBorderBrush" Color="#90A4AE" />
     <SolidColorBrush x:Key="TicketVoucherQrPlaceholderForegroundBrush" Color="#000000" />
-    <SolidColorBrush x:Key="TicketVoucherDisclaimerBorderBrush" Color="#78909C" />
+    <SolidColorBrush x:Key="TicketVoucherDisclaimerBorderBrush" Color="#000000" />
 
     <!-- ============================================ -->
     <!-- Tooltip 样式 - 适配深色模式，响应式字体大小 -->

@@ -99,12 +99,19 @@ public partial class TicketPreviewWindow : Window
     {
         if (sender is not ScrollViewer sv) return;
         if (!Keyboard.IsKeyDown(Key.Space) || !IsSpacePanKeyboardContext()) return;
+        BeginScrollPan(sv, e.GetPosition(sv));
+        e.Handled = true;
+    }
+
+    /// <summary>空格拖动 / 点空白拖动画布：按指针位移滚动 ScrollViewer。</summary>
+    private void BeginScrollPan(ScrollViewer sv, Point mouseInSv)
+    {
         _spacePanDragging = true;
-        _spacePanStartMouse = e.GetPosition(sv);
+        _spacePanStartMouse = mouseInSv;
         _spacePanStartOffsetX = sv.HorizontalOffset;
         _spacePanStartOffsetY = sv.VerticalOffset;
+        Mouse.OverrideCursor = Cursors.Hand;
         sv.CaptureMouse();
-        e.Handled = true;
     }
 
     private void TicketPreviewScrollHost_PreviewMouseMove(object sender, MouseEventArgs e)
@@ -191,6 +198,20 @@ public partial class TicketPreviewWindow : Window
     {
         if (DataContext is TicketPreviewViewModel viewModel)
             viewModel.SessionMode = sessionMode;
+
+        // 预览以票面为主；版式编辑需要左侧参数栏
+        if (sessionMode == TicketPreviewSessionMode.UserTripPreview)
+        {
+            Width = 960;
+            MinWidth = 720;
+            Title = "票面预览";
+        }
+        else
+        {
+            Width = 1180;
+            MinWidth = 1040;
+            Title = "编辑票面版式";
+        }
     }
 
     private void TicketPreviewWindow_Closed(object? sender, System.EventArgs e)
@@ -215,15 +236,18 @@ public partial class TicketPreviewWindow : Window
     private void LayoutEditOverlay_OnPreviewMouseDown(object sender, MouseButtonEventArgs e)
     {
         if (DataContext is not TicketPreviewViewModel vm || !vm.IsVisualLayoutEdit) return;
+        // 空格拖动画布优先（隧道阶段 ScrollViewer 已处理时一般到不了这里）
+        if (_spacePanDragging) return;
+
         var pos = e.GetPosition(TicketPreviewSurface);
 
         var overlayWasHitTestVisible = LayoutEditOverlay.IsHitTestVisible;
+        TicketFaceLayoutElementKind? hitKind = null;
         try
         {
             LayoutEditOverlay.IsHitTestVisible = false;
             // 单次 HitTest 只取最顶层；811 底图 Image、细线箭头 Polyline 等常导致无法解析到带 Kind 的块。
             // 从前到后遍历命中栈，直到父链上出现 LayoutWorkbenchHit.Kind。
-            TicketFaceLayoutElementKind? hitKind = null;
             VisualTreeHelper.HitTest(
                 TicketPreviewSurface,
                 static _ => HitTestFilterBehavior.Continue,
@@ -239,14 +263,22 @@ public partial class TicketPreviewWindow : Window
                     return HitTestResultBehavior.Continue;
                 },
                 new PointHitTestParameters(pos));
-            if (hitKind.HasValue)
-                vm.SelectWorkbenchLayoutElementByKind(hitKind.Value);
         }
         finally
         {
             LayoutEditOverlay.IsHitTestVisible = overlayWasHitTestVisible;
         }
 
+        if (!hitKind.HasValue)
+        {
+            // 纯空白：拖动画布（滚动），不移动当前选中元素
+            if (TicketPreviewScrollHost != null)
+                BeginScrollPan(TicketPreviewScrollHost, e.GetPosition(TicketPreviewScrollHost));
+            e.Handled = true;
+            return;
+        }
+
+        vm.SelectWorkbenchLayoutElementByKind(hitKind.Value);
         vm.BeginWorkbenchSurfaceDrag(pos.X, pos.Y);
         _layoutSurfaceDragActive = true;
         if (sender is UIElement u)

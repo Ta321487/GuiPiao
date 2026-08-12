@@ -12,7 +12,7 @@
         Title="{Binding WindowTitle}"
         Width="1100"
         Height="700"
-        MinWidth="1000"
+        MinWidth="720"
         MinHeight="650"
         WindowStartupLocation="CenterScreen"
         Background="{DynamicResource WindowBackgroundBrush}"
@@ -26,6 +26,39 @@
             </ResourceDictionary.MergedDictionaries>
         <converters:LayoutFontFamilyMultiConverter x:Key="LayoutFontFamilyMultiConverter" />
         <converters:TicketLayoutIsolationToVisibilityConverter x:Key="TicketLayoutIsolationToVisibilityConverter" />
+        <!-- 票种/支付简字：带框与无框共用一套视觉 -->
+        <DataTemplate x:Key="TicketBadgeGlyphVisual">
+            <Grid>
+                <Border Width="{Binding DataContext.TicketBadgeSlotWidth, RelativeSource={RelativeSource AncestorType=Window}}"
+                        Height="{Binding DataContext.TicketBadgeSlotWidth, RelativeSource={RelativeSource AncestorType=Window}}"
+                        Padding="0" BorderBrush="{DynamicResource PrimaryBrush}" BorderThickness="1.2"
+                        CornerRadius="{Binding DataContext.BadgeCornerRadius, RelativeSource={RelativeSource AncestorType=Window}}"
+                        Visibility="{Binding DataContext.ShowFramedTicketBadges, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <TextBlock Text="{Binding}" Foreground="{DynamicResource TicketVoucherPrimaryTextBrush}" FontWeight="SemiBold"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                               FontSize="{Binding DataContext.ActiveLayout.BadgeFont, RelativeSource={RelativeSource AncestorType=Window}}">
+                        <TextBlock.FontFamily>
+                            <MultiBinding Converter="{StaticResource LayoutFontFamilyMultiConverter}">
+                                <Binding Path="DataContext.ActiveLayout.BadgeFontFamily" RelativeSource="{RelativeSource AncestorType=Window}" />
+                                <Binding Path="DataContext.LayoutDefaultFontFamily" RelativeSource="{RelativeSource AncestorType=Window}" />
+                            </MultiBinding>
+                        </TextBlock.FontFamily>
+                    </TextBlock>
+                </Border>
+                <TextBlock Text="{Binding}" Foreground="{DynamicResource TicketVoucherPrimaryTextBrush}" FontWeight="SemiBold"
+                           Width="{Binding DataContext.TicketBadgeSlotWidth, RelativeSource={RelativeSource AncestorType=Window}}"
+                           TextAlignment="Center"
+                           FontSize="{Binding DataContext.ActiveLayout.BadgeFont, RelativeSource={RelativeSource AncestorType=Window}}"
+                           Visibility="{Binding DataContext.ShowFramedTicketBadges, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
+                    <TextBlock.FontFamily>
+                        <MultiBinding Converter="{StaticResource LayoutFontFamilyMultiConverter}">
+                            <Binding Path="DataContext.ActiveLayout.BadgeFontFamily" RelativeSource="{RelativeSource AncestorType=Window}" />
+                            <Binding Path="DataContext.LayoutDefaultFontFamily" RelativeSource="{RelativeSource AncestorType=Window}" />
+                        </MultiBinding>
+                    </TextBlock.FontFamily>
+                </TextBlock>
+            </Grid>
+        </DataTemplate>
         <Style x:Key="FormLabel" TargetType="TextBlock">
             <Setter Property="VerticalAlignment" Value="Center" />
             <Setter Property="Margin" Value="0,0,8,0" />
@@ -52,8 +85,28 @@
         </Style>
         <Style x:Key="WorkbenchFontComboStyle" TargetType="ComboBox" BasedOn="{StaticResource FormCombo}">
             <Setter Property="IsEditable" Value="False" />
-            <Setter Property="MaxDropDownHeight" Value="280" />
+            <Setter Property="MaxDropDownHeight" Value="320" />
             <Setter Property="Margin" Value="0,0,4,0" />
+            <Setter Property="SelectedValuePath" Value="Source" />
+            <Setter Property="ItemTemplate">
+                <Setter.Value>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Display}" TextTrimming="CharacterEllipsis">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="FontFamily" Value="{Binding Source}" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Source}" Value="">
+                                            <Setter Property="FontFamily" Value="Segoe UI" />
+                                            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </DataTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
         </ResourceDictionary>
     </Window.Resources>
@@ -67,91 +120,85 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <!-- 缩放/亮度（辅助；文档以底部导出为主） -->
+        <!-- 缩放 / 亮度；行程预览可展开侧栏对照信息 -->
         <Border Grid.Row="0" Background="{DynamicResource PanelBackgroundBrush}"
                 BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1" Padding="10,6">
-            <StackPanel Orientation="Horizontal">
-                <TextBlock Text="缩放" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,6,0" />
-                <ComboBox MinWidth="120" MaxWidth="160"
-                          IsEditable="False"
-                          ItemsSource="{x:Static model:TicketPreviewZoomOptions.ComboItems}"
-                          DisplayMemberPath="Display"
-                          SelectedValuePath="Tag"
-                          SelectedValue="{Binding CurrentZoom}"
-                          Margin="0,0,12,0" />
-                <Button Content="−" Command="{Binding ZoomOutCommand}" Style="{StaticResource StandardButtonStyle}" MinWidth="28" Margin="0,0,4,0" />
-                <Button Content="+" Command="{Binding ZoomInCommand}" Style="{StaticResource StandardButtonStyle}" MinWidth="28" Margin="0,0,12,0" />
-                <TextBlock Text="亮度" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,6,0" />
-                <Slider Width="100" Minimum="50" Maximum="150" Value="{Binding Brightness}" VerticalAlignment="Center" Margin="0,0,8,0" />
-                <TextBlock Text="{Binding Brightness, StringFormat={}{0}%}" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryBrush}" Width="36" />
-            </StackPanel>
+            <DockPanel LastChildFill="False">
+                <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
+                    <TextBlock Text="缩放" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,6,0" />
+                    <ComboBox MinWidth="120" MaxWidth="160"
+                              IsEditable="False"
+                              ItemsSource="{x:Static model:TicketPreviewZoomOptions.ComboItems}"
+                              DisplayMemberPath="Display"
+                              SelectedValuePath="Tag"
+                              SelectedValue="{Binding CurrentZoom}"
+                              Margin="0,0,12,0" />
+                    <Button Content="−" Command="{Binding ZoomOutCommand}" Style="{StaticResource StandardButtonStyle}" MinWidth="28" Margin="0,0,4,0" />
+                    <Button Content="+" Command="{Binding ZoomInCommand}" Style="{StaticResource StandardButtonStyle}" MinWidth="28" Margin="0,0,12,0" />
+                    <TextBlock Text="亮度" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,6,0" />
+                    <Slider Width="100" Minimum="50" Maximum="150" Value="{Binding Brightness}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                    <TextBlock Text="{Binding Brightness, StringFormat={}{0}%}" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryBrush}" Width="36" />
+                </StackPanel>
+                <Button DockPanel.Dock="Right"
+                        Content="{Binding TripInfoPanelToggleText}"
+                        Command="{Binding ToggleTripInfoPanelCommand}"
+                        Style="{StaticResource StandardButtonStyle}"
+                        Padding="10,4"
+                        ToolTip="显示或隐藏左侧行程对照信息"
+                        Visibility="{Binding ShowTripInfoPanelToggle, Converter={StaticResource BooleanToVisibilityConverter}}" />
+            </DockPanel>
         </Border>
 
         <Grid Grid.Row="1" Background="{DynamicResource ContentBackgroundBrush}">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="380" />
+                <ColumnDefinition Width="{Binding SidePanelColumnWidth}" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
-            <!-- 左侧：811×509 版面参数 + 车票数据 -->
-            <Border Grid.Column="0" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,0" Padding="10,8">
-                <DockPanel LastChildFill="True">
-                    <ScrollViewer DockPanel.Dock="Top" MaxHeight="300" VerticalScrollBarVisibility="Auto" Margin="0,0,0,10"
+            <!-- 左侧：版式参数（工作台）+ 行程对照 -->
+            <Border Grid.Column="0" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,0" Padding="10,8"
+                    Visibility="{Binding IsSidePanelOpen, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="{Binding LayoutEditorRowHeight}" />
+                        <RowDefinition Height="{Binding TripPanelRowHeight}" />
+                    </Grid.RowDefinitions>
+
+                    <!-- 版式编辑区：占满上半，便于调位置/字号 -->
+                    <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" Margin="0,0,0,8"
                                   BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Padding="8,6"
                                   Background="{DynamicResource PanelBackgroundBrush}"
                                   Visibility="{Binding IsLayoutWorkbench, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <StackPanel DataContext="{Binding DataContext, RelativeSource={RelativeSource AncestorType=Window}}">
-                            <TextBlock Text="811×509 版面参数" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,6" />
-                            <TextBlock Text="全局后备字体" Style="{StaticResource FormLabel}" Margin="0,0,0,2" />
-                            <Grid Margin="0,0,0,8">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <ComboBox Grid.Column="0" Style="{StaticResource WorkbenchFontComboStyle}"
-                                          ItemsSource="{Binding LayoutDefaultFontPickerItems}"
-                                          SelectedItem="{Binding LayoutDefaultFontFamily, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                          ToolTip="仅从下拉选择系统字体，或点「浏览」选择 .ttf/.otf/.ttc；不可手输。" />
-                                <Button Grid.Column="1" Content="浏览…" VerticalAlignment="Center"
-                                        Command="{Binding PickWorkbenchFontFromFileCommand}" CommandParameter="default"
-                                        Style="{StaticResource StandardButtonStyle}" Padding="8,4" Margin="0,0,10,0" />
-                            </Grid>
-                            <TextBlock Text="编辑元素" Style="{StaticResource FormLabel}" Margin="0,0,0,2" />
+                            <TextBlock Text="版式" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,8" />
+                            <CheckBox Content="可视化编辑" IsChecked="{Binding IsVisualLayoutEdit}"
+                                      Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,8"
+                                      ToolTip="在票面上点选并拖动布局元素" />
+
+                            <TextBlock Text="元素" Style="{StaticResource FormLabel}" Margin="0,0,0,2" />
                             <ComboBox ItemsSource="{Binding LayoutElementItems}" DisplayMemberPath="Display"
-                                      SelectedItem="{Binding SelectedLayoutElementItem, Mode=TwoWay}" Margin="0,0,0,8" />
+                                      SelectedItem="{Binding SelectedLayoutElementItem, Mode=TwoWay}" Margin="0,0,0,4" />
+                            <CheckBox Content="成组移动" IsChecked="{Binding WorkbenchMoveAsGroup}" Margin="0,0,0,2"
+                                      IsEnabled="{Binding EditorShowsMoveAsGroup}"
+                                      ToolTip="{Binding WorkbenchMoveGroupToolTip}" />
+                            <Button Content="紧贴排布" Margin="0,0,0,8" Padding="8,2" HorizontalAlignment="Left"
+                                    Command="{Binding PackBadgeLettersTightCommand}"
+                                    Visibility="{Binding EditorShowsBadgePack, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                    Style="{StaticResource StandardButtonStyle}"
+                                    ToolTip="按占位宽度重排简字与支付简字" />
+                            <CheckBox Content="含拼音" IsChecked="{Binding WorkbenchStationGroupIncludesPinyin}" Margin="0,0,0,8"
+                                      Visibility="{Binding EditorShowsStationGroupIncludesPinyin, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                      ToolTip="站名组成组时包含拼音" />
+                            <CheckBox Content="简字边框" IsChecked="{Binding ShowFramedTicketBadges}" Margin="0,0,0,8"
+                                      ToolTip="显示票种/支付简字边框" />
+
                             <TextBlock Text="{Binding EditorAnchorXLabel}" Style="{StaticResource FormLabel}" />
                             <Slider Minimum="0" Maximum="{Binding EditorAnchorXMaximum}"
                                     Value="{Binding EditorAnchorX, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,4" />
                             <TextBlock Text="{Binding EditorAnchorYLabel}" Style="{StaticResource FormLabel}" />
                             <Slider Minimum="{Binding EditorAnchorYMinimum}" Maximum="{Binding EditorAnchorYMaximum}"
                                     Value="{Binding EditorAnchorY, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,4" />
-                            <Expander Header="位置对齐 / 格式化" Margin="0,0,0,8" Foreground="{DynamicResource TextPrimaryBrush}">
-                                <StackPanel Margin="0,6,0,0">
-                                    <TextBlock Text="磁吸步长（票面上拖拽与「对齐网格」共用）" Style="{StaticResource FormLabel}" Margin="0,0,0,2" />
-                                    <ComboBox ItemsSource="{Binding WorkbenchSnapStepChoices}"
-                                              SelectedItem="{Binding WorkbenchLayoutSnapStepPixels, Mode=TwoWay}"
-                                              Margin="0,0,0,8" />
-                                    <WrapPanel Margin="0,0,0,6">
-                                        <Button Content="对齐网格" Command="{Binding SnapWorkbenchPositionToGridCommand}" Style="{StaticResource StandardButtonStyle}" Padding="8,4" Margin="0,0,6,4"
-                                                ToolTip="将当前元素的 X、Y 吸附到所选步长的网格" />
-                                        <Button Content="坐标取整" Command="{Binding RoundWorkbenchPositionToIntegerCommand}" Style="{StaticResource StandardButtonStyle}" Padding="8,4" Margin="0,0,0,4"
-                                                ToolTip="将 X、Y 四舍五入为整数像素" />
-                                    </WrapPanel>
-                                    <TextBlock Text="方向微调" Style="{StaticResource FormLabel}" Margin="0,0,0,2" />
-                                    <TextBlock TextWrapping="Wrap" FontSize="{DynamicResource SmallFontSize}" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"
-                                               Text="上一行按当前步长平移，下一行每次 1 像素。" />
-                                    <UniformGrid Rows="2" Columns="4" HorizontalAlignment="Stretch">
-                                        <Button Content="←" ToolTip="左（步长）" Command="{Binding NudgeWorkbenchPositionByStepCommand}" CommandParameter="L" Style="{StaticResource StandardButtonStyle}" Padding="6,4" Margin="2" />
-                                        <Button Content="→" ToolTip="右（步长）" Command="{Binding NudgeWorkbenchPositionByStepCommand}" CommandParameter="R" Style="{StaticResource StandardButtonStyle}" Padding="6,4" Margin="2" />
-                                        <Button Content="↑" ToolTip="上（步长）" Command="{Binding NudgeWorkbenchPositionByStepCommand}" CommandParameter="U" Style="{StaticResource StandardButtonStyle}" Padding="6,4" Margin="2" />
-                                        <Button Content="↓" ToolTip="下（步长）" Command="{Binding NudgeWorkbenchPositionByStepCommand}" CommandParameter="D" Style="{StaticResource StandardButtonStyle}" Padding="6,4" Margin="2" />
-                                        <Button Content="←1" ToolTip="左 1px" Command="{Binding NudgeWorkbenchPositionOnePixelCommand}" CommandParameter="L" Style="{StaticResource StandardButtonStyle}" Padding="6,4" Margin="2" />
-                                        <Button Content="→1" ToolTip="右 1px" Command="{Binding NudgeWorkbenchPositionOnePixelCommand}" CommandParameter="R" Style="{StaticResource StandardButtonStyle}" Padding="6,4" Margin="2" />
-                                        <Button Content="↑1" ToolTip="上 1px" Command="{Binding NudgeWorkbenchPositionOnePixelCommand}" CommandParameter="U" Style="{StaticResource StandardButtonStyle}" Padding="6,4" Margin="2" />
-                                        <Button Content="↓1" ToolTip="下 1px" Command="{Binding NudgeWorkbenchPositionOnePixelCommand}" CommandParameter="D" Style="{StaticResource StandardButtonStyle}" Padding="6,4" Margin="2" />
-                                    </UniformGrid>
-                                </StackPanel>
-                            </Expander>
+
                             <StackPanel Visibility="{Binding EditorShowsFontSize, Converter={StaticResource BooleanToVisibilityConverter}}">
                                 <TextBlock Text="{Binding EditorFontSizeLabel}" Style="{StaticResource FormLabel}" />
                                 <Slider Minimum="{Binding EditorFontSizeMinimum}" Maximum="{Binding EditorFontSizeMaximum}"
@@ -159,26 +206,28 @@
                                 <WrapPanel Margin="0,0,0,4">
                                     <Button Content="复制字号" Command="{Binding CopyWorkbenchFontSizeCommand}" IsEnabled="{Binding CanCopyWorkbenchFontSize}"
                                             Style="{StaticResource StandardButtonStyle}" Padding="8,4" Margin="0,0,6,4"
-                                            ToolTip="复制当前元素的主尺寸：正文为字号，箭头为线粗，二维码为边长；再选其他元素点「粘贴字号」或 Ctrl+V（按目标类型解释并夹紧）。快捷键：Ctrl+C。" />
+                                            ToolTip="复制尺寸（Ctrl+C）" />
                                     <Button Content="粘贴字号" Command="{Binding PasteWorkbenchFontSizeCommand}" IsEnabled="{Binding CanPasteWorkbenchFontSize}"
                                             Style="{StaticResource StandardButtonStyle}" Padding="8,4" Margin="0,0,0,4"
-                                            ToolTip="把已复制的数值写到当前元素：正文写字号，箭头写线粗，二维码写边长；会按该元素允许范围自动夹紧。快捷键：Ctrl+V。" />
+                                            ToolTip="粘贴尺寸（Ctrl+V）" />
                                 </WrapPanel>
                                 <TextBlock Text="{Binding WorkbenchCopiedFontSizeCaption}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="{DynamicResource SmallFontSize}" Margin="0,0,0,2" TextWrapping="Wrap" />
                             </StackPanel>
                             <StackPanel Margin="0,0,0,4"
                                         Visibility="{Binding DepartStationCharacterSpacingAdjustable, Converter={StaticResource BooleanToVisibilityConverter}}">
-                                <TextBlock Text="{Binding WorkbenchDepartStationLayoutCaption}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="{DynamicResource SmallFontSize}" Margin="0,0,0,2" TextWrapping="Wrap" />
-                                <TextBlock Text="出发站字间距（1～5 汉字；数值越大字间越稀；按当前字数写入模板）" Style="{StaticResource FormLabel}" Margin="0,0,0,2" />
+                                <TextBlock Text="字间距" Style="{StaticResource FormLabel}" Margin="0,0,0,2" />
+                                <TextBlock Text="{Binding WorkbenchDepartStationLayoutCaption}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="{DynamicResource SmallFontSize}" Margin="0,0,0,2" />
                                 <Slider Minimum="-120" Maximum="420" TickFrequency="10" IsSnapToTickEnabled="True"
-                                        Value="{Binding ActiveDepartStationCharacterSpacing, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,4" />
+                                        Value="{Binding ActiveDepartStationCharacterSpacing, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,4"
+                                        ToolTip="按站名字数分别保存" />
                             </StackPanel>
                             <StackPanel Margin="0,0,0,4"
                                         Visibility="{Binding ArriveStationCharacterSpacingAdjustable, Converter={StaticResource BooleanToVisibilityConverter}}">
-                                <TextBlock Text="{Binding WorkbenchArriveStationLayoutCaption}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="{DynamicResource SmallFontSize}" Margin="0,0,0,2" TextWrapping="Wrap" />
-                                <TextBlock Text="到达站字间距（1～5 汉字；数值越大字间越稀；按当前字数写入模板）" Style="{StaticResource FormLabel}" Margin="0,0,0,2" />
+                                <TextBlock Text="字间距" Style="{StaticResource FormLabel}" Margin="0,0,0,2" />
+                                <TextBlock Text="{Binding WorkbenchArriveStationLayoutCaption}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="{DynamicResource SmallFontSize}" Margin="0,0,0,2" />
                                 <Slider Minimum="-120" Maximum="420" TickFrequency="10" IsSnapToTickEnabled="True"
-                                        Value="{Binding ActiveArriveStationCharacterSpacing, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,4" />
+                                        Value="{Binding ActiveArriveStationCharacterSpacing, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,4"
+                                        ToolTip="按站名字数分别保存" />
                             </StackPanel>
                             <StackPanel Visibility="{Binding EditorShowsExtraDimension, Converter={StaticResource BooleanToVisibilityConverter}}">
                                 <TextBlock Text="{Binding EditorExtraLabel}" Style="{StaticResource FormLabel}" />
@@ -186,51 +235,154 @@
                                         Value="{Binding EditorExtra, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,4" />
                             </StackPanel>
                             <StackPanel Visibility="{Binding EditorShowsArrowHeadFineTune, Converter={StaticResource BooleanToVisibilityConverter}}">
-                                <TextBlock Text="箭头尖长度（0 为自动）" Style="{StaticResource FormLabel}" />
+                                <TextBlock Text="箭头尖长度" Style="{StaticResource FormLabel}" />
                                 <Slider Minimum="0" Maximum="16" TickFrequency="1" IsSnapToTickEnabled="True"
-                                        Value="{Binding EditorArrowHeadLength, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,4" />
+                                        Value="{Binding EditorArrowHeadLength, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,4"
+                                        ToolTip="0 = 自动" />
                             </StackPanel>
                             <StackPanel Visibility="{Binding EditorShowsFontFamily, Converter={StaticResource BooleanToVisibilityConverter}}">
-                                <TextBlock Text="本元素专用字体（可空）" Style="{StaticResource FormLabel}" />
+                                <TextBlock Text="字体" Style="{StaticResource FormLabel}" />
                                 <Grid Margin="0,0,0,8">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
                                     <ComboBox Grid.Column="0" Style="{StaticResource WorkbenchFontComboStyle}"
                                               ItemsSource="{Binding EditorFontPickerItems}"
-                                              SelectedItem="{Binding EditorFontFamily, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, TargetNullValue='', FallbackValue=''}"
-                                              ToolTip="仅从下拉选择（首行为空表示不单独指定，与全局后备一致），或「浏览」选字体文件；不可手输。" />
-                                    <Button Grid.Column="1" Content="浏览…" VerticalAlignment="Center"
+                                              SelectedValue="{Binding EditorFontFamily, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, TargetNullValue='', FallbackValue=''}"
+                                              ToolTip="当前元素字体；空值继承默认字体" />
+                                    <Button Grid.Column="1" Content="系统…" VerticalAlignment="Center"
+                                            Command="{Binding PickWorkbenchSystemFontCommand}" CommandParameter="editor"
+                                            Style="{StaticResource StandardButtonStyle}" Padding="8,4" Margin="0,0,4,0"
+                                            ToolTip="系统字体" />
+                                    <Button Grid.Column="2" Content="浏览…" VerticalAlignment="Center"
                                             Command="{Binding PickWorkbenchFontFromFileCommand}" CommandParameter="editor"
-                                            Style="{StaticResource StandardButtonStyle}" Padding="8,4" Margin="0,0,10,0" />
+                                            Style="{StaticResource StandardButtonStyle}" Padding="8,4" Margin="0,0,10,0"
+                                            ToolTip="字体文件（ttf/otf/ttc）" />
                                 </Grid>
                             </StackPanel>
-                            <CheckBox Content="在票面上拖拽微调位置" IsChecked="{Binding IsVisualLayoutEdit}" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,8" />
+
+                            <Expander Header="对齐与微调" IsExpanded="False" Margin="0,0,0,8" Foreground="{DynamicResource TextPrimaryBrush}">
+                                <StackPanel Margin="0,6,0,0">
+                                    <TextBlock Text="磁吸步长" Style="{StaticResource FormLabel}" Margin="0,0,0,2" />
+                                    <ComboBox ItemsSource="{Binding WorkbenchSnapStepChoices}"
+                                              SelectedItem="{Binding WorkbenchLayoutSnapStepPixels, Mode=TwoWay}"
+                                              Margin="0,0,0,8"
+                                              ToolTip="拖动与对齐网格共用" />
+                                    <WrapPanel Margin="0,0,0,6">
+                                        <Button Content="对齐网格" Command="{Binding SnapWorkbenchPositionToGridCommand}" Style="{StaticResource StandardButtonStyle}" Padding="8,4" Margin="0,0,6,4"
+                                                ToolTip="对齐到磁吸网格" />
+                                        <Button Content="坐标取整" Command="{Binding RoundWorkbenchPositionToIntegerCommand}" Style="{StaticResource StandardButtonStyle}" Padding="8,4" Margin="0,0,0,4"
+                                                ToolTip="坐标取整为像素" />
+                                    </WrapPanel>
+                                    <TextBlock Text="平移" Style="{StaticResource FormLabel}" Margin="0,0,0,4" />
+                                    <UniformGrid Rows="2" Columns="4" HorizontalAlignment="Stretch">
+                                        <Button Content="←" ToolTip="左 · 步长" Command="{Binding NudgeWorkbenchPositionByStepCommand}" CommandParameter="L" Style="{StaticResource StandardButtonStyle}" Padding="6,4" Margin="2" />
+                                        <Button Content="→" ToolTip="右 · 步长" Command="{Binding NudgeWorkbenchPositionByStepCommand}" CommandParameter="R" Style="{StaticResource StandardButtonStyle}" Padding="6,4" Margin="2" />
+                                        <Button Content="↑" ToolTip="上 · 步长" Command="{Binding NudgeWorkbenchPositionByStepCommand}" CommandParameter="U" Style="{StaticResource StandardButtonStyle}" Padding="6,4" Margin="2" />
+                                        <Button Content="↓" ToolTip="下 · 步长" Command="{Binding NudgeWorkbenchPositionByStepCommand}" CommandParameter="D" Style="{StaticResource StandardButtonStyle}" Padding="6,4" Margin="2" />
+                                        <Button Content="←1" ToolTip="左 · 1 px" Command="{Binding NudgeWorkbenchPositionOnePixelCommand}" CommandParameter="L" Style="{StaticResource StandardButtonStyle}" Padding="6,4" Margin="2" />
+                                        <Button Content="→1" ToolTip="右 · 1 px" Command="{Binding NudgeWorkbenchPositionOnePixelCommand}" CommandParameter="R" Style="{StaticResource StandardButtonStyle}" Padding="6,4" Margin="2" />
+                                        <Button Content="↑1" ToolTip="上 · 1 px" Command="{Binding NudgeWorkbenchPositionOnePixelCommand}" CommandParameter="U" Style="{StaticResource StandardButtonStyle}" Padding="6,4" Margin="2" />
+                                        <Button Content="↓1" ToolTip="下 · 1 px" Command="{Binding NudgeWorkbenchPositionOnePixelCommand}" CommandParameter="D" Style="{StaticResource StandardButtonStyle}" Padding="6,4" Margin="2" />
+                                    </UniformGrid>
+                                </StackPanel>
+                            </Expander>
+
+                            <Expander Header="默认字体" IsExpanded="False" Margin="0,0,0,8" Foreground="{DynamicResource TextPrimaryBrush}"
+                                      ToolTip="未指定元素字体时的回退字体">
+                                <Grid Margin="0,6,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <ComboBox Grid.Column="0" Style="{StaticResource WorkbenchFontComboStyle}"
+                                              ItemsSource="{Binding LayoutDefaultFontPickerItems}"
+                                              SelectedValue="{Binding LayoutDefaultFontFamily, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                              ToolTip="版式默认字体" />
+                                    <Button Grid.Column="1" Content="系统…" VerticalAlignment="Center"
+                                            Command="{Binding PickWorkbenchSystemFontCommand}" CommandParameter="default"
+                                            Style="{StaticResource StandardButtonStyle}" Padding="8,4" Margin="0,0,4,0"
+                                            ToolTip="系统字体" />
+                                    <Button Grid.Column="2" Content="浏览…" VerticalAlignment="Center"
+                                            Command="{Binding PickWorkbenchFontFromFileCommand}" CommandParameter="default"
+                                            Style="{StaticResource StandardButtonStyle}" Padding="8,4" Margin="0,0,10,0"
+                                            ToolTip="字体文件（ttf/otf/ttc）" />
+                                </Grid>
+                            </Expander>
+
                             <WrapPanel Margin="0,0,0,4">
-                                <Button Content="导出布局 JSON…" Command="{Binding SaveLayoutJsonCommand}" Style="{StaticResource StandardButtonStyle}" Padding="8,4" Margin="0,0,6,4" />
-                                <Button Content="写入默认路径" Command="{Binding SaveLayoutJsonToDefaultPathCommand}" Style="{StaticResource StandardButtonStyle}" Padding="8,4" Margin="0,0,6,4" />
-                                <Button Content="从 JSON 载入…" Command="{Binding LoadLayoutJsonCommand}" Style="{StaticResource StandardButtonStyle}" Padding="8,4" Margin="0,0,6,4" />
-                                <Button Content="恢复内置默认" Command="{Binding ResetLayoutToFactoryDefaultsCommand}" Style="{StaticResource StandardButtonStyle}" Padding="8,4" Margin="0,0,0,4" />
+                                <Button Content="导出…" Command="{Binding SaveLayoutJsonCommand}" Style="{StaticResource StandardButtonStyle}" Padding="8,4" Margin="0,0,6,4"
+                                        ToolTip="导出版式" />
+                                <Button Content="保存为默认" Command="{Binding SaveLayoutJsonToDefaultPathCommand}" Style="{StaticResource StandardButtonStyle}" Padding="8,4" Margin="0,0,6,4"
+                                        ToolTip="保存至 Config\ticket-face-layout.json" />
+                                <Button Content="导入…" Command="{Binding LoadLayoutJsonCommand}" Style="{StaticResource StandardButtonStyle}" Padding="8,4" Margin="0,0,6,4"
+                                        ToolTip="导入版式" />
+                                <Button Content="恢复默认" Command="{Binding ResetLayoutToFactoryDefaultsCommand}" Style="{StaticResource StandardButtonStyle}" Padding="8,4" Margin="0,0,0,4"
+                                        ToolTip="恢复出厂版式" />
                             </WrapPanel>
                             <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="{DynamicResource SmallFontSize}"
-                                       Text="默认路径：程序目录下 Config\ticket-face-layout.json；启动打开本窗口时会加载。关闭「票面参数调整」时会自动保存到该路径。" />
+                                       Text="Config\ticket-face-layout.json" />
                         </StackPanel>
                     </ScrollViewer>
-                    <Grid>
-                    <TextBlock Text="请先在行程列表中选择记录。" TextWrapping="Wrap" HorizontalAlignment="Center" VerticalAlignment="Center"
+
+                    <!-- 行程对照：预览模式占满侧栏；版式编辑默认折叠 -->
+                    <Expander Grid.Row="1"
+                              IsExpanded="{Binding IsLayoutWorkbench, Converter={StaticResource InverseBooleanConverter}, Mode=OneWay}"
+                              ExpandDirection="Down" Margin="0,0,0,0"
+                              Foreground="{DynamicResource TextPrimaryBrush}">
+                        <Expander.Style>
+                            <Style TargetType="Expander" BasedOn="{StaticResource {x:Type Expander}}">
+                                <Setter Property="Visibility" Value="Visible" />
+                                <Style.Triggers>
+                                    <!-- 预览：去掉折叠头，直接展示行程信息 -->
+                                    <DataTrigger Binding="{Binding IsLayoutWorkbench}" Value="False">
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="Expander">
+                                                    <ContentPresenter ContentSource="Content" />
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Expander.Style>
+                        <Expander.Header>
+                            <StackPanel>
+                                <TextBlock Text="{Binding TripDataSectionTitle}" FontWeight="SemiBold" />
+                                <TextBlock Text="{Binding TripDataSectionHint}" FontSize="{DynamicResource SmallFontSize}"
+                                           Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Expander.Header>
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" CanContentScroll="False" Margin="0,6,0,0">
+                            <ScrollViewer.Style>
+                                <Style TargetType="ScrollViewer">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsLayoutWorkbench}" Value="True">
+                                            <Setter Property="MaxHeight" Value="320" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ScrollViewer.Style>
+                            <StackPanel>
+                    <TextBlock Text="请先在行程列表中选择一条记录。" TextWrapping="Wrap" HorizontalAlignment="Center" VerticalAlignment="Center"
+                               Margin="0,12,0,12"
                                Foreground="{DynamicResource TextSecondaryBrush}"
                                Visibility="{Binding HasSelectedDraft, Converter={StaticResource InverseBooleanToVisibilityConverter}}" />
                     <DockPanel Visibility="{Binding HasSelectedDraft, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <StackPanel DockPanel.Dock="Top" Margin="0,0,0,8"
                                     Visibility="{Binding HasMultipleDrafts, Converter={StaticResource BooleanToVisibilityConverter}}">
-                            <TextBlock Text="预览行程" Style="{StaticResource FormLabel}" Margin="0,0,0,4" />
+                            <TextBlock Text="切换行程" Style="{StaticResource FormLabel}" Margin="0,0,0,4" />
                             <ComboBox ItemsSource="{Binding PreviewDrafts}" SelectedItem="{Binding SelectedDraft}" DisplayMemberPath="DisplayTitle" />
                         </StackPanel>
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" CanContentScroll="False">
-                            <StackPanel DataContext="{Binding SelectedDraft}">
-                                <TextBlock Text="车票信息" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,8"
-                                           FontSize="{DynamicResource LargeFontSize}" />
+                        <StackPanel DataContext="{Binding SelectedDraft}">
+                                <TextBlock Text="{Binding DataContext.TripDataSectionTitle, RelativeSource={RelativeSource AncestorType=Window}}"
+                                           FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,8"
+                                           FontSize="{DynamicResource LargeFontSize}"
+                                           Visibility="{Binding DataContext.IsLayoutWorkbench, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource InverseBooleanToVisibilityConverter}}" />
                                 <Grid Margin="0,0,0,4">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="88" /><ColumnDefinition Width="*" />
@@ -310,7 +462,7 @@
                                     <TextBox Grid.Column="1" Style="{StaticResource FormBox}"
                                              IsReadOnly="{Binding DataContext.IsTripFieldsReadOnly, RelativeSource={RelativeSource AncestorType=Window}}"
                                              Text="{Binding Source.SeatNo, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                    <TextBlock Grid.Column="2" Text="金额(表单)" Style="{StaticResource FormLabel}" />
+                                    <TextBlock Grid.Column="2" Text="票价" Style="{StaticResource FormLabel}" />
                                     <TextBox Grid.Column="3" Style="{StaticResource FormBox}"
                                              IsReadOnly="{Binding DataContext.IsTripFieldsReadOnly, RelativeSource={RelativeSource AncestorType=Window}}"
                                              Text="{Binding Source.Money, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
@@ -368,7 +520,7 @@
                                                       IsChecked="{Binding DataContext.PreviewTicketFlagOnline, RelativeSource={RelativeSource AncestorType=Window}, Mode=TwoWay}" />
                                         </WrapPanel>
                                         <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="{DynamicResource SmallFontSize}" Margin="0,0,0,0"
-                                                   Text="「学生票」与「儿童票」互斥（与录入表单一致）；「优惠票」「网络售票」可同时勾选。写入行程「票种标志」字段。" />
+                                                   Text="学生票与儿童票互斥；优惠票、网络售票可同时勾选。" />
                                     </StackPanel>
                                 </Grid>
                                 <Grid Margin="0,0,0,4">
@@ -377,43 +529,32 @@
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Grid.Column="0" Text="支付渠道" Style="{StaticResource FormLabel}" VerticalAlignment="Top" Margin="0,4,0,0" />
                                     <StackPanel Grid.Column="1">
-                                        <TextBlock Text="在线支付（支付宝 / 微信 二选一）" Style="{StaticResource FormLabel}" Margin="0,0,0,2" />
+                                        <TextBlock Text="在线支付" Style="{StaticResource FormLabel}" Margin="0,0,0,2" />
                                         <ComboBox Style="{StaticResource FormCombo}"
                                                   IsEnabled="{Binding DataContext.IsTripFieldsReadOnly, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource InverseBooleanConverter}}"
                                                   ItemsSource="{Binding DataContext.PreviewPaymentOnlineOptions, RelativeSource={RelativeSource AncestorType=Window}}"
                                                   SelectedItem="{Binding DataContext.PreviewPaymentOnlineSelection, RelativeSource={RelativeSource AncestorType=Window}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                        <TextBlock Text="银行（七选一；可与在线支付同时选）" Style="{StaticResource FormLabel}" Margin="0,6,0,2" />
+                                        <TextBlock Text="银行" Style="{StaticResource FormLabel}" Margin="0,6,0,2" />
                                         <ComboBox Style="{StaticResource FormCombo}"
                                                   IsEnabled="{Binding DataContext.IsTripFieldsReadOnly, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource InverseBooleanConverter}}"
                                                   ItemsSource="{Binding DataContext.PreviewPaymentBankOptions, RelativeSource={RelativeSource AncestorType=Window}}"
                                                   SelectedItem="{Binding DataContext.PreviewPaymentBankSelection, RelativeSource={RelativeSource AncestorType=Window}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                         <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="{DynamicResource SmallFontSize}" Margin="0,4,0,4"
-                                                   Text="合并写入行程「支付渠道」字段，票面支/微/银简字由此解析。" />
+                                                   Text="决定票面支付简字（支 / 微 / 银）。" />
                                     </StackPanel>
                                 </Grid>
-                                <TextBlock Text="提示(Hint)" Style="{StaticResource FormLabel}" Margin="0,4,0,2" />
+                                <TextBlock Text="票底提示" Style="{StaticResource FormLabel}" Margin="0,4,0,2" />
                                 <TextBox Style="{StaticResource FormBox}"
                                          IsReadOnly="{Binding DataContext.IsTripFieldsReadOnly, RelativeSource={RelativeSource AncestorType=Window}}"
                                          Text="{Binding Source.Hint, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" AcceptsReturn="True" MinHeight="40" />
 
-                                <TextBlock Text="票面展示选项" FontWeight="SemiBold" Margin="0,8,0,6" Foreground="{DynamicResource TextPrimaryBrush}" />
+                                <TextBlock Text="显示选项" FontWeight="SemiBold" Margin="0,8,0,6" Foreground="{DynamicResource TextPrimaryBrush}" />
                                 <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="{DynamicResource SmallFontSize}" Margin="0,0,0,6"
-                                           Text="本窗口用于调整票面布局并查看预览效果。从「设置」进入时使用示例行程数据，仅供调版与看效果，与数据库行程无关。"
-                                           Visibility="{Binding DataContext.IsLayoutWorkbench, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                                <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="{DynamicResource SmallFontSize}" Margin="0,0,0,6"
-                                           Text="以下为行程列表中的车票预览，仅供查看票面效果；左侧字段为只读，修改不会写回数据库。"
-                                           Visibility="{Binding DataContext.IsLayoutWorkbench, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource InverseBooleanToVisibilityConverter}}" />
+                                           Text="{Binding DataContext.TripDataSectionHint, RelativeSource={RelativeSource AncestorType=Window}}" />
                                 <CheckBox Margin="0,0,0,4" Foreground="{DynamicResource TextPrimaryBrush}"
-                                          Content="票面「惠」改为「折」（票种标志含「优惠」时的简字；仅本窗口预览）"
+                                          Content="优惠简字显示为「折」"
+                                          ToolTip="勾选后票面用「折」，否则用「惠」。仅影响本窗口。"
                                           IsChecked="{Binding PreferDiscountZhe, Mode=TwoWay}" />
-                                <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="{DynamicResource SmallFontSize}" Margin="0,0,0,8"
-                                           Text="说明：主界面只读预览或将来正式出票可有另一套业务默认。从行程列表一次打开多张票时，上方会出现「预览行程」切换，惠/折可按每张草稿分别设置。"
-                                           Visibility="{Binding DataContext.IsLayoutWorkbench, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                                <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="{DynamicResource SmallFontSize}" Margin="0,0,0,8"
-                                           Text="说明：惠/折与简字带框仅影响本窗口展示。811 布局与 JSON 请在「设置 → 票面参数调整」中编辑。"
-                                           Visibility="{Binding DataContext.IsLayoutWorkbench, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource InverseBooleanToVisibilityConverter}}" />
-                                <CheckBox Content="票种/支付简字带框" IsChecked="{Binding DataContext.ShowFramedTicketBadges, RelativeSource={RelativeSource AncestorType=Window}}" Margin="0,0,0,8"
-                                          Foreground="{DynamicResource TextPrimaryBrush}" />
 
                                 <TextBlock Text="{Binding DataContext.IdentitySectionTitle, RelativeSource={RelativeSource AncestorType=Window}}" FontWeight="SemiBold" Margin="0,8,0,6" Foreground="{DynamicResource TextPrimaryBrush}" />
                                 <TextBlock Text="身份证号" Style="{StaticResource FormLabel}" />
@@ -444,13 +585,15 @@
                                          IsReadOnly="{Binding DataContext.IsTripFieldsReadOnly, RelativeSource={RelativeSource AncestorType=Window}}"
                                          Text="{Binding IdMask, UpdateSourceTrigger=PropertyChanged}" />
 
-                                <TextBlock Text="编码区（二维码内容）" FontWeight="SemiBold" Margin="0,12,0,6" Foreground="{DynamicResource TextPrimaryBrush}" />
+                                <TextBlock Text="编码区" FontWeight="SemiBold" Margin="0,12,0,2" Foreground="{DynamicResource TextPrimaryBrush}" />
+                                <TextBlock Text="二维码内容" Style="{StaticResource FormLabel}" Margin="0,0,0,4" />
                                 <TextBox Style="{StaticResource FormBox}" Text="{Binding DataContext.EncodingText, RelativeSource={RelativeSource AncestorType=Window}, UpdateSourceTrigger=PropertyChanged}" />
+                        </StackPanel>
+                    </DockPanel>
                             </StackPanel>
                         </ScrollViewer>
-                    </DockPanel>
+                    </Expander>
                 </Grid>
-                </DockPanel>
             </Border>
 
             <!-- 右侧：811×509 票面；缩放仅 LayoutTransform（不用 Viewbox，否则与 Scale 叠加后百分比不起作用） -->
@@ -886,7 +1029,25 @@
                                         </TextBlock.FontFamily>
                                     </TextBlock>
 
-                                    <!-- 车厢座位（非卧铺）：车厢号 / 车 / 座位号 / 号 分段 -->
+                                    <!-- 车厢座位（非卧铺）：加 / 车厢号 / 车 / 座位号 / 号 分段 -->
+                                    <TextBlock hit:LayoutWorkbenchHit.Kind="CoachJia" Text="加" Foreground="{DynamicResource TicketVoucherPrimaryTextBrush}"
+                                               FontSize="{Binding DataContext.ActiveLayout.CoachJiaFont, RelativeSource={RelativeSource AncestorType=Window}}"
+                                               Canvas.Left="{Binding DataContext.ActiveLayout.CoachJiaLeft, RelativeSource={RelativeSource AncestorType=Window}}"
+                                               Canvas.Top="{Binding DataContext.ActiveLayout.CoachJiaTop, RelativeSource={RelativeSource AncestorType=Window}}">
+                                        <TextBlock.Visibility>
+                                            <MultiBinding Converter="{StaticResource TicketLayoutIsolationToVisibilityConverter}" ConverterParameter="CoachJia">
+                                                <Binding Path="DataContext.SessionMode" RelativeSource="{RelativeSource AncestorType=Window}" />
+                                                <Binding Path="DataContext.LayoutIsolationTargetKind" RelativeSource="{RelativeSource AncestorType=Window}" />
+                                                <Binding Path="ShowCoachJiaOnFace" />
+                                            </MultiBinding>
+                                        </TextBlock.Visibility>
+                                        <TextBlock.FontFamily>
+                                            <MultiBinding Converter="{StaticResource LayoutFontFamilyMultiConverter}">
+                                                <Binding Path="DataContext.ActiveLayout.CoachSeatFontFamily" RelativeSource="{RelativeSource AncestorType=Window}" />
+                                                <Binding Path="DataContext.LayoutDefaultFontFamily" RelativeSource="{RelativeSource AncestorType=Window}" />
+                                            </MultiBinding>
+                                        </TextBlock.FontFamily>
+                                    </TextBlock>
                                     <TextBlock hit:LayoutWorkbenchHit.Kind="CoachNumber" Foreground="{DynamicResource TicketVoucherPrimaryTextBrush}"
                                                Text="{Binding CoachBodyWithoutChe, Mode=OneWay}"
                                                FontSize="{Binding DataContext.ActiveLayout.CoachNumberFont, RelativeSource={RelativeSource AncestorType=Window}}"
@@ -1073,31 +1234,56 @@
                                         <TextBlock Foreground="{DynamicResource TicketVoucherMutedTextBrush}" FontSize="{Binding DataContext.ActiveLayout.IdNameFont, RelativeSource={RelativeSource AncestorType=Window}}" Text="{Binding PassengerName, Mode=OneWay}" />
                                     </StackPanel>
 
-                                    <ItemsControl hit:LayoutWorkbenchHit.Kind="HintBox"
-                                                  Canvas.Left="{Binding DataContext.ActiveLayout.HintBoxLeft, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                  Canvas.Top="{Binding DataContext.ActiveLayout.HintBoxTop, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                  Width="{Binding DataContext.ActiveLayout.HintBoxWidth, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                  ItemsSource="{Binding HintLines}">
-                                        <ItemsControl.Visibility>
+                                    <!-- 提示区：虚线框随文字收缩，右边线贴最长行；HintBoxWidth 为折行上限 -->
+                                    <Grid hit:LayoutWorkbenchHit.Kind="HintBox"
+                                          HorizontalAlignment="Left"
+                                          Canvas.Left="{Binding DataContext.ActiveLayout.HintBoxLeft, RelativeSource={RelativeSource AncestorType=Window}}"
+                                          Canvas.Top="{Binding DataContext.ActiveLayout.HintBoxTop, RelativeSource={RelativeSource AncestorType=Window}}"
+                                          MaxWidth="{Binding DataContext.ActiveLayout.HintBoxWidth, RelativeSource={RelativeSource AncestorType=Window}}">
+                                        <Grid.Visibility>
                                             <MultiBinding Converter="{StaticResource TicketLayoutIsolationToVisibilityConverter}" ConverterParameter="HintBox">
                                                 <Binding Path="DataContext.SessionMode" RelativeSource="{RelativeSource AncestorType=Window}" />
                                                 <Binding Path="DataContext.LayoutIsolationTargetKind" RelativeSource="{RelativeSource AncestorType=Window}" />
                                             </MultiBinding>
-                                        </ItemsControl.Visibility>
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <TextBlock Text="{Binding}" Foreground="{DynamicResource TicketVoucherSubtleTextBrush}" TextWrapping="Wrap" Margin="0,0,0,2"
-                                                           FontSize="{Binding DataContext.ActiveLayout.HintFont, RelativeSource={RelativeSource AncestorType=Window}}">
-                                                    <TextBlock.FontFamily>
-                                                        <MultiBinding Converter="{StaticResource LayoutFontFamilyMultiConverter}">
-                                                            <Binding Path="DataContext.ActiveLayout.HintFontFamily" RelativeSource="{RelativeSource AncestorType=Window}" />
-                                                            <Binding Path="DataContext.LayoutDefaultFontFamily" RelativeSource="{RelativeSource AncestorType=Window}" />
-                                                        </MultiBinding>
-                                                    </TextBlock.FontFamily>
-                                                </TextBlock>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
+                                        </Grid.Visibility>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <!-- 细虚线外框：与实体报销凭证/客票「广告栏」一致 -->
+                                        <Rectangle Grid.Column="0"
+                                                   Stroke="{DynamicResource TicketVoucherDisclaimerBorderBrush}"
+                                                   StrokeThickness="1"
+                                                   StrokeDashArray="2.2 1.6"
+                                                   Fill="Transparent"
+                                                   SnapsToDevicePixels="True"
+                                                   UseLayoutRounding="True" />
+                                        <ItemsControl Grid.Column="0"
+                                                      ItemsSource="{Binding HintLines}"
+                                                      Margin="8,5,8,5"
+                                                      HorizontalAlignment="Stretch"
+                                                      HorizontalContentAlignment="Stretch">
+                                            <ItemsControl.ItemContainerStyle>
+                                                <Style TargetType="ContentPresenter">
+                                                    <Setter Property="HorizontalAlignment" Value="Stretch" />
+                                                </Style>
+                                            </ItemsControl.ItemContainerStyle>
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding}" Foreground="{DynamicResource TicketVoucherSubtleTextBrush}"
+                                                               TextWrapping="Wrap" TextAlignment="Center" HorizontalAlignment="Stretch"
+                                                               Margin="0,0,0,1"
+                                                               FontSize="{Binding DataContext.ActiveLayout.HintFont, RelativeSource={RelativeSource AncestorType=Window}}">
+                                                        <TextBlock.FontFamily>
+                                                            <MultiBinding Converter="{StaticResource LayoutFontFamilyMultiConverter}">
+                                                                <Binding Path="DataContext.ActiveLayout.HintFontFamily" RelativeSource="{RelativeSource AncestorType=Window}" />
+                                                                <Binding Path="DataContext.LayoutDefaultFontFamily" RelativeSource="{RelativeSource AncestorType=Window}" />
+                                                            </MultiBinding>
+                                                        </TextBlock.FontFamily>
+                                                    </TextBlock>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </Grid>
 
                                     <TextBlock Foreground="{DynamicResource TicketVoucherFooterForegroundBrush}" FontSize="{Binding DataContext.ActiveLayout.FooterFont, RelativeSource={RelativeSource AncestorType=Window}}"
                                                Text="{Binding FooterReceiptLine, Mode=OneWay}" TextWrapping="Wrap" MaxWidth="720"
@@ -1131,139 +1317,56 @@
                                         </Image.Visibility>
                                     </Image>
 
-                                    <!-- 票种 / 支付简字（各段独立坐标） -->
-                                    <Grid hit:LayoutWorkbenchHit.Kind="BadgeLetterXue" Canvas.Left="{Binding DataContext.ActiveLayout.BadgeLetterXueLeft, RelativeSource={RelativeSource AncestorType=Window}}"
-                                          Canvas.Top="{Binding DataContext.ActiveLayout.BadgeLetterXueTop, RelativeSource={RelativeSource AncestorType=Window}}">
-                                        <Grid.Visibility>
+                                    <!-- 票种简字：共用 TicketBadgeGlyphVisual，各自锚点 -->
+                                    <ContentControl hit:LayoutWorkbenchHit.Kind="BadgeLetterXue"
+                                                    Canvas.Left="{Binding DataContext.ActiveLayout.BadgeLetterXueLeft, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                    Canvas.Top="{Binding DataContext.ActiveLayout.BadgeLetterXueTop, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                    Content="学" ContentTemplate="{StaticResource TicketBadgeGlyphVisual}">
+                                        <ContentControl.Visibility>
                                             <MultiBinding Converter="{StaticResource TicketLayoutIsolationToVisibilityConverter}" ConverterParameter="BadgeLetterXue">
                                                 <Binding Path="DataContext.SessionMode" RelativeSource="{RelativeSource AncestorType=Window}" />
                                                 <Binding Path="DataContext.LayoutIsolationTargetKind" RelativeSource="{RelativeSource AncestorType=Window}" />
                                                 <Binding Path="DataContext.ShowTicketBadgeXue" RelativeSource="{RelativeSource AncestorType=Window}" />
                                             </MultiBinding>
-                                        </Grid.Visibility>
-                                        <Border Margin="3,0" Padding="5,2" BorderBrush="{DynamicResource PrimaryBrush}" BorderThickness="1"
-                                                CornerRadius="{Binding DataContext.BadgeCornerRadius, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                Visibility="{Binding DataContext.ShowFramedTicketBadges, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BooleanToVisibilityConverter}}">
-                                            <TextBlock Text="学" Foreground="{DynamicResource TicketVoucherPrimaryTextBrush}" FontWeight="SemiBold"
-                                                       FontSize="{Binding DataContext.ActiveLayout.BadgeLetterXueFont, RelativeSource={RelativeSource AncestorType=Window}}">
-                                                <TextBlock.FontFamily>
-                                                    <MultiBinding Converter="{StaticResource LayoutFontFamilyMultiConverter}">
-                                                        <Binding Path="DataContext.ActiveLayout.BadgeFontFamily" RelativeSource="{RelativeSource AncestorType=Window}" />
-                                                        <Binding Path="DataContext.LayoutDefaultFontFamily" RelativeSource="{RelativeSource AncestorType=Window}" />
-                                                    </MultiBinding>
-                                                </TextBlock.FontFamily>
-                                            </TextBlock>
-                                        </Border>
-                                        <TextBlock Text="学" Foreground="{DynamicResource TicketVoucherPrimaryTextBrush}" FontWeight="SemiBold" Margin="4,0"
-                                                   FontSize="{Binding DataContext.ActiveLayout.BadgeLetterXueFont, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                   Visibility="{Binding DataContext.ShowFramedTicketBadges, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
-                                            <TextBlock.FontFamily>
-                                                <MultiBinding Converter="{StaticResource LayoutFontFamilyMultiConverter}">
-                                                    <Binding Path="DataContext.ActiveLayout.BadgeFontFamily" RelativeSource="{RelativeSource AncestorType=Window}" />
-                                                    <Binding Path="DataContext.LayoutDefaultFontFamily" RelativeSource="{RelativeSource AncestorType=Window}" />
-                                                </MultiBinding>
-                                            </TextBlock.FontFamily>
-                                        </TextBlock>
-                                    </Grid>
-                                    <Grid hit:LayoutWorkbenchHit.Kind="BadgeLetterHai" Canvas.Left="{Binding DataContext.ActiveLayout.BadgeLetterHaiLeft, RelativeSource={RelativeSource AncestorType=Window}}"
-                                          Canvas.Top="{Binding DataContext.ActiveLayout.BadgeLetterHaiTop, RelativeSource={RelativeSource AncestorType=Window}}">
-                                        <Grid.Visibility>
+                                        </ContentControl.Visibility>
+                                    </ContentControl>
+                                    <ContentControl hit:LayoutWorkbenchHit.Kind="BadgeLetterHai"
+                                                    Canvas.Left="{Binding DataContext.ActiveLayout.BadgeLetterHaiLeft, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                    Canvas.Top="{Binding DataContext.ActiveLayout.BadgeLetterHaiTop, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                    Content="孩" ContentTemplate="{StaticResource TicketBadgeGlyphVisual}">
+                                        <ContentControl.Visibility>
                                             <MultiBinding Converter="{StaticResource TicketLayoutIsolationToVisibilityConverter}" ConverterParameter="BadgeLetterHai">
                                                 <Binding Path="DataContext.SessionMode" RelativeSource="{RelativeSource AncestorType=Window}" />
                                                 <Binding Path="DataContext.LayoutIsolationTargetKind" RelativeSource="{RelativeSource AncestorType=Window}" />
                                                 <Binding Path="DataContext.ShowTicketBadgeHai" RelativeSource="{RelativeSource AncestorType=Window}" />
                                             </MultiBinding>
-                                        </Grid.Visibility>
-                                        <Border Margin="3,0" Padding="5,2" BorderBrush="{DynamicResource PrimaryBrush}" BorderThickness="1"
-                                                CornerRadius="{Binding DataContext.BadgeCornerRadius, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                Visibility="{Binding DataContext.ShowFramedTicketBadges, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BooleanToVisibilityConverter}}">
-                                            <TextBlock Text="孩" Foreground="{DynamicResource TicketVoucherPrimaryTextBrush}" FontWeight="SemiBold"
-                                                       FontSize="{Binding DataContext.ActiveLayout.BadgeLetterHaiFont, RelativeSource={RelativeSource AncestorType=Window}}">
-                                                <TextBlock.FontFamily>
-                                                    <MultiBinding Converter="{StaticResource LayoutFontFamilyMultiConverter}">
-                                                        <Binding Path="DataContext.ActiveLayout.BadgeFontFamily" RelativeSource="{RelativeSource AncestorType=Window}" />
-                                                        <Binding Path="DataContext.LayoutDefaultFontFamily" RelativeSource="{RelativeSource AncestorType=Window}" />
-                                                    </MultiBinding>
-                                                </TextBlock.FontFamily>
-                                            </TextBlock>
-                                        </Border>
-                                        <TextBlock Text="孩" Foreground="{DynamicResource TicketVoucherPrimaryTextBrush}" FontWeight="SemiBold" Margin="4,0"
-                                                   FontSize="{Binding DataContext.ActiveLayout.BadgeLetterHaiFont, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                   Visibility="{Binding DataContext.ShowFramedTicketBadges, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
-                                            <TextBlock.FontFamily>
-                                                <MultiBinding Converter="{StaticResource LayoutFontFamilyMultiConverter}">
-                                                    <Binding Path="DataContext.ActiveLayout.BadgeFontFamily" RelativeSource="{RelativeSource AncestorType=Window}" />
-                                                    <Binding Path="DataContext.LayoutDefaultFontFamily" RelativeSource="{RelativeSource AncestorType=Window}" />
-                                                </MultiBinding>
-                                            </TextBlock.FontFamily>
-                                        </TextBlock>
-                                    </Grid>
-                                    <Grid hit:LayoutWorkbenchHit.Kind="BadgeLetterWang" Canvas.Left="{Binding DataContext.ActiveLayout.BadgeLetterWangLeft, RelativeSource={RelativeSource AncestorType=Window}}"
-                                          Canvas.Top="{Binding DataContext.ActiveLayout.BadgeLetterWangTop, RelativeSource={RelativeSource AncestorType=Window}}">
-                                        <Grid.Visibility>
+                                        </ContentControl.Visibility>
+                                    </ContentControl>
+                                    <ContentControl hit:LayoutWorkbenchHit.Kind="BadgeLetterWang"
+                                                    Canvas.Left="{Binding DataContext.ActiveLayout.BadgeLetterWangLeft, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                    Canvas.Top="{Binding DataContext.ActiveLayout.BadgeLetterWangTop, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                    Content="网" ContentTemplate="{StaticResource TicketBadgeGlyphVisual}">
+                                        <ContentControl.Visibility>
                                             <MultiBinding Converter="{StaticResource TicketLayoutIsolationToVisibilityConverter}" ConverterParameter="BadgeLetterWang">
                                                 <Binding Path="DataContext.SessionMode" RelativeSource="{RelativeSource AncestorType=Window}" />
                                                 <Binding Path="DataContext.LayoutIsolationTargetKind" RelativeSource="{RelativeSource AncestorType=Window}" />
                                                 <Binding Path="DataContext.ShowTicketBadgeWang" RelativeSource="{RelativeSource AncestorType=Window}" />
                                             </MultiBinding>
-                                        </Grid.Visibility>
-                                        <Border Margin="3,0" Padding="5,2" BorderBrush="{DynamicResource PrimaryBrush}" BorderThickness="1"
-                                                CornerRadius="{Binding DataContext.BadgeCornerRadius, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                Visibility="{Binding DataContext.ShowFramedTicketBadges, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BooleanToVisibilityConverter}}">
-                                            <TextBlock Text="网" Foreground="{DynamicResource TicketVoucherPrimaryTextBrush}" FontWeight="SemiBold"
-                                                       FontSize="{Binding DataContext.ActiveLayout.BadgeLetterWangFont, RelativeSource={RelativeSource AncestorType=Window}}">
-                                                <TextBlock.FontFamily>
-                                                    <MultiBinding Converter="{StaticResource LayoutFontFamilyMultiConverter}">
-                                                        <Binding Path="DataContext.ActiveLayout.BadgeFontFamily" RelativeSource="{RelativeSource AncestorType=Window}" />
-                                                        <Binding Path="DataContext.LayoutDefaultFontFamily" RelativeSource="{RelativeSource AncestorType=Window}" />
-                                                    </MultiBinding>
-                                                </TextBlock.FontFamily>
-                                            </TextBlock>
-                                        </Border>
-                                        <TextBlock Text="网" Foreground="{DynamicResource TicketVoucherPrimaryTextBrush}" FontWeight="SemiBold" Margin="4,0"
-                                                   FontSize="{Binding DataContext.ActiveLayout.BadgeLetterWangFont, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                   Visibility="{Binding DataContext.ShowFramedTicketBadges, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
-                                            <TextBlock.FontFamily>
-                                                <MultiBinding Converter="{StaticResource LayoutFontFamilyMultiConverter}">
-                                                    <Binding Path="DataContext.ActiveLayout.BadgeFontFamily" RelativeSource="{RelativeSource AncestorType=Window}" />
-                                                    <Binding Path="DataContext.LayoutDefaultFontFamily" RelativeSource="{RelativeSource AncestorType=Window}" />
-                                                </MultiBinding>
-                                            </TextBlock.FontFamily>
-                                        </TextBlock>
-                                    </Grid>
-                                    <Grid hit:LayoutWorkbenchHit.Kind="BadgeLetterDiscount" Canvas.Left="{Binding DataContext.ActiveLayout.BadgeLetterDiscountLeft, RelativeSource={RelativeSource AncestorType=Window}}"
-                                          Canvas.Top="{Binding DataContext.ActiveLayout.BadgeLetterDiscountTop, RelativeSource={RelativeSource AncestorType=Window}}">
-                                        <Grid.Visibility>
+                                        </ContentControl.Visibility>
+                                    </ContentControl>
+                                    <ContentControl hit:LayoutWorkbenchHit.Kind="BadgeLetterDiscount"
+                                                    Canvas.Left="{Binding DataContext.ActiveLayout.BadgeLetterDiscountLeft, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                    Canvas.Top="{Binding DataContext.ActiveLayout.BadgeLetterDiscountTop, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                    Content="{Binding DataContext.TicketDiscountBadgeChar, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                    ContentTemplate="{StaticResource TicketBadgeGlyphVisual}">
+                                        <ContentControl.Visibility>
                                             <MultiBinding Converter="{StaticResource TicketLayoutIsolationToVisibilityConverter}" ConverterParameter="BadgeLetterDiscount">
                                                 <Binding Path="DataContext.SessionMode" RelativeSource="{RelativeSource AncestorType=Window}" />
                                                 <Binding Path="DataContext.LayoutIsolationTargetKind" RelativeSource="{RelativeSource AncestorType=Window}" />
                                                 <Binding Path="DataContext.ShowTicketBadgeDiscount" RelativeSource="{RelativeSource AncestorType=Window}" />
                                             </MultiBinding>
-                                        </Grid.Visibility>
-                                        <Border Margin="3,0" Padding="5,2" BorderBrush="{DynamicResource PrimaryBrush}" BorderThickness="1"
-                                                CornerRadius="{Binding DataContext.BadgeCornerRadius, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                Visibility="{Binding DataContext.ShowFramedTicketBadges, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BooleanToVisibilityConverter}}">
-                                            <TextBlock Text="{Binding DataContext.TicketDiscountBadgeChar, RelativeSource={RelativeSource AncestorType=Window}}" Foreground="{DynamicResource TicketVoucherPrimaryTextBrush}" FontWeight="SemiBold"
-                                                       FontSize="{Binding DataContext.ActiveLayout.BadgeLetterDiscountFont, RelativeSource={RelativeSource AncestorType=Window}}">
-                                                <TextBlock.FontFamily>
-                                                    <MultiBinding Converter="{StaticResource LayoutFontFamilyMultiConverter}">
-                                                        <Binding Path="DataContext.ActiveLayout.BadgeFontFamily" RelativeSource="{RelativeSource AncestorType=Window}" />
-                                                        <Binding Path="DataContext.LayoutDefaultFontFamily" RelativeSource="{RelativeSource AncestorType=Window}" />
-                                                    </MultiBinding>
-                                                </TextBlock.FontFamily>
-                                            </TextBlock>
-                                        </Border>
-                                        <TextBlock Text="{Binding DataContext.TicketDiscountBadgeChar, RelativeSource={RelativeSource AncestorType=Window}}" Foreground="{DynamicResource TicketVoucherPrimaryTextBrush}" FontWeight="SemiBold" Margin="4,0"
-                                                   FontSize="{Binding DataContext.ActiveLayout.BadgeLetterDiscountFont, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                   Visibility="{Binding DataContext.ShowFramedTicketBadges, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
-                                            <TextBlock.FontFamily>
-                                                <MultiBinding Converter="{StaticResource LayoutFontFamilyMultiConverter}">
-                                                    <Binding Path="DataContext.ActiveLayout.BadgeFontFamily" RelativeSource="{RelativeSource AncestorType=Window}" />
-                                                    <Binding Path="DataContext.LayoutDefaultFontFamily" RelativeSource="{RelativeSource AncestorType=Window}" />
-                                                </MultiBinding>
-                                            </TextBlock.FontFamily>
-                                        </TextBlock>
-                                    </Grid>
+                                        </ContentControl.Visibility>
+                                    </ContentControl>
                                     <ItemsControl hit:LayoutWorkbenchHit.Kind="BadgePaymentRow" Canvas.Left="{Binding DataContext.ActiveLayout.BadgePaymentRowLeft, RelativeSource={RelativeSource AncestorType=Window}}"
                                                   Canvas.Top="{Binding DataContext.ActiveLayout.BadgePaymentRowTop, RelativeSource={RelativeSource AncestorType=Window}}"
                                                   ItemsSource="{Binding DataContext.PaymentBadgeLetters, RelativeSource={RelativeSource AncestorType=Window}}">
@@ -1281,31 +1384,7 @@
                                         </ItemsControl.ItemsPanel>
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
-                                                <Grid>
-                                                    <Border Margin="3,0" Padding="5,2" BorderBrush="{DynamicResource PrimaryBrush}" BorderThickness="1"
-                                                            CornerRadius="{Binding DataContext.BadgeCornerRadius, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                            Visibility="{Binding DataContext.ShowFramedTicketBadges, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BooleanToVisibilityConverter}}">
-                                                        <TextBlock Text="{Binding}" Foreground="{DynamicResource TicketVoucherPrimaryTextBrush}" FontWeight="SemiBold"
-                                                                   FontSize="{Binding DataContext.ActiveLayout.BadgePaymentRowFont, RelativeSource={RelativeSource AncestorType=Window}}">
-                                                            <TextBlock.FontFamily>
-                                                                <MultiBinding Converter="{StaticResource LayoutFontFamilyMultiConverter}">
-                                                                    <Binding Path="DataContext.ActiveLayout.BadgeFontFamily" RelativeSource="{RelativeSource AncestorType=Window}" />
-                                                                    <Binding Path="DataContext.LayoutDefaultFontFamily" RelativeSource="{RelativeSource AncestorType=Window}" />
-                                                                </MultiBinding>
-                                                            </TextBlock.FontFamily>
-                                                        </TextBlock>
-                                                    </Border>
-                                                    <TextBlock Text="{Binding}" Foreground="{DynamicResource TicketVoucherPrimaryTextBrush}" FontWeight="SemiBold" Margin="4,0"
-                                                               FontSize="{Binding DataContext.ActiveLayout.BadgePaymentRowFont, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                               Visibility="{Binding DataContext.ShowFramedTicketBadges, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
-                                                        <TextBlock.FontFamily>
-                                                            <MultiBinding Converter="{StaticResource LayoutFontFamilyMultiConverter}">
-                                                                <Binding Path="DataContext.ActiveLayout.BadgeFontFamily" RelativeSource="{RelativeSource AncestorType=Window}" />
-                                                                <Binding Path="DataContext.LayoutDefaultFontFamily" RelativeSource="{RelativeSource AncestorType=Window}" />
-                                                            </MultiBinding>
-                                                        </TextBlock.FontFamily>
-                                                    </TextBlock>
-                                                </Grid>
+                                                <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource TicketBadgeGlyphVisual}" />
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
                                     </ItemsControl>
@@ -1345,21 +1424,24 @@
             </ScrollViewer>
         </Grid>
 
-        <!-- 底部：导出 / 红蓝 / 关闭（文档 §8） -->
+        <!-- 底部操作 -->
         <Border Grid.Row="2" Background="{DynamicResource PanelBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0" Padding="10,8">
             <DockPanel LastChildFill="False">
                 <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
-                    <Button Content="导出 PNG（811×509）" Style="{StaticResource StandardButtonStyle}" Padding="12,6" Margin="0,0,10,0"
-                            Command="{Binding ExportPngCommand}" CommandParameter="{Binding ElementName=TicketPreviewSurface}" />
-                    <Button Content="蓝色票样" Style="{StaticResource StandardButtonStyle}" Margin="0,0,6,0" Padding="10,6"
-                            Command="{Binding SwitchRedBlueCommand}" CommandParameter="blue" />
-                    <Button Content="红色票样" Style="{StaticResource StandardButtonStyle}" Margin="0,0,12,0" Padding="10,6"
-                            Command="{Binding SwitchRedBlueCommand}" CommandParameter="red" />
+                    <Button Content="导出 PNG" Style="{StaticResource StandardButtonStyle}" Padding="12,6" Margin="0,0,10,0"
+                            Command="{Binding ExportPngCommand}" CommandParameter="{Binding ElementName=TicketPreviewSurface}"
+                            ToolTip="导出 811×509 像素 PNG" />
+                    <Button Content="蓝色" Style="{StaticResource StandardButtonStyle}" Margin="0,0,6,0" Padding="10,6"
+                            Command="{Binding SwitchRedBlueCommand}" CommandParameter="blue"
+                            ToolTip="蓝色票样" />
+                    <Button Content="红色" Style="{StaticResource StandardButtonStyle}" Margin="0,0,12,0" Padding="10,6"
+                            Command="{Binding SwitchRedBlueCommand}" CommandParameter="red"
+                            ToolTip="红色票样" />
                     <Button Content="关闭" Style="{StaticResource StandardButtonStyle}" Padding="12,6"
                             Command="{Binding CloseWindowCommand}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}" />
             </StackPanel>
                 <TextBlock DockPanel.Dock="Right" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryBrush}">
-                    <Run Text="{Binding TicketInfo, Mode=OneWay}" /><Run Text="  |  " /><Run Text="{Binding ZoomPercentText, Mode=OneWay}" />
+                    <Run Text="{Binding TicketInfo, Mode=OneWay}" /><Run Text="  ·  " /><Run Text="{Binding ZoomPercentText, Mode=OneWay}" />
                 </TextBlock>
             </DockPanel>
         </Border>

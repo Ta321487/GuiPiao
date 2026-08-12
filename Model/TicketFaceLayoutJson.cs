@@ -138,6 +138,9 @@ public sealed class TicketFaceLayoutSideDto
     public double CoachSeatTop { get; set; }
     public double CoachSeatFont { get; set; }
     public string? CoachSeatFontFamily { get; set; }
+    public double CoachJiaLeft { get; set; }
+    public double CoachJiaTop { get; set; }
+    public double CoachJiaFont { get; set; }
     public double CoachNumberLeft { get; set; }
     public double CoachNumberTop { get; set; }
     public double CoachNumberFont { get; set; }
@@ -267,6 +270,7 @@ public sealed class TicketFaceLayoutSideDto
         MoneyUnitLeft = o.MoneyUnitLeft, MoneyUnitTop = o.MoneyUnitTop, MoneyUnitFont = o.MoneyUnitFont,
         CoachSeatRight = o.CoachSeatRight, CoachSeatTop = o.CoachSeatTop, CoachSeatFont = o.CoachSeatFont,
         CoachSeatFontFamily = o.CoachSeatFontFamily,
+        CoachJiaLeft = o.CoachJiaLeft, CoachJiaTop = o.CoachJiaTop, CoachJiaFont = o.CoachJiaFont,
         CoachNumberLeft = o.CoachNumberLeft, CoachNumberTop = o.CoachNumberTop, CoachNumberFont = o.CoachNumberFont,
         CoachCheLeft = o.CoachCheLeft, CoachCheTop = o.CoachCheTop, CoachCheFont = o.CoachCheFont,
         SeatNumberLeft = o.SeatNumberLeft, SeatNumberTop = o.SeatNumberTop, SeatNumberFont = o.SeatNumberFont,
@@ -425,6 +429,9 @@ public sealed class TicketFaceLayoutSideDto
         o.CoachSeatTop = CoachSeatTop;
         o.CoachSeatFont = CoachSeatFont;
         o.CoachSeatFontFamily = CoachSeatFontFamily;
+        o.CoachJiaLeft = CoachJiaLeft;
+        o.CoachJiaTop = CoachJiaTop;
+        o.CoachJiaFont = CoachJiaFont;
         o.CoachNumberLeft = CoachNumberLeft;
         o.CoachNumberTop = CoachNumberTop;
         o.CoachNumberFont = CoachNumberFont;

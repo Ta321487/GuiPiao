@@ -56,6 +56,7 @@ public partial class TicketPreviewViewModel
         new(TicketFaceLayoutElementKind.MoneySymbol, "金额·￥"),
         new(TicketFaceLayoutElementKind.MoneyAmount, "金额·数字"),
         new(TicketFaceLayoutElementKind.MoneyUnit, "金额·元"),
+        new(TicketFaceLayoutElementKind.CoachJia, "车厢·加字"),
         new(TicketFaceLayoutElementKind.CoachNumber, "车厢号"),
         new(TicketFaceLayoutElementKind.CoachChe, "车厢·车字"),
         new(TicketFaceLayoutElementKind.SeatNumber, "座位号"),
@@ -88,6 +89,12 @@ public partial class TicketPreviewViewModel
     /// <summary>票面上拖拽微调与「对齐网格」使用的磁吸步长（px）。</summary>
     [ObservableProperty] private double _workbenchLayoutSnapStepPixels = 8;
 
+    /// <summary>拖拽 / 步进 / 对齐网格时，同组元素整体平移（默认开）。</summary>
+    [ObservableProperty] private bool _workbenchMoveAsGroup = true;
+
+    /// <summary>站名组成组时是否连同拼音平移（默认开）。</summary>
+    [ObservableProperty] private bool _workbenchStationGroupIncludesPinyin = true;
+
     /// <summary>布局工作台「复制字号」缓存（箭头为线粗，其余为字号）。</summary>
     [ObservableProperty] private double? _copiedWorkbenchFontSize;
 
@@ -107,7 +114,7 @@ public partial class TicketPreviewViewModel
         {
             TicketFaceLayoutElementKind.Qr => "二维码边长",
             TicketFaceLayoutElementKind.Arrow => "箭头长度（px）",
-            _ => "提示区宽度"
+            _ => "提示区最大宽度"
         };
 
     public double EditorExtraMinimum =>
@@ -139,13 +146,13 @@ public partial class TicketPreviewViewModel
     public string EditorAnchorXLabel =>
         EditorUsesStationZhanGap ? "站字间距（px）"
         : SelectedLayoutElementItem?.Kind == TicketFaceLayoutElementKind.DepartStation && CurrentDepartStationHanCount > 0
-            ? $"左边距（当前 {CurrentDepartStationHanCount} 字，{StationFaceHanCountLayout.ReferenceHanCount} 字为基准）"
+            ? $"左边距（{CurrentDepartStationHanCount} 字）"
         : SelectedLayoutElementItem?.Kind == TicketFaceLayoutElementKind.ArriveStation && CurrentArriveStationHanCount > 0
-            ? $"左边距（当前 {CurrentArriveStationHanCount} 字，{StationFaceHanCountLayout.ReferenceHanCount} 字为基准）"
-        : "X（Canvas.Left）";
+            ? $"左边距（{CurrentArriveStationHanCount} 字）"
+        : "X";
 
     public string EditorAnchorYLabel =>
-        EditorUsesStationZhanGap ? "站字上偏移（px）" : "Y（Canvas.Top）";
+        EditorUsesStationZhanGap ? "站字上偏移（px）" : "Y";
 
     public double EditorAnchorXMaximum => EditorUsesStationZhanGap ? 120 : WorkbenchFaceWidth;
 
@@ -170,26 +177,68 @@ public partial class TicketPreviewViewModel
     /// <summary>字号格式刷状态说明。</summary>
     public string WorkbenchCopiedFontSizeCaption =>
         CopiedWorkbenchFontSize is { } d
-            ? $"已缓存：{d:0.##}（粘贴时：正文→字号，箭头→线粗，二维码→边长，均按目标允许范围夹紧）"
-            : "未复制";
+            ? $"剪贴板：{d:0.##}"
+            : "剪贴板：空";
 
     public bool EditorShowsFontFamily =>
         SelectedLayoutElementItem?.Kind is not (TicketFaceLayoutElementKind.Qr or TicketFaceLayoutElementKind.Arrow);
 
-    private IReadOnlyList<string>? _layoutDefaultFontPickerItemsCache;
-    private IReadOnlyList<string>? _editorFontPickerItemsCache;
+    public bool EditorShowsMoveAsGroup =>
+        SelectedLayoutElementItem != null &&
+        TicketFaceLayoutMoveGroups.Find(SelectedLayoutElementItem.Kind) != null;
 
-    /// <summary>全局后备字体下拉项：系统字体 + 当前值（若为浏览得到的非列表项则插在前列）。</summary>
-    public IReadOnlyList<string> LayoutDefaultFontPickerItems =>
-        _layoutDefaultFontPickerItemsCache ??= BuildLayoutDefaultFontPickerItems();
+    /// <summary>选中简字相关元素时显示「紧贴排布」。</summary>
+    public bool EditorShowsBadgePack =>
+        SelectedLayoutElementItem != null &&
+        IsTypeOrPaymentBadgeKind(SelectedLayoutElementItem.Kind);
 
-    /// <summary>本元素字体下拉项：首项为空表示不单独指定；其余为系统字体 + 当前非列表值。</summary>
-    public IReadOnlyList<string> EditorFontPickerItems =>
-        _editorFontPickerItemsCache ??= BuildEditorFontPickerItems();
+    public bool EditorShowsStationGroupIncludesPinyin
+    {
+        get
+        {
+            if (SelectedLayoutElementItem == null || !WorkbenchMoveAsGroup) return false;
+            var g = TicketFaceLayoutMoveGroups.Find(SelectedLayoutElementItem.Kind);
+            return g != null && TicketFaceLayoutMoveGroups.IsStationGroup(g);
+        }
+    }
+
+    public string WorkbenchMoveGroupToolTip
+    {
+        get
+        {
+            if (SelectedLayoutElementItem == null) return "成组移动";
+            var g = TicketFaceLayoutMoveGroups.Find(SelectedLayoutElementItem.Kind);
+            return g == null
+                ? "当前元素无关联组"
+                : $"同步移动「{g.Name}」";
+        }
+    }
+
+    partial void OnWorkbenchMoveAsGroupChanged(bool value) => NotifyWorkbenchMoveGroupUi();
+
+    private void NotifyWorkbenchMoveGroupUi()
+    {
+        OnPropertyChanged(nameof(EditorShowsMoveAsGroup));
+        OnPropertyChanged(nameof(EditorShowsBadgePack));
+        OnPropertyChanged(nameof(EditorShowsStationGroupIncludesPinyin));
+        OnPropertyChanged(nameof(WorkbenchMoveGroupToolTip));
+    }
+
+    private IReadOnlyList<WorkbenchFontPickItem>? _layoutDefaultFontPickerItemsCache;
+    private IReadOnlyList<WorkbenchFontPickItem>? _editorFontPickerItemsCache;
+
+    /// <summary>默认字体短列表（不强制指定 / 当前值 / 推荐），全部系统字体走「系统…」。</summary>
+    public IReadOnlyList<WorkbenchFontPickItem> LayoutDefaultFontPickerItems =>
+        _layoutDefaultFontPickerItemsCache ??= BuildLayoutDefaultFontPickItems();
+
+    /// <summary>元素字体短列表（跟随默认 / 当前值 / 推荐）。</summary>
+    public IReadOnlyList<WorkbenchFontPickItem> EditorFontPickerItems =>
+        _editorFontPickerItemsCache ??= BuildEditorFontPickItems();
 
     partial void OnLayoutDefaultFontFamilyChanged(string value)
     {
         InvalidateLayoutDefaultFontPickerItems();
+        InvalidateEditorFontPickerItems();
         OnPropertyChanged(nameof(ActiveLayout));
     }
 
@@ -197,7 +246,6 @@ public partial class TicketPreviewViewModel
     {
         LayoutIsolationTargetKind = value?.Kind;
         PullEditorFromLayout();
-        InvalidateEditorFontPickerItems();
         OnPropertyChanged(nameof(EditorShowsExtraDimension));
         OnPropertyChanged(nameof(EditorExtraLabel));
         OnPropertyChanged(nameof(EditorExtraMinimum));
@@ -216,6 +264,11 @@ public partial class TicketPreviewViewModel
         OnPropertyChanged(nameof(EditorAnchorXMaximum));
         OnPropertyChanged(nameof(EditorAnchorYMaximum));
         OnPropertyChanged(nameof(EditorAnchorYMinimum));
+        OnPropertyChanged(nameof(DepartStationCharacterSpacingAdjustable));
+        OnPropertyChanged(nameof(ArriveStationCharacterSpacingAdjustable));
+        OnPropertyChanged(nameof(WorkbenchDepartStationLayoutCaption));
+        OnPropertyChanged(nameof(WorkbenchArriveStationLayoutCaption));
+        NotifyWorkbenchMoveGroupUi();
     }
 
     partial void OnCopiedWorkbenchFontSizeChanged(double? value)
@@ -242,37 +295,38 @@ public partial class TicketPreviewViewModel
         OnPropertyChanged(nameof(EditorFontPickerItems));
     }
 
-    private IReadOnlyList<string> BuildLayoutDefaultFontPickerItems()
+    private List<WorkbenchFontPickItem> BuildLayoutDefaultFontPickItems()
     {
-        var sys = FontFamilyPickerSupport.SystemFontFamilySources;
-        var cur = (LayoutDefaultFontFamily ?? "").Trim();
-        if (string.IsNullOrEmpty(cur)) return sys;
-        foreach (var s in sys)
-            if (string.Equals(s, cur, StringComparison.OrdinalIgnoreCase))
-                return sys;
-        var merged = new List<string>(sys.Count + 1) { cur };
-        foreach (var s in sys)
-            if (!string.Equals(s, cur, StringComparison.OrdinalIgnoreCase))
-                merged.Add(s);
-        return merged;
+        var cur = FontFamilyPickerSupport.CanonicalizeSource(LayoutDefaultFontFamily);
+        var list = new List<WorkbenchFontPickItem>
+        {
+            new(string.Empty, "（默认）", "选项")
+        };
+        AppendCurrentAndRecommended(list, cur);
+        return list;
     }
 
-    private IReadOnlyList<string> BuildEditorFontPickerItems()
+    private List<WorkbenchFontPickItem> BuildEditorFontPickItems()
     {
-        var sys = FontFamilyPickerSupport.SystemFontFamilySources;
-        var cur = (EditorFontFamily ?? "").Trim();
-        var list = new List<string> { string.Empty };
-        if (!string.IsNullOrEmpty(cur) &&
-            !sys.Any(s => string.Equals(s, cur, StringComparison.OrdinalIgnoreCase)))
-            list.Add(cur);
-        foreach (var s in sys)
+        var cur = FontFamilyPickerSupport.CanonicalizeSource(EditorFontFamily);
+        var inherit = string.IsNullOrWhiteSpace(LayoutDefaultFontFamily)
+            ? "继承默认"
+            : $"继承默认（{FontFamilyPickerSupport.ShortDisplayName(LayoutDefaultFontFamily)}）";
+        var list = new List<WorkbenchFontPickItem>
         {
-            if (string.IsNullOrEmpty(s)) continue;
-            if (list.Any(x => string.Equals(x, s, StringComparison.OrdinalIgnoreCase))) continue;
-            list.Add(s);
-        }
-
+            new(string.Empty, inherit, "选项")
+        };
+        AppendCurrentAndRecommended(list, cur);
         return list;
+    }
+
+    private static void AppendCurrentAndRecommended(List<WorkbenchFontPickItem> list, string cur)
+    {
+        if (!string.IsNullOrEmpty(cur) && !FontFamilyPickerSupport.IsInRecommended(cur))
+            list.Add(new WorkbenchFontPickItem(cur, FontFamilyPickerSupport.ShortDisplayName(cur), "当前"));
+
+        foreach (var s in FontFamilyPickerSupport.RecommendedInstalledSources)
+            list.Add(new WorkbenchFontPickItem(s, s, "推荐"));
     }
 
     partial void OnEditorAnchorXChanged(double value)
@@ -305,11 +359,51 @@ public partial class TicketPreviewViewModel
         PushEditorToLayout();
     }
 
+    /// <summary>
+    ///     按 Δ 平移选中块；若开启成组移动，则同组绝对坐标成员一起平移（「站」字为相对量，不单独加 Δ）。
+    /// </summary>
     public void ApplyLayoutDrag(double dx, double dy)
     {
         if (SelectedLayoutElementItem == null) return;
+        if (Math.Abs(dx) < 1e-9 && Math.Abs(dy) < 1e-9) return;
+
+        foreach (var kind in ResolveGroupMoveKinds(SelectedLayoutElementItem.Kind))
+            ApplyLayoutDragCore(kind, dx, dy);
+
+        // 成组=同 Δ 平移并保留相对间距；紧贴请用「紧贴排布」
+        OnPropertyChanged(nameof(ArrowCanvasLeft));
+        PullEditorFromLayout();
+    }
+
+    private IReadOnlyList<TicketFaceLayoutElementKind> ResolveGroupMoveKinds(TicketFaceLayoutElementKind selected)
+    {
+        if (!WorkbenchMoveAsGroup)
+            return new[] { selected };
+
+        var group = TicketFaceLayoutMoveGroups.Find(selected);
+        if (group == null)
+            return new[] { selected };
+
+        var members = TicketFaceLayoutMoveGroups.GetAbsoluteMoveMembers(group, WorkbenchStationGroupIncludesPinyin);
+        if (members.Count == 0)
+            return new[] { selected };
+
+        // 未勾选「含拼音」且当前正在编拼音时，至少移动拼音自身
+        if ((selected is TicketFaceLayoutElementKind.DepartPinyin or TicketFaceLayoutElementKind.ArrivePinyin) &&
+            !members.Contains(selected))
+        {
+            var withSelf = members.ToList();
+            withSelf.Add(selected);
+            return withSelf;
+        }
+
+        return members;
+    }
+
+    private void ApplyLayoutDragCore(TicketFaceLayoutElementKind kind, double dx, double dy)
+    {
         var L = ActiveLayout;
-        switch (SelectedLayoutElementItem.Kind)
+        switch (kind)
         {
             case TicketFaceLayoutElementKind.TicketSerial: L.TicketSerialLeft += dx; L.TicketSerialTop += dy; break;
             case TicketFaceLayoutElementKind.CheckInLabel: L.CheckInLeft += dx; L.CheckInTop += dy; break;
@@ -344,6 +438,8 @@ public partial class TicketPreviewViewModel
             case TicketFaceLayoutElementKind.MoneyUnit:
                 L.MoneyUnitLeft += dx; L.MoneyUnitTop += dy; break;
             case TicketFaceLayoutElementKind.CoachSeat:
+            case TicketFaceLayoutElementKind.CoachJia:
+                L.CoachJiaLeft += dx; L.CoachJiaTop += dy; break;
             case TicketFaceLayoutElementKind.CoachNumber:
                 L.CoachNumberLeft += dx; L.CoachNumberTop += dy; break;
             case TicketFaceLayoutElementKind.CoachChe:
@@ -363,18 +459,14 @@ public partial class TicketPreviewViewModel
             case TicketFaceLayoutElementKind.HintBox: L.HintBoxLeft += dx; L.HintBoxTop += dy; break;
             case TicketFaceLayoutElementKind.Footer: L.FooterLeft += dx; L.FooterTop += dy; break;
             case TicketFaceLayoutElementKind.Qr: L.QrLeft += dx; L.QrTop += dy; break;
-            case TicketFaceLayoutElementKind.BadgeLetterXue: L.BadgeLetterXueLeft += dx; L.BadgeLetterXueTop += dy; break;
-            case TicketFaceLayoutElementKind.BadgeLetterHai: L.BadgeLetterHaiLeft += dx; L.BadgeLetterHaiTop += dy; break;
-            case TicketFaceLayoutElementKind.BadgeLetterWang: L.BadgeLetterWangLeft += dx; L.BadgeLetterWangTop += dy; break;
+            case TicketFaceLayoutElementKind.BadgeLetterXue:
+            case TicketFaceLayoutElementKind.BadgeLetterHai:
+            case TicketFaceLayoutElementKind.BadgeLetterWang:
             case TicketFaceLayoutElementKind.BadgeLetterDiscount:
-                L.BadgeLetterDiscountLeft += dx;
-                L.BadgeLetterDiscountTop += dy;
+                NudgeBadgeLetterPos(L, kind, dx, dy);
                 break;
             case TicketFaceLayoutElementKind.BadgePaymentRow: L.BadgePaymentRowLeft += dx; L.BadgePaymentRowTop += dy; break;
         }
-
-        OnPropertyChanged(nameof(ArrowCanvasLeft));
-        PullEditorFromLayout();
     }
 
     private const double WorkbenchFaceWidth = 811;
@@ -383,6 +475,33 @@ public partial class TicketPreviewViewModel
     private Point _workbenchSurfaceDragMouse0;
     private double _workbenchSurfaceDragAnchor0X;
     private double _workbenchSurfaceDragAnchor0Y;
+    private bool _workbenchSurfaceDragUsesGroupRoot;
+
+    /// <summary>
+    ///     成组拖拽时用画布绝对锚点（站字相对量改为站名画布坐标）。
+    /// </summary>
+    private bool UsesGroupCanvasDragRoot =>
+        WorkbenchMoveAsGroup &&
+        SelectedLayoutElementItem != null &&
+        TicketFaceLayoutMoveGroups.Find(SelectedLayoutElementItem.Kind) != null;
+
+    private (double X, double Y) GetGroupDragRootCanvasPosition()
+    {
+        var L = ActiveLayout;
+        var kind = SelectedLayoutElementItem?.Kind;
+        return kind switch
+        {
+            TicketFaceLayoutElementKind.DepartStationZhan =>
+                (StationFaceHanCountLayout.GetDepartCanvasLeft(L, CurrentDepartStationHanCount), L.DepartStationTop),
+            TicketFaceLayoutElementKind.ArriveStationZhan =>
+                (StationFaceHanCountLayout.GetArriveCanvasLeft(L, CurrentArriveStationHanCount), L.ArriveStationTop),
+            TicketFaceLayoutElementKind.DepartStation =>
+                (StationFaceHanCountLayout.GetDepartCanvasLeft(L, CurrentDepartStationHanCount), L.DepartStationTop),
+            TicketFaceLayoutElementKind.ArriveStation =>
+                (StationFaceHanCountLayout.GetArriveCanvasLeft(L, CurrentArriveStationHanCount), L.ArriveStationTop),
+            _ => (EditorAnchorX, EditorAnchorY)
+        };
+    }
 
     /// <summary>
     /// 在票面上拖拽微调开始时调用：记录鼠标与当前锚点，后续用 <see cref="ApplyWorkbenchSurfaceDrag"/> 按绝对位移 + 网格磁吸更新。
@@ -392,8 +511,18 @@ public partial class TicketPreviewViewModel
         if (SelectedLayoutElementItem == null || !IsVisualLayoutEdit) return;
         PullEditorFromLayout();
         _workbenchSurfaceDragMouse0 = new Point(surfaceMouseX, surfaceMouseY);
-        _workbenchSurfaceDragAnchor0X = EditorAnchorX;
-        _workbenchSurfaceDragAnchor0Y = EditorAnchorY;
+        _workbenchSurfaceDragUsesGroupRoot = UsesGroupCanvasDragRoot;
+        if (_workbenchSurfaceDragUsesGroupRoot)
+        {
+            var (ax, ay) = GetGroupDragRootCanvasPosition();
+            _workbenchSurfaceDragAnchor0X = ax;
+            _workbenchSurfaceDragAnchor0Y = ay;
+        }
+        else
+        {
+            _workbenchSurfaceDragAnchor0X = EditorAnchorX;
+            _workbenchSurfaceDragAnchor0Y = EditorAnchorY;
+        }
     }
 
     /// <summary>
@@ -409,6 +538,14 @@ public partial class TicketPreviewViewModel
         var step = NormalizeWorkbenchSnapStep(WorkbenchLayoutSnapStepPixels);
         tx = SnapWorkbenchCoord(tx, step);
         ty = SnapWorkbenchCoord(ty, step);
+
+        if (_workbenchSurfaceDragUsesGroupRoot)
+        {
+            var (nowX, nowY) = GetGroupDragRootCanvasPosition();
+            ApplyLayoutDrag(tx - nowX, ty - nowY);
+            return;
+        }
+
         _editorSync = true;
         try
         {
@@ -435,14 +572,24 @@ public partial class TicketPreviewViewModel
     {
         if (SelectedLayoutElementItem == null) return;
         step = NormalizeWorkbenchSnapStep(step);
+
+        if (UsesGroupCanvasDragRoot)
+        {
+            var (nowX, nowY) = GetGroupDragRootCanvasPosition();
+            var x = ClampWorkbench(SnapWorkbenchCoord(nowX, step), 0, WorkbenchFaceWidth);
+            var y = ClampWorkbench(SnapWorkbenchCoord(nowY, step), 0, WorkbenchFaceHeight);
+            ApplyLayoutDrag(x - nowX, y - nowY);
+            return;
+        }
+
         var (xMin, xMax, yMin, yMax) = GetEditorAnchorClampRanges();
-        var x = ClampWorkbench(SnapWorkbenchCoord(EditorAnchorX, step), xMin, xMax);
-        var y = ClampWorkbench(SnapWorkbenchCoord(EditorAnchorY, step), yMin, yMax);
+        var sx = ClampWorkbench(SnapWorkbenchCoord(EditorAnchorX, step), xMin, xMax);
+        var sy = ClampWorkbench(SnapWorkbenchCoord(EditorAnchorY, step), yMin, yMax);
         _editorSync = true;
         try
         {
-            EditorAnchorX = x;
-            EditorAnchorY = y;
+            EditorAnchorX = sx;
+            EditorAnchorY = sy;
         }
         finally
         {
@@ -457,6 +604,13 @@ public partial class TicketPreviewViewModel
     private void ApplyEditorAnchorDelta(double dx, double dy)
     {
         if (SelectedLayoutElementItem == null) return;
+
+        if (UsesGroupCanvasDragRoot)
+        {
+            ApplyLayoutDrag(dx, dy);
+            return;
+        }
+
         var (xMin, xMax, yMin, yMax) = GetEditorAnchorClampRanges();
         var x = ClampWorkbench(EditorAnchorX + dx, xMin, xMax);
         var y = ClampWorkbench(EditorAnchorY + dy, yMin, yMax);
@@ -494,14 +648,24 @@ public partial class TicketPreviewViewModel
     private void RoundWorkbenchPositionToInteger()
     {
         if (SelectedLayoutElementItem == null) return;
+
+        if (UsesGroupCanvasDragRoot)
+        {
+            var (nowX, nowY) = GetGroupDragRootCanvasPosition();
+            var x = ClampWorkbench(Math.Round(nowX), 0, WorkbenchFaceWidth);
+            var y = ClampWorkbench(Math.Round(nowY), 0, WorkbenchFaceHeight);
+            ApplyLayoutDrag(x - nowX, y - nowY);
+            return;
+        }
+
         var (xMin, xMax, yMin, yMax) = GetEditorAnchorClampRanges();
-        var x = ClampWorkbench(Math.Round(EditorAnchorX), xMin, xMax);
-        var y = ClampWorkbench(Math.Round(EditorAnchorY), yMin, yMax);
+        var rx = ClampWorkbench(Math.Round(EditorAnchorX), xMin, xMax);
+        var ry = ClampWorkbench(Math.Round(EditorAnchorY), yMin, yMax);
         _editorSync = true;
         try
         {
-            EditorAnchorX = x;
-            EditorAnchorY = y;
+            EditorAnchorX = rx;
+            EditorAnchorY = ry;
         }
         finally
         {
@@ -592,6 +756,18 @@ public partial class TicketPreviewViewModel
 
     private static string ReadEditorFontFamilyFromLayout(string? elementFontFamily) =>
         string.IsNullOrWhiteSpace(elementFontFamily) ? string.Empty : elementFontFamily.Trim();
+
+    /// <summary>
+    ///     Pull 后刷新「元素字体」短列表，并把当前值规范成可选项（大小写/空串），
+    ///     避免 ComboBox SelectedValue 对不上而空白回显。
+    ///     须在 <see cref="_editorSync"/> 为 true 时调用。
+    /// </summary>
+    private void SyncEditorFontPickerAfterPull()
+    {
+        EditorFontFamily = FontFamilyPickerSupport.CanonicalizeSource(EditorFontFamily);
+        InvalidateEditorFontPickerItems();
+        OnPropertyChanged(nameof(EditorFontFamily));
+    }
 
     private void PullEditorFromLayout()
     {
@@ -737,6 +913,12 @@ public partial class TicketPreviewViewModel
                     EditorFontSize = L.MoneyUnitFont > 0.01 ? L.MoneyUnitFont : L.MoneyRowFont;
                     EditorFontFamily = L.MoneyRowFontFamily ?? string.Empty;
                     break;
+                case TicketFaceLayoutElementKind.CoachJia:
+                    EditorAnchorX = L.CoachJiaLeft;
+                    EditorAnchorY = L.CoachJiaTop;
+                    EditorFontSize = L.CoachJiaFont > 0.01 ? L.CoachJiaFont : L.CoachSeatFont;
+                    EditorFontFamily = L.CoachSeatFontFamily ?? string.Empty;
+                    break;
                 case TicketFaceLayoutElementKind.CoachSeat:
                 case TicketFaceLayoutElementKind.CoachNumber:
                     EditorAnchorX = L.CoachNumberLeft;
@@ -812,33 +994,15 @@ public partial class TicketPreviewViewModel
                     EditorFontSize = L.QrSize;
                     break;
                 case TicketFaceLayoutElementKind.BadgeLetterXue:
-                    EditorAnchorX = L.BadgeLetterXueLeft;
-                    EditorAnchorY = L.BadgeLetterXueTop;
-                    EditorFontSize = L.BadgeLetterXueFont;
-                    EditorFontFamily = L.BadgeFontFamily ?? string.Empty;
-                    break;
                 case TicketFaceLayoutElementKind.BadgeLetterHai:
-                    EditorAnchorX = L.BadgeLetterHaiLeft;
-                    EditorAnchorY = L.BadgeLetterHaiTop;
-                    EditorFontSize = L.BadgeLetterHaiFont;
-                    EditorFontFamily = L.BadgeFontFamily ?? string.Empty;
-                    break;
                 case TicketFaceLayoutElementKind.BadgeLetterWang:
-                    EditorAnchorX = L.BadgeLetterWangLeft;
-                    EditorAnchorY = L.BadgeLetterWangTop;
-                    EditorFontSize = L.BadgeLetterWangFont;
-                    EditorFontFamily = L.BadgeFontFamily ?? string.Empty;
-                    break;
                 case TicketFaceLayoutElementKind.BadgeLetterDiscount:
-                    EditorAnchorX = L.BadgeLetterDiscountLeft;
-                    EditorAnchorY = L.BadgeLetterDiscountTop;
-                    EditorFontSize = L.BadgeLetterDiscountFont;
-                    EditorFontFamily = L.BadgeFontFamily ?? string.Empty;
+                    PullTypeBadgeLetterEditor(SelectedLayoutElementItem.Kind);
                     break;
                 case TicketFaceLayoutElementKind.BadgePaymentRow:
                     EditorAnchorX = L.BadgePaymentRowLeft;
                     EditorAnchorY = L.BadgePaymentRowTop;
-                    EditorFontSize = L.BadgePaymentRowFont;
+                    EditorFontSize = L.BadgeFont > 0.01 ? L.BadgeFont : L.BadgePaymentRowFont;
                     EditorFontFamily = L.BadgeFontFamily ?? string.Empty;
                     break;
             }
@@ -847,6 +1011,7 @@ public partial class TicketPreviewViewModel
             OnPropertyChanged(nameof(EditorExtraLabel));
             OnPropertyChanged(nameof(EditorShowsFontSize));
             OnPropertyChanged(nameof(EditorShowsFontFamily));
+            SyncEditorFontPickerAfterPull();
         }
         finally
         {
@@ -999,6 +1164,12 @@ public partial class TicketPreviewViewModel
                 L.MoneyUnitFont = EditorFontSize;
                 L.MoneyRowFontFamily = NullIfEmpty(EditorFontFamily);
                 break;
+            case TicketFaceLayoutElementKind.CoachJia:
+                L.CoachJiaLeft = EditorAnchorX;
+                L.CoachJiaTop = EditorAnchorY;
+                L.CoachJiaFont = EditorFontSize;
+                L.CoachSeatFontFamily = NullIfEmpty(EditorFontFamily);
+                break;
             case TicketFaceLayoutElementKind.CoachSeat:
             case TicketFaceLayoutElementKind.CoachNumber:
                 L.CoachNumberLeft = EditorAnchorX;
@@ -1076,35 +1247,27 @@ public partial class TicketPreviewViewModel
                 L.QrSize = Math.Clamp(EditorExtra, 40, 400);
                 break;
             case TicketFaceLayoutElementKind.BadgeLetterXue:
-                L.BadgeLetterXueLeft = EditorAnchorX;
-                L.BadgeLetterXueTop = EditorAnchorY;
-                L.BadgeLetterXueFont = EditorFontSize;
-                L.BadgeFontFamily = NullIfEmpty(EditorFontFamily);
-                break;
             case TicketFaceLayoutElementKind.BadgeLetterHai:
-                L.BadgeLetterHaiLeft = EditorAnchorX;
-                L.BadgeLetterHaiTop = EditorAnchorY;
-                L.BadgeLetterHaiFont = EditorFontSize;
-                L.BadgeFontFamily = NullIfEmpty(EditorFontFamily);
-                break;
             case TicketFaceLayoutElementKind.BadgeLetterWang:
-                L.BadgeLetterWangLeft = EditorAnchorX;
-                L.BadgeLetterWangTop = EditorAnchorY;
-                L.BadgeLetterWangFont = EditorFontSize;
-                L.BadgeFontFamily = NullIfEmpty(EditorFontFamily);
-                break;
             case TicketFaceLayoutElementKind.BadgeLetterDiscount:
-                L.BadgeLetterDiscountLeft = EditorAnchorX;
-                L.BadgeLetterDiscountTop = EditorAnchorY;
-                L.BadgeLetterDiscountFont = EditorFontSize;
-                L.BadgeFontFamily = NullIfEmpty(EditorFontFamily);
+                PushTypeBadgeLetterEditor(SelectedLayoutElementItem.Kind);
                 break;
             case TicketFaceLayoutElementKind.BadgePaymentRow:
-                L.BadgePaymentRowLeft = EditorAnchorX;
-                L.BadgePaymentRowTop = EditorAnchorY;
-                L.BadgePaymentRowFont = EditorFontSize;
+            {
+                var oldFont = L.BadgeFont > 0.01 ? L.BadgeFont : L.BadgeLetterXueFont;
+                var fontChanged = Math.Abs(oldFont - EditorFontSize) > 0.01;
+                if (WorkbenchMoveAsGroup)
+                    ShiftTypeBadgeRow(L.BadgePaymentRowLeft, L.BadgePaymentRowTop, EditorAnchorX, EditorAnchorY);
+                else
+                {
+                    L.BadgePaymentRowLeft = EditorAnchorX;
+                    L.BadgePaymentRowTop = EditorAnchorY;
+                }
+
                 L.BadgeFontFamily = NullIfEmpty(EditorFontFamily);
+                ApplySharedTypeBadgeFont(EditorFontSize, reflowGaps: fontChanged);
                 break;
+            }
         }
 
         OnPropertyChanged(nameof(ArrowCanvasLeft));
@@ -1283,7 +1446,7 @@ public partial class TicketPreviewViewModel
     }
 
     /// <summary>
-    ///     「票面参数调整」窗口关闭时自动写入默认 JSON（与「写入默认路径」相同），下次打开预览会加载。
+    ///     「编辑票面版式」窗口关闭时自动写入默认 JSON（与「保存为默认」相同），下次打开会载入。
     ///     失败时提示（如无写权限），成功则静默。
     /// </summary>
     public void TryPersistLayoutOnWorkbenchClosing()
@@ -1300,8 +1463,8 @@ public partial class TicketPreviewViewModel
         {
             var owner = Application.Current?.MainWindow ?? GetLayoutDialogOwnerWindow();
             GuiPiao.View.MessageBoxWindow.Show(owner,
-                $"关闭时自动保存票面布局失败：{ex.Message}\n\n可尝试「导出布局 JSON」保存到桌面等有写权限的位置，或检查程序目录下 Config 是否可写。",
-                "票面布局",
+                $"自动保存版式失败：{ex.Message}\n\n可改用「导出…」保存到有写权限的位置，或检查 Config 目录是否可写。",
+                "票面版式",
                 MessageBoxButton.OK, MessageBoxImage.Warning);
         }
     }
@@ -1324,6 +1487,40 @@ public partial class TicketPreviewViewModel
         }
     }
 
+    /// <summary>简字区强制从左到右紧贴（对齐用；成组移动不会自动做这个）。</summary>
+    [RelayCommand]
+    private void PackBadgeLettersTight()
+    {
+        PackTypeBadgeLetters();
+        PullEditorFromLayout();
+    }
+
+    /// <summary>从全部系统字体中挑选（可搜索）；推荐字体请用外侧短列表。</summary>
+    [RelayCommand]
+    private void PickWorkbenchSystemFont(string? target)
+    {
+        if (!string.Equals(target, "default", StringComparison.OrdinalIgnoreCase) &&
+            !string.Equals(target, "editor", StringComparison.OrdinalIgnoreCase))
+            return;
+
+        var owner = GetLayoutDialogOwnerWindow();
+        var current = string.Equals(target, "default", StringComparison.OrdinalIgnoreCase)
+            ? LayoutDefaultFontFamily
+            : EditorFontFamily;
+        var win = new GuiPiao.View.WorkbenchSystemFontPickWindow(current);
+        if (owner != null) win.Owner = owner;
+        if (win.ShowDialog() != true || string.IsNullOrWhiteSpace(win.SelectedSource)) return;
+
+        var src = FontFamilyPickerSupport.CanonicalizeSource(win.SelectedSource);
+        if (string.Equals(target, "default", StringComparison.OrdinalIgnoreCase))
+            LayoutDefaultFontFamily = src;
+        else
+        {
+            EditorFontFamily = src;
+            InvalidateEditorFontPickerItems();
+        }
+    }
+
     /// <summary>从 ttf/otf/ttc 解析族名并写入全局后备字体或当前编辑元素字体。</summary>
     [RelayCommand]
     private void PickWorkbenchFontFromFile(string? target)
@@ -1342,16 +1539,16 @@ public partial class TicketPreviewViewModel
             string.IsNullOrWhiteSpace(src))
         {
             GuiPiao.View.MessageBoxWindow.Show(owner ?? Application.Current?.MainWindow,
-                "无法从所选文件解析字体族，请更换字体文件或手动在左侧输入族名。", "字体",
+                "无法解析字体文件。", "字体",
                 MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
 
         if (string.Equals(target, "default", StringComparison.OrdinalIgnoreCase))
-            LayoutDefaultFontFamily = src.Trim();
+            LayoutDefaultFontFamily = FontFamilyPickerSupport.CanonicalizeSource(src.Trim());
         else
         {
-            EditorFontFamily = src.Trim();
+            EditorFontFamily = FontFamilyPickerSupport.CanonicalizeSource(src.Trim());
             InvalidateEditorFontPickerItems();
         }
     }
@@ -1362,7 +1559,7 @@ public partial class TicketPreviewViewModel
         var owner = GetLayoutDialogOwnerWindow();
         var dlg = new SaveFileDialog
         {
-            Filter = "JSON 布局|*.json|所有文件|*.*",
+            Filter = "JSON 版式|*.json|所有文件|*.*",
             FileName = "ticket-face-layout.json"
         };
         if (dlg.ShowDialog(owner) != true) return;
@@ -1371,7 +1568,7 @@ public partial class TicketPreviewViewModel
             var dto = TicketFaceLayoutJson.BuildFileDto(LayoutDefaultFontFamily, _layoutBlue, _layoutRed,
                 SelectedLayoutElementItem?.Kind.ToString());
             TicketFaceLayoutJson.SaveToFile(dlg.FileName, dto);
-            GuiPiao.View.MessageBoxWindow.Show(owner, $"已保存：{dlg.FileName}", "票面布局",
+            GuiPiao.View.MessageBoxWindow.Show(owner, $"已保存：{dlg.FileName}", "票面版式",
                 MessageBoxButton.OK, MessageBoxImage.Information);
         }
         catch (Exception ex)
@@ -1391,7 +1588,7 @@ public partial class TicketPreviewViewModel
             if (path == null)
                 throw new InvalidOperationException("无法写入默认路径。");
             GuiPiao.View.MessageBoxWindow.Show(owner,
-                $"已写入程序默认路径：\n{path}\n启动时将自动加载。", "票面布局",
+                $"已保存为默认版式：\n{path}\n下次打开时将自动载入。", "票面版式",
                 MessageBoxButton.OK, MessageBoxImage.Information);
         }
         catch (Exception ex)
@@ -1422,22 +1619,22 @@ public partial class TicketPreviewViewModel
     private void LoadLayoutJson()
     {
         var owner = GetLayoutDialogOwnerWindow();
-        var dlg = new OpenFileDialog { Filter = "JSON 布局|*.json|所有文件|*.*" };
+        var dlg = new OpenFileDialog { Filter = "JSON 版式|*.json|所有文件|*.*" };
         if (dlg.ShowDialog(owner) != true) return;
         try
         {
             var dto = TicketFaceLayoutJson.Deserialize(File.ReadAllText(dlg.FileName));
             if (dto == null)
             {
-                GuiPiao.View.MessageBoxWindow.Show(owner, "JSON 解析失败。", "票面布局",
+                GuiPiao.View.MessageBoxWindow.Show(owner, "无法解析该文件。", "票面版式",
                     MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
             ApplyLayoutFileDto(dto);
             var saved = TrySaveLayoutDtoToDefaultPath(dto) != null;
-            var message = saved ? "布局已载入并已保存。" : "布局已载入，未能保存到默认路径。";
-            GuiPiao.View.MessageBoxWindow.Show(owner, message, "票面布局",
+            var message = saved ? "版式已导入并保存为默认。" : "版式已导入，但未能写入默认路径。";
+            GuiPiao.View.MessageBoxWindow.Show(owner, message, "票面版式",
                 MessageBoxButton.OK, MessageBoxImage.Information);
         }
         catch (Exception ex)
@@ -1452,7 +1649,7 @@ public partial class TicketPreviewViewModel
     {
         var owner = GetLayoutDialogOwnerWindow();
         var r = GuiPiao.View.MessageBoxWindow.Show(owner,
-            "确定将红/蓝票面布局恢复为内置默认值吗？", "票面布局",
+            "确定将红/蓝票面版式恢复为内置默认吗？未保存的修改将丢失。", "票面版式",
             MessageBoxButton.YesNo, MessageBoxImage.Question);
         if (r != MessageBoxResult.Yes) return;
         LayoutDefaultFontFamily = string.Empty;
