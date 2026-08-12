@@ -48,6 +48,10 @@ public partial class QueryTrainTicketViewModel : ObservableObject
         if (DesignerProperties.GetIsInDesignMode(new DependencyObject()))
             return;
 
+        var pageSize = new GeneralSettingsService().Config.PageSize;
+        if (pageSize > 0)
+            PageSize = pageSize;
+
         // 使用分页加载，避免一次性加载全部数据
         _ = LoadTrainRidesAsync();
     }
@@ -141,9 +145,9 @@ public partial class QueryTrainTicketViewModel : ObservableObject
         {
             await _trainRideRepository.DeleteTrainRideAsync(ride.Id);
             TrainRides.Remove(ride);
+            TotalCount = TrainRides.Count;
             _logService.Info("QueryTrainTicketViewModel",
                 $"删除火车票: {ride.TrainNo} {ride.DepartStation}->{ride.ArriveStation}");
-            MessageBoxWindow.Show(Application.Current.MainWindow, "删除成功");
         }
         catch (Exception ex)
         {

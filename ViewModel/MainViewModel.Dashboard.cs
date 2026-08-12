@@ -78,13 +78,13 @@ public partial class MainViewModel
     #region 转发命令 - 仪表盘
 
     [RelayCommand]
-    private void StatisticsConfigCommand()
+    private void StatisticsConfig()
     {
         Dashboard.StatisticsConfigCommand();
     }
 
     [RelayCommand]
-    private async Task RefreshStatisticsCommand()
+    private async Task RefreshStatistics()
     {
         await Dashboard.RefreshStatisticsCommand();
     }

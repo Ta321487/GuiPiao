@@ -5,8 +5,7 @@ using GuiPiao.View;
 namespace GuiPiao.Services;
 
 /// <summary>
-///     确认对话框服务
-///     根据设置决定是否弹出确认对话框
+///     确认对话框服务：统一读取常规设置中的确认开关。
 /// </summary>
 public class ConfirmationService
 {
@@ -18,35 +17,16 @@ public class ConfirmationService
         _settingsService = new GeneralSettingsService();
     }
 
-    /// <summary>
-    ///     设置对话框的父窗口
-    /// </summary>
-    public void SetOwnerWindow(Window owner)
-    {
-        _ownerWindow = owner;
-    }
+    public void SetOwnerWindow(Window owner) => _ownerWindow = owner;
 
-    /// <summary>
-    ///     获取对话框的父窗口
-    /// </summary>
-    private Window? GetOwnerWindow()
-    {
-        return _ownerWindow ?? Application.Current.Windows.OfType<Window>().FirstOrDefault(w => w.IsActive);
-    }
+    private Window? GetOwnerWindow() =>
+        _ownerWindow ?? Application.Current.Windows.OfType<Window>().FirstOrDefault(w => w.IsActive);
 
-    /// <summary>
-    ///     确认删除操作
-    /// </summary>
-    /// <param name="itemName">要删除的项名称</param>
-    /// <returns>true表示确认删除，false表示取消</returns>
+    /// <summary>单条删除确认（车票、车站等）。受 <c>ConfirmOnDelete</c> 控制。</summary>
     public bool ConfirmDelete(string itemName)
     {
-        // 刷新配置，确保获取最新设置
         _settingsService.RefreshConfig();
-        var config = _settingsService.Config;
-
-        // 如果设置关闭确认，直接返回true
-        if (!config.ConfirmOnDelete)
+        if (!_settingsService.Config.ConfirmOnDelete)
             return true;
 
         var result = MessageBoxWindow.Show(
@@ -59,20 +39,11 @@ public class ConfirmationService
         return result == MessageBoxResult.Yes;
     }
 
-    /// <summary>
-    ///     确认批量删除/清空操作
-    /// </summary>
-    /// <param name="description">操作描述</param>
-    /// <param name="isDangerous">是否为危险操作（显示警告图标）</param>
-    /// <returns>true表示确认操作，false表示取消</returns>
+    /// <summary>批量删除/清空类确认。受 <c>ConfirmOnBatchDelete</c> 控制。</summary>
     public bool ConfirmBatchDelete(string description, bool isDangerous = false)
     {
-        // 刷新配置，确保获取最新设置
         _settingsService.RefreshConfig();
-        var config = _settingsService.Config;
-
-        // 如果设置关闭确认，直接返回true
-        if (!config.ConfirmOnBatchDelete)
+        if (!_settingsService.Config.ConfirmOnBatchDelete)
             return true;
 
         var icon = isDangerous ? MessageBoxImage.Warning : MessageBoxImage.Question;
@@ -87,40 +58,48 @@ public class ConfirmationService
     }
 
     /// <summary>
-    ///     确认恢复数据库备份
+    ///     高危批量操作（清空/重置）：开启确认时两次 Yes/No；关闭则直接通过。
+    ///     受 <c>ConfirmOnBatchDelete</c> 控制。
     /// </summary>
-    /// <param name="backupName">备份名称</param>
-    /// <returns>true表示确认恢复，false表示取消</returns>
-    public bool ConfirmRestore(string backupName)
+    public bool ConfirmDangerousBatch(string firstMessage, string secondMessage,
+        string firstTitle = "危险操作确认", string secondTitle = "最终确认")
     {
-        // 刷新配置，确保获取最新设置
         _settingsService.RefreshConfig();
-        var config = _settingsService.Config;
+        if (!_settingsService.Config.ConfirmOnBatchDelete)
+            return true;
 
-        // 如果设置关闭确认，直接返回true
-        if (!config.ConfirmOnRestore)
+        var first = MessageBoxWindow.Show(
+            GetOwnerWindow(),
+            firstMessage,
+            firstTitle,
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Warning);
+        if (first != MessageBoxResult.Yes)
+            return false;
+
+        var second = MessageBoxWindow.Show(
+            GetOwnerWindow(),
+            secondMessage,
+            secondTitle,
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Warning);
+        return second == MessageBoxResult.Yes;
+    }
+
+    /// <summary>恢复备份确认。受 <c>ConfirmOnRestore</c> 控制。</summary>
+    public bool ConfirmRestore(string message)
+    {
+        _settingsService.RefreshConfig();
+        if (!_settingsService.Config.ConfirmOnRestore)
             return true;
 
         var result = MessageBoxWindow.Show(
             GetOwnerWindow(),
-            $"确定要恢复备份 {backupName} 吗？\n此操作将覆盖当前数据，请谨慎操作！",
-            "确认恢复备份",
+            message,
+            "确认恢复",
             MessageBoxButton.YesNo,
             MessageBoxImage.Warning);
 
-        return result == MessageBoxResult.Yes;
-    }
-
-    /// <summary>
-    ///     通用确认对话框
-    /// </summary>
-    /// <param name="message">消息内容</param>
-    /// <param name="title">标题</param>
-    /// <param name="icon">图标</param>
-    /// <returns>true表示确认，false表示取消</returns>
-    public bool Confirm(string message, string title = "确认", MessageBoxImage icon = MessageBoxImage.Question)
-    {
-        var result = MessageBoxWindow.Show(GetOwnerWindow(), message, title, MessageBoxButton.YesNo, icon);
         return result == MessageBoxResult.Yes;
     }
 }

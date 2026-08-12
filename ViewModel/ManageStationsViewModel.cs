@@ -167,7 +167,6 @@ public partial class ManageStationsViewModel : ObservableObject
             await _stationRepository.DeleteStationAsync(station.StationCode);
             Stations.Remove(station);
             _logService.Info("ManageStationsViewModel", $"删除车站: {station.StationName}");
-            MessageBoxWindow.Show("车站删除成功");
         }
         catch (Exception ex)
         {

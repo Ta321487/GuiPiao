@@ -162,21 +162,13 @@ public partial class QuickActionsViewModel : ObservableObject
                 return;
             }
 
-            // 显示确认对话框
+            // 确认（受「恢复数据库备份时弹出确认」控制）
             var confirmMessage = $"即将从以下备份文件恢复数据库:\n{backupPath}\n";
             confirmMessage += $"文件大小: {validationResult.FormattedFileSize}\n\n";
             confirmMessage += "⚠ 恢复操作将完全覆盖当前所有数据，且无法撤销！\n\n";
             confirmMessage += "恢复前会自动备份当前数据库。\n\n是否继续？";
 
-            var confirmResult = MessageBoxWindow.Show(
-                owner,
-                confirmMessage,
-                "确认恢复",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Warning
-            );
-
-            if (confirmResult != MessageBoxResult.Yes) return;
+            if (!new ConfirmationService().ConfirmRestore(confirmMessage)) return;
 
             // 发送状态栏消息：开始恢复
             WeakReferenceMessenger.Default.Send(new StatusMessageMessage("正在恢复数据库...", false));

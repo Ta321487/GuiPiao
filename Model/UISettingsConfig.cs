@@ -45,7 +45,7 @@ public class UISettingsConfig
     #region 主界面布局配置
 
     /// <summary>
-    ///     左侧检索区宽度 (120-300)
+    ///     左侧检索区宽度 (175-300)
     /// </summary>
     public int LeftPanelWidth { get; set; } = 180;
 

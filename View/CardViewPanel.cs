@@ -5,7 +5,8 @@ using System.Windows.Controls;
 namespace GuiPiao.View;
 
 /// <summary>
-///     卡片视图面板，支持自动换行或固定列数
+///     卡片视图面板，支持自动换行或固定列数。
+///     自动模式：按 CardWidth 估算每行列数后，把剩余宽度均分到卡片，避免行尾大块空白。
 /// </summary>
 public class CardViewPanel : Panel
 {
@@ -17,17 +18,19 @@ public class CardViewPanel : Panel
             nameof(CardsPerRow),
             typeof(int),
             typeof(CardViewPanel),
-            new FrameworkPropertyMetadata(0, FrameworkPropertyMetadataOptions.AffectsMeasure));
+            new FrameworkPropertyMetadata(0,
+                FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsArrange));
 
     /// <summary>
-    ///     卡片宽度（仅在自动模式下使用）
+    ///     卡片宽度（仅在自动模式下作为「期望宽度」用于估算列数）
     /// </summary>
     public static readonly DependencyProperty CardWidthProperty =
         DependencyProperty.Register(
             nameof(CardWidth),
             typeof(double),
             typeof(CardViewPanel),
-            new FrameworkPropertyMetadata(280.0, FrameworkPropertyMetadataOptions.AffectsMeasure));
+            new FrameworkPropertyMetadata(280.0,
+                FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsArrange));
 
     /// <summary>
     ///     卡片间距
@@ -37,7 +40,8 @@ public class CardViewPanel : Panel
             nameof(CardSpacing),
             typeof(double),
             typeof(CardViewPanel),
-            new FrameworkPropertyMetadata(8.0, FrameworkPropertyMetadataOptions.AffectsMeasure));
+            new FrameworkPropertyMetadata(8.0,
+                FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsArrange));
 
     public int CardsPerRow
     {
@@ -62,67 +66,32 @@ public class CardViewPanel : Panel
         if (InternalChildren.Count == 0)
             return new Size(0, 0);
 
-        var cardsPerRow = CardsPerRow;
         var availableWidth = availableSize.Width;
+        var cardsPerRow = ResolveCardsPerRow(availableWidth);
+        var cardWidth = ResolveCardWidth(availableWidth, cardsPerRow);
 
-        // 如果设置了固定列数，且可用宽度有效
-        if (cardsPerRow > 0 && !double.IsInfinity(availableWidth) && availableWidth > 0)
+        var maxHeight = 0.0;
+        var currentRowHeight = 0.0;
+
+        for (var i = 0; i < InternalChildren.Count; i++)
         {
-            // 固定列数模式：自动计算卡片宽度
-            // 公式：(总宽度 - (列数-1) * 间距) / 列数
-            var totalSpacing = (cardsPerRow - 1) * CardSpacing;
-            var cardWidth = Math.Max(100, (availableWidth - totalSpacing) / cardsPerRow);
+            var child = InternalChildren[i];
+            child.Measure(new Size(cardWidth, double.PositiveInfinity));
 
-            var maxHeight = 0.0;
-            var currentRowHeight = 0.0;
-
-            for (var i = 0; i < InternalChildren.Count; i++)
+            if (i % cardsPerRow == 0 && i > 0)
             {
-                var child = InternalChildren[i];
-                child.Measure(new Size(cardWidth, double.PositiveInfinity));
-
-                if (i % cardsPerRow == 0 && i > 0)
-                {
-                    maxHeight += currentRowHeight + CardSpacing;
-                    currentRowHeight = 0;
-                }
-
-                currentRowHeight = Math.Max(currentRowHeight, child.DesiredSize.Height);
+                maxHeight += currentRowHeight + CardSpacing;
+                currentRowHeight = 0;
             }
 
-            maxHeight += currentRowHeight;
-            return new Size(availableWidth, maxHeight);
+            currentRowHeight = Math.Max(currentRowHeight, child.DesiredSize.Height);
         }
 
-        // 自动换行模式（使用设置的CardWidth和CardSpacing）
-        var currentX = 0.0;
-        var currentY = 0.0;
-        var rowHeight = 0.0;
-        var totalWidth = 0.0;
-        var totalHeight = 0.0;
-        var itemWidth = CardWidth + CardSpacing;
-
-        foreach (UIElement child in InternalChildren)
-        {
-            // 强制使用设置的CardWidth作为测量宽度
-            child.Measure(new Size(CardWidth, double.PositiveInfinity));
-
-            // 检查是否需要换行
-            if (currentX + CardWidth > availableWidth && currentX > 0)
-            {
-                currentX = 0;
-                currentY += rowHeight + CardSpacing;
-                rowHeight = 0;
-            }
-
-            currentX += itemWidth;
-            // 使用实际测量高度，但宽度使用设置的CardWidth
-            rowHeight = Math.Max(rowHeight, child.DesiredSize.Height);
-            totalWidth = Math.Max(totalWidth, currentX);
-        }
-
-        totalHeight = currentY + rowHeight;
-        return new Size(Math.Min(totalWidth, availableWidth), totalHeight);
+        maxHeight += currentRowHeight;
+        var width = double.IsInfinity(availableWidth) || availableWidth <= 0
+            ? cardsPerRow * cardWidth + (cardsPerRow - 1) * CardSpacing
+            : availableWidth;
+        return new Size(width, maxHeight);
     }
 
     protected override Size ArrangeOverride(Size finalSize)
@@ -130,62 +99,59 @@ public class CardViewPanel : Panel
         if (InternalChildren.Count == 0)
             return finalSize;
 
-        var cardsPerRow = CardsPerRow;
         var finalWidth = finalSize.Width;
+        var cardsPerRow = ResolveCardsPerRow(finalWidth);
+        var cardWidth = ResolveCardWidth(finalWidth, cardsPerRow);
+        var currentX = 0.0;
+        var currentY = 0.0;
+        var rowHeight = 0.0;
 
-        if (cardsPerRow > 0 && !double.IsInfinity(finalWidth) && finalWidth > 0)
+        for (var i = 0; i < InternalChildren.Count; i++)
         {
-            // 固定列数模式
-            var totalSpacing = (cardsPerRow - 1) * CardSpacing;
-            var cardWidth = Math.Max(100, (finalWidth - totalSpacing) / cardsPerRow);
-            var currentX = 0.0;
-            var currentY = 0.0;
-            var rowHeight = 0.0;
+            var child = InternalChildren[i];
+            var childSize = child.DesiredSize;
 
-            for (var i = 0; i < InternalChildren.Count; i++)
+            if (i % cardsPerRow == 0 && i > 0)
             {
-                var child = InternalChildren[i];
-                var childSize = child.DesiredSize;
-
-                if (i % cardsPerRow == 0 && i > 0)
-                {
-                    // 换行
-                    currentX = 0;
-                    currentY += rowHeight + CardSpacing;
-                    rowHeight = 0;
-                }
-
-                child.Arrange(new Rect(currentX, currentY, cardWidth, childSize.Height));
-                currentX += cardWidth + CardSpacing;
-                rowHeight = Math.Max(rowHeight, childSize.Height);
+                currentX = 0;
+                currentY += rowHeight + CardSpacing;
+                rowHeight = 0;
             }
-        }
-        else
-        {
-            // 自动换行模式
-            var currentX = 0.0;
-            var currentY = 0.0;
-            var rowHeight = 0.0;
-            var itemWidth = CardWidth + CardSpacing;
 
-            foreach (UIElement child in InternalChildren)
-            {
-                var childSize = child.DesiredSize;
-
-                // 检查是否需要换行
-                if (currentX + CardWidth > finalWidth && currentX > 0)
-                {
-                    currentX = 0;
-                    currentY += rowHeight + CardSpacing;
-                    rowHeight = 0;
-                }
-
-                child.Arrange(new Rect(currentX, currentY, CardWidth, childSize.Height));
-                currentX += itemWidth;
-                rowHeight = Math.Max(rowHeight, childSize.Height);
-            }
+            child.Arrange(new Rect(currentX, currentY, cardWidth, childSize.Height));
+            currentX += cardWidth + CardSpacing;
+            rowHeight = Math.Max(rowHeight, childSize.Height);
         }
 
         return finalSize;
+    }
+
+    /// <summary>
+    ///     固定列数直接用设置值；自动模式按期望 CardWidth 估算能放下几列（至少 1）。
+    /// </summary>
+    private int ResolveCardsPerRow(double availableWidth)
+    {
+        if (CardsPerRow > 0)
+            return CardsPerRow;
+
+        if (double.IsInfinity(availableWidth) || availableWidth <= 0)
+            return 1;
+
+        var preferred = Math.Max(100.0, CardWidth);
+        var count = (int)Math.Floor((availableWidth + CardSpacing) / (preferred + CardSpacing));
+        return Math.Max(1, count);
+    }
+
+    /// <summary>
+    ///     把当前行可用宽度均分给列，吃掉行尾空白。
+    /// </summary>
+    private double ResolveCardWidth(double availableWidth, int cardsPerRow)
+    {
+        cardsPerRow = Math.Max(1, cardsPerRow);
+        if (double.IsInfinity(availableWidth) || availableWidth <= 0)
+            return Math.Max(100.0, CardWidth);
+
+        var totalSpacing = (cardsPerRow - 1) * CardSpacing;
+        return Math.Max(100.0, (availableWidth - totalSpacing) / cardsPerRow);
     }
 }

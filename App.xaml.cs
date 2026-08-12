@@ -77,19 +77,21 @@ public partial class App : Application
     {
         _logService.Info("App", "程序启动");
 
-        _mutex = new Mutex(true, "GuiPiao_SingleInstance_Mutex", out var createdNew);
-        if (!createdNew)
+        var config = _generalSettingsService.Config;
+        if (config.SingleInstance)
         {
-            _logService.Info("App", "程序已在运行，退出当前实例");
-            MessageBoxWindow.Show("程序已经在运行中");
-            Current.Shutdown();
-            return;
+            _mutex = new Mutex(true, "GuiPiao_SingleInstance_Mutex", out var createdNew);
+            if (!createdNew)
+            {
+                _logService.Info("App", "程序已在运行，退出当前实例");
+                MessageBoxWindow.Show("程序已经在运行中");
+                Current.Shutdown();
+                return;
+            }
         }
 
         // 在加载主窗口前配置 LiveCharts 字体（StartupUri 会在 base.OnStartup 中创建 MainWindow）
         ConfigureLiveChartsFont();
-
-        var config = _generalSettingsService.Config;
 
         base.OnStartup(e);
 

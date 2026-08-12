@@ -23,15 +23,18 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
-                <!-- 票面预览显示设置 -->
+                <!-- 票面预览 -->
                 <Border Grid.Row="0" Background="{DynamicResource PanelBackgroundBrush}"
                         BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
                     <StackPanel>
-                        <TextBlock Text="🎫 票面预览显示设置" FontWeight="Bold" Margin="0,0,0,10"
+                        <TextBlock Text="票面预览" FontWeight="Bold" Margin="0,0,0,10"
                                    Foreground="{DynamicResource TextPrimaryBrush}" />
+                        <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource TextSecondaryBrush}"
+                                   FontSize="{DynamicResource SmallFontSize}" Margin="0,0,0,10"
+                                   Text="控制主界面打开票面时的默认缩放与显示效果。版式（位置、字号、字体）请在下方单独编辑。" />
 
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                            <TextBlock Text="默认缩放：" VerticalAlignment="Center"
+                            <TextBlock Text="默认缩放" VerticalAlignment="Center" Margin="0,0,10,0"
                                        Foreground="{DynamicResource TextPrimaryBrush}" />
                             <ComboBox MinWidth="120" MaxWidth="160"
                                       ItemsSource="{x:Static model:TicketPreviewZoomOptions.ComboItems}"
@@ -39,24 +42,25 @@
                                       SelectedValuePath="Tag"
                                       SelectedValue="{Binding DefaultZoom}"
                                       Margin="0,0,20,0" />
-                            <CheckBox Content="允许鼠标滚轮缩放" IsChecked="{Binding AllowMouseWheelZoom}"
+                            <CheckBox Content="允许滚轮缩放" IsChecked="{Binding AllowMouseWheelZoom}"
                                       VerticalAlignment="Center" />
                         </StackPanel>
 
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                            <TextBlock Text="显示亮度：" VerticalAlignment="Center" Margin="0,0,10,0"
+                            <TextBlock Text="亮度" VerticalAlignment="Center" Margin="0,0,10,0"
                                        Foreground="{DynamicResource TextPrimaryBrush}" />
                             <Slider Width="200" Minimum="50" Maximum="150" Value="{Binding DisplayBrightness}"
                                     TickFrequency="10" TickPlacement="BottomRight" IsSnapToTickEnabled="True" />
                             <TextBlock Text="{Binding DisplayBrightness, StringFormat='{}{0}%'}"
                                        VerticalAlignment="Center" Margin="10,0,20,0"
                                        Foreground="{DynamicResource TextSecondaryBrush}" MinWidth="40" />
-                            <CheckBox Content="票面居中显示" IsChecked="{Binding TicketCentered}" VerticalAlignment="Center" />
+                            <CheckBox Content="票面居中" IsChecked="{Binding TicketCentered}" VerticalAlignment="Center" />
                         </StackPanel>
 
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,0">
-                            <Button Content="票面参数调整…" Command="{Binding TestTicketPreviewCommand}"
-                                    Style="{StaticResource StandardButtonStyle}" Padding="10,5" />
+                            <Button Content="编辑票面版式…" Command="{Binding TestTicketPreviewCommand}"
+                                    Style="{StaticResource StandardButtonStyle}" Padding="10,5"
+                                    ToolTip="调整各字段在票面上的位置、字号与字体" />
                         </StackPanel>
                     </StackPanel>
                 </Border>
@@ -80,7 +84,7 @@
                                      Margin="0,0,5,5" VerticalAlignment="Center"
                                      IsEnabled="{Binding LeftPanelLocked, Converter={StaticResource InverseBooleanConverter}}"
                                      PreviewTextInput="NumericTextBox_PreviewTextInput"
-                                     LostFocus="NumericTextBox_LostFocus" Tag="130,300" />
+                                     LostFocus="NumericTextBox_LostFocus" Tag="175,300" />
                             <TextBlock Text="px" VerticalAlignment="Center" Margin="0,0,15,5"
                                        Foreground="{DynamicResource TextSecondaryBrush}" />
                             <CheckBox Content="锁定宽度" IsChecked="{Binding LeftPanelLocked}" VerticalAlignment="Center"

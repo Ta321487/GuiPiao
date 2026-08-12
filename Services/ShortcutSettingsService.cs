@@ -85,7 +85,7 @@ public class ShortcutSettingsService
                 },
                 new()
                 {
-                    ActionId = "PreviewTicket", ActionName = "票面预览", Description = "预览车票票面", Category = "票务操作",
+                    ActionId = "PreviewTicket", ActionName = "票面预览", Description = "查看选中行程的票面", Category = "票务操作",
                     DefaultKey = "Ctrl+P", CurrentKey = "Ctrl+P"
                 },
                 new()

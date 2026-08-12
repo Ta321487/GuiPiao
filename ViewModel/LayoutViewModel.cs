@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using GuiPiao.Messages;
 using GuiPiao.Services;
+using GuiPiao.Utils;
 using GuiPiao.View;
 
 namespace GuiPiao.ViewModel;
@@ -84,7 +85,8 @@ public partial class LayoutViewModel : ObservableObject, IDisposable
 
     public LayoutViewModel()
     {
-        UISettingsService = new UISettingsService();
+        // 与 ConfigManager 共用同一实例，避免拖动保存时用过期配置覆盖其它界面设置
+        UISettingsService = ConfigManager.Instance.UISettingsService;
 
         // 加载布局配置
         LoadLayoutSettings();
@@ -143,6 +145,7 @@ public partial class LayoutViewModel : ObservableObject, IDisposable
 
             OnPropertyChanged(nameof(CardsPerRow));
             OnPropertyChanged(nameof(CardMargin));
+            OnPropertyChanged(nameof(CardCornerRadiusValue));
             OnPropertyChanged(nameof(CardContentDensity));
             OnPropertyChanged(nameof(CardStatusPosition));
             OnPropertyChanged(nameof(CardHoverHighlight));
@@ -277,9 +280,12 @@ public partial class LayoutViewModel : ObservableObject, IDisposable
     public GridLength RightSplitterWidth => RightPanelLocked ? new GridLength(0) : new GridLength(5);
     public GridLength BottomSplitterHeight => BottomPanelLocked ? new GridLength(0) : new GridLength(5);
 
-    // 卡片视图计算属性
-    public Thickness CardMargin => new(2);
-    public bool IsCardContextMenuEnabled => IsCardActionRightClick;
+    // 卡片视图计算属性（间距由 CardViewPanel.CardSpacing 统一控制，卡片本身不再叠 Margin）
+    public Thickness CardMargin => new(0);
+    public CornerRadius CardCornerRadiusValue => new(CardCornerRadius);
+    public bool IsCardContextMenuEnabled => true;
+
+    partial void OnCardCornerRadiusChanged(int value) => OnPropertyChanged(nameof(CardCornerRadiusValue));
 
     public UISettingsService UISettingsService { get; }
 
@@ -354,6 +360,8 @@ public partial class LayoutViewModel : ObservableObject, IDisposable
     {
         try
         {
+            // 先从磁盘刷新，防止其它 UISettingsService 实例已写入的设置被本实例内存快照覆盖
+            UISettingsService.RefreshConfig();
             var config = UISettingsService.Config;
             config.LeftPanelWidth = LeftPanelWidth;
             config.LeftPanelLocked = LeftPanelLocked;

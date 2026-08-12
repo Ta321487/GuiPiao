@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -131,16 +130,7 @@ public partial class ColorPickerDialog : Window
     /// </summary>
     private void GenerateColorButtons(Panel container, Color[] colors)
     {
-        // 检查资源是否可用
-        Style? buttonStyle = null;
-        try
-        {
-            buttonStyle = (Style)FindResource("ColorButtonStyle");
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"无法找到 ColorButtonStyle 资源: {ex.Message}");
-        }
+        var buttonStyle = TryFindResource("ColorButtonStyle") as Style;
 
         foreach (var color in colors)
         {
@@ -150,14 +140,12 @@ public partial class ColorPickerDialog : Window
                 Tag = color
             };
 
-            // 如果找到样式则应用，否则使用默认设置
             if (buttonStyle != null)
             {
                 button.Style = buttonStyle;
             }
             else
             {
-                // 默认设置
                 button.Width = 24;
                 button.Height = 24;
                 button.Margin = new Thickness(2);

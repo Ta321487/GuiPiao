@@ -122,8 +122,9 @@
                                    Foreground="{DynamicResource TextPrimaryBrush}" />
 
                         <WrapPanel Margin="0,0,0,10">
-                            <CheckBox Content="禁止同时打开多个窗口" IsChecked="{Binding SingleInstance}"
-                                      VerticalAlignment="Center" Margin="0,0,20,5" />
+                            <CheckBox Content="仅允许运行单个程序实例" IsChecked="{Binding SingleInstance}"
+                                      VerticalAlignment="Center" Margin="0,0,20,5"
+                                      ToolTip="关闭后可同时启动多个程序进程（需重启生效）" />
                             <TextBlock Text="启动后打开：" VerticalAlignment="Center" Margin="0,0,10,5"
                                        Foreground="{DynamicResource TextPrimaryBrush}" />
                             <ComboBox MinWidth="140" SelectedValue="{Binding StartupPage, Mode=TwoWay}"
@@ -211,9 +212,10 @@
                             </ComboBox>
                         </WrapPanel>
 
-                        <WrapPanel Margin="20,0,0,10">
+                        <WrapPanel Margin="20,0,0,10" IsEnabled="False"
+                                   ToolTip="OCR 功能尚未接入，此项暂不可用">
                             <TextBlock Text="OCR识别后行为：" VerticalAlignment="Center" Margin="0,0,10,5"
-                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                                       Foreground="{DynamicResource TextSecondaryBrush}" />
                             <RadioButton Content="直接保存" GroupName="OcrBehavior" IsChecked="{Binding OcrDirectSave}"
                                          Margin="0,0,15,5" />
                             <RadioButton Content="弹出编辑窗口确认" GroupName="OcrBehavior"
@@ -270,10 +272,11 @@
                         <WrapPanel Margin="20,0,0,0">
                             <TextBlock Text="触发方式：" VerticalAlignment="Center" Margin="0,0,10,5"
                                        Foreground="{DynamicResource TextPrimaryBrush}" />
-                            <ComboBox MinWidth="100" SelectedValue="{Binding CardActionTrigger}"
-                                      SelectedValuePath="Tag" Margin="0,0,0,5">
+                            <ComboBox MinWidth="140" SelectedValue="{Binding CardActionTrigger}"
+                                      SelectedValuePath="Tag" Margin="0,0,0,5"
+                                      ToolTip="双击：执行下方默认操作；右键菜单：禁用双击，通过右键菜单操作">
                                 <ComboBoxItem Content="双击" Tag="DoubleClick" />
-                                <ComboBoxItem Content="右键菜单" Tag="RightClick" />
+                                <ComboBoxItem Content="仅右键菜单" Tag="RightClick" />
                             </ComboBox>
                         </WrapPanel>
                     </StackPanel>
@@ -316,15 +319,16 @@
 
                         <TextBlock Text="高危操作二次确认：" Margin="0,0,0,5" Foreground="{DynamicResource TextPrimaryBrush}" />
                         <WrapPanel Margin="20,0,0,10">
-                            <CheckBox Content="删除车票时弹出确认窗口" IsChecked="{Binding ConfirmOnDelete}" Margin="0,0,20,5" />
-                            <CheckBox Content="批量删除/清空数据时弹出二次确认" IsChecked="{Binding ConfirmOnBatchDelete}"
+                            <CheckBox Content="删除单条记录时确认（车票/车站）" IsChecked="{Binding ConfirmOnDelete}" Margin="0,0,20,5" />
+                            <CheckBox Content="批量删除/清空/重置时确认" IsChecked="{Binding ConfirmOnBatchDelete}"
                                       Margin="0,0,20,5" />
-                            <CheckBox Content="恢复数据库备份时弹出确认" IsChecked="{Binding ConfirmOnRestore}" Margin="0,0,0,5" />
+                            <CheckBox Content="恢复数据库备份时确认" IsChecked="{Binding ConfirmOnRestore}" Margin="0,0,0,5" />
                         </WrapPanel>
 
                         <WrapPanel>
-                            <CheckBox Content="启用操作撤销功能" IsChecked="{Binding EnableUndo}" VerticalAlignment="Center"
-                                      Margin="0,0,20,5" />
+                            <CheckBox Content="启用表单撤销（添加/编辑车票）" IsChecked="{Binding EnableUndo}" VerticalAlignment="Center"
+                                      Margin="0,0,20,5"
+                                      ToolTip="仅作用于添加/编辑车票窗口的字段编辑历史" />
                             <TextBlock Text="最多可撤销步数：" VerticalAlignment="Center" Margin="0,0,5,5"
                                        Foreground="{DynamicResource TextPrimaryBrush}" />
                             <TextBox MinWidth="50" Text="{Binding MaxUndoSteps}" IsEnabled="{Binding EnableUndo}"

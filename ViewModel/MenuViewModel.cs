@@ -24,6 +24,7 @@ public partial class MenuViewModel : ObservableObject
 {
     private readonly DatabaseBackupService _backupService;
     private readonly ChartExportService _chartExportService;
+    private readonly ConfirmationService _confirmationService;
     private readonly DatabaseDangerousService _dangerousService;
     private readonly DatabaseInfoService _databaseInfoService;
     private readonly IncrementalBackupService _incrementalBackupService;
@@ -41,6 +42,7 @@ public partial class MenuViewModel : ObservableObject
         _restoreService = new DatabaseRestoreService();
         _maintenanceService = new DatabaseMaintenanceService();
         _dangerousService = new DatabaseDangerousService();
+        _confirmationService = new ConfirmationService();
         _databaseInfoService = new DatabaseInfoService();
         _incrementalBackupService = new IncrementalBackupService();
         _logService = ServiceManager.Instance.LogService;
@@ -212,33 +214,17 @@ public partial class MenuViewModel : ObservableObject
                 return;
             }
 
-            // 双重确认
+            // 双重确认（受「批量删除/清空数据时弹出二次确认」控制）
             var confirmMsg = "⚠️ 危险操作警告！\n\n";
             confirmMsg += $"即将清空全部 {count} 条票务记录！\n\n";
             confirmMsg += "此操作不可撤销，所有票务数据将被永久删除！\n\n";
             confirmMsg += "操作前会自动备份数据库。\n\n";
             confirmMsg += "是否继续？";
 
-            var firstConfirm = MessageBoxWindow.Show(
-                owner,
-                confirmMsg,
-                "危险操作确认",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Warning
-            );
-
-            if (firstConfirm != MessageBoxResult.Yes) return;
-
-            // 第二次确认
-            var secondConfirm = MessageBoxWindow.Show(
-                owner,
-                "最后确认：您确定要清空所有票务记录吗？\n\n此操作不可恢复！",
-                "最终确认",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Warning
-            );
-
-            if (secondConfirm != MessageBoxResult.Yes) return;
+            if (!_confirmationService.ConfirmDangerousBatch(
+                    confirmMsg,
+                    "最后确认：您确定要清空所有票务记录吗？\n\n此操作不可恢复！"))
+                return;
 
             // 执行清空
             var result = await _dangerousService.ClearAllTrainRidesAsync();
@@ -832,21 +818,13 @@ public partial class MenuViewModel : ObservableObject
                 return;
             }
 
-            // 显示确认对话框
+            // 确认（受「恢复数据库备份时弹出确认」控制）
             var confirmMessage = $"即将从以下备份文件恢复数据库:\n{backupPath}\n";
             confirmMessage += $"文件大小: {validationResult.FormattedFileSize}\n\n";
             confirmMessage += "⚠ 恢复操作将完全覆盖当前所有数据，且无法撤销！\n\n";
             confirmMessage += "恢复前会自动备份当前数据库。\n\n是否继续？";
 
-            var confirmResult = MessageBoxWindow.Show(
-                owner,
-                confirmMessage,
-                "确认恢复",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Warning
-            );
-
-            if (confirmResult != MessageBoxResult.Yes) return;
+            if (!_confirmationService.ConfirmRestore(confirmMessage)) return;
 
             // 执行恢复
             var result = await Task.Run(() => _restoreService.RestoreFromBackup(backupPath));
