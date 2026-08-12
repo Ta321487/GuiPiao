@@ -91,17 +91,34 @@ public partial class TicketPreviewDraft : ObservableObject, IDisposable
 
     public static string ComputeDefaultIdMask(string? idNumber)
     {
-        var id = idNumber?.Trim() ?? string.Empty;
-        if (id.Length == 18) return id.Substring(0, 10) + "****" + id.Substring(14);
-        if (id.Length == 15) return id.Substring(0, 8) + "***" + id.Substring(12);
-        return string.Empty;
+        var id = (idNumber ?? string.Empty).Trim().Replace(" ", "");
+        if (id.Length == 0) return string.Empty;
+
+        // 18 位：前 10 + **** + 后 4（与实体火车票一致）
+        if (id.Length >= 18)
+        {
+            id = id[..18];
+            return id[..10] + "****" + id[14..];
+        }
+
+        // 15 位旧证：前 8 + *** + 后 3
+        if (id.Length == 15)
+            return id[..8] + "***" + id[12..];
+
+        // 输入过程中：超过 10 位开始对中间打码，便于票面即时预览
+        if (id.Length > 10)
+        {
+            var tail = id.Length > 14 ? id[14..] : string.Empty;
+            return id[..10] + "****" + tail;
+        }
+
+        return id;
     }
 
     partial void OnIdNumberChanged(string value)
     {
-        var auto = ComputeDefaultIdMask(value);
-        if (string.IsNullOrEmpty(auto)) return;
-        if (string.IsNullOrWhiteSpace(IdMask)) IdMask = auto;
+        // 始终按身份证号自动生成掩码（与真票一致），覆盖手动改过的掩码
+        IdMask = ComputeDefaultIdMask(value);
     }
 
     /// <summary>左侧表单金额：¥ + N2</summary>

@@ -16,6 +16,43 @@
             <Setter Property="Margin" Value="3,0" />
             <Setter Property="MinHeight" Value="28" />
         </Style>
+
+        <Style x:Key="MapFilterAllButtonStyle" BasedOn="{StaticResource MapToolbarButtonStyle}" TargetType="Button">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding ActiveStatusFilter}" Value="All">
+                    <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+                    <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}" />
+                    <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="MapFilterCompletedButtonStyle" BasedOn="{StaticResource MapToolbarButtonStyle}" TargetType="Button">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding ActiveStatusFilter}" Value="Completed">
+                    <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+                    <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}" />
+                    <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="MapFilterPendingButtonStyle" BasedOn="{StaticResource MapToolbarButtonStyle}" TargetType="Button">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding ActiveStatusFilter}" Value="Pending">
+                    <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+                    <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}" />
+                    <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="MapFilterRefundedButtonStyle" BasedOn="{StaticResource MapToolbarButtonStyle}" TargetType="Button">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding ActiveStatusFilter}" Value="RefundedRescheduled">
+                    <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+                    <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}" />
+                    <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
     </Window.Resources>
 
     <Grid>
@@ -31,13 +68,13 @@
             <WrapPanel Margin="10">
                 <Button Content="🔄 刷新数据" Style="{StaticResource MapToolbarButtonStyle}"
                         Command="{Binding RefreshDataCommand}" Margin="0,0,5,5" />
-                <Button Content="📊 显示全部" Style="{StaticResource MapToolbarButtonStyle}"
+                <Button Content="📊 显示全部" Style="{StaticResource MapFilterAllButtonStyle}"
                         Command="{Binding ShowAllCommand}" Margin="0,0,5,5" />
-                <Button Content="✅ 已完成行程" Style="{StaticResource MapToolbarButtonStyle}"
+                <Button Content="✅ 已完成行程" Style="{StaticResource MapFilterCompletedButtonStyle}"
                         Command="{Binding FilterCompletedCommand}" Margin="0,0,5,5" />
-                <Button Content="⏳ 未出行行程" Style="{StaticResource MapToolbarButtonStyle}"
+                <Button Content="⏳ 未出行行程" Style="{StaticResource MapFilterPendingButtonStyle}"
                         Command="{Binding FilterPendingCommand}" Margin="0,0,5,5" />
-                <Button Content="🚫 已退票/改签" Style="{StaticResource MapToolbarButtonStyle}"
+                <Button Content="🚫 已退票/改签" Style="{StaticResource MapFilterRefundedButtonStyle}"
                         Command="{Binding FilterRefundedCommand}" Margin="0,0,5,5" />
                 <Separator Margin="5,0,10,5" Background="{DynamicResource BorderBrush}" Style="{x:Null}" Width="1" />
                 <Button Content="🎨 打开设置" Style="{StaticResource MapToolbarButtonStyle}"

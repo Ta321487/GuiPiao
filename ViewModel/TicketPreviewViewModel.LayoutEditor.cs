@@ -65,7 +65,8 @@ public partial class TicketPreviewViewModel
         new(TicketFaceLayoutElementKind.TicketModificationType, "改签类型"),
         new(TicketFaceLayoutElementKind.Purpose, "车票用途"),
         new(TicketFaceLayoutElementKind.AdditionalInfo, "附加信息"),
-        new(TicketFaceLayoutElementKind.IdName, "证件/姓名"),
+        new(TicketFaceLayoutElementKind.IdMask, "证件·掩码"),
+        new(TicketFaceLayoutElementKind.IdPassengerName, "证件·姓名"),
         new(TicketFaceLayoutElementKind.HintBox, "提示区"),
         new(TicketFaceLayoutElementKind.Footer, "底部报销说明"),
         new(TicketFaceLayoutElementKind.Qr, "二维码"),
@@ -114,7 +115,7 @@ public partial class TicketPreviewViewModel
         {
             TicketFaceLayoutElementKind.Qr => "二维码边长",
             TicketFaceLayoutElementKind.Arrow => "箭头长度（px）",
-            _ => "提示区最大宽度"
+            _ => "提示区最大宽度（止于二维码左）"
         };
 
     public double EditorExtraMinimum =>
@@ -235,6 +236,31 @@ public partial class TicketPreviewViewModel
     public IReadOnlyList<WorkbenchFontPickItem> EditorFontPickerItems =>
         _editorFontPickerItemsCache ??= BuildEditorFontPickItems();
 
+    /// <summary>
+    ///     字体下拉 SelectedValue：空布局值映射为哨兵，避免 WPF 对空串 SelectedValue 不回显。
+    /// </summary>
+    public string EditorFontFamilyComboValue
+    {
+        get => FontFamilyPickerSupport.ToComboSource(EditorFontFamily);
+        set
+        {
+            var next = FontFamilyPickerSupport.FromComboSource(value);
+            if (string.Equals(EditorFontFamily, next, StringComparison.Ordinal)) return;
+            EditorFontFamily = next;
+        }
+    }
+
+    public string LayoutDefaultFontFamilyComboValue
+    {
+        get => FontFamilyPickerSupport.ToComboSource(LayoutDefaultFontFamily);
+        set
+        {
+            var next = FontFamilyPickerSupport.FromComboSource(value);
+            if (string.Equals(LayoutDefaultFontFamily, next, StringComparison.Ordinal)) return;
+            LayoutDefaultFontFamily = next;
+        }
+    }
+
     partial void OnLayoutDefaultFontFamilyChanged(string value)
     {
         InvalidateLayoutDefaultFontPickerItems();
@@ -287,12 +313,14 @@ public partial class TicketPreviewViewModel
     {
         _layoutDefaultFontPickerItemsCache = null;
         OnPropertyChanged(nameof(LayoutDefaultFontPickerItems));
+        OnPropertyChanged(nameof(LayoutDefaultFontFamilyComboValue));
     }
 
     private void InvalidateEditorFontPickerItems()
     {
         _editorFontPickerItemsCache = null;
         OnPropertyChanged(nameof(EditorFontPickerItems));
+        OnPropertyChanged(nameof(EditorFontFamilyComboValue));
     }
 
     private List<WorkbenchFontPickItem> BuildLayoutDefaultFontPickItems()
@@ -300,7 +328,7 @@ public partial class TicketPreviewViewModel
         var cur = FontFamilyPickerSupport.CanonicalizeSource(LayoutDefaultFontFamily);
         var list = new List<WorkbenchFontPickItem>
         {
-            new(string.Empty, "（默认）", "选项")
+            new(FontFamilyPickerSupport.InheritSourceSentinel, "（默认）", "选项")
         };
         AppendCurrentAndRecommended(list, cur);
         return list;
@@ -314,7 +342,7 @@ public partial class TicketPreviewViewModel
             : $"继承默认（{FontFamilyPickerSupport.ShortDisplayName(LayoutDefaultFontFamily)}）";
         var list = new List<WorkbenchFontPickItem>
         {
-            new(string.Empty, inherit, "选项")
+            new(FontFamilyPickerSupport.InheritSourceSentinel, inherit, "选项")
         };
         AppendCurrentAndRecommended(list, cur);
         return list;
@@ -326,7 +354,7 @@ public partial class TicketPreviewViewModel
             list.Add(new WorkbenchFontPickItem(cur, FontFamilyPickerSupport.ShortDisplayName(cur), "当前"));
 
         foreach (var s in FontFamilyPickerSupport.RecommendedInstalledSources)
-            list.Add(new WorkbenchFontPickItem(s, s, "推荐"));
+            list.Add(new WorkbenchFontPickItem(s, FontFamilyPickerSupport.ShortDisplayName(s), "推荐"));
     }
 
     partial void OnEditorAnchorXChanged(double value)
@@ -455,7 +483,15 @@ public partial class TicketPreviewViewModel
                 break;
             case TicketFaceLayoutElementKind.Purpose: L.PurposeLeft += dx; L.PurposeTop += dy; break;
             case TicketFaceLayoutElementKind.AdditionalInfo: L.AdditionalInfoLeft += dx; L.AdditionalInfoTop += dy; break;
-            case TicketFaceLayoutElementKind.IdName: L.IdNameLeft += dx; L.IdNameTop += dy; break;
+            case TicketFaceLayoutElementKind.IdName:
+            case TicketFaceLayoutElementKind.IdMask:
+                L.IdMaskLeft += dx; L.IdMaskTop += dy;
+                L.IdNameLeft = L.IdMaskLeft; L.IdNameTop = L.IdMaskTop;
+                break;
+            case TicketFaceLayoutElementKind.IdNumber:
+                L.IdNumberLeft += dx; L.IdNumberTop += dy; break;
+            case TicketFaceLayoutElementKind.IdPassengerName:
+                L.IdPassengerNameLeft += dx; L.IdPassengerNameTop += dy; break;
             case TicketFaceLayoutElementKind.HintBox: L.HintBoxLeft += dx; L.HintBoxTop += dy; break;
             case TicketFaceLayoutElementKind.Footer: L.FooterLeft += dx; L.FooterTop += dy; break;
             case TicketFaceLayoutElementKind.Qr: L.QrLeft += dx; L.QrTop += dy; break;
@@ -969,10 +1005,23 @@ public partial class TicketPreviewViewModel
                     EditorFontFamily = L.AdditionalInfoFontFamily ?? string.Empty;
                     break;
                 case TicketFaceLayoutElementKind.IdName:
-                    EditorAnchorX = L.IdNameLeft;
-                    EditorAnchorY = L.IdNameTop;
-                    EditorFontSize = L.IdNameFont;
-                    EditorFontFamily = L.IdNameFontFamily ?? string.Empty;
+                case TicketFaceLayoutElementKind.IdMask:
+                    EditorAnchorX = L.IdMaskLeft;
+                    EditorAnchorY = L.IdMaskTop;
+                    EditorFontSize = L.IdMaskFont > 0.01 ? L.IdMaskFont : L.IdNameFont;
+                    EditorFontFamily = L.IdMaskFontFamily ?? L.IdNameFontFamily ?? string.Empty;
+                    break;
+                case TicketFaceLayoutElementKind.IdNumber:
+                    EditorAnchorX = L.IdNumberLeft;
+                    EditorAnchorY = L.IdNumberTop;
+                    EditorFontSize = L.IdNumberFont > 0.01 ? L.IdNumberFont : L.IdNameFont;
+                    EditorFontFamily = L.IdNumberFontFamily ?? L.IdNameFontFamily ?? string.Empty;
+                    break;
+                case TicketFaceLayoutElementKind.IdPassengerName:
+                    EditorAnchorX = L.IdPassengerNameLeft;
+                    EditorAnchorY = L.IdPassengerNameTop;
+                    EditorFontSize = L.IdPassengerNameFont > 0.01 ? L.IdPassengerNameFont : L.IdNameFont;
+                    EditorFontFamily = L.IdPassengerNameFontFamily ?? L.IdNameFontFamily ?? string.Empty;
                     break;
                 case TicketFaceLayoutElementKind.HintBox:
                     EditorAnchorX = L.HintBoxLeft;
@@ -1223,10 +1272,27 @@ public partial class TicketPreviewViewModel
                 L.AdditionalInfoFontFamily = NullIfEmpty(EditorFontFamily);
                 break;
             case TicketFaceLayoutElementKind.IdName:
+            case TicketFaceLayoutElementKind.IdMask:
+                L.IdMaskLeft = EditorAnchorX;
+                L.IdMaskTop = EditorAnchorY;
+                L.IdMaskFont = EditorFontSize;
+                L.IdMaskFontFamily = NullIfEmpty(EditorFontFamily);
                 L.IdNameLeft = EditorAnchorX;
                 L.IdNameTop = EditorAnchorY;
                 L.IdNameFont = EditorFontSize;
                 L.IdNameFontFamily = NullIfEmpty(EditorFontFamily);
+                break;
+            case TicketFaceLayoutElementKind.IdNumber:
+                L.IdNumberLeft = EditorAnchorX;
+                L.IdNumberTop = EditorAnchorY;
+                L.IdNumberFont = EditorFontSize;
+                L.IdNumberFontFamily = NullIfEmpty(EditorFontFamily);
+                break;
+            case TicketFaceLayoutElementKind.IdPassengerName:
+                L.IdPassengerNameLeft = EditorAnchorX;
+                L.IdPassengerNameTop = EditorAnchorY;
+                L.IdPassengerNameFont = EditorFontSize;
+                L.IdPassengerNameFontFamily = NullIfEmpty(EditorFontFamily);
                 break;
             case TicketFaceLayoutElementKind.HintBox:
                 L.HintBoxLeft = EditorAnchorX;
@@ -1407,6 +1473,8 @@ public partial class TicketPreviewViewModel
         {
             TicketFaceLayoutElementKind.MoneyRow => TicketFaceLayoutElementKind.MoneySymbol,
             TicketFaceLayoutElementKind.CoachSeat => TicketFaceLayoutElementKind.CoachNumber,
+            TicketFaceLayoutElementKind.IdName => TicketFaceLayoutElementKind.IdMask,
+            TicketFaceLayoutElementKind.IdNumber => TicketFaceLayoutElementKind.IdMask,
             _ => kind
         };
         foreach (var opt in LayoutElementItems)
@@ -1421,6 +1489,14 @@ public partial class TicketPreviewViewModel
     public void SelectWorkbenchLayoutElementByKind(TicketFaceLayoutElementKind kind)
     {
         if (!IsVisualLayoutEdit) return;
+        kind = kind switch
+        {
+            TicketFaceLayoutElementKind.MoneyRow => TicketFaceLayoutElementKind.MoneySymbol,
+            TicketFaceLayoutElementKind.CoachSeat => TicketFaceLayoutElementKind.CoachNumber,
+            TicketFaceLayoutElementKind.IdName => TicketFaceLayoutElementKind.IdMask,
+            TicketFaceLayoutElementKind.IdNumber => TicketFaceLayoutElementKind.IdMask,
+            _ => kind
+        };
         foreach (var opt in LayoutElementItems)
         {
             if (opt.Kind != kind) continue;

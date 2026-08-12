@@ -1482,141 +1482,139 @@ public partial class TripListViewModel : ObservableObject, IDisposable
                 return;
             }
 
-            if (exportConfig.DefaultFormat == ExportFormatOption.Image)
+            // 先询问导出格式（默认带出设置中的格式）
+            var owner = Application.Current.MainWindow;
+            var formatDialog = new ExportTripFormatWindow(exportConfig.DefaultFormat, exportConfig.ImageTicketColor)
             {
-                var dialogResult = MessageBoxWindow.Show(
-                    "图片导出功能需要在车票预览中使用。\n\n是否跳转到车票预览功能？",
-                    "图片导出",
-                    MessageBoxButton.YesNo);
-
-                if (dialogResult == MessageBoxResult.Yes)
-                {
-                    _logService.Info("TripListViewModel", "用户选择跳转到车票预览功能进行图片导出");
-                    MessageBoxWindow.Show(
-                        "车票预览图片导出功能即将推出！\n\n您可以通过以下方式预览车票：\n1. 在行程中双击某条记录\n2. 或选中记录后按 Ctrl+P",
-                        "功能预告");
-                }
-
+                Owner = owner
+            };
+            if (formatDialog.ShowDialog() != true || !formatDialog.Confirmed)
                 return;
-            }
 
-            // 确定车次号：如果所有记录都是同一车次，使用该车次；否则显示"多车次"
+            var exportFormat = formatDialog.SelectedFormat;
+            var ticketColor = formatDialog.SelectedTicketColor;
+
             var trainNo = GetExportTrainNo(dataToExport);
-            var fileName =
-                _exportService.GenerateFileName(exportConfig.FileNameTemplate, exportConfig.DefaultFormat, trainNo);
+            var fileName = _exportService.GenerateFileName(exportConfig.FileNameTemplate, exportFormat, trainNo);
             string? exportFilePath = null;
 
-            // 如果设置了默认保存路径且路径存在，直接使用；否则弹出对话框让用户选择
-            if (!string.IsNullOrEmpty(exportConfig.DefaultSavePath) && Directory.Exists(exportConfig.DefaultSavePath))
+            var defaultPath = !string.IsNullOrEmpty(exportConfig.DefaultSavePath) &&
+                              Directory.Exists(exportConfig.DefaultSavePath)
+                ? exportConfig.DefaultSavePath
+                : Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+
+            var saveFileDialog = new SaveFileDialog
             {
-                // 使用默认路径
-                exportFilePath = Path.Combine(exportConfig.DefaultSavePath, fileName);
-            }
-            else
-            {
-                // 未设置默认路径，弹出保存对话框
-                var defaultPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-                var saveFileDialog = new SaveFileDialog
+                FileName = fileName,
+                InitialDirectory = defaultPath,
+                Filter = exportFormat switch
                 {
-                    FileName = fileName,
-                    InitialDirectory = defaultPath,
-                    Filter = exportConfig.DefaultFormat switch
+                    ExportFormatOption.Excel => "Excel文件 (*.xlsx)|*.xlsx",
+                    ExportFormatOption.Csv => "CSV文件 (*.csv)|*.csv",
+                    ExportFormatOption.Pdf => "PDF文件 (*.pdf)|*.pdf",
+                    ExportFormatOption.Image => "PNG 图片 (*.png)|*.png",
+                    _ => "所有文件 (*.*)|*.*"
+                },
+                DefaultExt = exportFormat switch
+                {
+                    ExportFormatOption.Excel => "xlsx",
+                    ExportFormatOption.Csv => "csv",
+                    ExportFormatOption.Pdf => "pdf",
+                    ExportFormatOption.Image => "png",
+                    _ => "*"
+                }
+            };
+
+            if (saveFileDialog.ShowDialog() != true) return;
+            exportFilePath = saveFileDialog.FileName;
+            if (string.IsNullOrEmpty(exportFilePath)) return;
+
+            ExportResult result;
+            var progressMessage = exportFormat == ExportFormatOption.Image
+                ? $"正在导出 {dataToExport.Count} 张票面..."
+                : $"正在导出 {dataToExport.Count} 条记录...";
+            var progressWindow = MessageBoxWindow.ShowProgress(progressMessage, "正在导出");
+
+            try
+            {
+                if (exportFormat == ExportFormatOption.Image)
+                {
+                    var faceExport = new TicketFaceImageExportService();
+                    result = await faceExport.ExportAsync(exportFilePath, dataToExport, ticketColor);
+                }
+                else
+                {
+                    var trainRides = dataToExport.Select(t => new TrainRideInfo
                     {
-                        ExportFormatOption.Excel => "Excel文件 (*.xlsx)|*.xlsx",
-                        ExportFormatOption.Csv => "CSV文件 (*.csv)|*.csv",
-                        ExportFormatOption.Pdf => "PDF文件 (*.pdf)|*.pdf",
-                        _ => "所有文件 (*.*)|*.*"
-                    },
-                    DefaultExt = exportConfig.DefaultFormat switch
-                    {
-                        ExportFormatOption.Excel => "xlsx",
-                        ExportFormatOption.Csv => "csv",
-                        ExportFormatOption.Pdf => "pdf",
-                        _ => "*"
-                    }
-                };
+                        Id = t.Id,
+                        TicketNumber = t.TicketNumber ?? "",
+                        TrainNo = t.TrainNo ?? "",
+                        DepartStation = t.DepartStation ?? "",
+                        ArriveStation = t.ArriveStation ?? "",
+                        DepartStationPinyin = t.DepartStationPinyin ?? "",
+                        ArriveStationPinyin = t.ArriveStationPinyin ?? "",
+                        DepartDate = t.DepartDate ?? "",
+                        DepartTime = t.DepartTime ?? "",
+                        ArriveTime = t.ArriveTime ?? "",
+                        ArriveDayOffset = t.ArriveDayOffset,
+                        CoachNo = t.CoachNo ?? "",
+                        SeatNo = t.SeatNo ?? "",
+                        SeatType = t.SeatType ?? "",
+                        Money = decimal.TryParse(t.Money, out var money) ? money : 0,
+                        CheckInLocation = t.CheckInLocation ?? "",
+                        AdditionalInfo = t.AdditionalInfo ?? "",
+                        TicketPurpose = t.TicketPurpose ?? "",
+                        TicketModificationType = t.TicketModificationType ?? "",
+                        Hint = t.Hint ?? "",
+                        Status = t.Status,
+                        Tags = t.Tags ?? new List<TicketTag>(),
+                        TicketTypeFlags = ParseTicketTypeFlags(t.TicketType),
+                        PaymentChannelFlags = ParsePaymentChannelFlags(t.PaymentChannel)
+                    }).ToList();
 
-                if (saveFileDialog.ShowDialog() != true) return; // 用户取消了对话框
-                exportFilePath = saveFileDialog.FileName;
-            }
+                    _logService.Info("TripListViewModel",
+                        $"准备导出 {trainRides.Count} 条记录，格式: {exportFormat}");
 
-            if (!string.IsNullOrEmpty(exportFilePath))
-            {
-                var trainRides = dataToExport.Select(t => new TrainRideInfo
-                {
-                    Id = t.Id,
-                    TicketNumber = t.TicketNumber ?? "",
-                    TrainNo = t.TrainNo ?? "",
-                    DepartStation = t.DepartStation ?? "",
-                    ArriveStation = t.ArriveStation ?? "",
-                    DepartStationPinyin = t.DepartStationPinyin ?? "",
-                    ArriveStationPinyin = t.ArriveStationPinyin ?? "",
-                    DepartDate = t.DepartDate ?? "",
-                    DepartTime = t.DepartTime ?? "",
-                    ArriveTime = t.ArriveTime ?? "",
-                    ArriveDayOffset = t.ArriveDayOffset,
-                    CoachNo = t.CoachNo ?? "",
-                    SeatNo = t.SeatNo ?? "",
-                    SeatType = t.SeatType ?? "",
-                    Money = decimal.TryParse(t.Money, out var money) ? money : 0,
-                    CheckInLocation = t.CheckInLocation ?? "",
-                    AdditionalInfo = t.AdditionalInfo ?? "",
-                    TicketPurpose = t.TicketPurpose ?? "",
-                    TicketModificationType = t.TicketModificationType ?? "",
-                    Hint = t.Hint ?? "",
-                    Status = t.Status,
-                    Tags = t.Tags ?? new List<TicketTag>()
-                }).ToList();
-
-                _logService.Info("TripListViewModel",
-                    $"准备导出 {trainRides.Count} 条记录到PDF，每页 {exportConfig.PdfRowsPerPage} 行");
-
-                // 显示进度提示
-                var progressWindow = MessageBoxWindow.ShowProgress($"正在导出 {trainRides.Count} 条记录...", "正在导出");
-
-                ExportResult result;
-                try
-                {
-                    // 如果启用了分组导出，使用分组导出方法
                     if (exportConfig.EnableGroupExport)
                     {
                         var groupOption = _uiSettingsService.Config.DefaultGroup;
-                        result = await _exportService.ExportGroupedAsync(exportFilePath, exportConfig.DefaultFormat,
+                        result = await _exportService.ExportGroupedAsync(exportFilePath, exportFormat,
                             trainRides, groupOption, exportConfig);
                     }
                     else
                     {
-                        result = await _exportService.ExportAsync(exportFilePath, exportConfig.DefaultFormat,
+                        result = await _exportService.ExportAsync(exportFilePath, exportFormat,
                             trainRides, exportConfig);
                     }
                 }
-                finally
+            }
+            finally
+            {
+                progressWindow.Close();
+            }
+
+            if (result.Success)
+            {
+                if (exportConfig.ShowSuccessMessage)
                 {
-                    progressWindow.Close();
+                    var exportTypeText = isExportSelected ? "选中数据" : "全部数据";
+                    MessageBoxWindow.Show(
+                        $"导出成功！\n导出类型：{exportTypeText}\n文件路径：{result.FilePath}\n导出记录数：{result.RecordCount}条",
+                        "导出完成");
                 }
 
-                if (result.Success)
-                {
-                    if (exportConfig.ShowSuccessMessage)
-                    {
-                        var exportTypeText = isExportSelected ? "选中数据" : "全部数据";
-                        MessageBoxWindow.Show(
-                            $"导出成功！\n导出类型：{exportTypeText}\n文件路径：{result.FilePath}\n导出记录数：{result.RecordCount}条",
-                            "导出完成");
-                    }
+                if (exportConfig.OpenAfterExport && !string.IsNullOrEmpty(result.FilePath) &&
+                    (File.Exists(result.FilePath) || Directory.Exists(result.FilePath)))
+                    Process.Start(new ProcessStartInfo(result.FilePath) { UseShellExecute = true });
 
-                    if (exportConfig.OpenAfterExport && File.Exists(result.FilePath))
-                        Process.Start(new ProcessStartInfo(result.FilePath) { UseShellExecute = true });
-
-                    var logText = isExportSelected ? "选中数据" : "全部数据";
-                    _logService.Info("TripListViewModel",
-                        $"行程导出成功：{result.FilePath}，类型：{logText}，记录数：{result.RecordCount}");
-                }
-                else
-                {
-                    MessageBoxWindow.Show($"导出失败：{result.Message}", "导出错误", MessageBoxButton.OK, MessageBoxImage.Error);
-                    _logService.Error("TripListViewModel", $"行程导出失败：{result.Message}");
-                }
+                var logText = isExportSelected ? "选中数据" : "全部数据";
+                _logService.Info("TripListViewModel",
+                    $"行程导出成功：{result.FilePath}，类型：{logText}，记录数：{result.RecordCount}");
+            }
+            else
+            {
+                MessageBoxWindow.Show($"导出失败：{result.Message}", "导出错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                _logService.Error("TripListViewModel", $"行程导出失败：{result.Message}");
             }
         }
         catch (Exception ex)
@@ -1732,6 +1730,33 @@ public partial class TripListViewModel : ObservableObject, IDisposable
         if ((flags & 256) != 0) channels.Add("中国银行");
 
         return string.Join(", ", channels);
+    }
+
+    private static int ParseTicketTypeFlags(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return 0;
+        var flags = 0;
+        if (text.Contains("学生", StringComparison.Ordinal)) flags |= 1;
+        if (text.Contains("优惠", StringComparison.Ordinal)) flags |= 2;
+        if (text.Contains("网络", StringComparison.Ordinal)) flags |= 4;
+        if (text.Contains("儿童", StringComparison.Ordinal)) flags |= 8;
+        return flags;
+    }
+
+    private static int ParsePaymentChannelFlags(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return 0;
+        var flags = 0;
+        if (text.Contains("支付宝", StringComparison.Ordinal)) flags |= 1;
+        if (text.Contains("微信", StringComparison.Ordinal)) flags |= 2;
+        if (text.Contains("农业银行", StringComparison.Ordinal)) flags |= 4;
+        if (text.Contains("建设银行", StringComparison.Ordinal)) flags |= 8;
+        if (text.Contains("工商银行", StringComparison.Ordinal)) flags |= 16;
+        if (text.Contains("交通银行", StringComparison.Ordinal)) flags |= 32;
+        if (text.Contains("招商银行", StringComparison.Ordinal)) flags |= 64;
+        if (text.Contains("邮储银行", StringComparison.Ordinal)) flags |= 128;
+        if (text.Contains("中国银行", StringComparison.Ordinal)) flags |= 256;
+        return flags;
     }
 
     partial void OnCurrentViewTypeChanged(ViewType value)

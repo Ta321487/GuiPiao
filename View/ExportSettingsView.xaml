@@ -19,6 +19,7 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
                 <!-- 默认导出设置 -->
@@ -32,12 +33,12 @@
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
                             <TextBlock Text="默认导出格式：" VerticalAlignment="Center"
                                        Foreground="{DynamicResource TextPrimaryBrush}" />
-                            <ComboBox MinWidth="120" SelectedValue="{Binding DefaultFormat}" SelectedValuePath="Tag"
+                            <ComboBox MinWidth="160" SelectedValue="{Binding DefaultFormat}" SelectedValuePath="Tag"
                                       Margin="10,0,0,0">
                                 <ComboBoxItem Content="Excel" Tag="{x:Static model:ExportFormatOption.Excel}" />
                                 <ComboBoxItem Content="CSV" Tag="{x:Static model:ExportFormatOption.Csv}" />
-                                <ComboBoxItem Content="PDF" Tag="{x:Static model:ExportFormatOption.Pdf}" />
-                                <ComboBoxItem Content="图片" Tag="{x:Static model:ExportFormatOption.Image}" />
+                                <ComboBoxItem Content="PDF（行程表）" Tag="{x:Static model:ExportFormatOption.Pdf}" />
+                                <ComboBoxItem Content="票面图片（PNG）" Tag="{x:Static model:ExportFormatOption.Image}" />
                             </ComboBox>
                         </StackPanel>
 
@@ -75,7 +76,8 @@
                         <!-- 分组导出 -->
                         <WrapPanel>
                             <CheckBox Content="按当前分组设置导出" IsChecked="{Binding EnableGroupExport}"
-                                      ToolTip="启用后，Excel将按分组创建多个工作表，PDF将按分组显示" Margin="0,0,0,5" />
+                                      ToolTip="启用后，Excel将按分组创建多个工作表，PDF将按分组显示（票面 PNG 不适用）"
+                                      Margin="0,0,0,5" />
                         </WrapPanel>
                     </StackPanel>
                 </Border>
@@ -174,12 +176,15 @@
                     </StackPanel>
                 </Border>
 
-                <!-- PDF/图片导出设置 -->
+                <!-- PDF 行程表导出设置 -->
                 <Border Grid.Row="3" Background="{DynamicResource PanelBackgroundBrush}"
                         BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
                     <StackPanel>
-                        <TextBlock Text="📑 PDF/图片导出设置" FontWeight="Bold" Margin="0,0,0,10"
+                        <TextBlock Text="📑 PDF 行程表导出设置" FontWeight="Bold" Margin="0,0,0,10"
                                    Foreground="{DynamicResource TextPrimaryBrush}" />
+                        <TextBlock Text="用于导出行程列表 PDF（纸张、边距、字段见下方），与票面 PNG 无关。"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                   FontSize="{DynamicResource SmallFontSize}" Margin="0,0,0,10" TextWrapping="Wrap" />
 
                         <WrapPanel Margin="0,0,0,10">
                             <TextBlock Text="每页行数：" VerticalAlignment="Center" Margin="0,0,5,5"
@@ -195,9 +200,11 @@
                             </ComboBox>
                             <TextBlock Text="方向：" VerticalAlignment="Center" Margin="0,0,5,5"
                                        Foreground="{DynamicResource TextPrimaryBrush}" />
-                            <RadioButton Content="纵向" GroupName="PdfOrientation" IsChecked="{Binding IsPdfPortrait}"
+                            <RadioButton Content="纵向" GroupName="PdfOrientation"
+                                         IsChecked="{Binding IsPdfPortrait, Mode=TwoWay}"
                                          Margin="0,0,10,5" />
-                            <RadioButton Content="横向" GroupName="PdfOrientation" IsChecked="{Binding IsPdfLandscape}"
+                            <RadioButton Content="横向" GroupName="PdfOrientation"
+                                         IsChecked="{Binding IsPdfLandscape, Mode=TwoWay}"
                                          Margin="0,0,0,5" />
                         </WrapPanel>
 
@@ -232,12 +239,39 @@
                     </StackPanel>
                 </Border>
 
-                <!-- 导出字段选择 -->
+                <!-- 票面图片 PNG -->
                 <Border Grid.Row="4" Background="{DynamicResource PanelBackgroundBrush}"
                         BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
                     <StackPanel>
-                        <TextBlock Text="📋 导出字段选择" FontWeight="Bold" Margin="0,0,0,10"
+                        <TextBlock Text="🖼️ 票面图片（PNG）导出设置" FontWeight="Bold" Margin="0,0,0,10"
                                    Foreground="{DynamicResource TextPrimaryBrush}" />
+                        <TextBlock Text="导出车票预览票面图（811×509）。设置页测试仅用示例行程，不会批量导出全部行程。"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                   FontSize="{DynamicResource SmallFontSize}" Margin="0,0,0,10" TextWrapping="Wrap" />
+
+                        <WrapPanel>
+                            <TextBlock Text="票面颜色：" VerticalAlignment="Center" Margin="0,0,5,5"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <ComboBox MinWidth="140" SelectedValue="{Binding ImageTicketColor}" SelectedValuePath="Tag"
+                                      Margin="0,0,10,5"
+                                      ToolTip="默认格式为「票面图片」时生效">
+                                <ComboBoxItem Content="红票" Tag="{x:Static model:ImageTicketColorMode.Red}" />
+                                <ComboBoxItem Content="蓝票" Tag="{x:Static model:ImageTicketColorMode.Blue}" />
+                                <ComboBoxItem Content="红蓝一起" Tag="{x:Static model:ImageTicketColorMode.Both}" />
+                            </ComboBox>
+                        </WrapPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- 导出字段选择 -->
+                <Border Grid.Row="5" Background="{DynamicResource PanelBackgroundBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
+                    <StackPanel>
+                        <TextBlock Text="📋 导出字段选择（Excel / CSV / PDF）" FontWeight="Bold" Margin="0,0,0,10"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+                        <TextBlock Text="票面 PNG 不使用此字段列表，票面内容来自行程/示例数据。"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                   FontSize="{DynamicResource SmallFontSize}" Margin="0,0,0,10" TextWrapping="Wrap" />
 
                         <WrapPanel>
                             <CheckBox Content="票号" IsChecked="{Binding ExportTicketNumber}" Margin="0,0,20,10" />
@@ -259,18 +293,18 @@
                 </Border>
 
                 <!-- 测试与预览 -->
-                <Border Grid.Row="5" Background="{DynamicResource PanelBackgroundBrush}"
+                <Border Grid.Row="6" Background="{DynamicResource PanelBackgroundBrush}"
                         BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
                     <StackPanel>
-                        <TextBlock Text="🧪 测试与预览" FontWeight="Bold" Margin="0,0,0,10"
+                        <TextBlock Text="🧪 导出测试" FontWeight="Bold" Margin="0,0,0,6"
                                    Foreground="{DynamicResource TextPrimaryBrush}" />
-                        <StackPanel Orientation="Horizontal">
-                            <Button Content="👁️ 预览导出效果" Command="{Binding PreviewExportCommand}"
-                                    Style="{StaticResource StandardButtonStyle}"
-                                    Margin="0,0,10,0" />
-                            <Button Content="📄 导出测试文件" Command="{Binding ExportTestCommand}"
-                                    Style="{StaticResource StandardButtonStyle}" />
-                        </StackPanel>
+                        <TextBlock Text="{Binding TestExportHint}" TextWrapping="Wrap" Margin="0,0,0,10"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                   FontSize="{DynamicResource SmallFontSize}" />
+                        <Button Content="📄 导出测试文件" Command="{Binding ExportTestCommand}"
+                                Style="{StaticResource StandardButtonStyle}"
+                                HorizontalAlignment="Left"
+                                ToolTip="按当前默认格式导出示例数据到默认保存路径（未设置则桌面），并按设置打开文件" />
                     </StackPanel>
                 </Border>
             </Grid>

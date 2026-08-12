@@ -136,6 +136,15 @@ public partial class ObservableTicketFaceLayout : ObservableObject
         IdNameLeft = t.IdNameLeft;
         IdNameTop = t.IdNameTop;
         IdNameFont = t.IdNameFont;
+        IdNumberLeft = t.IdNumberLeft;
+        IdNumberTop = t.IdNumberTop;
+        IdNumberFont = t.IdNumberFont;
+        IdMaskLeft = t.IdMaskLeft;
+        IdMaskTop = t.IdMaskTop;
+        IdMaskFont = t.IdMaskFont;
+        IdPassengerNameLeft = t.IdPassengerNameLeft;
+        IdPassengerNameTop = t.IdPassengerNameTop;
+        IdPassengerNameFont = t.IdPassengerNameFont;
         HintBoxLeft = t.HintBoxLeft;
         HintBoxTop = t.HintBoxTop;
         HintBoxWidth = t.HintBoxWidth;
@@ -170,6 +179,60 @@ public partial class ObservableTicketFaceLayout : ObservableObject
         EnsureMoneySegmentsFromLegacyIfUnset();
         EnsureCoachSeatSegmentsFromLegacyIfUnset();
         EnsureAdditionalInfoFromLegacyIfUnset();
+        EnsureIdSegmentsFromLegacyIfUnset();
+    }
+
+    /// <summary>旧 JSON 仅 idName 锚点时，为掩码/姓名分段补默认坐标。</summary>
+    public void EnsureIdSegmentsFromLegacyIfUnset()
+    {
+        const double eps = 0.01;
+        var unset = Math.Abs(IdMaskLeft) < eps && Math.Abs(IdPassengerNameLeft) < eps;
+        var baseFont = IdNameFont > eps ? IdNameFont : 12;
+        if (unset && (Math.Abs(IdNameLeft) > eps || Math.Abs(IdNameTop) > eps))
+        {
+            var l = IdNameLeft;
+            var t = IdNameTop;
+            IdMaskLeft = l;
+            IdMaskTop = t;
+            IdMaskFont = baseFont;
+            IdPassengerNameLeft = l + 148;
+            IdPassengerNameTop = t;
+            IdPassengerNameFont = baseFont;
+            // 兼容字段：与掩码同锚，完整号不再上票面
+            IdNumberLeft = l;
+            IdNumberTop = t;
+            IdNumberFont = baseFont;
+        }
+        else
+        {
+            if (Math.Abs(IdMaskFont) < eps) IdMaskFont = baseFont;
+            if (Math.Abs(IdPassengerNameFont) < eps) IdPassengerNameFont = baseFont;
+            if (Math.Abs(IdNumberFont) < eps) IdNumberFont = baseFont;
+            if (Math.Abs(IdMaskLeft) < eps && Math.Abs(IdNameLeft) > eps)
+            {
+                IdMaskLeft = IdNameLeft;
+                IdMaskTop = IdNameTop;
+            }
+
+            if (Math.Abs(IdPassengerNameLeft) < eps && Math.Abs(IdMaskLeft) > eps)
+            {
+                IdPassengerNameLeft = IdMaskLeft + 148;
+                IdPassengerNameTop = IdMaskTop;
+            }
+
+            if (Math.Abs(IdNumberLeft) < eps && Math.Abs(IdMaskLeft) > eps)
+            {
+                IdNumberLeft = IdMaskLeft;
+                IdNumberTop = IdMaskTop;
+            }
+        }
+
+        if (string.IsNullOrWhiteSpace(IdMaskFontFamily) && !string.IsNullOrWhiteSpace(IdNameFontFamily))
+            IdMaskFontFamily = IdNameFontFamily;
+        if (string.IsNullOrWhiteSpace(IdNumberFontFamily) && !string.IsNullOrWhiteSpace(IdNameFontFamily))
+            IdNumberFontFamily = IdNameFontFamily;
+        if (string.IsNullOrWhiteSpace(IdPassengerNameFontFamily) && !string.IsNullOrWhiteSpace(IdNameFontFamily))
+            IdPassengerNameFontFamily = IdNameFontFamily;
     }
 
     /// <summary>旧 JSON 仅 moneyRow 锚点时，为 ￥/数字/元 分段补默认坐标。</summary>
@@ -603,6 +666,15 @@ public partial class ObservableTicketFaceLayout : ObservableObject
         IdNameLeft = IdNameLeft,
         IdNameTop = IdNameTop,
         IdNameFont = IdNameFont,
+        IdNumberLeft = IdNumberLeft,
+        IdNumberTop = IdNumberTop,
+        IdNumberFont = IdNumberFont,
+        IdMaskLeft = IdMaskLeft,
+        IdMaskTop = IdMaskTop,
+        IdMaskFont = IdMaskFont,
+        IdPassengerNameLeft = IdPassengerNameLeft,
+        IdPassengerNameTop = IdPassengerNameTop,
+        IdPassengerNameFont = IdPassengerNameFont,
         HintBoxLeft = HintBoxLeft,
         HintBoxTop = HintBoxTop,
         HintBoxWidth = HintBoxWidth,
@@ -811,12 +883,61 @@ public partial class ObservableTicketFaceLayout : ObservableObject
     [ObservableProperty] private double _idNameFont = 12;
     [ObservableProperty] private string? _idNameFontFamily;
 
+    [ObservableProperty] private double _idNumberLeft;
+    [ObservableProperty] private double _idNumberTop;
+    [ObservableProperty] private double _idNumberFont = 12;
+    [ObservableProperty] private string? _idNumberFontFamily;
+
+    [ObservableProperty] private double _idMaskLeft;
+    [ObservableProperty] private double _idMaskTop;
+    [ObservableProperty] private double _idMaskFont = 12;
+    [ObservableProperty] private string? _idMaskFontFamily;
+
+    [ObservableProperty] private double _idPassengerNameLeft;
+    [ObservableProperty] private double _idPassengerNameTop;
+    [ObservableProperty] private double _idPassengerNameFont = 12;
+    [ObservableProperty] private string? _idPassengerNameFontFamily;
+
     [ObservableProperty] private double _hintBoxLeft;
     [ObservableProperty] private double _hintBoxTop;
     [ObservableProperty] private double _hintBoxWidth = 480;
     [ObservableProperty] private double _hintFont = 11;
     [ObservableProperty] private string? _hintFontFamily;
 
+    /// <summary>
+    ///     提示区折行/外框上限：不超过 <see cref="HintBoxWidth" />，且右边不侵入二维码。
+    ///     真实报销凭证广告栏固定在二维码左侧，字数增多时在栏内折行，不会盖住二维码。
+    /// </summary>
+    public double HintBoxRenderMaxWidth
+    {
+        get
+        {
+            const double gapBeforeQr = 16;
+            var roomBeforeQr = QrLeft - HintBoxLeft - gapBeforeQr;
+            return Math.Max(40, Math.Min(HintBoxWidth, roomBeforeQr));
+        }
+    }
+
+    /// <summary>提示区正文折行宽度（扣除虚线框内边距）。</summary>
+    public double HintBoxTextMaxWidth => Math.Max(20, HintBoxRenderMaxWidth - 16);
+
+    partial void OnHintBoxLeftChanged(double value)
+    {
+        OnPropertyChanged(nameof(HintBoxRenderMaxWidth));
+        OnPropertyChanged(nameof(HintBoxTextMaxWidth));
+    }
+
+    partial void OnHintBoxWidthChanged(double value)
+    {
+        OnPropertyChanged(nameof(HintBoxRenderMaxWidth));
+        OnPropertyChanged(nameof(HintBoxTextMaxWidth));
+    }
+
+    partial void OnQrLeftChanged(double value)
+    {
+        OnPropertyChanged(nameof(HintBoxRenderMaxWidth));
+        OnPropertyChanged(nameof(HintBoxTextMaxWidth));
+    }
     [ObservableProperty] private double _footerLeft;
     [ObservableProperty] private double _footerTop;
     [ObservableProperty] private double _footerFont = 10;

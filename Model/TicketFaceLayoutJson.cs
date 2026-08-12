@@ -173,6 +173,18 @@ public sealed class TicketFaceLayoutSideDto
     public double IdNameTop { get; set; }
     public double IdNameFont { get; set; }
     public string? IdNameFontFamily { get; set; }
+    public double IdNumberLeft { get; set; }
+    public double IdNumberTop { get; set; }
+    public double IdNumberFont { get; set; }
+    public string? IdNumberFontFamily { get; set; }
+    public double IdMaskLeft { get; set; }
+    public double IdMaskTop { get; set; }
+    public double IdMaskFont { get; set; }
+    public string? IdMaskFontFamily { get; set; }
+    public double IdPassengerNameLeft { get; set; }
+    public double IdPassengerNameTop { get; set; }
+    public double IdPassengerNameFont { get; set; }
+    public string? IdPassengerNameFontFamily { get; set; }
     public double HintBoxLeft { get; set; }
     public double HintBoxTop { get; set; }
     public double HintBoxWidth { get; set; }
@@ -283,6 +295,9 @@ public sealed class TicketFaceLayoutSideDto
         TicketModificationTypeLeft = o.TicketModificationTypeLeft, TicketModificationTypeTop = o.TicketModificationTypeTop,
         TicketModificationTypeFont = o.TicketModificationTypeFont, TicketModificationTypeFontFamily = o.TicketModificationTypeFontFamily,
         IdNameLeft = o.IdNameLeft, IdNameTop = o.IdNameTop, IdNameFont = o.IdNameFont, IdNameFontFamily = o.IdNameFontFamily,
+        IdNumberLeft = o.IdNumberLeft, IdNumberTop = o.IdNumberTop, IdNumberFont = o.IdNumberFont, IdNumberFontFamily = o.IdNumberFontFamily,
+        IdMaskLeft = o.IdMaskLeft, IdMaskTop = o.IdMaskTop, IdMaskFont = o.IdMaskFont, IdMaskFontFamily = o.IdMaskFontFamily,
+        IdPassengerNameLeft = o.IdPassengerNameLeft, IdPassengerNameTop = o.IdPassengerNameTop, IdPassengerNameFont = o.IdPassengerNameFont, IdPassengerNameFontFamily = o.IdPassengerNameFontFamily,
         HintBoxLeft = o.HintBoxLeft, HintBoxTop = o.HintBoxTop, HintBoxWidth = o.HintBoxWidth, HintFont = o.HintFont,
         HintFontFamily = o.HintFontFamily,
         FooterLeft = o.FooterLeft, FooterTop = o.FooterTop, FooterFont = o.FooterFont, FooterFontFamily = o.FooterFontFamily,
@@ -464,6 +479,18 @@ public sealed class TicketFaceLayoutSideDto
         o.IdNameTop = IdNameTop;
         o.IdNameFont = IdNameFont;
         o.IdNameFontFamily = IdNameFontFamily;
+        o.IdNumberLeft = IdNumberLeft;
+        o.IdNumberTop = IdNumberTop;
+        o.IdNumberFont = IdNumberFont;
+        o.IdNumberFontFamily = IdNumberFontFamily;
+        o.IdMaskLeft = IdMaskLeft;
+        o.IdMaskTop = IdMaskTop;
+        o.IdMaskFont = IdMaskFont;
+        o.IdMaskFontFamily = IdMaskFontFamily;
+        o.IdPassengerNameLeft = IdPassengerNameLeft;
+        o.IdPassengerNameTop = IdPassengerNameTop;
+        o.IdPassengerNameFont = IdPassengerNameFont;
+        o.IdPassengerNameFontFamily = IdPassengerNameFontFamily;
         o.HintBoxLeft = HintBoxLeft;
         o.HintBoxTop = HintBoxTop;
         o.HintBoxWidth = HintBoxWidth;
@@ -505,6 +532,7 @@ public sealed class TicketFaceLayoutSideDto
         o.EnsureMoneySegmentsFromLegacyIfUnset();
         o.EnsureCoachSeatSegmentsFromLegacyIfUnset();
         o.EnsureAdditionalInfoFromLegacyIfUnset();
+        o.EnsureIdSegmentsFromLegacyIfUnset();
     }
 }
 

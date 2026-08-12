@@ -8,7 +8,17 @@ public enum ExportFormatOption
     Excel = 0, // Excel格式
     Csv = 1, // CSV格式
     Pdf = 2, // PDF格式
-    Image = 3 // 图片格式
+    Image = 3 // 图片格式（车票预览票面 PNG）
+}
+
+/// <summary>
+///     票面图片导出颜色：红票 / 蓝票 / 红蓝一起
+/// </summary>
+public enum ImageTicketColorMode
+{
+    Red = 0,
+    Blue = 1,
+    Both = 2
 }
 
 /// <summary>
@@ -88,6 +98,9 @@ public class ExportConfig
     public int PdfMarginBottom { get; set; } = 20;
     public int PdfMarginLeft { get; set; } = 15;
     public int PdfMarginRight { get; set; } = 15;
+
+    /// <summary>票面图片导出：红票 / 蓝票 / 红蓝一起</summary>
+    public ImageTicketColorMode ImageTicketColor { get; set; } = ImageTicketColorMode.Red;
 
     // 导出字段选择
     public bool ExportTicketNumber { get; set; } = true;

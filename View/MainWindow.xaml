@@ -661,7 +661,7 @@
                                                 ToolTip="关闭全屏" />
                                     </Grid>
 
-                                    <!-- 全屏图表显示区域 -->
+                                    <!-- 全屏图表显示区域：模板切换，同一时刻只有一种图表控件 -->
                                     <ContentControl Grid.Row="1"
                                                     Content="{Binding FullscreenChart}"
                                                     Margin="20,0"
@@ -669,58 +669,79 @@
                                                     VerticalContentAlignment="Stretch">
                                         <ContentControl.ContentTemplate>
                                             <DataTemplate>
-                                                <Grid VerticalAlignment="Stretch">
-                                                    <!-- 文本列表 -->
-                                                    <ScrollViewer VerticalScrollBarVisibility="Auto"
-                                                                  Visibility="{Binding IsTextList, Converter={StaticResource BooleanToVisibilityConverter}}">
-                                                        <ItemsControl ItemsSource="{Binding ChartData.TextListItems}">
-                                                            <ItemsControl.ItemTemplate>
-                                                                <DataTemplate>
-                                                                    <Border BorderBrush="{DynamicResource BorderBrush}"
-                                                                            BorderThickness="0,0,0,1"
-                                                                            Padding="8,4">
-                                                                        <Grid>
-                                                                            <Grid.ColumnDefinitions>
-                                                                                <ColumnDefinition Width="*" />
-                                                                                <ColumnDefinition Width="Auto" />
-                                                                            </Grid.ColumnDefinitions>
-                                                                            <TextBlock Grid.Column="0"
-                                                                                    Text="{Binding Label}"
-                                                                                    Foreground="{DynamicResource TextPrimaryBrush}" />
-                                                                            <TextBlock Grid.Column="1"
-                                                                                    Text="{Binding Value}"
-                                                                                    Foreground="{DynamicResource TextSecondaryBrush}" />
-                                                                        </Grid>
-                                                                    </Border>
-                                                                </DataTemplate>
-                                                            </ItemsControl.ItemTemplate>
-                                                        </ItemsControl>
-                                                    </ScrollViewer>
-
-                                                    <!-- 饼图 -->
-                                                    <lvc:PieChart Series="{Binding Series}"
-                                                                  Background="Transparent"
-                                                                  IsHitTestVisible="True"
-                                                                  TooltipPosition="{Binding PieTooltipPosition}"
-                                                                  TooltipTextPaint="{Binding TooltipTextPaint}"
-                                                                  TooltipBackgroundPaint="{Binding TooltipBackgroundPaint}"
-                                                                  TooltipTextSize="{Binding TooltipTextSize}"
-                                                                  AnimationsSpeed="{Binding AnimationSpeed}"
-                                                                  EasingFunction="{Binding AnimationEasingFunction}"
-                                                                  Visibility="{Binding IsPieChart, Converter={StaticResource BooleanToVisibilityConverter}}" />
-
-                                                    <!-- 柱状图/条形图/折线图 -->
-                                                    <lvc:CartesianChart Series="{Binding Series}"
-                                                                        XAxes="{Binding XAxes}"
-                                                                        YAxes="{Binding YAxes}"
-                                                                        TooltipPosition="{Binding TooltipPosition}"
-                                                                        TooltipTextPaint="{Binding TooltipTextPaint}"
-                                                                        TooltipBackgroundPaint="{Binding TooltipBackgroundPaint}"
-                                                                        TooltipTextSize="{Binding TooltipTextSize}"
-                                                                        AnimationsSpeed="{Binding AnimationSpeed}"
-                                                                        EasingFunction="{Binding AnimationEasingFunction}"
-                                                                        Visibility="{Binding IsCartesianChart, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                                                </Grid>
+                                                <ContentControl Content="{Binding}" VerticalAlignment="Stretch"
+                                                                VerticalContentAlignment="Stretch">
+                                                    <ContentControl.Style>
+                                                        <Style TargetType="ContentControl">
+                                                            <Setter Property="ContentTemplate">
+                                                                <Setter.Value>
+                                                                    <DataTemplate>
+                                                                        <lvc:CartesianChart Series="{Binding Series}"
+                                                                                            XAxes="{Binding XAxes}"
+                                                                                            YAxes="{Binding YAxes}"
+                                                                                            TooltipPosition="{Binding TooltipPosition}"
+                                                                                            TooltipTextPaint="{Binding TooltipTextPaint}"
+                                                                                            TooltipBackgroundPaint="{Binding TooltipBackgroundPaint}"
+                                                                                            TooltipTextSize="{Binding TooltipTextSize}"
+                                                                                            AnimationsSpeed="{Binding AnimationSpeed}"
+                                                                                            EasingFunction="{Binding AnimationEasingFunction}" />
+                                                                    </DataTemplate>
+                                                                </Setter.Value>
+                                                            </Setter>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsPieChart}" Value="True">
+                                                                    <Setter Property="ContentTemplate">
+                                                                        <Setter.Value>
+                                                                            <DataTemplate>
+                                                                                <lvc:PieChart Series="{Binding Series}"
+                                                                                              Background="Transparent"
+                                                                                              IsHitTestVisible="True"
+                                                                                              TooltipPosition="{Binding PieTooltipPosition}"
+                                                                                              TooltipTextPaint="{Binding TooltipTextPaint}"
+                                                                                              TooltipBackgroundPaint="{Binding TooltipBackgroundPaint}"
+                                                                                              TooltipTextSize="{Binding TooltipTextSize}"
+                                                                                              AnimationsSpeed="{Binding AnimationSpeed}"
+                                                                                              EasingFunction="{Binding AnimationEasingFunction}" />
+                                                                            </DataTemplate>
+                                                                        </Setter.Value>
+                                                                    </Setter>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding IsTextList}" Value="True">
+                                                                    <Setter Property="ContentTemplate">
+                                                                        <Setter.Value>
+                                                                            <DataTemplate>
+                                                                                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                                                                    <ItemsControl ItemsSource="{Binding ChartData.TextListItems}">
+                                                                                        <ItemsControl.ItemTemplate>
+                                                                                            <DataTemplate>
+                                                                                                <Border BorderBrush="{DynamicResource BorderBrush}"
+                                                                                                        BorderThickness="0,0,0,1"
+                                                                                                        Padding="8,4">
+                                                                                                    <Grid>
+                                                                                                        <Grid.ColumnDefinitions>
+                                                                                                            <ColumnDefinition Width="*" />
+                                                                                                            <ColumnDefinition Width="Auto" />
+                                                                                                        </Grid.ColumnDefinitions>
+                                                                                                        <TextBlock Grid.Column="0"
+                                                                                                                   Text="{Binding Label}"
+                                                                                                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+                                                                                                        <TextBlock Grid.Column="1"
+                                                                                                                   Text="{Binding Value}"
+                                                                                                                   Foreground="{DynamicResource TextSecondaryBrush}" />
+                                                                                                    </Grid>
+                                                                                                </Border>
+                                                                                            </DataTemplate>
+                                                                                        </ItemsControl.ItemTemplate>
+                                                                                    </ItemsControl>
+                                                                                </ScrollViewer>
+                                                                            </DataTemplate>
+                                                                        </Setter.Value>
+                                                                    </Setter>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </ContentControl.Style>
+                                                </ContentControl>
                                             </DataTemplate>
                                         </ContentControl.ContentTemplate>
                                     </ContentControl>

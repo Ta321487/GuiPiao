@@ -177,6 +177,19 @@ public sealed class TicketFaceLayout
     public double IdNameTop { get; init; }
     public double IdNameFont { get; init; } = 12;
 
+    /// <summary>兼容旧 JSON；完整号不上票面，与掩码同锚即可。</summary>
+    public double IdNumberLeft { get; init; }
+    public double IdNumberTop { get; init; }
+    public double IdNumberFont { get; init; } = 12;
+
+    public double IdMaskLeft { get; init; }
+    public double IdMaskTop { get; init; }
+    public double IdMaskFont { get; init; } = 12;
+
+    public double IdPassengerNameLeft { get; init; }
+    public double IdPassengerNameTop { get; init; }
+    public double IdPassengerNameFont { get; init; } = 12;
+
     public double HintBoxLeft { get; init; }
     public double HintBoxTop { get; init; }
     public double HintBoxWidth { get; init; } = 480;
@@ -255,6 +268,10 @@ public sealed class TicketFaceLayout
         PurposeLeft = 48, PurposeTop = 300,
         AdditionalInfoLeft = 48, AdditionalInfoTop = 324, AdditionalInfoFont = 11,
         IdNameLeft = 48, IdNameTop = 332,
+        IdNumberLeft = 48, IdNumberTop = 332, IdNumberFont = 12,
+        IdMaskLeft = 48, IdMaskTop = 332, IdMaskFont = 12,
+        IdPassengerNameLeft = 196, IdPassengerNameTop = 332, IdPassengerNameFont = 12,
+        // 真票广告栏约 48mm（≈455px），停在二维码左侧；字数增多时栏内折行
         HintBoxLeft = 48, HintBoxTop = 368, HintBoxWidth = 480,
         FooterLeft = 48, FooterTop = 462,
         QrLeft = 620, QrTop = 300,
@@ -307,6 +324,9 @@ public sealed class TicketFaceLayout
         PurposeLeft = 52, PurposeTop = 304,
         AdditionalInfoLeft = 52, AdditionalInfoTop = 328, AdditionalInfoFont = 11,
         IdNameLeft = 52, IdNameTop = 336,
+        IdNumberLeft = 52, IdNumberTop = 336, IdNumberFont = 12,
+        IdMaskLeft = 52, IdMaskTop = 336, IdMaskFont = 12,
+        IdPassengerNameLeft = 200, IdPassengerNameTop = 336, IdPassengerNameFont = 12,
         HintBoxLeft = 52, HintBoxTop = 372, HintBoxWidth = 480,
         FooterLeft = 52, FooterTop = 466,
         QrLeft = 624, QrTop = 304,

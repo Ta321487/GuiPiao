@@ -47,6 +47,9 @@ public static class TicketFaceLayoutPatch
             case "purposefontfamily": o.PurposeFontFamily = s; return true;
             case "ticketmodificationtypefontfamily": o.TicketModificationTypeFontFamily = s; return true;
             case "idnamefontfamily": o.IdNameFontFamily = s; return true;
+            case "idnumberfontfamily": o.IdNumberFontFamily = s; return true;
+            case "idmaskfontfamily": o.IdMaskFontFamily = s; return true;
+            case "idpassengernamefontfamily": o.IdPassengerNameFontFamily = s; return true;
             case "hintfontfamily": o.HintFontFamily = s; return true;
             case "footerfontfamily": o.FooterFontFamily = s; return true;
             case "badgefontfamily": o.BadgeFontFamily = s; return true;
@@ -193,6 +196,16 @@ public static class TicketFaceLayoutPatch
             case "idnameleft": o.IdNameLeft = d; return true;
             case "idnametop": o.IdNameTop = d; return true;
             case "idnamefont": o.IdNameFont = d; return true;
+            case "idnumberleft": o.IdNumberLeft = d; return true;
+            case "idnumbertop": o.IdNumberTop = d; return true;
+            case "idnumberfont": o.IdNumberFont = d; return true;
+            case "idmaskleft": o.IdMaskLeft = d; return true;
+            case "idmasktop": o.IdMaskTop = d; return true;
+            case "idmaskfont": o.IdMaskFont = d; return true;
+            case "idpassengernamesleft":
+            case "idpassengernameleft": o.IdPassengerNameLeft = d; return true;
+            case "idpassengernametop": o.IdPassengerNameTop = d; return true;
+            case "idpassengernamefont": o.IdPassengerNameFont = d; return true;
             case "hintboxleft": o.HintBoxLeft = d; return true;
             case "hintboxtop": o.HintBoxTop = d; return true;
             case "hintboxwidth": o.HintBoxWidth = d; return true;

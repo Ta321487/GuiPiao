@@ -68,6 +68,12 @@ public static class TicketFaceLayoutMoveGroups
             TicketFaceLayoutElementKind.BadgeLetterWang,
             TicketFaceLayoutElementKind.BadgeLetterDiscount,
             TicketFaceLayoutElementKind.BadgePaymentRow
+        }),
+        new("证件行", new[]
+        {
+            TicketFaceLayoutElementKind.IdMask,
+            TicketFaceLayoutElementKind.IdPassengerName,
+            TicketFaceLayoutElementKind.IdName
         })
     };
 
@@ -97,7 +103,8 @@ public static class TicketFaceLayoutMoveGroups
                 continue;
 
             // 兼容种仅作别名，避免重复平移
-            if (m is TicketFaceLayoutElementKind.MoneyRow or TicketFaceLayoutElementKind.CoachSeat)
+            if (m is TicketFaceLayoutElementKind.MoneyRow or TicketFaceLayoutElementKind.CoachSeat
+                or TicketFaceLayoutElementKind.IdName)
                 continue;
 
             list.Add(m);

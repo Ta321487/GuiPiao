@@ -526,7 +526,9 @@
                                       ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
                                       Margin="{TemplateBinding Padding}"
                                       VerticalAlignment="Center"
-                                      HorizontalAlignment="Left" />
+                                      HorizontalAlignment="Left"
+                                      TextElement.Foreground="{TemplateBinding Foreground}"
+                                      RecognizesAccessKey="True" />
                     <!-- 可编辑 ComboBox 必须由模板提供此命名元素，否则 Text 绑定与选后回显无效 -->
                     <TextBox x:Name="PART_EditableTextBox"
                              HorizontalAlignment="Stretch"
@@ -583,6 +585,9 @@
 
 <!-- ComboBoxItem 样式 -->
 <Style TargetType="ComboBoxItem">
+    <!-- 固定对齐，避免默认主题用 RelativeSource→ItemsControl 在项尚未入树时刷绑定错误 -->
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
     <Setter Property="Background" Value="{DynamicResource ControlBackgroundBrush}" />
     <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
     <Setter Property="Padding" Value="4,2" />
@@ -591,7 +596,8 @@
             <ControlTemplate TargetType="ComboBoxItem">
                 <Border Background="{TemplateBinding Background}"
                         Padding="{TemplateBinding Padding}">
-                    <ContentPresenter />
+                    <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
                 </Border>
             </ControlTemplate>
         </Setter.Value>

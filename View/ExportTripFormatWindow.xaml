@@ -1,0 +1,52 @@
+<Window x:Class="GuiPiao.View.ExportTripFormatWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="选择导出格式"
+        Width="420"
+        SizeToContent="Height"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        Background="{DynamicResource WindowBackgroundBrush}"
+        BorderBrush="{DynamicResource BorderBrush}"
+        BorderThickness="1">
+    <StackPanel Margin="20">
+        <TextBlock Text="请选择导出格式"
+                   FontWeight="Bold"
+                   FontSize="{DynamicResource LargeFontSize}"
+                   Foreground="{DynamicResource TextPrimaryBrush}"
+                   Margin="0,0,0,14" />
+
+        <RadioButton x:Name="FormatExcel" Content="Excel（.xlsx）" GroupName="ExportFmt"
+                     Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,8"
+                     Checked="Format_Changed" />
+        <RadioButton x:Name="FormatCsv" Content="CSV（.csv）" GroupName="ExportFmt"
+                     Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,8"
+                     Checked="Format_Changed" />
+        <RadioButton x:Name="FormatPdf" Content="PDF 行程表（.pdf）" GroupName="ExportFmt"
+                     Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,8"
+                     Checked="Format_Changed" />
+        <RadioButton x:Name="FormatImage" Content="票面图片（.png）" GroupName="ExportFmt"
+                     Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,8"
+                     Checked="Format_Changed" />
+
+        <StackPanel x:Name="TicketColorPanel" Margin="24,4,0,0" Visibility="Collapsed">
+            <TextBlock Text="票面颜色"
+                       Foreground="{DynamicResource TextSecondaryBrush}"
+                       FontSize="{DynamicResource SmallFontSize}"
+                       Margin="0,0,0,6" />
+            <RadioButton x:Name="ColorRed" Content="红票" GroupName="TicketColor"
+                         Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4" />
+            <RadioButton x:Name="ColorBlue" Content="蓝票" GroupName="TicketColor"
+                         Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4" />
+            <RadioButton x:Name="ColorBoth" Content="红蓝一起" GroupName="TicketColor"
+                         Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4" />
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,18,0,0">
+            <Button Content="取消" Style="{StaticResource StandardButtonStyle}"
+                    Padding="16,6" Margin="0,0,10,0" Click="Cancel_Click" IsCancel="True" />
+            <Button Content="确定" Style="{StaticResource StandardButtonStyle}"
+                    Padding="16,6" Click="Ok_Click" IsDefault="True" />
+        </StackPanel>
+    </StackPanel>
+</Window>

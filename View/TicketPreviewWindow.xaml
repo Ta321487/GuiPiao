@@ -31,7 +31,7 @@
             <Grid>
                 <Border Width="{Binding DataContext.TicketBadgeSlotWidth, RelativeSource={RelativeSource AncestorType=Window}}"
                         Height="{Binding DataContext.TicketBadgeSlotWidth, RelativeSource={RelativeSource AncestorType=Window}}"
-                        Padding="0" BorderBrush="{DynamicResource PrimaryBrush}" BorderThickness="1.2"
+                        Padding="0" BorderBrush="Black" BorderThickness="1.2"
                         CornerRadius="{Binding DataContext.BadgeCornerRadius, RelativeSource={RelativeSource AncestorType=Window}}"
                         Visibility="{Binding DataContext.ShowFramedTicketBadges, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BooleanToVisibilityConverter}}">
                     <TextBlock Text="{Binding}" Foreground="{DynamicResource TicketVoucherPrimaryTextBrush}" FontWeight="SemiBold"
@@ -88,25 +88,11 @@
             <Setter Property="MaxDropDownHeight" Value="320" />
             <Setter Property="Margin" Value="0,0,4,0" />
             <Setter Property="SelectedValuePath" Value="Source" />
-            <Setter Property="ItemTemplate">
-                <Setter.Value>
-                    <DataTemplate>
-                        <TextBlock Text="{Binding Display}" TextTrimming="CharacterEllipsis">
-                            <TextBlock.Style>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="FontFamily" Value="{Binding Source}" />
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding Source}" Value="">
-                                            <Setter Property="FontFamily" Value="Segoe UI" />
-                                            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </TextBlock.Style>
-                        </TextBlock>
-                    </DataTemplate>
-                </Setter.Value>
-            </Setter>
+            <Setter Property="DisplayMemberPath" Value="Display" />
+            <!--
+              不用 ItemTemplate：自定义模板时 SelectionBoxItem 常变成 SelectedValue 字符串，
+              Display 绑定失败导致关闭态空白；DisplayMemberPath 对项与回显都稳定。
+            -->
         </Style>
         </ResourceDictionary>
     </Window.Resources>
@@ -139,13 +125,19 @@
                     <Slider Width="100" Minimum="50" Maximum="150" Value="{Binding Brightness}" VerticalAlignment="Center" Margin="0,0,8,0" />
                     <TextBlock Text="{Binding Brightness, StringFormat={}{0}%}" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryBrush}" Width="36" />
                 </StackPanel>
-                <Button DockPanel.Dock="Right"
-                        Content="{Binding TripInfoPanelToggleText}"
-                        Command="{Binding ToggleTripInfoPanelCommand}"
-                        Style="{StaticResource StandardButtonStyle}"
-                        Padding="10,4"
-                        ToolTip="显示或隐藏左侧行程对照信息"
-                        Visibility="{Binding ShowTripInfoPanelToggle, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal"
+                            Visibility="{Binding ShowTripInfoPanelToggle, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <TextBlock VerticalAlignment="Center" Margin="0,0,10,0" TextWrapping="NoWrap"
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               FontSize="{DynamicResource SmallFontSize}"
+                               Visibility="{Binding IsTripInfoPanelVisible, Converter={StaticResource InverseBooleanToVisibilityConverter}}"
+                               Text="身份证 / 姓名 / 二维码 → 点右侧「行程信息」填写（导出 PNG 会带上）" />
+                    <Button Content="{Binding TripInfoPanelToggleText}"
+                            Command="{Binding ToggleTripInfoPanelCommand}"
+                            Style="{StaticResource StandardButtonStyle}"
+                            Padding="10,4"
+                            ToolTip="填写身份证号、姓名、二维码等内容；可编辑，仅本窗口预览与导出 PNG 使用，不写回行程库。" />
+                </StackPanel>
             </DockPanel>
         </Border>
 
@@ -250,7 +242,7 @@
                                     </Grid.ColumnDefinitions>
                                     <ComboBox Grid.Column="0" Style="{StaticResource WorkbenchFontComboStyle}"
                                               ItemsSource="{Binding EditorFontPickerItems}"
-                                              SelectedValue="{Binding EditorFontFamily, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, TargetNullValue='', FallbackValue=''}"
+                                              SelectedValue="{Binding EditorFontFamilyComboValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                               ToolTip="当前元素字体；空值继承默认字体" />
                                     <Button Grid.Column="1" Content="系统…" VerticalAlignment="Center"
                                             Command="{Binding PickWorkbenchSystemFontCommand}" CommandParameter="editor"
@@ -300,7 +292,7 @@
                                     </Grid.ColumnDefinitions>
                                     <ComboBox Grid.Column="0" Style="{StaticResource WorkbenchFontComboStyle}"
                                               ItemsSource="{Binding LayoutDefaultFontPickerItems}"
-                                              SelectedValue="{Binding LayoutDefaultFontFamily, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                              SelectedValue="{Binding LayoutDefaultFontFamilyComboValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                               ToolTip="版式默认字体" />
                                     <Button Grid.Column="1" Content="系统…" VerticalAlignment="Center"
                                             Command="{Binding PickWorkbenchSystemFontCommand}" CommandParameter="default"
@@ -557,6 +549,8 @@
                                           IsChecked="{Binding PreferDiscountZhe, Mode=TwoWay}" />
 
                                 <TextBlock Text="{Binding DataContext.IdentitySectionTitle, RelativeSource={RelativeSource AncestorType=Window}}" FontWeight="SemiBold" Margin="0,8,0,6" Foreground="{DynamicResource TextPrimaryBrush}" />
+                                <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="{DynamicResource SmallFontSize}" Margin="0,0,0,6"
+                                           Text="可编辑，仅用于本窗口票面预览与导出 PNG，不写回行程库。身份证号按真票规则自动打码。" />
                                 <TextBlock Text="身份证号" Style="{StaticResource FormLabel}" />
                                 <Border>
                                     <Border.Style>
@@ -573,21 +567,24 @@
                                         </Style>
                                     </Border.Style>
                                     <TextBox Style="{StaticResource FormBox}" BorderThickness="0" Margin="0"
-                                             IsReadOnly="{Binding DataContext.IsTripFieldsReadOnly, RelativeSource={RelativeSource AncestorType=Window}}"
+                                             ToolTip="输入完整身份证号后自动生成票面掩码"
                                              Text="{Binding IdNumber, UpdateSourceTrigger=PropertyChanged}" />
                                 </Border>
                                 <TextBlock Text="姓名" Style="{StaticResource FormLabel}" Margin="0,6,0,0" />
                                 <TextBox Style="{StaticResource FormBox}"
-                                         IsReadOnly="{Binding DataContext.IsTripFieldsReadOnly, RelativeSource={RelativeSource AncestorType=Window}}"
+                                         ToolTip="显示在票面身份证掩码旁"
                                          Text="{Binding PassengerName, UpdateSourceTrigger=PropertyChanged}" />
-                                <TextBlock Text="掩码" Style="{StaticResource FormLabel}" Margin="0,6,0,0" />
-                                <TextBox Style="{StaticResource FormBox}"
-                                         IsReadOnly="{Binding DataContext.IsTripFieldsReadOnly, RelativeSource={RelativeSource AncestorType=Window}}"
-                                         Text="{Binding IdMask, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBlock Text="掩码（自动）" Style="{StaticResource FormLabel}" Margin="0,6,0,0" />
+                                <TextBox Style="{StaticResource FormReadOnly}"
+                                         IsReadOnly="True"
+                                         ToolTip="由身份证号自动生成，与实体火车票打码规则一致"
+                                         Text="{Binding IdMask, Mode=OneWay}" />
 
                                 <TextBlock Text="编码区" FontWeight="SemiBold" Margin="0,12,0,2" Foreground="{DynamicResource TextPrimaryBrush}" />
                                 <TextBlock Text="二维码内容" Style="{StaticResource FormLabel}" Margin="0,0,0,4" />
-                                <TextBox Style="{StaticResource FormBox}" Text="{Binding DataContext.EncodingText, RelativeSource={RelativeSource AncestorType=Window}, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBox Style="{StaticResource FormBox}"
+                                         ToolTip="写入票面二维码，导出 PNG 时一并带上"
+                                         Text="{Binding DataContext.EncodingText, RelativeSource={RelativeSource AncestorType=Window}, UpdateSourceTrigger=PropertyChanged}" />
                         </StackPanel>
                     </DockPanel>
                             </StackPanel>
@@ -1215,31 +1212,51 @@
                                         </TextBlock.FontFamily>
                                     </TextBlock>
 
-                                    <StackPanel Orientation="Horizontal" Canvas.Left="{Binding DataContext.ActiveLayout.IdNameLeft, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                Canvas.Top="{Binding DataContext.ActiveLayout.IdNameTop, RelativeSource={RelativeSource AncestorType=Window}}">
-                                        <StackPanel.Visibility>
-                                            <MultiBinding Converter="{StaticResource TicketLayoutIsolationToVisibilityConverter}" ConverterParameter="IdName">
+                                    <TextBlock hit:LayoutWorkbenchHit.Kind="IdMask"
+                                               Foreground="{DynamicResource TicketVoucherMutedTextBrush}"
+                                               Text="{Binding IdMask, Mode=OneWay}"
+                                               FontSize="{Binding DataContext.ActiveLayout.IdMaskFont, RelativeSource={RelativeSource AncestorType=Window}}"
+                                               Canvas.Left="{Binding DataContext.ActiveLayout.IdMaskLeft, RelativeSource={RelativeSource AncestorType=Window}}"
+                                               Canvas.Top="{Binding DataContext.ActiveLayout.IdMaskTop, RelativeSource={RelativeSource AncestorType=Window}}">
+                                        <TextBlock.Visibility>
+                                            <MultiBinding Converter="{StaticResource TicketLayoutIsolationToVisibilityConverter}" ConverterParameter="IdMask">
                                                 <Binding Path="DataContext.SessionMode" RelativeSource="{RelativeSource AncestorType=Window}" />
                                                 <Binding Path="DataContext.LayoutIsolationTargetKind" RelativeSource="{RelativeSource AncestorType=Window}" />
                                             </MultiBinding>
-                                        </StackPanel.Visibility>
-                                        <TextElement.FontFamily>
+                                        </TextBlock.Visibility>
+                                        <TextBlock.FontFamily>
                                             <MultiBinding Converter="{StaticResource LayoutFontFamilyMultiConverter}">
-                                                <Binding Path="DataContext.ActiveLayout.IdNameFontFamily" RelativeSource="{RelativeSource AncestorType=Window}" />
+                                                <Binding Path="DataContext.ActiveLayout.IdMaskFontFamily" RelativeSource="{RelativeSource AncestorType=Window}" />
                                                 <Binding Path="DataContext.LayoutDefaultFontFamily" RelativeSource="{RelativeSource AncestorType=Window}" />
                                             </MultiBinding>
-                                        </TextElement.FontFamily>
-                                        <TextBlock Foreground="{DynamicResource TicketVoucherMutedTextBrush}" FontSize="{Binding DataContext.ActiveLayout.IdNameFont, RelativeSource={RelativeSource AncestorType=Window}}" Text="{Binding IdMask, Mode=OneWay}" />
-                                        <TextBlock Width="8" />
-                                        <TextBlock Foreground="{DynamicResource TicketVoucherMutedTextBrush}" FontSize="{Binding DataContext.ActiveLayout.IdNameFont, RelativeSource={RelativeSource AncestorType=Window}}" Text="{Binding PassengerName, Mode=OneWay}" />
-                                    </StackPanel>
+                                        </TextBlock.FontFamily>
+                                    </TextBlock>
+                                    <TextBlock hit:LayoutWorkbenchHit.Kind="IdPassengerName"
+                                               Foreground="{DynamicResource TicketVoucherMutedTextBrush}"
+                                               Text="{Binding PassengerName, Mode=OneWay}"
+                                               FontSize="{Binding DataContext.ActiveLayout.IdPassengerNameFont, RelativeSource={RelativeSource AncestorType=Window}}"
+                                               Canvas.Left="{Binding DataContext.ActiveLayout.IdPassengerNameLeft, RelativeSource={RelativeSource AncestorType=Window}}"
+                                               Canvas.Top="{Binding DataContext.ActiveLayout.IdPassengerNameTop, RelativeSource={RelativeSource AncestorType=Window}}">
+                                        <TextBlock.Visibility>
+                                            <MultiBinding Converter="{StaticResource TicketLayoutIsolationToVisibilityConverter}" ConverterParameter="IdPassengerName">
+                                                <Binding Path="DataContext.SessionMode" RelativeSource="{RelativeSource AncestorType=Window}" />
+                                                <Binding Path="DataContext.LayoutIsolationTargetKind" RelativeSource="{RelativeSource AncestorType=Window}" />
+                                            </MultiBinding>
+                                        </TextBlock.Visibility>
+                                        <TextBlock.FontFamily>
+                                            <MultiBinding Converter="{StaticResource LayoutFontFamilyMultiConverter}">
+                                                <Binding Path="DataContext.ActiveLayout.IdPassengerNameFontFamily" RelativeSource="{RelativeSource AncestorType=Window}" />
+                                                <Binding Path="DataContext.LayoutDefaultFontFamily" RelativeSource="{RelativeSource AncestorType=Window}" />
+                                            </MultiBinding>
+                                        </TextBlock.FontFamily>
+                                    </TextBlock>
 
-                                    <!-- 提示区：虚线框随文字收缩，右边线贴最长行；HintBoxWidth 为折行上限 -->
+                                    <!-- 提示区：虚线框随文字收缩；上限取 HintBoxWidth 与「二维码左侧」的较小值（真票广告栏不侵入二维码） -->
                                     <Grid hit:LayoutWorkbenchHit.Kind="HintBox"
                                           HorizontalAlignment="Left"
                                           Canvas.Left="{Binding DataContext.ActiveLayout.HintBoxLeft, RelativeSource={RelativeSource AncestorType=Window}}"
                                           Canvas.Top="{Binding DataContext.ActiveLayout.HintBoxTop, RelativeSource={RelativeSource AncestorType=Window}}"
-                                          MaxWidth="{Binding DataContext.ActiveLayout.HintBoxWidth, RelativeSource={RelativeSource AncestorType=Window}}">
+                                          MaxWidth="{Binding DataContext.ActiveLayout.HintBoxRenderMaxWidth, RelativeSource={RelativeSource AncestorType=Window}}">
                                         <Grid.Visibility>
                                             <MultiBinding Converter="{StaticResource TicketLayoutIsolationToVisibilityConverter}" ConverterParameter="HintBox">
                                                 <Binding Path="DataContext.SessionMode" RelativeSource="{RelativeSource AncestorType=Window}" />
@@ -1249,19 +1266,25 @@
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
-                                        <!-- 细虚线外框：与实体报销凭证/客票「广告栏」一致 -->
+                                        <!-- 细虚线外框：与实体报销凭证广告栏一致 -->
                                         <Rectangle Grid.Column="0"
                                                    Stroke="{DynamicResource TicketVoucherDisclaimerBorderBrush}"
                                                    StrokeThickness="1"
                                                    StrokeDashArray="2.2 1.6"
                                                    Fill="Transparent"
                                                    SnapsToDevicePixels="True"
-                                                   UseLayoutRounding="True" />
+                                                   UseLayoutRounding="True"
+                                                   IsHitTestVisible="False" />
                                         <ItemsControl Grid.Column="0"
                                                       ItemsSource="{Binding HintLines}"
                                                       Margin="8,5,8,5"
                                                       HorizontalAlignment="Stretch"
                                                       HorizontalContentAlignment="Stretch">
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <StackPanel />
+                                                </ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
                                             <ItemsControl.ItemContainerStyle>
                                                 <Style TargetType="ContentPresenter">
                                                     <Setter Property="HorizontalAlignment" Value="Stretch" />
@@ -1272,6 +1295,7 @@
                                                     <TextBlock Text="{Binding}" Foreground="{DynamicResource TicketVoucherSubtleTextBrush}"
                                                                TextWrapping="Wrap" TextAlignment="Center" HorizontalAlignment="Stretch"
                                                                Margin="0,0,0,1"
+                                                               MaxWidth="{Binding DataContext.ActiveLayout.HintBoxTextMaxWidth, RelativeSource={RelativeSource AncestorType=Window}}"
                                                                FontSize="{Binding DataContext.ActiveLayout.HintFont, RelativeSource={RelativeSource AncestorType=Window}}">
                                                         <TextBlock.FontFamily>
                                                             <MultiBinding Converter="{StaticResource LayoutFontFamilyMultiConverter}">
@@ -1430,7 +1454,7 @@
                 <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
                     <Button Content="导出 PNG" Style="{StaticResource StandardButtonStyle}" Padding="12,6" Margin="0,0,10,0"
                             Command="{Binding ExportPngCommand}" CommandParameter="{Binding ElementName=TicketPreviewSurface}"
-                            ToolTip="导出 811×509 像素 PNG" />
+                            ToolTip="导出当前票面 811×509 PNG（含已填写的身份证掩码、姓名、二维码）" />
                     <Button Content="蓝色" Style="{StaticResource StandardButtonStyle}" Margin="0,0,6,0" Padding="10,6"
                             Command="{Binding SwitchRedBlueCommand}" CommandParameter="blue"
                             ToolTip="蓝色票样" />

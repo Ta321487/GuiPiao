@@ -147,59 +147,40 @@ public partial class SettingsViewModel : ObservableObject
             .OfType<Window>()
             .FirstOrDefault(w => w.DataContext is SettingsViewModel);
 
-        // 显示进度对话框
-        var progressWindow = MessageBoxWindow.ShowProgress("正在保存所有设置...", "保存设置");
-
         try
         {
-            // 保存常规设置（不显示单独提示）
+            // 各页保存本身很快，不再弹出进度窗（避免先闪空白框再弹成功）
             if (GeneralSettingsViewModel is ISettingsViewModel generalSettings)
                 await generalSettings.SaveSettingsAsync(false);
 
-            // 保存日志设置（不显示单独提示）
             if (LogSettingsViewModel is ISettingsViewModel logSettings)
                 await logSettings.SaveSettingsAsync(false);
 
-            // 保存数据库设置（不显示单独提示）
             if (DatabaseSettingsViewModel is ISettingsViewModel databaseSettings)
                 await databaseSettings.SaveSettingsAsync(false);
 
-            // 保存界面设置（不显示单独提示）
             if (UISettingsViewModel is ISettingsViewModel uiSettings)
                 await uiSettings.SaveSettingsAsync(false);
 
-            // 保存地图设置（不显示单独提示）
             if (MapSettingsViewModel is ISettingsViewModel mapSettings)
                 await mapSettings.SaveSettingsAsync(false);
 
-            // 保存仪表盘设置（不显示单独提示）
             if (DashboardSettingsViewModel is ISettingsViewModel dashboardSettings)
                 await dashboardSettings.SaveSettingsAsync(false);
 
-            // 保存OCR设置（不显示单独提示）
             if (OcrSettingsViewModel is ISettingsViewModel ocrSettings)
                 await ocrSettings.SaveSettingsAsync(false);
 
-            // 保存导出设置（不显示单独提示）
             if (ExportSettingsViewModel is ISettingsViewModel exportSettings)
                 await exportSettings.SaveSettingsAsync(false);
 
-            // 保存快捷键设置（不显示单独提示）
             if (ShortcutSettingsViewModel is ISettingsViewModel shortcutSettings)
                 await shortcutSettings.SaveSettingsAsync(false);
 
-            // 关闭进度对话框
-            progressWindow?.Close();
-
-            // 显示成功消息
             MessageBoxWindow.Show(settingsWindow, "所有设置已保存", SettingsDialogMessages.SuccessTitle);
         }
         catch (Exception ex)
         {
-            // 关闭进度对话框
-            progressWindow?.Close();
-
-            // 显示错误消息
             MessageBoxWindow.Show(settingsWindow, $"{SettingsDialogMessages.SaveFailedPrefix}{ex.Message}",
                 SettingsDialogMessages.ErrorTitle, MessageBoxButton.OK,
                 MessageBoxImage.Error);

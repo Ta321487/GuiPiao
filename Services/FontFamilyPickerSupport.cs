@@ -28,6 +28,21 @@ public static class FontFamilyPickerSupport
         "Arial", "Times New Roman", "Segoe UI"
     ];
 
+    /// <summary>下拉「继承/默认」项的 Source 哨兵（WPF ComboBox 的 SelectedValue 无法稳定选中空串）。</summary>
+    public const string InheritSourceSentinel = "$inherit$";
+
+    public static bool IsInheritSource(string? source) =>
+        string.IsNullOrWhiteSpace(source) ||
+        string.Equals(source.Trim(), InheritSourceSentinel, StringComparison.Ordinal);
+
+    /// <summary>布局存储值 → 下拉 SelectedValue（空 → 哨兵）。</summary>
+    public static string ToComboSource(string? layoutSource) =>
+        string.IsNullOrWhiteSpace(layoutSource) ? InheritSourceSentinel : layoutSource.Trim();
+
+    /// <summary>下拉 SelectedValue → 布局存储值（哨兵 → 空）。</summary>
+    public static string FromComboSource(string? comboSource) =>
+        IsInheritSource(comboSource) ? string.Empty : comboSource!.Trim();
+
     public static IReadOnlyList<string> SystemFontFamilySources => SystemFontSourcesLazy.Value;
 
     /// <summary>本机已安装的推荐字体（短列表，供下拉「推荐」分组）。</summary>
@@ -70,8 +85,8 @@ public static class FontFamilyPickerSupport
     /// <summary>若与系统/推荐列表大小写不同，规范成列表中的写法。</summary>
     public static string CanonicalizeSource(string? source)
     {
-        var cur = (source ?? string.Empty).Trim();
-        if (string.IsNullOrEmpty(cur)) return string.Empty;
+        if (IsInheritSource(source)) return string.Empty;
+        var cur = source!.Trim();
         foreach (var s in RecommendedInstalledSources)
             if (string.Equals(s, cur, StringComparison.OrdinalIgnoreCase))
                 return s;

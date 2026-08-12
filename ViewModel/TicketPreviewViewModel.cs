@@ -1030,29 +1030,9 @@ public partial class TicketPreviewViewModel : ObservableObject
         var sy = ScaleY;
         try
         {
-            const int w = 811;
-            const int h = 509;
             ScaleX = 1.0;
             ScaleY = 1.0;
-            previewSurface.Measure(new Size(w, h));
-            previewSurface.Arrange(new Rect(0, 0, w, h));
-            previewSurface.UpdateLayout();
-
-            var rt = new RenderTargetBitmap(w, h, 96, 96, PixelFormats.Pbgra32);
-            var dv = new DrawingVisual();
-            using (var dc = dv.RenderOpen())
-            {
-                dc.DrawRectangle(Brushes.White, null, new Rect(0, 0, w, h));
-                var vb = new VisualBrush(previewSurface) { Stretch = Stretch.None, AlignmentX = AlignmentX.Left, AlignmentY = AlignmentY.Top };
-                dc.DrawRectangle(vb, null, new Rect(0, 0, w, h));
-            }
-
-            rt.Render(dv);
-
-            var enc = new PngBitmapEncoder();
-            enc.Frames.Add(BitmapFrame.Create(rt));
-            using var fs = File.Create(dlg.FileName);
-            enc.Save(fs);
+            TicketFacePngRenderer.SavePng(previewSurface, dlg.FileName);
 
             GuiPiao.View.MessageBoxWindow.Show(Application.Current.MainWindow, $"已保存：{dlg.FileName}", "导出图片",
                 MessageBoxButton.OK, MessageBoxImage.Information);

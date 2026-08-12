@@ -33,6 +33,9 @@ public partial class MapWindowViewModel : ObservableObject
 
     private List<string> _stationsWithoutCoordinates = new();
 
+    /// <summary>当前状态筛选：All / Completed / Pending / RefundedRescheduled</summary>
+    [ObservableProperty] private string _activeStatusFilter = "All";
+
     [ObservableProperty] private string _statusMessage = "正在加载地图...";
     private CancellationTokenSource? _statusResetCts; // 用于取消状态重置延迟
 
@@ -173,17 +176,20 @@ public partial class MapWindowViewModel : ObservableObject
             {
                 case "BlankMap":
                     // 不自动加载，显示空白地图
+                    ActiveStatusFilter = "All";
                     StatusMessage = "空白地图 - 请使用工具栏筛选行程";
                     break;
 
                 case "AllSavedTrips":
                     // 显示所有已保存行程
+                    ActiveStatusFilter = "All";
                     SendAllTicketsToMap();
                     StatusMessage = $"显示所有行程 ({_allTickets.Count}条)";
                     break;
 
                 case "ThisYearOnly":
                     // 仅当年内行程
+                    ActiveStatusFilter = "All";
                     var currentYear = DateTime.Now.Year;
                     var thisYearTickets = _allTickets.Where(t =>
                     {
@@ -197,6 +203,7 @@ public partial class MapWindowViewModel : ObservableObject
 
                 case "CompletedOnly":
                     // 仅已完成行程
+                    ActiveStatusFilter = "Completed";
                     var completedTickets = _allTickets.Where(t => t.Status == "已完成").ToList();
                     SendTicketsToMap(completedTickets);
                     StatusMessage = $"显示已完成行程 ({completedTickets.Count}条)";
@@ -204,6 +211,7 @@ public partial class MapWindowViewModel : ObservableObject
 
                 case "PendingOnly":
                     // 仅未出行待乘行程
+                    ActiveStatusFilter = "Pending";
                     var pendingTickets = _allTickets.Where(t => t.Status == "未出行").ToList();
                     SendTicketsToMap(pendingTickets);
                     StatusMessage = $"显示未出行行程 ({pendingTickets.Count}条)";
@@ -733,6 +741,7 @@ public partial class MapWindowViewModel : ObservableObject
     private async Task RefreshData()
     {
         await LoadTicketDataAsync();
+        ActiveStatusFilter = "All";
         SendAllTicketsToMap();
         StatusMessage = "数据已刷新";
     }
@@ -743,8 +752,9 @@ public partial class MapWindowViewModel : ObservableObject
     [RelayCommand]
     private void ShowAll()
     {
-        SendAllTicketsToMap();
-        StatusMessage = "显示全部行程";
+        ActiveStatusFilter = "All";
+        SendTicketsToMap(_allTickets);
+        StatusMessage = $"显示全部行程 ({_allTickets.Count}条)";
     }
 
     /// <summary>
@@ -753,6 +763,7 @@ public partial class MapWindowViewModel : ObservableObject
     [RelayCommand]
     private void FilterCompleted()
     {
+        ActiveStatusFilter = "Completed";
         var completedTickets = _allTickets.Where(t => t.Status == "已完成").ToList();
         SendTicketsToMap(completedTickets);
         StatusMessage = $"显示已完成行程 ({completedTickets.Count}条)";
@@ -764,6 +775,7 @@ public partial class MapWindowViewModel : ObservableObject
     [RelayCommand]
     private void FilterPending()
     {
+        ActiveStatusFilter = "Pending";
         var pendingTickets = _allTickets.Where(t => t.Status == "未出行").ToList();
         SendTicketsToMap(pendingTickets);
         StatusMessage = $"显示未出行行程 ({pendingTickets.Count}条)";
@@ -775,20 +787,24 @@ public partial class MapWindowViewModel : ObservableObject
     [RelayCommand]
     private void FilterRescheduled()
     {
+        ActiveStatusFilter = "Rescheduled";
         var rescheduledTickets = _allTickets.Where(t => t.Status == "已改签").ToList();
         SendTicketsToMap(rescheduledTickets);
         StatusMessage = $"显示已改签行程 ({rescheduledTickets.Count}条)";
     }
 
     /// <summary>
-    ///     筛选已退票行程
+    ///     筛选已退票/改签行程
     /// </summary>
     [RelayCommand]
     private void FilterRefunded()
     {
-        var refundedTickets = _allTickets.Where(t => t.Status == "已退票").ToList();
-        SendTicketsToMap(refundedTickets);
-        StatusMessage = $"显示已退票行程 ({refundedTickets.Count}条)";
+        ActiveStatusFilter = "RefundedRescheduled";
+        var tickets = _allTickets
+            .Where(t => t.Status is "已退票" or "已改签")
+            .ToList();
+        SendTicketsToMap(tickets);
+        StatusMessage = $"显示已退票/改签行程 ({tickets.Count}条)";
     }
 
     /// <summary>
@@ -921,7 +937,11 @@ public partial class MapWindowViewModel : ObservableObject
     /// </summary>
     private void SendTicketsToMap(List<TicketData> tickets)
     {
-        if (_webView?.CoreWebView2 == null || !IsMapReady) return;
+        if (_webView?.CoreWebView2 == null || !IsMapReady)
+        {
+            StatusMessage = "地图尚未就绪，请稍后再试筛选";
+            return;
+        }
 
         try
         {
@@ -951,8 +971,6 @@ public partial class MapWindowViewModel : ObservableObject
             var json = JsonSerializer.Serialize(data);
             var script = $"window.receiveData({json});";
             _webView.CoreWebView2.ExecuteScriptAsync(script);
-
-            StatusMessage = $"已加载 {tickets.Count} 条行程数据";
         }
         catch (Exception ex)
         {

@@ -528,18 +528,17 @@ public class ExportService
     }
 
     /// <summary>
-    ///     导出图片（将PDF第一页转为图片）
+    ///     导出票面预览图片（红票 / 蓝票 / 红蓝一起，与预览窗 PNG 一致）
     /// </summary>
     private async Task<ExportResult> ExportToImageAsync(string filePath, List<TrainRideInfo> trainRides,
         ExportConfig config)
     {
-        // 图片导出暂时使用PDF导出作为基础，后续可以添加图片渲染逻辑
-        // 这里先创建一个简单的文本图片表示
-        return await Task.Run(() =>
-        {
-            // 暂时返回提示信息，图片导出需要额外的图像处理库
-            return new ExportResult { Success = false, Message = "图片导出功能需要使用GDI+或SkiaSharp进行渲染，建议先使用PDF格式" };
-        });
+        if (trainRides == null || trainRides.Count == 0)
+            return new ExportResult { Success = false, Message = "没有可导出的行程" };
+
+        var trips = trainRides.Select(TicketFaceImageExportService.ToTripItem).ToList();
+        var faceExport = new TicketFaceImageExportService();
+        return await faceExport.ExportAsync(filePath, trips, config.ImageTicketColor);
     }
 
     /// <summary>

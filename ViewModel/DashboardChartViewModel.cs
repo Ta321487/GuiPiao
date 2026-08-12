@@ -144,12 +144,17 @@ public partial class DashboardChartViewModel : ObservableObject, IDisposable
         _dataService.DataRefreshed -= OnDataRefreshed;
 
         // 清除图表数据引用，帮助 GC 回收
-        Series = null;
-        XAxes = null;
-        YAxes = null;
+        ClearSeriesAndAxes();
         ChartData = null;
 
         DisposeSkiaResources();
+    }
+
+    private void ClearSeriesAndAxes()
+    {
+        Series = null;
+        XAxes = null;
+        YAxes = null;
     }
 
     /// <summary>
@@ -182,12 +187,7 @@ public partial class DashboardChartViewModel : ObservableObject, IDisposable
                 var config = BuildConfigFromCard(Card);
 
                 // 1. 先清空图表，让 LiveCharts 完成清理
-                Series = null;
-                XAxes = null;
-                YAxes = null;
-                OnPropertyChanged(nameof(Series));
-                OnPropertyChanged(nameof(XAxes));
-                OnPropertyChanged(nameof(YAxes));
+                ClearSeriesAndAxes();
 
                 // 2. 释放旧资源
                 DisposeSkiaResources();
@@ -198,11 +198,6 @@ public partial class DashboardChartViewModel : ObservableObject, IDisposable
                 // 4. 生成新资源
                 GenerateSeries(config.ChartType);
                 GenerateAxes(config.ChartType);
-
-                // 5. 触发属性变更通知，刷新 UI
-                OnPropertyChanged(nameof(Series));
-                OnPropertyChanged(nameof(XAxes));
-                OnPropertyChanged(nameof(YAxes));
             }
         }
         catch (Exception ex)
@@ -279,21 +274,9 @@ public partial class DashboardChartViewModel : ObservableObject, IDisposable
             // 根据图表类型生成 Series
             if (ChartData != null)
             {
-                // 1. 先清空图表，让 LiveCharts 完成清理
-                Series = null;
-                XAxes = null;
-                YAxes = null;
-                OnPropertyChanged(nameof(Series));
-                OnPropertyChanged(nameof(XAxes));
-                OnPropertyChanged(nameof(YAxes));
-
-                // 2. 释放旧资源
+                ClearSeriesAndAxes();
                 DisposeSkiaResources();
-
-                // 3. 延迟以确保 LiveCharts 完成清理
                 await Task.Delay(50);
-
-                // 4. 生成新资源
                 GenerateSeries(config.ChartType);
                 GenerateAxes(config.ChartType);
 
@@ -304,9 +287,8 @@ public partial class DashboardChartViewModel : ObservableObject, IDisposable
             {
                 Debug.WriteLine("[DashboardChartViewModel] ChartData 为 null，无法生成 Series");
                 DisposeSkiaResources();
+                ClearSeriesAndAxes();
                 Series = Array.Empty<ISeries>();
-                XAxes = null;
-                YAxes = null;
                 OnPropertyChanged(nameof(HasData));
             }
         }
@@ -318,7 +300,7 @@ public partial class DashboardChartViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>
-    ///     根据图表类型生成 Series
+    ///     根据图表类型生成 Series（同一时刻只存在一种图表控件，见视图模板切换）
     /// </summary>
     private void GenerateSeries(ChartType chartType)
     {
@@ -327,18 +309,13 @@ public partial class DashboardChartViewModel : ObservableObject, IDisposable
         IsPieChart = chartType == ChartType.PieChart;
         IsTextList = chartType == ChartType.TextList;
 
-        // 先设置为空数组，触发旧图表控件的清理
-        Series = Array.Empty<ISeries>();
-        OnPropertyChanged(nameof(Series));
-
-        // 根据图表类型生成新的 Series
         Series = chartType switch
         {
             ChartType.PieChart => GeneratePieSeries(),
             ChartType.BarChart => GenerateBarSeries(),
             ChartType.HorizontalBarChart => GenerateHorizontalBarSeries(),
             ChartType.LineChart => GenerateLineSeries(),
-            ChartType.TextList => null,
+            ChartType.TextList => Array.Empty<ISeries>(),
             _ => GenerateBarSeries()
         };
     }

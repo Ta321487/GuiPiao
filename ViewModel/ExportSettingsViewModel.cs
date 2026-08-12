@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -49,6 +50,7 @@ public partial class ExportSettingsViewModel : ObservableObject, ISettingsViewMo
             {
                 Config.DefaultFormat = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(TestExportHint));
                 CheckForChanges();
             }
         }
@@ -300,13 +302,15 @@ public partial class ExportSettingsViewModel : ObservableObject, ISettingsViewMo
         get => !Config.PdfLandscape;
         set
         {
-            if (Config.PdfLandscape == value)
-            {
-                Config.PdfLandscape = !value;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(IsPdfLandscape));
-                CheckForChanges();
-            }
+            // 只处理选中(true)：忽略 GroupName 取消选中时写回的 false，
+            // 避免初始化时两个 RadioButton 默认未选导致状态被冲掉。
+            if (!value || !Config.PdfLandscape)
+                return;
+
+            Config.PdfLandscape = false;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(IsPdfLandscape));
+            CheckForChanges();
         }
     }
 
@@ -315,13 +319,13 @@ public partial class ExportSettingsViewModel : ObservableObject, ISettingsViewMo
         get => Config.PdfLandscape;
         set
         {
-            if (Config.PdfLandscape != value)
-            {
-                Config.PdfLandscape = value;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(IsPdfPortrait));
-                CheckForChanges();
-            }
+            if (!value || Config.PdfLandscape)
+                return;
+
+            Config.PdfLandscape = true;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(IsPdfPortrait));
+            CheckForChanges();
         }
     }
 
@@ -394,6 +398,37 @@ public partial class ExportSettingsViewModel : ObservableObject, ISettingsViewMo
             }
         }
     }
+
+    public ImageTicketColorMode ImageTicketColor
+    {
+        get => Config.ImageTicketColor;
+        set
+        {
+            if (Config.ImageTicketColor != value)
+            {
+                Config.ImageTicketColor = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(TestExportHint));
+                CheckForChanges();
+            }
+        }
+    }
+
+    /// <summary>测试区说明：随默认格式 / 票面颜色变化。</summary>
+    public string TestExportHint =>
+        DefaultFormat switch
+        {
+            ExportFormatOption.Image => ImageTicketColor switch
+            {
+                ImageTicketColorMode.Blue => "当前：票面 PNG（蓝票）。仅导出示例行程 1 张图。",
+                ImageTicketColorMode.Both => "当前：票面 PNG（红+蓝）。仅导出示例行程，最多 2 张图。",
+                _ => "当前：票面 PNG（红票）。仅导出示例行程 1 张图。"
+            },
+            ExportFormatOption.Pdf => "当前：PDF 行程表。用示例行程测纸张/边距/字段，不导出全部数据库。",
+            ExportFormatOption.Excel => "当前：Excel。用示例行程测表格设置，不导出全部数据库。",
+            ExportFormatOption.Csv => "当前：CSV。用示例行程测编码/分隔符，不导出全部数据库。",
+            _ => "按当前默认导出格式生成测试文件。"
+        };
 
     // 导出字段选择属性
     public bool ExportTicketNumber
@@ -660,6 +695,7 @@ public partial class ExportSettingsViewModel : ObservableObject, ISettingsViewMo
             PdfMarginBottom = source.PdfMarginBottom,
             PdfMarginLeft = source.PdfMarginLeft,
             PdfMarginRight = source.PdfMarginRight,
+            ImageTicketColor = source.ImageTicketColor,
             ExportTicketNumber = source.ExportTicketNumber,
             ExportTrainNo = source.ExportTrainNo,
             ExportDepartStation = source.ExportDepartStation,
@@ -715,6 +751,7 @@ public partial class ExportSettingsViewModel : ObservableObject, ISettingsViewMo
                a.PdfMarginBottom == b.PdfMarginBottom &&
                a.PdfMarginLeft == b.PdfMarginLeft &&
                a.PdfMarginRight == b.PdfMarginRight &&
+               a.ImageTicketColor == b.ImageTicketColor &&
                a.ExportTicketNumber == b.ExportTicketNumber &&
                a.ExportTrainNo == b.ExportTrainNo &&
                a.ExportDepartStation == b.ExportDepartStation &&
@@ -944,12 +981,20 @@ public partial class ExportSettingsViewModel : ObservableObject, ISettingsViewMo
         // PDF/图片导出设置
         PdfRowsPerPage = defaultConfig.PdfRowsPerPage;
         PdfPaperSize = defaultConfig.PdfPaperSize;
-        IsPdfPortrait = !defaultConfig.PdfLandscape;
+        if (Config.PdfLandscape != defaultConfig.PdfLandscape)
+        {
+            Config.PdfLandscape = defaultConfig.PdfLandscape;
+            CheckForChanges();
+        }
+
+        OnPropertyChanged(nameof(IsPdfPortrait));
+        OnPropertyChanged(nameof(IsPdfLandscape));
         PdfFontSize = defaultConfig.PdfFontSize;
         PdfMarginTop = defaultConfig.PdfMarginTop;
         PdfMarginBottom = defaultConfig.PdfMarginBottom;
         PdfMarginLeft = defaultConfig.PdfMarginLeft;
         PdfMarginRight = defaultConfig.PdfMarginRight;
+        ImageTicketColor = defaultConfig.ImageTicketColor;
 
         // 导出字段选择
         ExportTicketNumber = defaultConfig.ExportTicketNumber;
@@ -971,67 +1016,13 @@ public partial class ExportSettingsViewModel : ObservableObject, ISettingsViewMo
         EnableGroupExport = defaultConfig.EnableGroupExport;
 
         HasUnsavedChanges = true;
+        OnPropertyChanged(nameof(TestExportHint));
 
         MessageBoxWindow.Show(settingsWindow, SettingsDialogMessages.RestoreNeedSaveHint);
     }
 
     /// <summary>
-    ///     预览导出效果命令
-    /// </summary>
-    [RelayCommand]
-    private async Task PreviewExport()
-    {
-        var settingsWindow = Application.Current.Windows
-            .OfType<Window>()
-            .FirstOrDefault(w => w.DataContext is SettingsViewModel);
-
-        try
-        {
-            // 生成临时文件路径
-            var tempPath = Path.Combine(Path.GetTempPath(),
-                "GuiPiao_Export_Preview_" + Guid.NewGuid().ToString("N")[..8]);
-            Directory.CreateDirectory(tempPath);
-
-            var fileName = _exportService.GenerateFileName(Config.FileNameTemplate, DefaultFormat, "多车次");
-            var filePath = Path.Combine(tempPath, fileName);
-
-            // 执行导出
-            ExportResult result;
-            if (Config.EnableGroupExport)
-            {
-                var groupOption = _uiSettingsService.Config.DefaultGroup;
-                var allRides = await _exportService.GetAllTrainRidesAsync();
-                result = await _exportService.ExportGroupedAsync(filePath, DefaultFormat, allRides, groupOption);
-            }
-            else
-            {
-                result = await _exportService.ExportAllAsync(filePath, DefaultFormat);
-            }
-
-            if (result.Success)
-            {
-                if (Config.OpenAfterExport)
-                    Process.Start(new ProcessStartInfo(result.FilePath) { UseShellExecute = true });
-
-                if (Config.ShowSuccessMessage)
-                    MessageBoxWindow.Show(settingsWindow,
-                        $"预览导出成功！\n文件路径: {result.FilePath}\n导出记录数: {result.RecordCount}", "成功");
-            }
-            else
-            {
-                MessageBoxWindow.Show(settingsWindow, $"导出失败: {result.Message}", "错误", MessageBoxButton.OK,
-                    MessageBoxImage.Error);
-            }
-        }
-        catch (Exception ex)
-        {
-            MessageBoxWindow.Show(settingsWindow, $"导出异常: {ex.Message}", "错误", MessageBoxButton.OK,
-                MessageBoxImage.Error);
-        }
-    }
-
-    /// <summary>
-    ///     导出测试文件命令
+    ///     导出测试文件：示例数据写到默认路径（或桌面），按设置打开。
     /// </summary>
     [RelayCommand]
     private async Task ExportTest()
@@ -1042,41 +1033,31 @@ public partial class ExportSettingsViewModel : ObservableObject, ISettingsViewMo
 
         try
         {
-            // 确定保存路径
             var savePath = Config.DefaultSavePath;
             if (string.IsNullOrEmpty(savePath) || !Directory.Exists(savePath))
                 savePath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
 
-            var fileName = _exportService.GenerateFileName(Config.FileNameTemplate, DefaultFormat, "多车次");
+            var sample = TicketFaceSampleTrip.Create();
+            var fileName = _exportService.GenerateFileName(Config.FileNameTemplate, DefaultFormat, sample.TrainNo);
             var filePath = Path.Combine(savePath, fileName);
 
-            // 如果文件已存在，添加序号
             var counter = 1;
             var baseFileName = Path.GetFileNameWithoutExtension(fileName);
             var extension = Path.GetExtension(fileName);
-            while (File.Exists(filePath))
+            while (File.Exists(filePath) || (DefaultFormat == ExportFormatOption.Image && Directory.Exists(
+                       Path.Combine(savePath, Path.GetFileNameWithoutExtension(fileName)))))
             {
                 fileName = $"{baseFileName}_{counter:D2}{extension}";
                 filePath = Path.Combine(savePath, fileName);
                 counter++;
             }
 
-            // 执行导出
-            ExportResult result;
-            if (Config.EnableGroupExport)
-            {
-                var groupOption = _uiSettingsService.Config.DefaultGroup;
-                var allRides = await _exportService.GetAllTrainRidesAsync();
-                result = await _exportService.ExportGroupedAsync(filePath, DefaultFormat, allRides, groupOption);
-            }
-            else
-            {
-                result = await _exportService.ExportAllAsync(filePath, DefaultFormat);
-            }
+            var result = await RunSettingsExportAsync(filePath, sample);
 
             if (result.Success)
             {
-                if (Config.OpenAfterExport)
+                if (Config.OpenAfterExport && !string.IsNullOrEmpty(result.FilePath) &&
+                    (File.Exists(result.FilePath) || Directory.Exists(result.FilePath)))
                     Process.Start(new ProcessStartInfo(result.FilePath) { UseShellExecute = true });
 
                 if (Config.ShowSuccessMessage)
@@ -1094,5 +1075,50 @@ public partial class ExportSettingsViewModel : ObservableObject, ISettingsViewMo
             MessageBoxWindow.Show(settingsWindow, $"导出异常: {ex.Message}", "错误", MessageBoxButton.OK,
                 MessageBoxImage.Error);
         }
+    }
+
+    /// <summary>
+    ///     设置页测试：一律用示例行程。票面 PNG → 示例票面；Excel/CSV/PDF → 示例一行。
+    /// </summary>
+    private async Task<ExportResult> RunSettingsExportAsync(string filePath, Model.TripItem sampleTrip)
+    {
+        if (DefaultFormat == ExportFormatOption.Image)
+        {
+            var faceExport = new TicketFaceImageExportService();
+            return await faceExport.ExportAsync(filePath, new[] { sampleTrip }, Config.ImageTicketColor);
+        }
+
+        var sampleRides = new List<TrainRideInfo> { ToSampleTrainRide(sampleTrip) };
+        // 测试导出不走分组（示例只有一行）
+        return await _exportService.ExportAsync(filePath, DefaultFormat, sampleRides, Config);
+    }
+
+    private static TrainRideInfo ToSampleTrainRide(Model.TripItem t)
+    {
+        decimal.TryParse(t.Money, out var money);
+        return new TrainRideInfo
+        {
+            Id = 1,
+            TicketNumber = t.TicketNumber ?? "",
+            TrainNo = t.TrainNo ?? "",
+            DepartStation = t.DepartStation ?? "",
+            ArriveStation = t.ArriveStation ?? "",
+            DepartStationPinyin = t.DepartStationPinyin ?? "",
+            ArriveStationPinyin = t.ArriveStationPinyin ?? "",
+            DepartDate = t.DepartDate ?? "",
+            DepartTime = t.DepartTime ?? "",
+            ArriveTime = t.ArriveTime ?? "",
+            ArriveDayOffset = t.ArriveDayOffset,
+            CoachNo = t.CoachNo ?? "",
+            SeatNo = t.SeatNo ?? "",
+            SeatType = t.SeatType ?? "",
+            Money = money,
+            CheckInLocation = t.CheckInLocation ?? "",
+            AdditionalInfo = t.AdditionalInfo ?? "",
+            TicketPurpose = t.TicketPurpose ?? "",
+            TicketModificationType = t.TicketModificationType ?? "",
+            Hint = t.Hint ?? "",
+            Status = t.Status
+        };
     }
 }

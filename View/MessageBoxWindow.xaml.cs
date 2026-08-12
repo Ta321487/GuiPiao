@@ -111,27 +111,21 @@ public partial class MessageBoxWindow : Window
     {
         var window = new MessageBoxWindow
         {
-            Message = message,
             Title = title,
             Topmost = true
         };
 
-        // 使用 Dispatcher 确保 UI 更新在正确的线程上
-        window.Dispatcher.Invoke(() =>
-        {
-            // 设置进度图标
-            window.IconTextBlock.Text = "📤";
+        window.IconTextBlock.Text = "📤";
+        window.ProgressBar.Visibility = Visibility.Visible;
+        window.ButtonPanel.Visibility = Visibility.Collapsed;
+        ThemeManager.ApplyThemeToWindow(window);
+        // 主题应用后再写文案，避免被资源刷新冲掉
+        window.Message = string.IsNullOrWhiteSpace(message) ? "正在处理…" : message;
+        window.UpdateLayout();
 
-            // 显示进度条，隐藏按钮
-            window.ProgressBar.Visibility = Visibility.Visible;
-            window.ButtonPanel.Visibility = Visibility.Collapsed;
-
-            // 应用当前主题
-            ThemeManager.ApplyThemeToWindow(window);
-        });
-
-        // 非模态显示
         window.Show();
+        // 确保首帧画出文案后再返回，避免调用方立刻 Close 时只看到空白窗
+        window.Dispatcher.Invoke(() => { }, System.Windows.Threading.DispatcherPriority.Render);
         return window;
     }
 

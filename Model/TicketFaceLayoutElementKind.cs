@@ -68,7 +68,19 @@ public enum TicketFaceLayoutElementKind
     TicketModificationType,
 
     Purpose,
+
+    /// <summary>兼容旧工作台/JSON；证件行整体锚点，等同 <see cref="IdMask"/> 为主。</summary>
     IdName,
+
+    /// <summary>兼容旧工作台/JSON；完整号不上票面，等同 <see cref="IdMask"/>。</summary>
+    IdNumber,
+
+    /// <summary>票面身份证掩码（真票仅显示此项）。</summary>
+    IdMask,
+
+    /// <summary>票面旅客姓名。</summary>
+    IdPassengerName,
+
     HintBox,
     Footer,
     Qr,
