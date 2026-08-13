@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows;
@@ -18,6 +20,9 @@ namespace GuiPiao.ViewModel;
 
 public partial class QuickActionsViewModel : ObservableObject
 {
+    /// <summary>可选：当前行程列表选中的数据库 ID，用于 OCR 覆盖编辑。</summary>
+    public Func<int?>? GetSelectedTicketDatabaseId { get; set; }
+
     [RelayCommand]
     public void NewTicketRecordCommand()
     {
@@ -25,10 +30,111 @@ public partial class QuickActionsViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public void OcrRecognizeTicketCommand()
+    public async Task OcrRecognizeTicketCommand()
     {
-        ServiceManager.Instance.TesseractService.RecognizeTicket("");
-        MessageBoxWindow.Show(Application.Current.MainWindow, "OCR识别车票");
+        var owner = Application.Current.MainWindow;
+        var ocrWindow = new OcrRecognizeTicketWindow
+        {
+            Owner = owner
+        };
+
+        var confirmed = ocrWindow.ShowDialog() == true;
+        if (!confirmed)
+            return;
+
+        var drafts = ocrWindow.ResultDrafts;
+        if (drafts == null || drafts.Count == 0)
+        {
+            if (ocrWindow.ResultDraft == null)
+                return;
+            drafts = new[] { ocrWindow.ResultDraft };
+        }
+
+        var preferDirectSave = !new GeneralSettingsService().Config.OcrEditConfirm;
+        var selectedId = GetSelectedTicketDatabaseId?.Invoke();
+
+        // 单张 + 有选中行程：可覆盖编辑
+        if (drafts.Count == 1 && selectedId is > 0 && !preferDirectSave)
+        {
+            var choice = MessageBoxWindow.Show(owner,
+                "当前已选中一条行程。\n\n【是】覆盖至该行程编辑窗口\n【否】作为新行程打开新增窗口\n【取消】放弃本次导入",
+                "OCR 导入",
+                MessageBoxButton.YesNoCancel,
+                MessageBoxImage.Question);
+
+            if (choice == MessageBoxResult.Cancel)
+                return;
+
+            if (choice == MessageBoxResult.Yes)
+            {
+                var editWindow = EditTrainTicketWindow.CreateFromImportDraft(selectedId.Value, drafts[0]);
+                editWindow.Owner = owner;
+                if (!editWindow.IsVisible)
+                    editWindow.Show();
+                editWindow.Activate();
+                return;
+            }
+        }
+
+        if (preferDirectSave)
+        {
+            var failed = new List<TicketImportDraft>();
+            var saved = 0;
+            foreach (var draft in drafts)
+            {
+                var vm = new AddTrainTicketViewModel();
+                vm.InitializeDefaults();
+                await vm.ApplyImportDraftAsync(draft);
+                var (ok, error) = await vm.TrySaveImportDirectlyAsync();
+                if (ok)
+                {
+                    saved++;
+                    continue;
+                }
+
+                failed.Add(draft);
+                MessageBoxWindow.Show(owner,
+                    drafts.Count > 1
+                        ? $"第 {saved + failed.Count} 张无法直接保存（{error}）。\n将打开编辑窗口进行核对。"
+                        : $"无法直接保存（{error}）。\n将打开编辑窗口进行核对。",
+                    "提示",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+            }
+
+            if (failed.Count == 0)
+            {
+                MessageBoxWindow.Show(owner,
+                    saved == 1 ? "已直接保存 OCR 识别结果。" : $"已直接保存 {saved} 条行程。",
+                    "提示",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+                return;
+            }
+
+            var reviewWindow = failed.Count == 1
+                ? AddTrainTicketWindow.CreateFromImportDraft(failed[0])
+                : AddTrainTicketWindow.CreateFromImportDrafts(failed);
+            reviewWindow.Owner = owner;
+            reviewWindow.ShowDialog();
+
+            if (saved > 0)
+            {
+                MessageBoxWindow.Show(owner,
+                    $"已直接保存 {saved} 条；另有 {failed.Count} 条已在编辑窗口核对。",
+                    "提示",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+            }
+
+            return;
+        }
+
+        var addWindow = drafts.Count == 1
+            ? AddTrainTicketWindow.CreateFromImportDraft(drafts[0])
+            : AddTrainTicketWindow.CreateFromImportDrafts(drafts.ToList());
+        addWindow.Owner = owner;
+        addWindow.ShowDialog();
     }
 
     [RelayCommand]
@@ -108,23 +214,23 @@ public partial class QuickActionsViewModel : ObservableObject
             {
                 // 发送状态栏消息：备份成功
                 WeakReferenceMessenger.Default.Send(
-                    new StatusMessageMessage($"✅ 备份成功: {Path.GetFileName(backupPath)}"));
-                MessageBoxWindow.Show(owner, $"✅ 备份成功！\n\n备份文件: {backupPath}", "备份成功");
+                    new StatusMessageMessage($"备份成功: {Path.GetFileName(backupPath)}"));
+                MessageBoxWindow.Show(owner, $"备份成功！\n\n备份文件: {backupPath}", "备份成功");
                 logService?.Info("QuickActionsViewModel", $"数据库备份成功: {backupPath}");
             }
             else
             {
                 // 发送状态栏消息：备份失败
-                WeakReferenceMessenger.Default.Send(new StatusMessageMessage("❌ 备份失败"));
-                MessageBoxWindow.Show(owner, "❌ 备份失败，请检查日志了解详情。", "备份失败", MessageBoxButton.OK, MessageBoxImage.Error);
+                WeakReferenceMessenger.Default.Send(new StatusMessageMessage("备份失败"));
+                MessageBoxWindow.Show(owner, "备份失败，请检查日志了解详情。", "备份失败", MessageBoxButton.OK, MessageBoxImage.Error);
                 logService?.Error("QuickActionsViewModel", "数据库备份失败");
             }
         }
         catch (Exception ex)
         {
             // 发送状态栏消息：备份异常
-            WeakReferenceMessenger.Default.Send(new StatusMessageMessage($"❌ 备份失败: {ex.Message}"));
-            MessageBoxWindow.Show(owner, $"❌ 备份失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+            WeakReferenceMessenger.Default.Send(new StatusMessageMessage($"备份失败: {ex.Message}"));
+            MessageBoxWindow.Show(owner, $"备份失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
             logService?.Error("QuickActionsViewModel", $"数据库备份异常: {ex.Message}");
         }
     }
@@ -165,7 +271,7 @@ public partial class QuickActionsViewModel : ObservableObject
             // 确认（受「恢复数据库备份时弹出确认」控制）
             var confirmMessage = $"即将从以下备份文件恢复数据库:\n{backupPath}\n";
             confirmMessage += $"文件大小: {validationResult.FormattedFileSize}\n\n";
-            confirmMessage += "⚠ 恢复操作将完全覆盖当前所有数据，且无法撤销！\n\n";
+            confirmMessage += "恢复操作将完全覆盖当前所有数据，且无法撤销！\n\n";
             confirmMessage += "恢复前会自动备份当前数据库。\n\n是否继续？";
 
             if (!new ConfirmationService().ConfirmRestore(confirmMessage)) return;
@@ -178,7 +284,7 @@ public partial class QuickActionsViewModel : ObservableObject
 
             if (result.IsSuccess)
             {
-                var successMessage = "✅ 数据库恢复成功！\n\n";
+                var successMessage = "数据库恢复成功！\n\n";
                 if (result.HasCurrentBackup) successMessage += $"恢复前已自动备份当前数据库:\n{result.CurrentBackupPath}\n\n";
                 successMessage += "点击确定后将自动重启程序以应用更改。";
 
@@ -190,7 +296,7 @@ public partial class QuickActionsViewModel : ObservableObject
             }
             else
             {
-                MessageBoxWindow.Show(owner, $"❌ {result.ErrorMessage}", "恢复失败", MessageBoxButton.OK,
+                MessageBoxWindow.Show(owner, $"{result.ErrorMessage}", "恢复失败", MessageBoxButton.OK,
                     MessageBoxImage.Error);
                 logService?.Error("QuickActionsViewModel", $"数据库恢复失败: {result.ErrorMessage}");
             }

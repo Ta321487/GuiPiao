@@ -22,9 +22,9 @@ namespace GuiPiao.ViewModel;
 /// </summary>
 public partial class GeneralSettingsViewModel : ObservableObject, ISettingsViewModel
 {
-    private readonly GeneralSettingsService _settingsService;
+    private readonly GeneralSettingsService _settingsService = null!;
     private bool _isLoadingConfig; // 标记是否正在加载配置
-    private GeneralConfig _originalConfig;
+    private GeneralConfig _originalConfig = null!;
 
     public GeneralSettingsViewModel()
     {

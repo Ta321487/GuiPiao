@@ -25,7 +25,7 @@ public partial class MainViewModel
                 case nameof(DashboardViewModel.HasDashboardCharts):
                     OnPropertyChanged(nameof(DashboardCharts));
                     OnPropertyChanged(nameof(HasDashboardCharts));
-                    TripMenuCommandCommand.NotifyCanExecuteChanged();
+                    TripMenuCommand.NotifyCanExecuteChanged();
                     SetTemporaryStatus(d.HasDashboardCharts
                         ? $"仪表盘已加载 {d.DashboardCharts.Count} 个图表"
                         : "仪表盘暂无图表");

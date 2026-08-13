@@ -83,7 +83,7 @@ public class MapDataService
                     if (!departInChina || !arriveInChina)
                     {
                         Debug.WriteLine(
-                            $"[MapDataService] ⚠️  跳过异常坐标车票: {ride.TrainNo} {ride.DepartStation}({departLat},{departLng}) -> {ride.ArriveStation}({arriveLat},{arriveLng})");
+                            $"[MapDataService]  跳过异常坐标车票: {ride.TrainNo} {ride.DepartStation}({departLat},{departLng}) -> {ride.ArriveStation}({arriveLat},{arriveLng})");
 
                         // 收集缺少有效坐标的车站
                         if (!departInChina && !string.IsNullOrEmpty(ride.DepartStation) &&
@@ -154,7 +154,7 @@ public class MapDataService
                     issueMsg += $" 到达站纬度异常({ticket.ArriveLat})";
                 }
 
-                var prefix = hasIssue ? "⚠️" : "  ";
+                var prefix = hasIssue ? "" : "  ";
                 Debug.WriteLine(
                     $"{prefix} {i + 1}. {ticket.TrainNo}: {ticket.DepartStation}({ticket.DepartLat:F6},{ticket.DepartLng:F6}) -> {ticket.ArriveStation}({ticket.ArriveLat:F6},{ticket.ArriveLng:F6}){issueMsg}");
             }

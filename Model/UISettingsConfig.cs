@@ -147,7 +147,7 @@ public class UISettingsConfig
     /// <summary>
     ///     DataGrid列配置列表
     /// </summary>
-    public List<DataGridColumnConfig> DataGridColumns { get; set; }
+    public List<DataGridColumnConfig> DataGridColumns { get; set; } = new();
 
     /// <summary>
     ///     默认行程列表视图类型（List/Card）

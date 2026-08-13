@@ -26,11 +26,12 @@
             <!-- 图标 -->
             <TextBlock Grid.Column="0"
                        x:Name="IconTextBlock"
+                       FontFamily="Segoe MDL2 Assets"
                        FontSize="{DynamicResource LargeFontSize}"
                        Margin="0,0,15,0"
                        VerticalAlignment="Center"
-                       Foreground="{DynamicResource AccentBrush}"
-                       Text="ℹ️" />
+                       Foreground="{DynamicResource AccentForegroundBrush}"
+                       Text="&#xE946;" />
 
             <!-- 消息文本 -->
             <TextBlock Grid.Column="1"
@@ -45,9 +46,6 @@
         <ProgressBar Grid.Row="1"
                      x:Name="ProgressBar"
                      IsIndeterminate="True"
-                     Height="4"
-                     Background="{DynamicResource BorderBrush}"
-                     Foreground="{DynamicResource PrimaryBrush}"
                      Margin="0,0,0,15"
                      Visibility="Collapsed" />
 

@@ -1,6 +1,8 @@
 <Window x:Class="GuiPiao.View.StatisticCardConfigWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:GuiPiao.Controls"
+        xmlns:icons="clr-namespace:GuiPiao.Icons"
         xmlns:local="clr-namespace:GuiPiao.View"
         Title="{Binding WindowTitle}"
         Height="500"
@@ -23,8 +25,7 @@
                 <Border Background="{DynamicResource PanelBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}"
                         BorderThickness="1" Margin="0,0,0,10" Padding="10">
                     <StackPanel>
-                        <TextBlock Text="🔍 统计维度配置" FontWeight="Bold" Margin="0,0,0,10"
-                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+                        <controls:IconLabel Glyph="{x:Static icons:AppIcons.Search}" Text="统计维度配置" FontWeight="Bold" Margin="0,0,0,10" Foreground="{DynamicResource TextPrimaryBrush}" />
 
                         <!-- 时间粒度（仅月度出行统计显示） -->
                         <WrapPanel Margin="0,0,0,8">
@@ -247,8 +248,7 @@
                 <Border Background="{DynamicResource PanelBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}"
                         BorderThickness="1" Margin="0,0,0,10" Padding="10">
                     <StackPanel>
-                        <TextBlock Text="📈 显示样式配置" FontWeight="Bold" Margin="0,0,0,10"
-                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+                        <controls:IconLabel Glyph="{x:Static icons:AppIcons.AreaChart}" Text="显示样式配置" FontWeight="Bold" Margin="0,0,0,10" Foreground="{DynamicResource TextPrimaryBrush}" />
 
                         <!-- 图表类型（带单独配置复选框） -->
                         <Grid Margin="0,0,0,8">
@@ -374,8 +374,7 @@
                 <Border Background="{DynamicResource PanelBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}"
                         BorderThickness="1" Padding="10">
                     <StackPanel>
-                        <TextBlock Text="🧹 时间范围与数据过滤" FontWeight="Bold" Margin="0,0,0,10"
-                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+                        <controls:IconLabel Glyph="{x:Static icons:AppIcons.Clear}" Text="时间范围与数据过滤" FontWeight="Bold" Margin="0,0,0,10" Foreground="{DynamicResource TextPrimaryBrush}" />
 
                         <!-- 时间范围（带自定义复选框） -->
                         <Grid Margin="0,0,0,8">
@@ -460,12 +459,18 @@
         <Border Grid.Row="1" Background="{DynamicResource ContentBackgroundBrush}" Padding="15"
                 BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0">
             <WrapPanel HorizontalAlignment="Center">
-                <Button Content="💾 保存配置" Command="{Binding SaveConfigCommand}"
-                        Padding="15,8" Margin="0,0,10,0" Style="{StaticResource StandardButtonStyle}" />
-                <Button Content="🔄 恢复默认" Command="{Binding RestoreDefaultsCommand}"
-                        Padding="15,8" Margin="0,0,10,0" Style="{StaticResource StandardButtonStyle}" />
-                <Button Content="❌ 取消" Command="{Binding CancelCommand}"
-                        Padding="15,8" Style="{StaticResource StandardButtonStyle}" />
+                <Button Command="{Binding SaveConfigCommand}"
+                        Padding="15,8" Margin="0,0,10,0" Style="{StaticResource StandardButtonStyle}">
+                    <controls:IconLabel Glyph="{x:Static icons:AppIcons.Save}" Text="保存配置" />
+                </Button>
+                <Button Command="{Binding RestoreDefaultsCommand}"
+                        Padding="15,8" Margin="0,0,10,0" Style="{StaticResource StandardButtonStyle}">
+                    <controls:IconLabel Glyph="{x:Static icons:AppIcons.Refresh}" Text="恢复默认" />
+                </Button>
+                <Button Command="{Binding CancelCommand}"
+                        Padding="15,8" Style="{StaticResource StandardButtonStyle}">
+                    <controls:IconLabel Glyph="{x:Static icons:AppIcons.Cancel}" Text="取消" />
+                </Button>
             </WrapPanel>
         </Border>
     </Grid>

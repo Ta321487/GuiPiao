@@ -119,13 +119,13 @@ public partial class MainViewModel
     #region 转发命令 - 高级检索区
 
     [RelayCommand]
-    private void SearchCommand()
+    private void Search()
     {
         SearchPanel.SearchCommand();
     }
 
     [RelayCommand]
-    private void ClearConditionCommand()
+    private void ClearCondition()
     {
         SearchPanel.ClearConditionCommand();
     }

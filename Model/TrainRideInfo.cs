@@ -6,16 +6,16 @@ namespace GuiPiao.Model;
 public class TrainRideInfo
 {
     public int Id { get; set; }
-    public string TicketNumber { get; set; }
-    public string CheckInLocation { get; set; }
-    public string DepartStation { get; set; }
-    public string TrainNo { get; set; }
-    public string ArriveStation { get; set; }
-    public string DepartStationPinyin { get; set; }
-    public string ArriveStationPinyin { get; set; }
-    public string DepartDate { get; set; }
-    public string DepartTime { get; set; }
-    public string ArriveTime { get; set; }
+    public string TicketNumber { get; set; } = string.Empty;
+    public string CheckInLocation { get; set; } = string.Empty;
+    public string DepartStation { get; set; } = string.Empty;
+    public string TrainNo { get; set; } = string.Empty;
+    public string ArriveStation { get; set; } = string.Empty;
+    public string DepartStationPinyin { get; set; } = string.Empty;
+    public string ArriveStationPinyin { get; set; } = string.Empty;
+    public string DepartDate { get; set; } = string.Empty;
+    public string DepartTime { get; set; } = string.Empty;
+    public string ArriveTime { get; set; } = string.Empty;
 
     /// <summary>
     ///     到达相对出发日期的跨天数：0 当日，1 次日，2 第三天。
@@ -25,18 +25,18 @@ public class TrainRideInfo
     /// <summary>到达时间展示（含跨天）。</summary>
     public string ArriveTimeDisplay => ArriveTimeFormat.Format(ArriveTime, ArriveDayOffset);
 
-    public string CoachNo { get; set; }
-    public string SeatNo { get; set; }
+    public string CoachNo { get; set; } = string.Empty;
+    public string SeatNo { get; set; } = string.Empty;
     public decimal Money { get; set; }
-    public string SeatType { get; set; }
-    public string AdditionalInfo { get; set; }
-    public string TicketPurpose { get; set; }
-    public string TicketModificationType { get; set; }
+    public string SeatType { get; set; } = string.Empty;
+    public string AdditionalInfo { get; set; } = string.Empty;
+    public string TicketPurpose { get; set; } = string.Empty;
+    public string TicketModificationType { get; set; } = string.Empty;
     public int TicketTypeFlags { get; set; }
     public int PaymentChannelFlags { get; set; }
-    public string Hint { get; set; }
-    public string DepartStationCode { get; set; }
-    public string ArriveStationCode { get; set; }
+    public string Hint { get; set; } = string.Empty;
+    public string DepartStationCode { get; set; } = string.Empty;
+    public string ArriveStationCode { get; set; } = string.Empty;
 
     /// <summary>
     ///     行程状态（0-未出行, 1-已完成, 2-已改签, 3-已退票）

@@ -4,6 +4,8 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GuiPiao.View"
+        xmlns:controls="clr-namespace:GuiPiao.Controls"
+        xmlns:icons="clr-namespace:GuiPiao.Icons"
         mc:Ignorable="d"
         Title="添加火车票"
         Height="650"
@@ -19,6 +21,8 @@
     <Grid Background="{DynamicResource ContentBackgroundBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
@@ -31,8 +35,71 @@
                        Foreground="{DynamicResource TextPrimaryBrush}" />
         </Border>
 
+        <!-- 多图导入：左右切换 -->
+        <Border Grid.Row="1"
+                Background="{DynamicResource PanelBackgroundBrush}"
+                BorderBrush="{DynamicResource BorderBrush}"
+                BorderThickness="0,0,0,1"
+                Padding="15,8"
+                Visibility="{Binding IsImportBatchMode, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <Button Content="上一张"
+                        Command="{Binding PreviousBatchItemCommand}"
+                        Style="{StaticResource StandardButtonStyle}"
+                        MinWidth="80"
+                        Margin="0,0,12,0" />
+                <TextBlock Text="{Binding BatchPositionText}"
+                           VerticalAlignment="Center"
+                           Margin="0,0,12,0"
+                           FontWeight="SemiBold"
+                           Foreground="{DynamicResource TextPrimaryBrush}"
+                           FontSize="{DynamicResource BaseFontSize}" />
+                <Button Content="下一张"
+                        Command="{Binding NextBatchItemCommand}"
+                        Style="{StaticResource StandardButtonStyle}"
+                        MinWidth="80" />
+            </StackPanel>
+        </Border>
+
+        <!-- OCR/粘贴导入提示横幅 -->
+        <Border Grid.Row="2"
+                Background="{DynamicResource PanelBackgroundBrush}"
+                BorderBrush="{DynamicResource BorderBrush}"
+                BorderThickness="0,0,0,1"
+                Padding="15,8"
+                Visibility="{Binding ShowImportBanner, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <StackPanel>
+                <DockPanel LastChildFill="True">
+                    <Button DockPanel.Dock="Right"
+                            Content="查看原文"
+                            Command="{Binding ToggleImportRawTextCommand}"
+                            Style="{StaticResource StandardButtonStyle}"
+                            MinWidth="80"
+                            Margin="8,0,0,0"
+                            VerticalAlignment="Center"
+                            ToolTip="展开/收起识别原文" />
+                    <TextBlock Text="{Binding ImportBannerText}"
+                               TextWrapping="Wrap"
+                               VerticalAlignment="Center"
+                               Foreground="{DynamicResource TextPrimaryBrush}"
+                               FontSize="{DynamicResource SmallFontSize}" />
+                </DockPanel>
+                <TextBox Text="{Binding ImportRawText, Mode=OneWay}"
+                         IsReadOnly="True"
+                         TextWrapping="Wrap"
+                         AcceptsReturn="True"
+                         MaxHeight="120"
+                         VerticalScrollBarVisibility="Auto"
+                         Margin="0,8,0,0"
+                         Background="{DynamicResource ContentBackgroundBrush}"
+                         Foreground="{DynamicResource TextSecondaryBrush}"
+                         BorderBrush="{DynamicResource BorderBrush}"
+                         Visibility="{Binding IsImportRawTextExpanded, Converter={StaticResource BooleanToVisibilityConverter}}" />
+            </StackPanel>
+        </Border>
+
         <!-- 主内容区域 -->
-        <Grid Grid.Row="1" Margin="15">
+        <Grid Grid.Row="3" Margin="15">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" MinWidth="100" />
@@ -48,31 +115,34 @@
         </Grid>
 
         <!-- 按钮区域 -->
-        <Border Grid.Row="2" Background="{DynamicResource ControlBackgroundBrush}"
+        <Border Grid.Row="4" Background="{DynamicResource ControlBackgroundBrush}"
                 BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0" Padding="15">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                 <Button x:Name="UndoButton"
-                        Content="↩️ 撤销"
                         Style="{StaticResource StandardButtonStyle}"
                         MinWidth="80"
                         Margin="0,0,10,0"
                         Command="{Binding UndoCommand}"
-                        IsEnabled="{Binding CanUndo}" />
+                        IsEnabled="{Binding CanUndo}">
+                    <controls:IconLabel Glyph="{x:Static icons:AppIcons.Undo}" Text="撤销" />
+                </Button>
                 <Button x:Name="RedoButton"
-                        Content="↪️ 重做"
                         Style="{StaticResource StandardButtonStyle}"
                         MinWidth="80"
                         Margin="0,0,20,0"
                         Command="{Binding RedoCommand}"
-                        IsEnabled="{Binding CanRedo}" />
+                        IsEnabled="{Binding CanRedo}">
+                    <controls:IconLabel Glyph="{x:Static icons:AppIcons.Redo}" Text="重做" />
+                </Button>
                 <Button x:Name="SaveButton"
                         Style="{StaticResource PrimaryButtonStyle}"
                         MinWidth="100"
                         Margin="0,0,10,0" />
                 <Button x:Name="CancelButton"
-                        Content="❌ 关闭"
                         Style="{StaticResource StandardButtonStyle}"
-                        MinWidth="100" />
+                        MinWidth="100">
+                    <controls:IconLabel Glyph="{x:Static icons:AppIcons.Cancel}" Text="关闭" />
+                </Button>
             </StackPanel>
         </Border>
     </Grid>

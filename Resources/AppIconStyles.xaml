@@ -1,0 +1,27 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Segoe MDL2 纯图标文字样式（用于 Content 直接放字形的 Button/TextBlock） -->
+    <Style x:Key="Mdl2IconTextStyle" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="Segoe MDL2 Assets" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="TextOptions.TextFormattingMode" Value="Display" />
+    </Style>
+
+    <!-- 表格/工具栏纯图标按钮：Content 为 MDL2 字形 -->
+    <Style x:Key="Mdl2IconButtonStyle" BasedOn="{StaticResource TableActionButtonStyle}" TargetType="Button">
+        <Setter Property="FontFamily" Value="Segoe MDL2 Assets" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="Padding" Value="6,4" />
+        <Setter Property="MinWidth" Value="28" />
+    </Style>
+
+    <!-- 侧栏快捷入口图标 -->
+    <Style x:Key="SidebarMdl2GlyphStyle" TargetType="TextBlock" BasedOn="{StaticResource Mdl2IconTextStyle}">
+        <Setter Property="FontSize" Value="15" />
+        <Setter Property="Foreground" Value="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
+    </Style>
+
+</ResourceDictionary>

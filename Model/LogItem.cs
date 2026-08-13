@@ -15,10 +15,10 @@ public enum LogLevel
 public class LogItem
 {
     public int Id { get; set; }
-    public string Time { get; set; }
-    public string Content { get; set; }
+    public string Time { get; set; } = string.Empty;
+    public string Content { get; set; } = string.Empty;
     public LogLevel Level { get; set; }
-    public string Module { get; set; }
+    public string Module { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
 
     public string LevelDisplay => Level switch
@@ -53,6 +53,6 @@ public class LogConfig
     public bool AutoCleanup { get; set; } = true;
     public int RetentionDays { get; set; } = 7;
     public int MaxLogCount { get; set; } = 1000;
-    public string LogFilePath { get; set; }
+    public string LogFilePath { get; set; } = string.Empty;
     public long CurrentLogFileSize { get; set; }
 }

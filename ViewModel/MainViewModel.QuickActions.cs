@@ -33,9 +33,9 @@ public partial class MainViewModel
     }
 
     [RelayCommand]
-    public void OcrRecognizeTicket()
+    public async Task OcrRecognizeTicket()
     {
-        QuickActions.OcrRecognizeTicketCommand();
+        await QuickActions.OcrRecognizeTicketCommand();
     }
 
     [RelayCommand]

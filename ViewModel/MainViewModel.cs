@@ -208,7 +208,11 @@ public partial class MainViewModel : ObservableObject, IDisposable
         _tripList = new TripListViewModel();
         _logPanel = new LogPanelViewModel();
         _menu = new MenuViewModel();
-        _quickActions = new QuickActionsViewModel();
+        _quickActions = new QuickActionsViewModel
+        {
+            GetSelectedTicketDatabaseId = () =>
+                _tripList?.SelectedTripItem is { DatabaseId: > 0 } item ? item.DatabaseId : null
+        };
         _searchPanel = new SearchPanelViewModel();
 
         if (_dashboard != null) _menu.Dashboard = _dashboard;
@@ -372,6 +376,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(CanNavigatePrevious));
         OnPropertyChanged(nameof(CanNavigateNext));
         OnPropertyChanged(nameof(FullscreenIndicator));
-        TripMenuCommandCommand.NotifyCanExecuteChanged();
+        TripMenuCommand.NotifyCanExecuteChanged();
     }
 }

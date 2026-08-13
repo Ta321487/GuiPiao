@@ -10,12 +10,12 @@ public class DataGridColumnConfig
     /// <summary>
     ///     列名（绑定字段）
     /// </summary>
-    public string FieldName { get; set; }
+    public string FieldName { get; set; } = string.Empty;
 
     /// <summary>
     ///     显示标题
     /// </summary>
-    public string Header { get; set; }
+    public string Header { get; set; } = string.Empty;
 
     /// <summary>
     ///     是否显示
@@ -30,7 +30,7 @@ public class DataGridColumnConfig
     /// <summary>
     ///     列宽
     /// </summary>
-    public string Width { get; set; }
+    public string Width { get; set; } = string.Empty;
 
     /// <summary>
     ///     最小列宽

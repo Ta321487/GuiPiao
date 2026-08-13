@@ -25,7 +25,7 @@ public partial class DashboardSettingsViewModel : ObservableObject, ISettingsVie
     /// </summary>
     public const int MaxCards = 20;
 
-    private readonly DashboardSettingsService _settingsService;
+    private readonly DashboardSettingsService _settingsService = null!;
 
     #region 可用统计项
 
@@ -40,7 +40,7 @@ public partial class DashboardSettingsViewModel : ObservableObject, ISettingsVie
     #endregion
 
     private bool _isLoadingConfig;
-    private DashboardConfig _originalConfig;
+    private DashboardConfig _originalConfig = null!;
 
     public DashboardSettingsViewModel()
     {

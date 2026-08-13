@@ -1,6 +1,8 @@
 <Window x:Class="GuiPiao.View.MapWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:GuiPiao.Controls"
+        xmlns:icons="clr-namespace:GuiPiao.Icons"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
@@ -66,19 +68,31 @@
         <Border Grid.Row="0" Background="{DynamicResource PanelBackgroundBrush}"
                 BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1">
             <WrapPanel Margin="10">
-                <Button Content="🔄 刷新数据" Style="{StaticResource MapToolbarButtonStyle}"
-                        Command="{Binding RefreshDataCommand}" Margin="0,0,5,5" />
-                <Button Content="📊 显示全部" Style="{StaticResource MapFilterAllButtonStyle}"
-                        Command="{Binding ShowAllCommand}" Margin="0,0,5,5" />
-                <Button Content="✅ 已完成行程" Style="{StaticResource MapFilterCompletedButtonStyle}"
-                        Command="{Binding FilterCompletedCommand}" Margin="0,0,5,5" />
-                <Button Content="⏳ 未出行行程" Style="{StaticResource MapFilterPendingButtonStyle}"
-                        Command="{Binding FilterPendingCommand}" Margin="0,0,5,5" />
-                <Button Content="🚫 已退票/改签" Style="{StaticResource MapFilterRefundedButtonStyle}"
-                        Command="{Binding FilterRefundedCommand}" Margin="0,0,5,5" />
+                <Button Style="{StaticResource MapToolbarButtonStyle}"
+                        Command="{Binding RefreshDataCommand}" Margin="0,0,5,5">
+                    <controls:IconLabel Glyph="{x:Static icons:AppIcons.Refresh}" Text="刷新数据" />
+                </Button>
+                <Button Style="{StaticResource MapFilterAllButtonStyle}"
+                        Command="{Binding ShowAllCommand}" Margin="0,0,5,5">
+                    <controls:IconLabel Glyph="{x:Static icons:AppIcons.AreaChart}" Text="显示全部" />
+                </Button>
+                <Button Style="{StaticResource MapFilterCompletedButtonStyle}"
+                        Command="{Binding FilterCompletedCommand}" Margin="0,0,5,5">
+                    <controls:IconLabel Glyph="{x:Static icons:AppIcons.Accept}" Text="已完成行程" />
+                </Button>
+                <Button Style="{StaticResource MapFilterPendingButtonStyle}"
+                        Command="{Binding FilterPendingCommand}" Margin="0,0,5,5">
+                    <controls:IconLabel Glyph="{x:Static icons:AppIcons.Clock}" Text="未出行行程" />
+                </Button>
+                <Button Style="{StaticResource MapFilterRefundedButtonStyle}"
+                        Command="{Binding FilterRefundedCommand}" Margin="0,0,5,5">
+                    <controls:IconLabel Glyph="{x:Static icons:AppIcons.Block}" Text="已退票/改签" />
+                </Button>
                 <Separator Margin="5,0,10,5" Background="{DynamicResource BorderBrush}" Style="{x:Null}" Width="1" />
-                <Button Content="🎨 打开设置" Style="{StaticResource MapToolbarButtonStyle}"
-                        Command="{Binding OpenSettingsCommand}" Margin="0,0,0,5" />
+                <Button Style="{StaticResource MapToolbarButtonStyle}"
+                        Command="{Binding OpenSettingsCommand}" Margin="0,0,0,5">
+                    <controls:IconLabel Glyph="{x:Static icons:AppIcons.Color}" Text="打开设置" />
+                </Button>
             </WrapPanel>
         </Border>
 
@@ -92,7 +106,7 @@
         <StatusBar Grid.Row="2" Background="{DynamicResource StatusBarBackgroundBrush}">
             <StatusBarItem>
                 <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="🟢 " />
+                    <TextBlock Text="{x:Static icons:AppIcons.StatusCircle}" FontFamily="Segoe MDL2 Assets" Foreground="#28A745" />
                     <TextBlock Text="{Binding StatusMessage}" />
                 </StackPanel>
             </StatusBarItem>

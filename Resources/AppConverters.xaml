@@ -24,6 +24,7 @@
 <converters:BooleanToThicknessConverter x:Key="BooleanToThicknessConverter" />
 <converters:BooleanToOpacityConverter x:Key="BooleanToOpacityConverter" />
 <converters:BooleanToBrushConverter x:Key="BooleanToBrushConverter" />
+<converters:BoolToImportHighlightBrushConverter x:Key="BoolToImportHighlightBrushConverter" />
 <converters:IntComparisonToVisibilityConverter x:Key="IntToVisibilityConverter" />
 <converters:InverseIntComparisonToVisibilityConverter x:Key="InverseIntToVisibilityConverter" />
 <converters:CardDensityToVisibilityConverter x:Key="CardDensityToVisibilityConverter" />

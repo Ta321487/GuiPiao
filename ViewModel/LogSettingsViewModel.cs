@@ -22,13 +22,13 @@ public partial class LogSettingsViewModel : ObservableObject, ISettingsViewModel
 
     [ObservableProperty] private bool _autoCleanup = true;
 
-    [ObservableProperty] private string _currentLogFileSize;
+    [ObservableProperty] private string _currentLogFileSize = string.Empty;
 
-    [ObservableProperty] private string _logFilePath;
+    [ObservableProperty] private string _logFilePath = string.Empty;
 
     [ObservableProperty] private int _maxLogCount = 1000;
 
-    private LogConfig _originalConfig;
+    private LogConfig _originalConfig = null!;
 
     [ObservableProperty] private int _retentionDays = 7;
 

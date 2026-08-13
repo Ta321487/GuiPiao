@@ -250,9 +250,9 @@ public partial class TripListViewModel : ObservableObject, IDisposable
     // 卡片视图是否可见
     public bool IsCardViewVisible => IsTripListExpanded && CurrentViewType == ViewType.Card;
 
-    public string CollapseButtonContent => IsTripListExpanded ? "📥 折叠" : "📤 展开";
+    public string CollapseButtonContent => IsTripListExpanded ? "折叠" : "展开";
 
-    public string SectionTitle => CurrentViewType == ViewType.Card ? "📋 行程卡片" : "📋 行程列表";
+    public string SectionTitle => CurrentViewType == ViewType.Card ? "行程卡片" : "行程列表";
 
     public string SectionName => CurrentViewType == ViewType.Card ? "行程卡片" : "行程列表";
 
@@ -719,7 +719,7 @@ public partial class TripListViewModel : ObservableObject, IDisposable
     }
 
     [RelayCommand]
-    public async Task PreviousPageCommand()
+    public async Task PreviousPage()
     {
         if (CurrentPage > 1)
         {
@@ -729,7 +729,7 @@ public partial class TripListViewModel : ObservableObject, IDisposable
     }
 
     [RelayCommand]
-    public async Task NextPageCommand()
+    public async Task NextPage()
     {
         if (CurrentPage < TotalPages)
         {
@@ -739,7 +739,7 @@ public partial class TripListViewModel : ObservableObject, IDisposable
     }
 
     [RelayCommand]
-    public async Task GoToPageCommand(int page)
+    public async Task GoToPage(int page)
     {
         if (page >= 1 && page <= TotalPages && page != CurrentPage)
         {
@@ -749,7 +749,7 @@ public partial class TripListViewModel : ObservableObject, IDisposable
     }
 
     [RelayCommand]
-    public void ToggleTripListCommand()
+    public void ToggleTripList()
     {
         IsTripListExpanded = !IsTripListExpanded;
     }

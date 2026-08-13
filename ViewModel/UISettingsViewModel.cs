@@ -24,7 +24,7 @@ namespace GuiPiao.ViewModel;
 /// </summary>
 public partial class UISettingsViewModel : ObservableObject, ISettingsViewModel
 {
-    private readonly UISettingsService _settingsService;
+    private readonly UISettingsService _settingsService = null!;
 
     #region 高级界面选项
 
@@ -33,7 +33,7 @@ public partial class UISettingsViewModel : ObservableObject, ISettingsViewModel
     #endregion
 
     private bool _isLoadingConfig;
-    private UISettingsConfig _originalConfig;
+    private UISettingsConfig _originalConfig = null!;
 
     public UISettingsViewModel()
     {

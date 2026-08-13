@@ -29,79 +29,79 @@ namespace GuiPiao.View;
 public partial class MainWindow : Window
 {
     private DragDropHelper? _dashboardDragDropHelper;
-    private bool _isDataContextInitialized;
     private bool _isMinimizedToTray;
     private Forms.NotifyIcon? _notifyIcon;
 
     public MainWindow()
     {
-        InitializeComponent();
-        InitializeDashboardDragDrop();
+        try
+        {
+            InitializeComponent();
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"主窗口界面加载失败：\n{ex}", "启动错误", MessageBoxButton.OK, MessageBoxImage.Error);
+            throw;
+        }
 
-        // 初始化系统托盘图标
+        InitializeDashboardDragDrop();
         InitializeNotifyIcon();
 
-        // 延迟设置 DataContext（在窗口视觉元素加载完成后）
-        Loaded += (s, e) =>
+        // 在 Show 前就挂好 DataContext，避免首帧只有空壳/白底
+        var viewModel = new MainViewModel();
+        DataContext = viewModel;
+
+        Loaded += (_, _) =>
         {
-            if (!_isDataContextInitialized)
+            try
             {
-                _isDataContextInitialized = true;
-                DataContext = new MainViewModel();
-                Debug.WriteLine($"[MainWindow] DataContext 已延迟初始化: {DataContext.GetType().Name}");
+                WireUpViewModel(viewModel);
             }
-
-            // 监听 DashboardCharts 变化，更新 Grid 布局
-            if (DataContext is MainViewModel viewModel)
+            catch (Exception ex)
             {
-                viewModel.PropertyChanged += (sender, args) =>
-                {
-                    Debug.WriteLine($"[MainWindow] PropertyChanged: {args.PropertyName}");
-                    if (args.PropertyName == nameof(viewModel.DashboardCharts))
-                    {
-                        Dispatcher.BeginInvoke(() => UpdateDashboardGridLayout(viewModel), DispatcherPriority.Render);
-                    }
-                    else if (args.PropertyName == nameof(viewModel.IsTripListExpanded))
-                    {
-                        Debug.WriteLine($"[MainWindow] IsTripListExpanded changed to: {viewModel.IsTripListExpanded}");
-                        Dispatcher.BeginInvoke(() => UpdateTripListLayout(viewModel), DispatcherPriority.Render);
-                    }
-                    else if (args.PropertyName == nameof(viewModel.LeftColumnWidth) ||
-                             args.PropertyName == nameof(viewModel.RightColumnWidth) ||
-                             args.PropertyName == nameof(viewModel.BottomRowHeight))
-                    {
-                        // GridSplitter / 钳位会写入本地 Width/Height 并冲掉绑定；设置页改布局后需重新挂上
-                        Dispatcher.BeginInvoke(() => RestorePanelSizeBindings(viewModel), DispatcherPriority.Render);
-                    }
-                    else if (args.PropertyName == nameof(viewModel.LogRowHeightValue) ||
-                             args.PropertyName == nameof(viewModel.ShowTimestamp) ||
-                             args.PropertyName == nameof(viewModel.ShowModuleSource))
-                    {
-                        Dispatcher.BeginInvoke(() => UpdateLogColumnsVisibility(viewModel), DispatcherPriority.Render);
-                    }
-                };
-
-                // 初始更新（延迟等待 ItemsControl 加载完成）
-                Dispatcher.BeginInvoke(() => UpdateDashboardGridLayout(viewModel), DispatcherPriority.Loaded);
-
-                // 应用启动页面设置（在窗口加载完成后调用）
-                // 避免在窗口未显示时设置子窗口的 Owner 属性导致错误
-                Debug.WriteLine("[MainWindow] 调用 ApplyStartupPageSetting");
-                viewModel.ApplyStartupPageSetting();
-
-                // 初始化行程列表布局（应用启动时的展开/折叠状态）
-                Dispatcher.BeginInvoke(() => UpdateTripListLayout(viewModel), DispatcherPriority.Loaded);
-
-                // 初始化快捷键管理器
-                InitializeShortcuts(viewModel);
-
-                // 初始应用日志列显示设置
-                UpdateLogColumnsVisibility(viewModel);
-
-                // 与行程列表、日志等首屏 Loaded 队列任务错开后再激活仪表盘（Skia 图表），降低启动峰值内存
-                Dispatcher.BeginInvoke(viewModel.EnsureDashboardActivated, DispatcherPriority.Loaded);
+                MessageBox.Show($"主窗口初始化失败：\n{ex}", "启动错误", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         };
+    }
+
+    private void WireUpViewModel(MainViewModel viewModel)
+    {
+        viewModel.PropertyChanged += (_, args) =>
+        {
+            Debug.WriteLine($"[MainWindow] PropertyChanged: {args.PropertyName}");
+            if (args.PropertyName == nameof(viewModel.DashboardCharts))
+            {
+                Dispatcher.BeginInvoke(() => UpdateDashboardGridLayout(viewModel), DispatcherPriority.Render);
+            }
+            else if (args.PropertyName == nameof(viewModel.IsTripListExpanded))
+            {
+                Debug.WriteLine($"[MainWindow] IsTripListExpanded changed to: {viewModel.IsTripListExpanded}");
+                Dispatcher.BeginInvoke(() => UpdateTripListLayout(viewModel), DispatcherPriority.Render);
+            }
+            else if (args.PropertyName == nameof(viewModel.LeftColumnWidth) ||
+                     args.PropertyName == nameof(viewModel.RightColumnWidth) ||
+                     args.PropertyName == nameof(viewModel.BottomRowHeight))
+            {
+                Dispatcher.BeginInvoke(() => RestorePanelSizeBindings(viewModel), DispatcherPriority.Render);
+            }
+            else if (args.PropertyName == nameof(viewModel.LogRowHeightValue) ||
+                     args.PropertyName == nameof(viewModel.ShowTimestamp) ||
+                     args.PropertyName == nameof(viewModel.ShowModuleSource))
+            {
+                Dispatcher.BeginInvoke(() => UpdateLogColumnsVisibility(viewModel), DispatcherPriority.Render);
+            }
+        };
+
+        Dispatcher.BeginInvoke(() => UpdateDashboardGridLayout(viewModel), DispatcherPriority.Loaded);
+
+        // 启动页可能再开子窗口，放在 Loaded 之后更安全
+        Debug.WriteLine("[MainWindow] 调用 ApplyStartupPageSetting");
+        viewModel.ApplyStartupPageSetting();
+
+        Dispatcher.BeginInvoke(() => UpdateTripListLayout(viewModel), DispatcherPriority.Loaded);
+        InitializeShortcuts(viewModel);
+        UpdateLogColumnsVisibility(viewModel);
+        Dispatcher.BeginInvoke(viewModel.EnsureDashboardActivated, DispatcherPriority.Loaded);
     }
 
     /// <summary>
@@ -144,16 +144,16 @@ public partial class MainWindow : Window
         ShortcutManager.Instance.RegisterAction("OcrTicket", () => viewModel.OcrRecognizeTicketCommand.Execute(null));
         ShortcutManager.Instance.RegisterAction("PreviewTicket", () => viewModel.TicketPreviewCommand.Execute(null));
 
-        ShortcutManager.Instance.RegisterAction("BatchUpdateStatus", () => viewModel.TicketMenuCommand("BatchUpdateStatus"));
-        ShortcutManager.Instance.RegisterAction("BatchUpdateTag", () => viewModel.TicketMenuCommand("BatchUpdateTag"));
-        ShortcutManager.Instance.RegisterAction("BatchUpdateSeat", () => viewModel.TicketMenuCommand("BatchUpdateSeat"));
-        ShortcutManager.Instance.RegisterAction("BatchDelete", () => viewModel.TicketMenuCommand("BatchDelete"));
+        ShortcutManager.Instance.RegisterAction("BatchUpdateStatus", () => viewModel.TicketMenu("BatchUpdateStatus"));
+        ShortcutManager.Instance.RegisterAction("BatchUpdateTag", () => viewModel.TicketMenu("BatchUpdateTag"));
+        ShortcutManager.Instance.RegisterAction("BatchUpdateSeat", () => viewModel.TicketMenu("BatchUpdateSeat"));
+        ShortcutManager.Instance.RegisterAction("BatchDelete", () => viewModel.TicketMenu("BatchDelete"));
 
         // 注册快捷键动作 - 行程管理
         ShortcutManager.Instance.RegisterAction("OpenMap", () => viewModel.OpenTicketMapCommand.Execute(null));
-        ShortcutManager.Instance.RegisterAction("RefreshData", () => viewModel.TripMenuCommand("RefreshList"));
-        ShortcutManager.Instance.RegisterAction("PreviousPage", () => viewModel.PreviousPageCommand());
-        ShortcutManager.Instance.RegisterAction("NextPage", () => viewModel.NextPageCommand());
+        ShortcutManager.Instance.RegisterAction("RefreshData", () => viewModel.TripMenu("RefreshList"));
+        ShortcutManager.Instance.RegisterAction("PreviousPage", () => viewModel.PreviousPage());
+        ShortcutManager.Instance.RegisterAction("NextPage", () => viewModel.NextPage());
 
         // 注册快捷键动作 - 工具操作
         ShortcutManager.Instance.RegisterAction("OpenLogManager", () => viewModel.OpenLogManager());
@@ -162,10 +162,10 @@ public partial class MainWindow : Window
         ShortcutManager.Instance.RegisterAction("OpenSettings", () => viewModel.OpenSettings());
 
         // 注册快捷键动作 - 帮助操作
-        ShortcutManager.Instance.RegisterAction("HelpDoc", () => viewModel.HelpMenuCommand("HelpDoc"));
+        ShortcutManager.Instance.RegisterAction("HelpDoc", () => viewModel.HelpMenu("HelpDoc"));
 
         // 注册快捷键动作 - 文件存储
-        ShortcutManager.Instance.RegisterAction("ExitApp", () => viewModel.StorageMenuCommand("Exit"));
+        ShortcutManager.Instance.RegisterAction("ExitApp", () => viewModel.StorageMenu("Exit"));
 
         // 注册快捷键动作 - 编辑和删除（需要选中项）
         ShortcutManager.Instance.RegisterAction("EditTicket", () =>
@@ -183,7 +183,7 @@ public partial class MainWindow : Window
         ShortcutManager.Instance.RegisterAction("GotoPage", () =>
         {
             // 可以弹出一个输入框让用户输入页码
-            viewModel.GoToPageCommand(viewModel.TripList.CurrentPage);
+            viewModel.GoToPage(viewModel.TripList.CurrentPage);
         });
     }
 
@@ -584,7 +584,7 @@ public partial class MainWindow : Window
 
     private void Border_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
     {
-        if (DataContext is MainViewModel viewModel) viewModel.ToggleTripListCommand();
+        if (DataContext is MainViewModel viewModel) viewModel.ToggleTripList();
     }
 
     /// <summary>
@@ -1374,7 +1374,8 @@ public partial class MainWindow : Window
         }
 
         // 普通文本列
-        var binding = new Binding(config.FieldName);
+        var fieldName = config.FieldName == "ArriveTime" ? "ArriveTimeDisplay" : config.FieldName;
+        var binding = new Binding(fieldName);
 
         // 日期列使用格式化转换器
         if (config.FieldName == "DepartDate") binding.Converter = new DateFormatConverter();
@@ -1383,7 +1384,7 @@ public partial class MainWindow : Window
         {
             Header = config.Header,
             Binding = binding,
-            SortMemberPath = config.FieldName,
+            SortMemberPath = fieldName == "ArriveTimeDisplay" ? "ArriveTime" : fieldName,
             Width = columnWidth,
             MinWidth = config.MinWidth,
             IsReadOnly = config.IsReadOnly
@@ -1392,7 +1393,7 @@ public partial class MainWindow : Window
         // 设置单元格样式（添加Tooltip和省略号）
         var elementStyle = new Style(typeof(TextBlock));
         elementStyle.Setters.Add(new Setter(TextBlock.TextTrimmingProperty, TextTrimming.CharacterEllipsis));
-        elementStyle.Setters.Add(new Setter(ToolTipProperty, new Binding(config.FieldName)));
+        elementStyle.Setters.Add(new Setter(ToolTipProperty, new Binding(fieldName)));
         elementStyle.Setters.Add(new Setter(ToolTipService.ShowDurationProperty, 5000));
         textColumn.ElementStyle = elementStyle;
 
@@ -1446,8 +1447,8 @@ public partial class MainWindow : Window
         Debug.WriteLine("[MainWindow] BatchUpdateStatus_Click 被调用");
         if (DataContext is MainViewModel viewModel)
         {
-            Debug.WriteLine("[MainWindow] 调用 viewModel.TicketMenuCommand");
-            viewModel.TicketMenuCommand("BatchUpdateStatus");
+            Debug.WriteLine("[MainWindow] 调用 viewModel.TicketMenu");
+            viewModel.TicketMenu("BatchUpdateStatus");
         }
         else
         {
@@ -1458,7 +1459,7 @@ public partial class MainWindow : Window
     private void BatchUpdateSeat_Click(object sender, RoutedEventArgs e)
     {
         if (DataContext is not MainViewModel viewModel) return;
-        viewModel.TicketMenuCommand("BatchUpdateSeat");
+        viewModel.TicketMenu("BatchUpdateSeat");
     }
 
     /// <summary>
@@ -1469,8 +1470,8 @@ public partial class MainWindow : Window
         Debug.WriteLine("[MainWindow] BatchUpdateTag_Click 被调用");
         if (DataContext is MainViewModel viewModel)
         {
-            Debug.WriteLine("[MainWindow] 调用 viewModel.TicketMenuCommand");
-            viewModel.TicketMenuCommand("BatchUpdateTag");
+            Debug.WriteLine("[MainWindow] 调用 viewModel.TicketMenu");
+            viewModel.TicketMenu("BatchUpdateTag");
         }
         else
         {
@@ -1483,8 +1484,8 @@ public partial class MainWindow : Window
         Debug.WriteLine("[MainWindow] BatchDelete_Click 被调用");
         if (DataContext is MainViewModel viewModel)
         {
-            Debug.WriteLine("[MainWindow] 调用 viewModel.TicketMenuCommand");
-            viewModel.TicketMenuCommand("BatchDelete");
+            Debug.WriteLine("[MainWindow] 调用 viewModel.TicketMenu");
+            viewModel.TicketMenu("BatchDelete");
         }
         else
         {
@@ -1945,8 +1946,8 @@ public class DataGridItem
         Content = content;
     }
 
-    public string Time { get; set; }
-    public string Content { get; set; }
+    public string Time { get; set; } = string.Empty;
+    public string Content { get; set; } = string.Empty;
 }
 
 // 辅助类：行程数据项
@@ -1971,12 +1972,12 @@ public class TripItem
     }
 
     public int Id { get; set; }
-    public string TrainNo { get; set; }
-    public string DepartStation { get; set; }
-    public string ArriveStation { get; set; }
-    public string DepartDate { get; set; }
-    public string DepartTime { get; set; }
-    public string SeatType { get; set; }
-    public string Money { get; set; }
-    public string Status { get; set; }
+    public string TrainNo { get; set; } = string.Empty;
+    public string DepartStation { get; set; } = string.Empty;
+    public string ArriveStation { get; set; } = string.Empty;
+    public string DepartDate { get; set; } = string.Empty;
+    public string DepartTime { get; set; } = string.Empty;
+    public string SeatType { get; set; } = string.Empty;
+    public string Money { get; set; } = string.Empty;
+    public string Status { get; set; } = string.Empty;
 }

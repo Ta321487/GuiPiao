@@ -247,14 +247,18 @@ public static class ThemeManager
             targetDictionary["PrimaryBrush"] = brush;
 
             // 计算悬停和按下颜色
-            var hoverColor = AdjustBrightness(color, 0.1);
-            var pressedColor = AdjustBrightness(color, -0.1);
+            var hoverColor = AdjustBrightness(color, IsDarkTheme ? 0.12 : 0.1);
+            var pressedColor = AdjustBrightness(color, IsDarkTheme ? -0.05 : -0.12);
             targetDictionary["AccentHoverBrush"] = GetOrCreateBrush(hoverColor);
             targetDictionary["AccentPressedBrush"] = GetOrCreateBrush(pressedColor);
 
-            // 计算对比文字颜色（根据背景色亮度决定使用黑色或白色文字）
-            var textBrush = GetContrastTextBrush(color);
-            targetDictionary["AccentTextBrush"] = textBrush;
+            // 浅色底/深色底上的强调文字色：对齐 WinUI
+            // Light → SystemAccentColorDark1；Dark → SystemAccentColorLight2
+            var foregroundColor = GetAccentForegroundColor(color, IsDarkTheme);
+            targetDictionary["AccentForegroundBrush"] = GetOrCreateBrush(foregroundColor);
+
+            // 填充底上的对比文字（黑/白）
+            targetDictionary["AccentTextBrush"] = GetContrastTextBrush(color);
         }
         catch
         {
@@ -264,8 +268,53 @@ public static class ThemeManager
             Application.Current.Resources["AccentColor"] = defaultColor;
             Application.Current.Resources["AccentBrush"] = defaultBrush;
             Application.Current.Resources["PrimaryBrush"] = defaultBrush;
+            Application.Current.Resources["AccentForegroundBrush"] =
+                GetOrCreateBrush((Color)ColorConverter.ConvertFromString(IsDarkTheme ? "#60CDFF" : "#005A9E"));
             Application.Current.Resources["AccentTextBrush"] = GetOrCreateBrush(Colors.White);
         }
+    }
+
+    /// <summary>
+    ///     生成适合在中性背景上使用的强调色文字（约 4.5:1 对比）。
+    /// </summary>
+    private static Color GetAccentForegroundColor(Color accent, bool isDarkTheme)
+    {
+        var background = isDarkTheme
+            ? Color.FromRgb(0x1E, 0x1E, 0x1E)
+            : Colors.White;
+
+        var candidate = accent;
+        var step = isDarkTheme ? 0.08 : -0.08;
+        for (var i = 0; i < 24; i++)
+        {
+            if (GetContrastRatio(candidate, background) >= 4.5)
+                return candidate;
+            candidate = AdjustBrightness(candidate, step);
+        }
+
+        return isDarkTheme
+            ? (Color)ColorConverter.ConvertFromString("#60CDFF")
+            : (Color)ColorConverter.ConvertFromString("#005A9E");
+    }
+
+    private static double GetContrastRatio(Color a, Color b)
+    {
+        var l1 = GetRelativeLuminance(a);
+        var l2 = GetRelativeLuminance(b);
+        var lighter = Math.Max(l1, l2);
+        var darker = Math.Min(l1, l2);
+        return (lighter + 0.05) / (darker + 0.05);
+    }
+
+    private static double GetRelativeLuminance(Color color)
+    {
+        static double Channel(byte c)
+        {
+            var s = c / 255.0;
+            return s <= 0.03928 ? s / 12.92 : Math.Pow((s + 0.055) / 1.055, 2.4);
+        }
+
+        return 0.2126 * Channel(color.R) + 0.7152 * Channel(color.G) + 0.0722 * Channel(color.B);
     }
 
     /// <summary>
@@ -395,48 +444,50 @@ public static class ThemeManager
     }
 
     /// <summary>
-    ///     应用主题到指定窗口
+    ///     清理窗口上误挂的主题字典。
+    ///     注意：Application 级主题字典不能再 Insert 到 Window.Resources——
+    ///     WPF 同一 ResourceDictionary 实例只能属于一个父级，否则会从 App 上被“偷走”，造成主窗/设置窗深浅色不一致。
     /// </summary>
     public static void ApplyThemeToWindow(Window window)
     {
-        // 窗口会自动继承应用程序资源
-        // 这个方法确保窗口在显示前资源已准备好
-        if (_currentThemeDictionary != null)
-            // 确保窗口资源包含当前主题
-            if (!window.Resources.MergedDictionaries.Contains(_currentThemeDictionary))
-                window.Resources.MergedDictionaries.Insert(0, _currentThemeDictionary);
+        if (window == null) return;
+        RemoveWindowLevelThemeDictionaries(window);
+        window.InvalidateVisual();
     }
 
     /// <summary>
-    ///     刷新所有打开窗口的主题
+    ///     刷新所有打开窗口的主题（依赖 Application.Resources 中的当前主题）。
     /// </summary>
     public static void RefreshAllWindows()
     {
+        if (Application.Current == null) return;
+
         foreach (Window window in Application.Current.Windows)
         {
-            // 跳过主窗口，避免破坏菜单栏等资源
-            if (window is MainWindow)
-            {
-                // 主窗口只需要强制刷新视觉
-                window.InvalidateVisual();
-                continue;
-            }
-
-            // 对于其他窗口（如设置窗口、对话框等），更新其资源字典
-            // 移除窗口级别的旧主题资源
-            var oldDictionaries = window.Resources.MergedDictionaries
-                .Where(d => d.Source != null &&
-                            (d.Source.OriginalString.Contains("DarkTheme.xaml") ||
-                             d.Source.OriginalString.Contains("LightTheme.xaml")))
-                .ToList();
-
-            foreach (var oldDict in oldDictionaries) window.Resources.MergedDictionaries.Remove(oldDict);
-
-            // 添加当前主题到窗口
-            if (_currentThemeDictionary != null) window.Resources.MergedDictionaries.Insert(0, _currentThemeDictionary);
-
-            // 强制更新窗口样式
+            RemoveWindowLevelThemeDictionaries(window);
             window.InvalidateVisual();
+        }
+    }
+
+    private static void RemoveWindowLevelThemeDictionaries(Window window)
+    {
+        var stale = window.Resources.MergedDictionaries
+            .Where(d => d.Source != null &&
+                        (d.Source.OriginalString.Contains("DarkTheme.xaml", StringComparison.OrdinalIgnoreCase) ||
+                         d.Source.OriginalString.Contains("LightTheme.xaml", StringComparison.OrdinalIgnoreCase)))
+            .ToList();
+
+        foreach (var dict in stale)
+            window.Resources.MergedDictionaries.Remove(dict);
+
+        // 若误把当前 App 主题实例挂到了窗口上，一并摘掉（归还给 Application 合并字典）
+        if (_currentThemeDictionary != null &&
+            window.Resources.MergedDictionaries.Contains(_currentThemeDictionary))
+        {
+            window.Resources.MergedDictionaries.Remove(_currentThemeDictionary);
+            if (Application.Current != null &&
+                !Application.Current.Resources.MergedDictionaries.Contains(_currentThemeDictionary))
+                Application.Current.Resources.MergedDictionaries.Insert(0, _currentThemeDictionary);
         }
     }
 }

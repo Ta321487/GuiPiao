@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Windows;
+using GuiPiao.Icons;
 using GuiPiao.Services;
 
 namespace GuiPiao.View;
@@ -115,7 +116,7 @@ public partial class MessageBoxWindow : Window
             Topmost = true
         };
 
-        window.IconTextBlock.Text = "📤";
+        window.IconTextBlock.Text = AppIcons.Upload;
         window.ProgressBar.Visibility = Visibility.Visible;
         window.ButtonPanel.Visibility = Visibility.Collapsed;
         ThemeManager.ApplyThemeToWindow(window);
@@ -134,17 +135,17 @@ public partial class MessageBoxWindow : Window
         switch (icon)
         {
             case MessageBoxImage.Error:
-                IconTextBlock.Text = "❌";
+                IconTextBlock.Text = AppIcons.Error;
                 break;
             case MessageBoxImage.Warning:
-                IconTextBlock.Text = "⚠️";
+                IconTextBlock.Text = AppIcons.Warning;
                 break;
             case MessageBoxImage.Question:
-                IconTextBlock.Text = "❓";
+                IconTextBlock.Text = AppIcons.Help;
                 break;
             case MessageBoxImage.Information:
             default:
-                IconTextBlock.Text = "ℹ️";
+                IconTextBlock.Text = AppIcons.Info;
                 break;
         }
     }

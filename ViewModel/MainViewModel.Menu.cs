@@ -8,13 +8,13 @@ public partial class MainViewModel
     #region 转发命令 - 菜单
 
     [RelayCommand]
-    public async Task StorageMenuCommand(string action)
+    public async Task StorageMenu(string action)
     {
         await Menu.StorageMenuCommand(action);
     }
 
     [RelayCommand]
-    public void TicketMenuCommand(string action)
+    public void TicketMenu(string action)
     {
         _logService?.Info("MainViewModel", $"TicketMenuCommand 被调用，action={action}");
         if (action == "BatchUpdateStatus")
@@ -43,13 +43,13 @@ public partial class MainViewModel
         }
     }
 
-    [RelayCommand(CanExecute = nameof(CanExecuteTripMenuCommand))]
-    public async Task TripMenuCommand(string action)
+    [RelayCommand(CanExecute = nameof(CanExecuteTripMenu))]
+    public async Task TripMenu(string action)
     {
         await Menu.TripMenuCommandAsync(action);
     }
 
-    private bool CanExecuteTripMenuCommand(string action)
+    private bool CanExecuteTripMenu(string action)
     {
         return action switch
         {
@@ -60,19 +60,19 @@ public partial class MainViewModel
     }
 
     [RelayCommand]
-    public async Task ToolsMenuCommand(string action)
+    public async Task ToolsMenu(string action)
     {
         await Menu.ToolsMenuCommandAsync(action);
     }
 
     [RelayCommand]
-    private void ConfigMenuCommand(string action)
+    private void ConfigMenu(string action)
     {
         Menu.ConfigMenuCommand(action);
     }
 
     [RelayCommand]
-    public void HelpMenuCommand(string action)
+    public void HelpMenu(string action)
     {
         Menu.HelpMenuCommand(action);
     }

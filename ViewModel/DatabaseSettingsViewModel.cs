@@ -367,7 +367,7 @@ public partial class DatabaseSettingsViewModel : ObservableObject, ISettingsView
             confirmMessage += $"表数量: {dbInfo.TableCount}\n";
             confirmMessage += $"车站数据: {dbInfo.StationCount} 条\n";
             confirmMessage += $"票务记录: {dbInfo.TicketCount} 条\n\n";
-            confirmMessage += "⚠ 切换数据库前会自动备份当前数据库。\n";
+            confirmMessage += "切换数据库前会自动备份当前数据库。\n";
             confirmMessage += "切换完成后需要重启程序才能生效。\n\n";
             confirmMessage += "是否继续？";
 
@@ -674,7 +674,7 @@ public partial class DatabaseSettingsViewModel : ObservableObject, ISettingsView
             // 确认（受「恢复数据库备份时弹出确认」控制）
             var confirmMessage = $"即将从以下备份文件恢复数据库:\n{backupPath}\n";
             confirmMessage += $"文件大小: {validationResult.FormattedFileSize}\n\n";
-            confirmMessage += "⚠ 恢复操作将完全覆盖当前所有数据，且无法撤销！\n\n";
+            confirmMessage += "恢复操作将完全覆盖当前所有数据，且无法撤销！\n\n";
             confirmMessage += "恢复前会自动备份当前数据库。\n\n是否继续？";
 
             if (!_confirmationService.ConfirmRestore(confirmMessage)) return;
@@ -695,7 +695,7 @@ public partial class DatabaseSettingsViewModel : ObservableObject, ISettingsView
             }
             else
             {
-                MessageBoxWindow.Show(owner, $"❌ {result.ErrorMessage}", "恢复失败", MessageBoxButton.OK,
+                MessageBoxWindow.Show(owner, $"{result.ErrorMessage}", "恢复失败", MessageBoxButton.OK,
                     MessageBoxImage.Error);
             }
         }
@@ -742,9 +742,9 @@ public partial class DatabaseSettingsViewModel : ObservableObject, ISettingsView
             var result = await _maintenanceService.VerifyIntegrityAsync();
 
             if (result.Success)
-                MessageBoxWindow.Show(owner, $"✅ {result.Message}\n\n详细信息:\n{result.Details}", "校验通过");
+                MessageBoxWindow.Show(owner, $"{result.Message}\n\n详细信息:\n{result.Details}", "校验通过");
             else
-                MessageBoxWindow.Show(owner, $"❌ {result.Message}\n\n详细信息:\n{result.Details}", "校验失败",
+                MessageBoxWindow.Show(owner, $"{result.Message}\n\n详细信息:\n{result.Details}", "校验失败",
                     MessageBoxButton.OK, MessageBoxImage.Error);
         }
         catch (Exception ex)
@@ -786,7 +786,7 @@ public partial class DatabaseSettingsViewModel : ObservableObject, ISettingsView
 
             if (result.Success)
             {
-                var successMsg = "✅ 碎片整理完成！\n\n";
+                var successMsg = "碎片整理完成！\n\n";
                 successMsg += $"原大小: {result.FormattedOriginalSize}\n";
                 successMsg += $"新大小: {result.FormattedNewSize}\n";
                 successMsg += $"减少: {result.FormattedReducedSize}\n";
@@ -800,7 +800,7 @@ public partial class DatabaseSettingsViewModel : ObservableObject, ISettingsView
             }
             else
             {
-                MessageBoxWindow.Show(owner, $"❌ {result.Message}", "整理失败", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBoxWindow.Show(owner, $"{result.Message}", "整理失败", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
         catch (Exception ex)
@@ -830,7 +830,7 @@ public partial class DatabaseSettingsViewModel : ObservableObject, ISettingsView
             }
 
             // 双重确认（受「批量删除/清空数据时弹出二次确认」控制）
-            var confirmMsg = "⚠️ 危险操作警告！\n\n";
+            var confirmMsg = "危险操作警告！\n\n";
             confirmMsg += $"即将清空全部 {count} 条票务记录！\n\n";
             confirmMsg += "此操作不可撤销，所有票务数据将被永久删除！\n\n";
             confirmMsg += "操作前会自动备份数据库。\n\n";
@@ -846,7 +846,7 @@ public partial class DatabaseSettingsViewModel : ObservableObject, ISettingsView
 
             if (result.Success)
             {
-                var successMsg = $"✅ {result.Message}\n\n";
+                var successMsg = $"{result.Message}\n\n";
                 if (result.HasBackup) successMsg += $"已自动备份到:\n{result.BackupPath}\n\n";
                 successMsg += "票务记录已清空。";
 
@@ -859,7 +859,7 @@ public partial class DatabaseSettingsViewModel : ObservableObject, ISettingsView
             }
             else
             {
-                MessageBoxWindow.Show(owner, $"❌ {result.Message}", "清空失败", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBoxWindow.Show(owner, $"{result.Message}", "清空失败", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
         catch (Exception ex)
@@ -879,7 +879,7 @@ public partial class DatabaseSettingsViewModel : ObservableObject, ISettingsView
         try
         {
             // 双重确认（受「批量删除/清空数据时弹出二次确认」控制）
-            var confirmMsg = "⚠️ 极度危险操作警告！\n\n";
+            var confirmMsg = "极度危险操作警告！\n\n";
             confirmMsg += "即将重置数据库到初始状态！\n\n";
             confirmMsg += "此操作将：\n";
             confirmMsg += "- 删除所有票务记录\n";
@@ -901,7 +901,7 @@ public partial class DatabaseSettingsViewModel : ObservableObject, ISettingsView
 
             if (result.Success)
             {
-                var successMsg = $"✅ {result.Message}\n\n";
+                var successMsg = $"{result.Message}\n\n";
                 if (result.HasBackup) successMsg += $"已自动备份到:\n{result.BackupPath}\n\n";
                 successMsg += "点击确定后将自动重启程序。";
 
@@ -912,7 +912,7 @@ public partial class DatabaseSettingsViewModel : ObservableObject, ISettingsView
             }
             else
             {
-                MessageBoxWindow.Show(owner, $"❌ {result.Message}", "重置失败", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBoxWindow.Show(owner, $"{result.Message}", "重置失败", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
         catch (Exception ex)
@@ -948,7 +948,7 @@ public partial class DatabaseSettingsViewModel : ObservableObject, ISettingsView
 
             if (result.Success)
             {
-                var successMsg = $"✅ {result.Message}\n\n";
+                var successMsg = $"{result.Message}\n\n";
                 successMsg += "是否打开文件所在目录？";
 
                 var openDirResult = MessageBoxWindow.Show(
@@ -972,7 +972,7 @@ public partial class DatabaseSettingsViewModel : ObservableObject, ISettingsView
             }
             else
             {
-                MessageBoxWindow.Show(owner, $"❌ {result.Message}", "导出失败", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBoxWindow.Show(owner, $"{result.Message}", "导出失败", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
         catch (Exception ex)

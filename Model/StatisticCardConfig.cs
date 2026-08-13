@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using GuiPiao.Icons;
 
 namespace GuiPiao.Model;
 
@@ -71,7 +72,7 @@ public class TrainTypeRatioConfig : StatisticCardConfig
     {
         StatisticType = StatisticType.TrainTypeRatio;
         CardName = "车次类型占比";
-        CardIcon = "🚄";
+        CardIcon = AppIcons.Street;
         ClassificationBasis = "按车次类型";
         StatisticIndicator = "车票数量占比";
         DisplayThreshold = "1%";
@@ -90,7 +91,7 @@ public class MonthlyTripStatsConfig : StatisticCardConfig
     {
         StatisticType = StatisticType.MonthlyTripStats;
         CardName = "月度出行统计";
-        CardIcon = "📅";
+        CardIcon = AppIcons.Calendar;
         TimeRange = "近 12 个月";
         TimeGranularity = "自然月";
         StatisticIndicator = "出行次数";
@@ -112,7 +113,7 @@ public class StationTopRankingConfig : StatisticCardConfig
     {
         StatisticType = StatisticType.StationTopRanking;
         CardName = "站点TOP排行";
-        CardIcon = "🚉";
+        CardIcon = AppIcons.MapPin;
         ClassificationBasis = "按出发站";
         TopCount = 5;
         StatisticIndicator = "出行次数";
@@ -132,7 +133,7 @@ public class SeatTypeRatioConfig : StatisticCardConfig
     {
         StatisticType = StatisticType.SeatTypeRatio;
         CardName = "席别占比统计";
-        CardIcon = "💺";
+        CardIcon = AppIcons.People;
         ClassificationBasis = "按席别";
         StatisticIndicator = "车票数量占比";
         DisplayThreshold = "1%";
@@ -151,7 +152,7 @@ public class AnnualTripSummaryConfig : StatisticCardConfig
     {
         StatisticType = StatisticType.AnnualTripSummary;
         CardName = "年度出行总结";
-        CardIcon = "📆";
+        CardIcon = AppIcons.CalendarDay;
         StatisticIndicator = "总出行次数";
         ClassificationBasis = "无对比";
         ChartType = ChartType.LineChart;
@@ -169,7 +170,7 @@ public class TripTimeDistributionConfig : StatisticCardConfig
     {
         StatisticType = StatisticType.TripTimeDistribution;
         CardName = "出行时段分布";
-        CardIcon = "⏰";
+        CardIcon = AppIcons.Clock;
         ClassificationBasis = "4段（凌晨/早/中/晚）";
         StatisticIndicator = "出行次数";
         ChartType = ChartType.PieChart;
@@ -187,7 +188,7 @@ public class PopularRouteStatsConfig : StatisticCardConfig
     {
         StatisticType = StatisticType.PopularRouteStats;
         CardName = "热门线路统计";
-        CardIcon = "📍";
+        CardIcon = AppIcons.MapPin;
         ClassificationBasis = "按出发-到达站";
         TopCount = 5;
         StatisticIndicator = "出行次数";
@@ -207,7 +208,7 @@ public class TripCostAnalysisConfig : StatisticCardConfig
     {
         StatisticType = StatisticType.TripCostAnalysis;
         CardName = "出行花费分析";
-        CardIcon = "💰";
+        CardIcon = AppIcons.Money;
         ClassificationBasis = "按月份";
         StatisticIndicator = "总花费";
         ChartType = ChartType.BarChart;

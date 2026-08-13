@@ -599,7 +599,7 @@ public class ThemedDatePicker : Control
                 {
                     button.BorderBrush = (Brush)FindResource("AccentBrush");
                     button.BorderThickness = new Thickness(1);
-                    button.Foreground = (Brush)FindResource("AccentBrush");
+                    button.Foreground = (Brush)FindResource("AccentForegroundBrush");
                 }
                 // 设置其他日期样式
                 else

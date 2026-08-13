@@ -7,6 +7,8 @@
         xmlns:model="clr-namespace:GuiPiao.Model"
         xmlns:converters="clr-namespace:GuiPiao.Converters"
         xmlns:controls="clr-namespace:GuiPiao.View.Controls"
+        xmlns:icons="clr-namespace:GuiPiao.Icons"
+        xmlns:ui="clr-namespace:GuiPiao.Controls"
         xmlns:hit="clr-namespace:GuiPiao.View"
         mc:Ignorable="d"
         Title="{Binding WindowTitle}"
@@ -331,14 +333,22 @@
                                     </WrapPanel>
                                     <TextBlock Text="平移" Style="{StaticResource FormLabel}" Margin="0,0,0,4" />
                                     <UniformGrid Rows="2" Columns="4" HorizontalAlignment="Stretch">
-                                        <Button Content="←" ToolTip="左 · 步长" Command="{Binding NudgeWorkbenchPositionByStepCommand}" CommandParameter="L" Style="{StaticResource StandardButtonStyle}" Padding="6,4" Margin="2" />
-                                        <Button Content="→" ToolTip="右 · 步长" Command="{Binding NudgeWorkbenchPositionByStepCommand}" CommandParameter="R" Style="{StaticResource StandardButtonStyle}" Padding="6,4" Margin="2" />
-                                        <Button Content="↑" ToolTip="上 · 步长" Command="{Binding NudgeWorkbenchPositionByStepCommand}" CommandParameter="U" Style="{StaticResource StandardButtonStyle}" Padding="6,4" Margin="2" />
-                                        <Button Content="↓" ToolTip="下 · 步长" Command="{Binding NudgeWorkbenchPositionByStepCommand}" CommandParameter="D" Style="{StaticResource StandardButtonStyle}" Padding="6,4" Margin="2" />
-                                        <Button Content="←1" ToolTip="左 · 1 px" Command="{Binding NudgeWorkbenchPositionOnePixelCommand}" CommandParameter="L" Style="{StaticResource StandardButtonStyle}" Padding="6,4" Margin="2" />
-                                        <Button Content="→1" ToolTip="右 · 1 px" Command="{Binding NudgeWorkbenchPositionOnePixelCommand}" CommandParameter="R" Style="{StaticResource StandardButtonStyle}" Padding="6,4" Margin="2" />
-                                        <Button Content="↑1" ToolTip="上 · 1 px" Command="{Binding NudgeWorkbenchPositionOnePixelCommand}" CommandParameter="U" Style="{StaticResource StandardButtonStyle}" Padding="6,4" Margin="2" />
-                                        <Button Content="↓1" ToolTip="下 · 1 px" Command="{Binding NudgeWorkbenchPositionOnePixelCommand}" CommandParameter="D" Style="{StaticResource StandardButtonStyle}" Padding="6,4" Margin="2" />
+                                        <Button ToolTip="左 · 步长" Command="{Binding NudgeWorkbenchPositionByStepCommand}" CommandParameter="L" Style="{StaticResource StandardButtonStyle}" FontFamily="Segoe MDL2 Assets" Content="{x:Static icons:AppIcons.Back}" Padding="6,4" Margin="2" />
+                                        <Button ToolTip="右 · 步长" Command="{Binding NudgeWorkbenchPositionByStepCommand}" CommandParameter="R" Style="{StaticResource StandardButtonStyle}" FontFamily="Segoe MDL2 Assets" Content="{x:Static icons:AppIcons.Forward}" Padding="6,4" Margin="2" />
+                                        <Button ToolTip="上 · 步长" Command="{Binding NudgeWorkbenchPositionByStepCommand}" CommandParameter="U" Style="{StaticResource StandardButtonStyle}" FontFamily="Segoe MDL2 Assets" Content="{x:Static icons:AppIcons.Up}" Padding="6,4" Margin="2" />
+                                        <Button ToolTip="下 · 步长" Command="{Binding NudgeWorkbenchPositionByStepCommand}" CommandParameter="D" Style="{StaticResource StandardButtonStyle}" FontFamily="Segoe MDL2 Assets" Content="{x:Static icons:AppIcons.Down}" Padding="6,4" Margin="2" />
+                                        <Button ToolTip="左 · 1 px" Command="{Binding NudgeWorkbenchPositionOnePixelCommand}" CommandParameter="L" Style="{StaticResource StandardButtonStyle}" Padding="6,4" Margin="2">
+                                            <ui:IconLabel Glyph="{x:Static icons:AppIcons.Back}" Text="1" Spacing="2" />
+                                        </Button>
+                                        <Button ToolTip="右 · 1 px" Command="{Binding NudgeWorkbenchPositionOnePixelCommand}" CommandParameter="R" Style="{StaticResource StandardButtonStyle}" Padding="6,4" Margin="2">
+                                            <ui:IconLabel Glyph="{x:Static icons:AppIcons.Forward}" Text="1" Spacing="2" />
+                                        </Button>
+                                        <Button ToolTip="上 · 1 px" Command="{Binding NudgeWorkbenchPositionOnePixelCommand}" CommandParameter="U" Style="{StaticResource StandardButtonStyle}" Padding="6,4" Margin="2">
+                                            <ui:IconLabel Glyph="{x:Static icons:AppIcons.Up}" Text="1" Spacing="2" />
+                                        </Button>
+                                        <Button ToolTip="下 · 1 px" Command="{Binding NudgeWorkbenchPositionOnePixelCommand}" CommandParameter="D" Style="{StaticResource StandardButtonStyle}" Padding="6,4" Margin="2">
+                                            <ui:IconLabel Glyph="{x:Static icons:AppIcons.Down}" Text="1" Spacing="2" />
+                                        </Button>
                                     </UniformGrid>
                                 </StackPanel>
                             </Expander>
@@ -378,14 +388,14 @@
                                 <Button Content="导出…" Command="{Binding SaveLayoutJsonCommand}" Style="{StaticResource StandardButtonStyle}" Padding="8,4" Margin="0,0,6,4"
                                         ToolTip="导出版式" />
                                 <Button Content="保存为默认" Command="{Binding SaveLayoutJsonToDefaultPathCommand}" Style="{StaticResource StandardButtonStyle}" Padding="8,4" Margin="0,0,6,4"
-                                        ToolTip="保存至 Config\ticket-face-layout.json" />
+                                        ToolTip="保存至 %AppData%\GuiPiao\Config\ticket-face-layout.json" />
                                 <Button Content="导入…" Command="{Binding LoadLayoutJsonCommand}" Style="{StaticResource StandardButtonStyle}" Padding="8,4" Margin="0,0,6,4"
                                         ToolTip="导入版式" />
-                                <Button Content="恢复默认" Command="{Binding ResetLayoutToFactoryDefaultsCommand}" Style="{StaticResource StandardButtonStyle}" Padding="8,4" Margin="0,0,0,4"
+                                <Button Content="恢复默认" Command="{Binding ResetLayoutToFactoryDefaultsCommand}" Style="{StaticResource StandardButtonStyle}" Padding="8,4" Margin="0,0,6,4"
                                         ToolTip="恢复出厂版式" />
                             </WrapPanel>
                             <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="{DynamicResource SmallFontSize}"
-                                       Text="Config\ticket-face-layout.json" />
+                                       Text="%AppData%\GuiPiao\Config\ticket-face-layout.json" />
                         </StackPanel>
                     </ScrollViewer>
 

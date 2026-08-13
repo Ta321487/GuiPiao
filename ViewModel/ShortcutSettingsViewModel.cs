@@ -43,7 +43,7 @@ public partial class ShortcutSettingsViewModel : ObservableObject, ISettingsView
     /// </summary>
     [ObservableProperty] private bool _isWaitingForKey;
 
-    private ShortcutConfig _originalConfig;
+    private ShortcutConfig _originalConfig = null!;
 
     /// <summary>
     ///     搜索文本

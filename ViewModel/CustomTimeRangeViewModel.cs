@@ -56,13 +56,13 @@ public partial class CustomTimeRangeViewModel : ObservableObject
     private string GetValidationErrorMessage()
     {
         if (StartDate == null || EndDate == null)
-            return "⚠️ 请选择开始日期和结束日期";
+            return "请选择开始日期和结束日期";
 
         if (StartDate.Value.Date > EndDate.Value.Date)
-            return "⚠️ 开始日期不能晚于结束日期";
+            return "开始日期不能晚于结束日期";
 
         if (EndDate.Value.Date > DateTime.Now.Date)
-            return "⚠️ 结束日期不能晚于今天";
+            return "结束日期不能晚于今天";
 
         return string.Empty;
     }
@@ -74,11 +74,11 @@ public partial class CustomTimeRangeViewModel : ObservableObject
     {
         return TimeGranularity switch
         {
-            "自然月" => "💡 建议：当前时间粒度为【自然月】，建议选择完整的月份以获得最佳展示效果",
-            "自然周" => "💡 建议：当前时间粒度为【自然周】，建议选择完整的周（周一至周日）以获得最佳展示效果",
-            "季度" => "💡 建议：当前时间粒度为【季度】，建议选择完整的季度（1-3月、4-6月等）以获得最佳展示效果",
-            "半年" => "💡 建议：当前时间粒度为【半年】，建议选择完整的半年（1-6月或7-12月）以获得最佳展示效果",
-            "自定义" => "💡 当前时间粒度为【自定义】，可自由选择任意时间范围",
+            "自然月" => "建议：当前时间粒度为【自然月】，建议选择完整的月份以获得最佳展示效果",
+            "自然周" => "建议：当前时间粒度为【自然周】，建议选择完整的周（周一至周日）以获得最佳展示效果",
+            "季度" => "建议：当前时间粒度为【季度】，建议选择完整的季度（1-3月、4-6月等）以获得最佳展示效果",
+            "半年" => "建议：当前时间粒度为【半年】，建议选择完整的半年（1-6月或7-12月）以获得最佳展示效果",
+            "自定义" => "当前时间粒度为【自定义】，可自由选择任意时间范围",
             _ => string.Empty
         };
     }

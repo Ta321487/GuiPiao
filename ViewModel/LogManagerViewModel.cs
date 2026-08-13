@@ -20,11 +20,11 @@ public partial class LogManagerViewModel : ObservableObject
 
     [ObservableProperty] private DateTime? _endDate = DateTime.Today;
 
-    [ObservableProperty] private string _keyword;
+    [ObservableProperty] private string _keyword = string.Empty;
 
-    [ObservableProperty] private ObservableCollection<LogItem> _logItems;
+    [ObservableProperty] private ObservableCollection<LogItem> _logItems = new();
 
-    [ObservableProperty] private ObservableCollection<LogItem> _selectedLogItems;
+    [ObservableProperty] private ObservableCollection<LogItem> _selectedLogItems = new();
 
     [ObservableProperty] private LogLevel _selectedLogLevel = LogLevel.ALL;
 

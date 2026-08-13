@@ -22,12 +22,12 @@ namespace GuiPiao.ViewModel;
 /// </summary>
 public partial class OcrSettingsViewModel : ObservableObject, ISettingsViewModel
 {
-    private readonly DownloadService _downloadService;
-    private readonly OcrEnvironmentService _envService;
-    private readonly OcrRecognitionService _recognitionService;
-    private readonly OcrSettingsService _settingsService;
+    private readonly DownloadService _downloadService = null!;
+    private readonly OcrEnvironmentService _envService = null!;
+    private readonly OcrRecognitionService _recognitionService = null!;
+    private readonly OcrSettingsService _settingsService = null!;
     private bool _isLoadingConfig;
-    private OcrConfig _originalConfig;
+    private OcrConfig _originalConfig = null!;
 
     public OcrSettingsViewModel()
     {
@@ -115,7 +115,7 @@ public partial class OcrSettingsViewModel : ObservableObject, ISettingsViewModel
         {
             // 有暂停的下载任务，显示恢复按钮
             IsDownloadPaused = true;
-            DownloadButtonText = "▶️ 恢复下载";
+            DownloadButtonText = "恢复下载";
             ShowPauseButton = true;
             IsInstalling = true;
             InstallProgress = _downloadService.GetProgressPercentage();
@@ -134,12 +134,12 @@ public partial class OcrSettingsViewModel : ObservableObject, ISettingsViewModel
             {
                 case DownloadState.Downloading:
                     IsDownloadPaused = false;
-                    DownloadButtonText = "⏸️ 暂停下载";
+                    DownloadButtonText = "暂停下载";
                     ShowPauseButton = true;
                     break;
                 case DownloadState.Paused:
                     IsDownloadPaused = true;
-                    DownloadButtonText = "▶️ 恢复下载";
+                    DownloadButtonText = "恢复下载";
                     ShowPauseButton = true;
                     InstallMessage = $"下载已暂停 ({InstallProgress}%)";
                     break;
@@ -148,7 +148,7 @@ public partial class OcrSettingsViewModel : ObservableObject, ISettingsViewModel
                     break;
                 case DownloadState.Failed:
                     IsDownloadPaused = false;
-                    DownloadButtonText = "⏸️ 暂停下载";
+                    DownloadButtonText = "暂停下载";
                     ShowPauseButton = false;
                     break;
             }
@@ -305,7 +305,7 @@ public partial class OcrSettingsViewModel : ObservableObject, ISettingsViewModel
             IsDetectionModelInstalled && IsRecognitionModelInstalled)
         {
             IsEnvironmentReady = true;
-            EnvironmentStatus = "环境就绪 ✓";
+            EnvironmentStatus = "环境就绪";
         }
         else if (IsPythonInstalled)
         {
@@ -362,7 +362,7 @@ public partial class OcrSettingsViewModel : ObservableObject, ISettingsViewModel
 
     [ObservableProperty] private bool _isDownloadPaused;
 
-    [ObservableProperty] private string _downloadButtonText = "⏸️ 暂停下载";
+    [ObservableProperty] private string _downloadButtonText = "暂停下载";
 
     [ObservableProperty] private bool _showPauseButton;
 
@@ -998,14 +998,14 @@ public partial class OcrSettingsViewModel : ObservableObject, ISettingsViewModel
             // 暂停下载
             _downloadService.PauseDownload();
             IsDownloadPaused = true;
-            DownloadButtonText = "▶️ 恢复下载";
+            DownloadButtonText = "恢复下载";
             InstallMessage = $"下载已暂停 ({InstallProgress}%)";
         }
         else if (_downloadService.CurrentState == DownloadState.Paused)
         {
             // 恢复下载
             IsDownloadPaused = false;
-            DownloadButtonText = "⏸️ 暂停下载";
+            DownloadButtonText = "暂停下载";
             InstallMessage = "正在恢复下载...";
 
             var progress = new Progress<(long downloaded, long total, string message)>(p =>

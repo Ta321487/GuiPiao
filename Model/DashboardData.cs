@@ -2,7 +2,7 @@ namespace GuiPiao.Model;
 
 public class DashboardData
 {
-    public string MonthlyTrips { get; set; }
-    public string TrainTypeRatio { get; set; }
-    public string TopStations { get; set; }
+    public string MonthlyTrips { get; set; } = string.Empty;
+    public string TrainTypeRatio { get; set; } = string.Empty;
+    public string TopStations { get; set; } = string.Empty;
 }

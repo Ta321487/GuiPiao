@@ -24,19 +24,19 @@ public partial class QueryTrainTicketViewModel : ObservableObject
 
     [ObservableProperty] private int _pageSize = 50;
 
-    [ObservableProperty] private string _queryDate;
+    [ObservableProperty] private string _queryDate = string.Empty;
 
     // 查询条件
-    [ObservableProperty] private string _queryKeyword;
+    [ObservableProperty] private string _queryKeyword = string.Empty;
 
-    [ObservableProperty] private string _queryStation;
+    [ObservableProperty] private string _queryStation = string.Empty;
 
-    [ObservableProperty] private string _queryTrainNo;
+    [ObservableProperty] private string _queryTrainNo = string.Empty;
 
     [ObservableProperty] private int _totalCount;
 
     // 查询结果
-    [ObservableProperty] private ObservableCollection<TrainRideInfo> _trainRides;
+    [ObservableProperty] private ObservableCollection<TrainRideInfo> _trainRides = new();
 
     public QueryTrainTicketViewModel()
     {

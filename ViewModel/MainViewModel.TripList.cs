@@ -83,45 +83,45 @@ public partial class MainViewModel
     #region 转发命令 - 行程列表
 
     [RelayCommand]
-    private void ViewTripCommand(TripItem trip)
+    private void ViewTrip(TripItem trip)
     {
         TripList.ViewTripCommand(trip);
     }
 
     [RelayCommand]
-    private void EditTripCommand(TripItem trip)
+    private void EditTrip(TripItem trip)
     {
         TripList.EditTripCommand(trip);
     }
 
     [RelayCommand]
-    private async Task DeleteTripCommand(TripItem trip)
+    private async Task DeleteTrip(TripItem trip)
     {
         await TripList.DeleteTripCommand(trip);
     }
 
     [RelayCommand]
-    public async Task PreviousPageCommand()
+    public async Task PreviousPage()
     {
-        await TripList.PreviousPageCommand();
+        await TripList.PreviousPage();
     }
 
     [RelayCommand]
-    public async Task NextPageCommand()
+    public async Task NextPage()
     {
-        await TripList.NextPageCommand();
+        await TripList.NextPage();
     }
 
     [RelayCommand]
-    public async Task GoToPageCommand(int page)
+    public async Task GoToPage(int page)
     {
-        await TripList.GoToPageCommand(page);
+        await TripList.GoToPage(page);
     }
 
     [RelayCommand]
-    public void ToggleTripListCommand()
+    public void ToggleTripList()
     {
-        TripList.ToggleTripListCommand();
+        TripList.ToggleTripList();
     }
 
     [RelayCommand]

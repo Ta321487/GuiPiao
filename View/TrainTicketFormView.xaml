@@ -27,7 +27,8 @@
                     <!-- 左侧列 -->
                     <StackPanel Grid.Column="0">
                         <!-- 车次号 -->
-                        <StackPanel Margin="0,0,0,12">
+                        <StackPanel Margin="0,0,0,12"
+                                    Background="{Binding HighlightTrainNo, Converter={StaticResource BoolToImportHighlightBrushConverter}}">
                             <TextBlock Text="车次号 *" FontSize="{DynamicResource BaseFontSize}"
                                        Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4" />
                             <Grid>
@@ -53,7 +54,8 @@
                         </StackPanel>
 
                         <!-- 出发车站 -->
-                        <StackPanel Margin="0,0,0,12">
+                        <StackPanel Margin="0,0,0,12"
+                                    Background="{Binding HighlightDepartStation, Converter={StaticResource BoolToImportHighlightBrushConverter}}">
                             <TextBlock Text="出发车站 *" FontSize="{DynamicResource BaseFontSize}"
                                        Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4" />
                             <Grid>
@@ -81,7 +83,8 @@
                         </StackPanel>
 
                         <!-- 到达车站 -->
-                        <StackPanel Margin="0,0,0,12">
+                        <StackPanel Margin="0,0,0,12"
+                                    Background="{Binding HighlightArriveStation, Converter={StaticResource BoolToImportHighlightBrushConverter}}">
                             <TextBlock Text="到达车站 *" FontSize="{DynamicResource BaseFontSize}"
                                        Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4" />
                             <Grid>
@@ -109,7 +112,8 @@
                         </StackPanel>
 
                         <!-- 出发日期 -->
-                        <StackPanel Margin="0,0,0,12">
+                        <StackPanel Margin="0,0,0,12"
+                                    Background="{Binding HighlightDepartDate, Converter={StaticResource BoolToImportHighlightBrushConverter}}">
                             <TextBlock Text="出发日期 *" FontSize="{DynamicResource BaseFontSize}"
                                        Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4" />
                             <view:ThemedDatePicker SelectedDate="{Binding DepartDateTime, Mode=TwoWay}"
@@ -119,7 +123,8 @@
                         </StackPanel>
 
                         <!-- 出发时间 -->
-                        <StackPanel Margin="0,0,0,12">
+                        <StackPanel Margin="0,0,0,12"
+                                    Background="{Binding HighlightDepartTime, Converter={StaticResource BoolToImportHighlightBrushConverter}}">
                             <TextBlock Text="出发时间 *" FontSize="{DynamicResource BaseFontSize}"
                                        Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4" />
                             <view:ThemedTimePicker SelectedTime="{Binding DepartTimeValue, Mode=TwoWay}"
@@ -130,7 +135,8 @@
                         </StackPanel>
 
                         <!-- 到达时间（非票面字段，仅行程管理用；可标跨天） -->
-                        <StackPanel Margin="0,0,0,12">
+                        <StackPanel Margin="0,0,0,12"
+                                    Background="{Binding HighlightArriveTime, Converter={StaticResource BoolToImportHighlightBrushConverter}}">
                             <TextBlock Text="到达时间" FontSize="{DynamicResource BaseFontSize}"
                                        Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4" />
                             <Grid>
@@ -157,7 +163,8 @@
                         </StackPanel>
 
                         <!-- 席别 -->
-                        <StackPanel Margin="0,0,0,12">
+                        <StackPanel Margin="0,0,0,12"
+                                    Background="{Binding HighlightSeatType, Converter={StaticResource BoolToImportHighlightBrushConverter}}">
                             <TextBlock Text="席别 *" FontSize="{DynamicResource BaseFontSize}"
                                        Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4" />
                             <ComboBox ItemsSource="{Binding SeatTypeOptions}"
@@ -168,7 +175,7 @@
                         </StackPanel>
 
                         <!-- 座位号 -->
-                        <StackPanel>
+                        <StackPanel Background="{Binding HighlightSeatNo, Converter={StaticResource BoolToImportHighlightBrushConverter}}">
                             <TextBlock Text="座位号 *" FontSize="{DynamicResource BaseFontSize}"
                                        Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4" />
                             <StackPanel Orientation="Horizontal">
@@ -200,7 +207,8 @@
                     <!-- 右侧列 -->
                     <StackPanel Grid.Column="2">
                         <!-- 车厢号 -->
-                        <StackPanel Margin="0,0,0,12">
+                        <StackPanel Margin="0,0,0,12"
+                                    Background="{Binding HighlightCoachNo, Converter={StaticResource BoolToImportHighlightBrushConverter}}">
                             <TextBlock Text="车厢号 *" FontSize="{DynamicResource BaseFontSize}"
                                        Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4" />
                             <Grid>
@@ -232,7 +240,8 @@
                         </StackPanel>
 
                         <!-- 取票号 -->
-                        <StackPanel Margin="0,0,0,12">
+                        <StackPanel Margin="0,0,0,12"
+                                    Background="{Binding HighlightTicketNumber, Converter={StaticResource BoolToImportHighlightBrushConverter}}">
                             <TextBlock Text="取票号" FontSize="{DynamicResource BaseFontSize}"
                                        Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4" />
                             <TextBox Text="{Binding TicketNumber}"
@@ -242,7 +251,8 @@
                         </StackPanel>
 
                         <!-- 检票位置 -->
-                        <StackPanel Margin="0,0,0,12">
+                        <StackPanel Margin="0,0,0,12"
+                                    Background="{Binding HighlightCheckIn, Converter={StaticResource BoolToImportHighlightBrushConverter}}">
                             <TextBlock Text="检票位置" FontSize="{DynamicResource BaseFontSize}"
                                        Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4" />
                             <TextBox Text="{Binding CheckInLocation}"
@@ -297,7 +307,7 @@
                         </StackPanel>
 
                         <!-- 金额 -->
-                        <StackPanel>
+                        <StackPanel Background="{Binding HighlightMoney, Converter={StaticResource BoolToImportHighlightBrushConverter}}">
                             <TextBlock Text="金额 *" FontSize="{DynamicResource BaseFontSize}"
                                        Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4" />
                             <TextBox Text="{Binding MoneyText}"

@@ -18,32 +18,32 @@ public partial class ManageStationsViewModel : ObservableObject
     private readonly LogService _logService;
     private readonly StationRepository _stationRepository;
 
-    [ObservableProperty] private string _city;
+    [ObservableProperty] private string _city = string.Empty;
 
-    [ObservableProperty] private string _district;
+    [ObservableProperty] private string _district = string.Empty;
 
-    [ObservableProperty] private string _latitude;
+    [ObservableProperty] private string _latitude = string.Empty;
 
-    [ObservableProperty] private string _longitude;
+    [ObservableProperty] private string _longitude = string.Empty;
 
-    [ObservableProperty] private string _province;
+    [ObservableProperty] private string _province = string.Empty;
 
-    [ObservableProperty] private string _railwayBureau;
+    [ObservableProperty] private string _railwayBureau = string.Empty;
 
     // 搜索关键词
-    [ObservableProperty] private string _searchKeyword;
+    [ObservableProperty] private string _searchKeyword = string.Empty;
 
-    [ObservableProperty] private string _stationCode;
+    [ObservableProperty] private string _stationCode = string.Empty;
 
     [ObservableProperty] private int _stationLevel;
 
     // 车站信息属性
-    [ObservableProperty] private string _stationName;
+    [ObservableProperty] private string _stationName = string.Empty;
 
-    [ObservableProperty] private string _stationPinyin;
+    [ObservableProperty] private string _stationPinyin = string.Empty;
 
     // 车站列表
-    [ObservableProperty] private ObservableCollection<StationInfo> _stations;
+    [ObservableProperty] private ObservableCollection<StationInfo> _stations = new();
 
     public ManageStationsViewModel()
     {

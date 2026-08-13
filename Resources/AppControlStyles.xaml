@@ -29,7 +29,10 @@
                         Margin="{TemplateBinding Padding}"
                         RecognizesAccessKey="True"
                         SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
-                        VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                        VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                        TextElement.Foreground="{TemplateBinding Foreground}"
+                        TextElement.FontSize="{TemplateBinding FontSize}"
+                        TextElement.FontWeight="{TemplateBinding FontWeight}" />
                 </Border>
                 <ControlTemplate.Triggers>
                     <Trigger Property="IsMouseOver" Value="true">
@@ -63,14 +66,14 @@
     </Setter>
 </Style>
 
-<!-- 次要按钮样式（使用主题色边框和文字） -->
+<!-- 次要按钮样式：描边 + 文字用 AccentForeground（浅色下比填充色更深，对齐 Fluent） -->
 <Style x:Key="BaseButtonStyle" TargetType="Button">
     <Setter Property="Padding" Value="12,6" />
     <Setter Property="Margin" Value="0" />
     <Setter Property="BorderThickness" Value="1" />
-    <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource AccentForegroundBrush}" />
     <Setter Property="Background" Value="{DynamicResource ControlBackgroundBrush}" />
-    <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource AccentForegroundBrush}" />
     <Setter Property="HorizontalContentAlignment" Value="Center" />
     <Setter Property="VerticalContentAlignment" Value="Center" />
     <Setter Property="FontSize" Value="{DynamicResource BaseFontSize}" />
@@ -92,7 +95,10 @@
                         Margin="{TemplateBinding Padding}"
                         RecognizesAccessKey="True"
                         SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
-                        VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                        VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                        TextElement.Foreground="{TemplateBinding Foreground}"
+                        TextElement.FontSize="{TemplateBinding FontSize}"
+                        TextElement.FontWeight="{TemplateBinding FontWeight}" />
                 </Border>
                 <ControlTemplate.Triggers>
                     <Trigger Property="IsMouseOver" Value="true">
@@ -100,14 +106,14 @@
                                 Value="{DynamicResource AccentBrush}" />
                         <Setter Property="BorderBrush" TargetName="border"
                                 Value="{DynamicResource AccentBrush}" />
-                        <Setter Property="Foreground" Value="White" />
+                        <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}" />
                     </Trigger>
                     <Trigger Property="IsPressed" Value="true">
                         <Setter Property="Background" TargetName="border"
                                 Value="{DynamicResource AccentPressedBrush}" />
                         <Setter Property="BorderBrush" TargetName="border"
                                 Value="{DynamicResource AccentPressedBrush}" />
-                        <Setter Property="Foreground" Value="White" />
+                        <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}" />
                         <Setter Property="RenderTransform">
                             <Setter.Value>
                                 <TranslateTransform X="1" Y="1" />
@@ -159,11 +165,21 @@
     <Setter Property="Padding" Value="6,2" />
 </Style>
 
-<!-- 分页按钮样式 -->
+<!-- 分页页码按钮样式 -->
 <Style x:Key="PaginationButtonStyle" BasedOn="{StaticResource SmallButtonStyle}" TargetType="Button">
+    <Setter Property="MinWidth" Value="28" />
     <Setter Property="Width" Value="28" />
     <Setter Property="Height" Value="28" />
+    <Setter Property="MinHeight" Value="28" />
     <Setter Property="Padding" Value="0" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+</Style>
+
+<!-- 分页上一页/下一页：MDL2 字形，沿用分页按钮尺寸 -->
+<Style x:Key="PaginationNavButtonStyle" BasedOn="{StaticResource PaginationButtonStyle}" TargetType="Button">
+    <Setter Property="FontFamily" Value="Segoe MDL2 Assets" />
+    <Setter Property="FontSize" Value="12" />
 </Style>
 
 <!-- DataGrid 默认样式 -->
@@ -258,104 +274,112 @@
     <Setter Property="FontSize" Value="{DynamicResource BaseFontSize}" />
 </Style>
 
-<!-- 菜单项样式 - 支持访问键和主题 -->
+<!-- 菜单项样式 - 顶栏/下拉/子菜单统一主题色（勿在主题字典再声明隐式 MenuItem） -->
 <Style TargetType="MenuItem">
-    <Setter Property="Background" Value="{DynamicResource MenuBackgroundBrush}" />
+    <Setter Property="Background" Value="Transparent" />
     <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
     <Setter Property="FontSize" Value="{DynamicResource BaseFontSize}" />
+    <Setter Property="Padding" Value="0" />
     <Setter Property="Template">
         <Setter.Value>
             <ControlTemplate TargetType="MenuItem">
-                <Grid>
-                    <Border x:Name="Border"
+                <Grid Background="Transparent">
+                    <Border x:Name="Bd"
                             Background="{TemplateBinding Background}"
                             BorderThickness="0"
-                            Padding="8,4">
+                            Padding="8,4"
+                            SnapsToDevicePixels="True">
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" MinWidth="24" />
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="MenuItemIconColumnGroup" MinWidth="24" />
                                 <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="Auto" MinWidth="20" />
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="MenuItemIGTColumnGroup" />
+                                <ColumnDefinition Width="14" />
                             </Grid.ColumnDefinitions>
                             <ContentPresenter Grid.Column="0"
-                                              Content="{TemplateBinding Icon}"
+                                              ContentSource="Icon"
                                               VerticalAlignment="Center"
                                               HorizontalAlignment="Center"
-                                              Margin="0,0,8,0" />
-                            <ContentPresenter x:Name="HeaderPresenter"
+                                              Margin="4,0,8,0"
+                                              RecognizesAccessKey="False" />
+                            <ContentPresenter x:Name="HeaderHost"
                                               Grid.Column="1"
-                                              Content="{TemplateBinding Header}"
-                                              ContentTemplate="{TemplateBinding HeaderTemplate}"
-                                              ContentStringFormat="{TemplateBinding HeaderStringFormat}"
                                               ContentSource="Header"
                                               RecognizesAccessKey="True"
                                               VerticalAlignment="Center"
-                                              Margin="0,0,10,0" />
-                            <TextBlock Grid.Column="2"
+                                              Margin="0,0,12,0"
+                                              TextElement.Foreground="{TemplateBinding Foreground}"
+                                              TextElement.FontSize="{TemplateBinding FontSize}" />
+                            <TextBlock x:Name="InputGestureText"
+                                       Grid.Column="2"
                                        Text="{TemplateBinding InputGestureText}"
                                        Foreground="{DynamicResource TextSecondaryBrush}"
-                                       Margin="15,0,10,0"
+                                       Margin="16,0,8,0"
                                        VerticalAlignment="Center" />
-                            <Path x:Name="SubMenuArrow"
+                            <Path x:Name="Arrow"
                                   Grid.Column="3"
-                                  Width="5" Height="8"
-                                  Stretch="Uniform"
-                                  Fill="{DynamicResource TextSecondaryBrush}"
-                                  Data="M 0 0 L 4 4 L 0 8 Z"
-                                  HorizontalAlignment="Center"
+                                  Margin="0,0,4,0"
                                   VerticalAlignment="Center"
+                                  HorizontalAlignment="Center"
+                                  Data="M0,0 L4,3.5 L0,7 Z"
+                                  Fill="{DynamicResource TextSecondaryBrush}"
                                   Visibility="Collapsed" />
                         </Grid>
                     </Border>
-                    <Popup x:Name="SubMenuPopup"
-                           Placement="Right"
-                           IsOpen="{Binding IsSubmenuOpen, RelativeSource={RelativeSource TemplatedParent}}"
+                    <Popup x:Name="PART_Popup"
                            AllowsTransparency="True"
                            Focusable="False"
-                           PopupAnimation="Slide">
+                           IsOpen="{Binding IsSubmenuOpen, RelativeSource={RelativeSource TemplatedParent}}"
+                           Placement="Right"
+                           PopupAnimation="Fade">
                         <Border Background="{DynamicResource MenuBackgroundBrush}"
                                 BorderBrush="{DynamicResource BorderBrush}"
                                 BorderThickness="1"
-                                Padding="2">
+                                Padding="2"
+                                MinWidth="160"
+                                SnapsToDevicePixels="True">
                             <ScrollViewer CanContentScroll="True"
                                           Style="{DynamicResource {ComponentResourceKey ResourceId=MenuScrollViewer, TypeInTargetAssembly={x:Type FrameworkElement}}}">
                                 <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Cycle"
+                                                KeyboardNavigation.TabNavigation="Cycle"
                                                 Grid.IsSharedSizeScope="True"
-                                                SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
-                                                KeyboardNavigation.TabNavigation="Cycle" />
+                                                SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
                             </ScrollViewer>
                         </Border>
                     </Popup>
                 </Grid>
                 <ControlTemplate.Triggers>
+                    <Trigger Property="Role" Value="TopLevelHeader">
+                        <Setter TargetName="PART_Popup" Property="Placement" Value="Bottom" />
+                        <Setter TargetName="PART_Popup" Property="HorizontalOffset" Value="0" />
+                        <Setter TargetName="PART_Popup" Property="VerticalOffset" Value="0" />
+                        <Setter TargetName="Bd" Property="Padding" Value="10,5" />
+                        <Setter TargetName="Arrow" Property="Visibility" Value="Collapsed" />
+                        <Setter TargetName="InputGestureText" Property="Visibility" Value="Collapsed" />
+                    </Trigger>
+                    <Trigger Property="Role" Value="TopLevelItem">
+                        <Setter TargetName="Bd" Property="Padding" Value="10,5" />
+                        <Setter TargetName="Arrow" Property="Visibility" Value="Collapsed" />
+                        <Setter TargetName="PART_Popup" Property="IsOpen" Value="False" />
+                    </Trigger>
+                    <Trigger Property="Role" Value="SubmenuHeader">
+                        <Setter TargetName="Arrow" Property="Visibility" Value="Visible" />
+                        <Setter TargetName="PART_Popup" Property="Placement" Value="Right" />
+                    </Trigger>
                     <Trigger Property="IsHighlighted" Value="True">
-                        <Setter TargetName="Border" Property="Background"
-                                Value="{DynamicResource AccentBrush}" />
+                        <Setter TargetName="Bd" Property="Background" Value="{DynamicResource AccentBrush}" />
                         <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}" />
-                        <Setter TargetName="SubMenuArrow" Property="Fill"
-                                Value="{DynamicResource AccentTextBrush}" />
+                        <Setter TargetName="Arrow" Property="Fill" Value="{DynamicResource AccentTextBrush}" />
+                        <Setter TargetName="InputGestureText" Property="Foreground" Value="{DynamicResource AccentTextBrush}" />
+                    </Trigger>
+                    <Trigger Property="IsKeyboardFocused" Value="True">
+                        <Setter TargetName="Bd" Property="Background" Value="{DynamicResource AccentBrush}" />
+                        <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}" />
                     </Trigger>
                     <Trigger Property="IsEnabled" Value="False">
                         <Setter Property="Foreground" Value="{DynamicResource TextDisabledBrush}" />
-                        <Setter TargetName="Border" Property="Opacity" Value="0.6" />
+                        <Setter TargetName="Bd" Property="Opacity" Value="0.55" />
                     </Trigger>
-                    <Trigger Property="Role" Value="SubmenuHeader">
-                        <Setter TargetName="SubMenuArrow" Property="Visibility" Value="Visible" />
-                    </Trigger>
-                    <Trigger Property="Role" Value="TopLevelHeader">
-                        <Setter TargetName="SubMenuPopup" Property="Placement" Value="Bottom" />
-                        <Setter TargetName="Border" Property="Padding" Value="10,5" />
-                    </Trigger>
-                    <MultiTrigger>
-                        <MultiTrigger.Conditions>
-                            <Condition Property="Role" Value="TopLevelHeader" />
-                            <Condition Property="IsHighlighted" Value="True" />
-                        </MultiTrigger.Conditions>
-                        <Setter TargetName="Border" Property="Background"
-                                Value="{DynamicResource AccentBrush}" />
-                        <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}" />
-                    </MultiTrigger>
                 </ControlTemplate.Triggers>
             </ControlTemplate>
         </Setter.Value>
@@ -423,7 +447,9 @@
                                           ContentTemplate="{TemplateBinding HeaderTemplate}"
                                           ContentStringFormat="{TemplateBinding HeaderStringFormat}"
                                           ContentSource="Header"
-                                          VerticalAlignment="Center" />
+                                          VerticalAlignment="Center"
+                                          TextElement.Foreground="{TemplateBinding Foreground}"
+                                          TextElement.FontSize="{TemplateBinding FontSize}" />
                     </Grid>
                 </Border>
                 <ControlTemplate.Triggers>

@@ -451,7 +451,7 @@ public partial class SettingsViewModel : ObservableObject
                 {
                     new TextBlock
                     {
-                        Text = $"🚧 {_pageTitles[page]}设置",
+                        Text = $"{_pageTitles[page]}设置",
                         FontSize = 24,
                         FontWeight = FontWeights.Bold,
                         Margin = new Thickness(0, 0, 0, 20),

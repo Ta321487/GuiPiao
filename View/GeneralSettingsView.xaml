@@ -1,6 +1,8 @@
 <UserControl x:Class="GuiPiao.View.GeneralSettingsView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:GuiPiao.Controls"
+             xmlns:icons="clr-namespace:GuiPiao.Icons"
              FontSize="{DynamicResource BaseFontSize}">
     <Grid>
         <Grid.RowDefinitions>
@@ -24,8 +26,7 @@
                 <Border Grid.Row="0" Background="{DynamicResource PanelBackgroundBrush}"
                         BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
                     <StackPanel>
-                        <TextBlock Text="📌 外观与显示" FontWeight="Bold" Margin="0,0,0,10"
-                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+                        <controls:IconLabel Glyph="{x:Static icons:AppIcons.Pin}" Text="外观与显示" FontWeight="Bold" Margin="0,0,0,10" Foreground="{DynamicResource TextPrimaryBrush}" />
 
                         <!-- 主题模式 -->
                         <TextBlock Text="主题模式：" Margin="0,0,0,5" Foreground="{DynamicResource TextPrimaryBrush}" />
@@ -85,8 +86,7 @@
                             </RadioButton>
                             <RadioButton GroupName="AccentColor" IsChecked="{Binding IsCustomColor}" Margin="0,0,10,5">
                                 <StackPanel Orientation="Horizontal" Cursor="Hand">
-                                    <TextBlock Text="🎨 自定义" VerticalAlignment="Center"
-                                               Foreground="{DynamicResource TextPrimaryBrush}" />
+                                    <controls:IconLabel Glyph="{x:Static icons:AppIcons.Color}" Text="自定义" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
                                     <Border Width="24" Height="16"
                                             Background="{Binding CustomColorBrush}"
                                             BorderBrush="{DynamicResource BorderBrush}"
@@ -118,8 +118,7 @@
                 <Border Grid.Row="1" Background="{DynamicResource PanelBackgroundBrush}"
                         BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
                     <StackPanel>
-                        <TextBlock Text="📌 程序启动与运行设置" FontWeight="Bold" Margin="0,0,0,10"
-                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+                        <controls:IconLabel Glyph="{x:Static icons:AppIcons.Pin}" Text="程序启动与运行设置" FontWeight="Bold" Margin="0,0,0,10" Foreground="{DynamicResource TextPrimaryBrush}" />
 
                         <WrapPanel Margin="0,0,0,10">
                             <CheckBox Content="仅允许运行单个程序实例" IsChecked="{Binding SingleInstance}"
@@ -155,8 +154,7 @@
                 <Border Grid.Row="2" Background="{DynamicResource PanelBackgroundBrush}"
                         BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
                     <StackPanel>
-                        <TextBlock Text="📌 核心业务默认设置" FontWeight="Bold" Margin="0,0,0,10"
-                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+                        <controls:IconLabel Glyph="{x:Static icons:AppIcons.Pin}" Text="核心业务默认设置" FontWeight="Bold" Margin="0,0,0,10" Foreground="{DynamicResource TextPrimaryBrush}" />
 
                         <!-- 行程列表默认规则 -->
                         <TextBlock Text="行程列表默认规则：" Margin="0,0,0,5" Foreground="{DynamicResource TextPrimaryBrush}" />
@@ -228,8 +226,7 @@
                 <Border Grid.Row="3" Background="{DynamicResource PanelBackgroundBrush}"
                         BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
                     <StackPanel>
-                        <TextBlock Text="📌 卡片视图显示规则" FontWeight="Bold" Margin="0,0,0,10"
-                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+                        <controls:IconLabel Glyph="{x:Static icons:AppIcons.Pin}" Text="卡片视图显示规则" FontWeight="Bold" Margin="0,0,0,10" Foreground="{DynamicResource TextPrimaryBrush}" />
 
                         <WrapPanel Margin="20,0,0,10">
                             <StackPanel Orientation="Horizontal"
@@ -286,8 +283,7 @@
                 <Border Grid.Row="4" Background="{DynamicResource PanelBackgroundBrush}"
                         BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
                     <StackPanel>
-                        <TextBlock Text="📌 列表视图显示规则" FontWeight="Bold" Margin="0,0,0,10"
-                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+                        <controls:IconLabel Glyph="{x:Static icons:AppIcons.Pin}" Text="列表视图显示规则" FontWeight="Bold" Margin="0,0,0,10" Foreground="{DynamicResource TextPrimaryBrush}" />
 
                         <WrapPanel Margin="20,0,0,0">
                             <TextBlock Text="双击行程项时：" VerticalAlignment="Center" Margin="0,0,10,5"
@@ -314,8 +310,7 @@
                 <Border Grid.Row="5" Background="{DynamicResource PanelBackgroundBrush}"
                         BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
                     <StackPanel>
-                        <TextBlock Text="📌 操作防护与确认设置" FontWeight="Bold" Margin="0,0,0,10"
-                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+                        <controls:IconLabel Glyph="{x:Static icons:AppIcons.Pin}" Text="操作防护与确认设置" FontWeight="Bold" Margin="0,0,0,10" Foreground="{DynamicResource TextPrimaryBrush}" />
 
                         <TextBlock Text="高危操作二次确认：" Margin="0,0,0,5" Foreground="{DynamicResource TextPrimaryBrush}" />
                         <WrapPanel Margin="20,0,0,10">
@@ -343,10 +338,14 @@
         <Border Grid.Row="1" Background="{DynamicResource ContentBackgroundBrush}" Padding="10"
                 BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button Content="💾 保存设置" Command="{Binding SaveSettingsCommand}"
-                        Padding="15,8" Margin="0,0,10,0" Style="{StaticResource StandardButtonStyle}" />
-                <Button Content="🔄 恢复默认" Command="{Binding RestoreDefaultsCommand}"
-                        Padding="15,8" Style="{StaticResource StandardButtonStyle}" />
+                <Button Command="{Binding SaveSettingsCommand}"
+                        Padding="15,8" Margin="0,0,10,0" Style="{StaticResource StandardButtonStyle}">
+                    <controls:IconLabel Glyph="{x:Static icons:AppIcons.Save}" Text="保存设置" />
+                </Button>
+                <Button Command="{Binding RestoreDefaultsCommand}"
+                        Padding="15,8" Style="{StaticResource StandardButtonStyle}">
+                    <controls:IconLabel Glyph="{x:Static icons:AppIcons.Refresh}" Text="恢复默认" />
+                </Button>
             </StackPanel>
         </Border>
     </Grid>

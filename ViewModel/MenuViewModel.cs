@@ -179,9 +179,9 @@ public partial class MenuViewModel : ObservableObject
             progressWindow = null;
 
             if (result.Success)
-                MessageBoxWindow.Show(owner, $"✅ {result.Message}\n\n详细信息:\n{result.Details}", "校验通过");
+                MessageBoxWindow.Show(owner, $"{result.Message}\n\n详细信息:\n{result.Details}", "校验通过");
             else
-                MessageBoxWindow.Show(owner, $"❌ {result.Message}\n\n详细信息:\n{result.Details}", "校验失败",
+                MessageBoxWindow.Show(owner, $"{result.Message}\n\n详细信息:\n{result.Details}", "校验失败",
                     MessageBoxButton.OK, MessageBoxImage.Error);
         }
         catch (Exception ex)
@@ -215,7 +215,7 @@ public partial class MenuViewModel : ObservableObject
             }
 
             // 双重确认（受「批量删除/清空数据时弹出二次确认」控制）
-            var confirmMsg = "⚠️ 危险操作警告！\n\n";
+            var confirmMsg = "危险操作警告！\n\n";
             confirmMsg += $"即将清空全部 {count} 条票务记录！\n\n";
             confirmMsg += "此操作不可撤销，所有票务数据将被永久删除！\n\n";
             confirmMsg += "操作前会自动备份数据库。\n\n";
@@ -231,7 +231,7 @@ public partial class MenuViewModel : ObservableObject
 
             if (result.Success)
             {
-                var successMsg = $"✅ {result.Message}\n\n";
+                var successMsg = $"{result.Message}\n\n";
                 if (result.HasBackup) successMsg += $"已自动备份到:\n{result.BackupPath}\n\n";
                 successMsg += "票务记录已清空。";
 
@@ -243,7 +243,7 @@ public partial class MenuViewModel : ObservableObject
             }
             else
             {
-                MessageBoxWindow.Show(owner, $"❌ {result.Message}", "清空失败", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBoxWindow.Show(owner, $"{result.Message}", "清空失败", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
         catch (Exception ex)
@@ -500,12 +500,12 @@ public partial class MenuViewModel : ObservableObject
 
             if (result.Success)
             {
-                MessageBoxWindow.Show(owner, $"✅ 数据库碎片整理完成！\n\n{result.Message}", "优化完成");
+                MessageBoxWindow.Show(owner, $"数据库碎片整理完成！\n\n{result.Message}", "优化完成");
                 _logService?.Info("MenuViewModel", "数据库碎片整理完成");
             }
             else
             {
-                MessageBoxWindow.Show(owner, $"❌ 数据库碎片整理失败\n\n{result.Message}", "优化失败", MessageBoxButton.OK,
+                MessageBoxWindow.Show(owner, $"数据库碎片整理失败\n\n{result.Message}", "优化失败", MessageBoxButton.OK,
                     MessageBoxImage.Error);
                 _logService?.Error("MenuViewModel", $"数据库碎片整理失败: {result.Message}");
             }
@@ -558,7 +558,7 @@ public partial class MenuViewModel : ObservableObject
                 // 帮助文档
                 MessageBoxWindow.Show(
                     owner,
-                    "📖 帮助文档\n\n" +
+                    "帮助文档\n\n" +
                     "火车票管理系统使用指南：\n\n" +
                     "【基本操作】\n" +
                     "• 新增票务：点击「新增」按钮或使用快捷键 Ctrl+N\n" +
@@ -587,9 +587,9 @@ public partial class MenuViewModel : ObservableObject
                 // 使用手册
                 MessageBoxWindow.Show(
                     owner,
-                    "📚 使用手册\n\n" +
+                    "使用手册\n\n" +
                     "【快速入门】\n" +
-                    "1. 添加车票：点击快捷功能区的「🆕」按钮\n" +
+                    "1. 添加车票：点击快捷功能区的「新增」按钮\n" +
                     "2. 查看统计：在仪表盘区域查看行程统计图表\n" +
                     "3. 筛选行程：使用左侧高级检索区按条件筛选\n" +
                     "4. 导出数据：在行程底部点击「导出」按钮\n\n" +
@@ -628,7 +628,7 @@ public partial class MenuViewModel : ObservableObject
 
         MessageBoxWindow.Show(
             owner,
-            $"🚄 火车票管理系统 {versionString}\n\n" +
+            $"火车票管理系统 {versionString}\n\n" +
             "一款专业的火车票务管理软件\n\n" +
             "【主要功能】\n" +
             "• 火车票务记录管理\n" +
@@ -653,7 +653,7 @@ public partial class MenuViewModel : ObservableObject
         // 目前显示提示信息
         MessageBoxWindow.Show(
             owner,
-            "🔄 检查更新\n\n" +
+            "检查更新\n\n" +
             "当前版本：v1.0.0\n" +
             "最新版本：v1.0.0\n\n" +
             "您当前使用的是最新版本！\n\n" +
@@ -821,7 +821,7 @@ public partial class MenuViewModel : ObservableObject
             // 确认（受「恢复数据库备份时弹出确认」控制）
             var confirmMessage = $"即将从以下备份文件恢复数据库:\n{backupPath}\n";
             confirmMessage += $"文件大小: {validationResult.FormattedFileSize}\n\n";
-            confirmMessage += "⚠ 恢复操作将完全覆盖当前所有数据，且无法撤销！\n\n";
+            confirmMessage += "恢复操作将完全覆盖当前所有数据，且无法撤销！\n\n";
             confirmMessage += "恢复前会自动备份当前数据库。\n\n是否继续？";
 
             if (!_confirmationService.ConfirmRestore(confirmMessage)) return;
@@ -843,7 +843,7 @@ public partial class MenuViewModel : ObservableObject
             }
             else
             {
-                MessageBoxWindow.Show(owner, $"❌ {result.ErrorMessage}", "恢复失败", MessageBoxButton.OK,
+                MessageBoxWindow.Show(owner, $"{result.ErrorMessage}", "恢复失败", MessageBoxButton.OK,
                     MessageBoxImage.Error);
             }
         }

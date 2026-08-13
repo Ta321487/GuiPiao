@@ -1,10 +1,14 @@
 <UserControl x:Class="GuiPiao.View.DashboardChartView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:GuiPiao.Controls"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF"
+             xmlns:icons="clr-namespace:GuiPiao.Icons"
+             xmlns:vm="clr-namespace:GuiPiao.ViewModel"
              mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=vm:DashboardChartViewModel, IsDesignTimeCreatable=False}"
              d:DesignHeight="250"
              d:DesignWidth="300">
     <UserControl.Resources>
@@ -89,7 +93,8 @@
 
                 <!-- 拖拽手柄 -->
                 <TextBlock Grid.Column="0"
-                           Text="☰"
+                           Text="{x:Static icons:AppIcons.GlobalNav}"
+                           FontFamily="Segoe MDL2 Assets"
                            FontSize="16"
                            Foreground="{DynamicResource TextSecondaryBrush}"
                            HorizontalAlignment="Center"
@@ -154,8 +159,7 @@
                 <!-- 无数据时显示提示 -->
                 <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
                             Visibility="{Binding HasData, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
-                    <TextBlock Text="📭" FontSize="32" HorizontalAlignment="Center" Margin="0,0,0,5"
-                               Foreground="{DynamicResource TextSecondaryBrush}" />
+                    <TextBlock Text="{x:Static icons:AppIcons.Mail}" FontFamily="Segoe MDL2 Assets" FontSize="32" HorizontalAlignment="Center" Margin="0,0,0,5" Foreground="{DynamicResource TextSecondaryBrush}" />
                     <TextBlock Text="暂无数据" FontSize="{DynamicResource BaseFontSize}"
                                HorizontalAlignment="Center"
                                Foreground="{DynamicResource TextSecondaryBrush}" />

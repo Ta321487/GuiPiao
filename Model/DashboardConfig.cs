@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
+using GuiPiao.Icons;
 
 namespace GuiPiao.Model;
 
@@ -289,13 +290,13 @@ public static class StatisticTypeInfo
 {
     public static readonly Dictionary<StatisticType, (string Name, string Description, string Icon)> Info = new()
     {
-        { StatisticType.MonthlyTripStats, ("月度出行统计", "按月份统计出行次数/里程/花费", "📅") },
-        { StatisticType.TrainTypeRatio, ("车次类型占比", "按G/D/Z/T/K统计车票占比", "🚄") },
-        { StatisticType.StationTopRanking, ("站点TOP排行", "按出发/到达站统计出行次数TOP5", "🚉") },
-        { StatisticType.SeatTypeRatio, ("席别占比统计", "按一等/二等/无座统计车票占比", "💺") },
-        { StatisticType.AnnualTripSummary, ("年度出行总结", "按年份统计出行总里程/总花费", "📆") },
-        { StatisticType.TripTimeDistribution, ("出行时段分布", "按早/中/晚/凌晨统计出行次数", "⏰") },
-        { StatisticType.PopularRouteStats, ("热门线路统计", "按出发+到达站统计热门线路TOP5", "📍") },
-        { StatisticType.TripCostAnalysis, ("出行花费分析", "按维度统计出行花费分布", "💰") }
+        { StatisticType.MonthlyTripStats, ("月度出行统计", "按月份统计出行次数/里程/花费", AppIcons.Calendar) },
+        { StatisticType.TrainTypeRatio, ("车次类型占比", "按G/D/Z/T/K统计车票占比", AppIcons.Street) },
+        { StatisticType.StationTopRanking, ("站点TOP排行", "按出发/到达站统计出行次数TOP5", AppIcons.MapPin) },
+        { StatisticType.SeatTypeRatio, ("席别占比统计", "按一等/二等/无座统计车票占比", AppIcons.People) },
+        { StatisticType.AnnualTripSummary, ("年度出行总结", "按年份统计出行总里程/总花费", AppIcons.CalendarDay) },
+        { StatisticType.TripTimeDistribution, ("出行时段分布", "按早/中/晚/凌晨统计出行次数", AppIcons.Clock) },
+        { StatisticType.PopularRouteStats, ("热门线路统计", "按出发+到达站统计热门线路TOP5", AppIcons.MapPin) },
+        { StatisticType.TripCostAnalysis, ("出行花费分析", "按维度统计出行花费分布", AppIcons.Money) }
     };
 }

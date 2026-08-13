@@ -27,7 +27,7 @@ public partial class StatisticCardConfigViewModel : ObservableObject
     {
         _config = config;
         _globalConfig = globalConfig ?? new DashboardConfig();
-        WindowTitle = $"{config.CardIcon} {config.CardName} - 统计配置";
+        WindowTitle = $"{config.CardName} - 统计配置";
 
         // 如果启用自定义配置但时间范围无效，设置为默认值
         if (config.UseCustomFilter && (string.IsNullOrEmpty(config.TimeRange) || config.TimeRange == "跟随全局"))
@@ -482,7 +482,7 @@ public partial class StatisticCardConfigViewModel : ObservableObject
             _ => new StatisticCardConfig()
         };
 
-        WindowTitle = $"{Config.CardIcon} {Config.CardName} - 统计配置";
+        WindowTitle = $"{Config.CardName} - 统计配置";
     }
 
     /// <summary>

@@ -51,8 +51,11 @@
     <SolidColorBrush x:Key="DataGridTextBrush" Color="#212121" />
 
     <!-- 强调色（由 ThemeManager 动态设置） -->
+    <!-- AccentBrush：填充色（选中底、主按钮底、进度条） -->
+    <!-- AccentForegroundBrush：浅色底上的强调文字/描边（对齐 WinUI SystemAccentColorDark1） -->
     <SolidColorBrush x:Key="AccentBrush" Color="#0078D4" />
     <SolidColorBrush x:Key="PrimaryBrush" Color="#0078D4" />
+    <SolidColorBrush x:Key="AccentForegroundBrush" Color="#005A9E" />
     <SolidColorBrush x:Key="AccentHoverBrush" Color="#106EBE" />
     <SolidColorBrush x:Key="AccentPressedBrush" Color="#005A9E" />
     <SolidColorBrush x:Key="AccentTextBrush" Color="#FFFFFF" />
@@ -61,6 +64,8 @@
     <!-- 功能色 -->
     <SolidColorBrush x:Key="SuccessBrush" Color="#28A745" />
     <SolidColorBrush x:Key="WarningBrush" Color="#FD7E14" />
+    <!-- OCR/导入字段高亮：浅黄底，保证深色字可读 -->
+    <SolidColorBrush x:Key="ImportFieldHighlightBrush" Color="#FFF3CD" />
     <SolidColorBrush x:Key="ErrorBrush" Color="#DC3545" />
     <SolidColorBrush x:Key="InfoBrush" Color="#17A2B8" />
 
@@ -226,24 +231,61 @@
         <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
     </Style>
 
-    <!-- ProgressBar 使用主题色 -->
+    <!-- ProgressBar：全应用统一为启动页细条（4px / 强调色 / 无边框） -->
     <Style TargetType="ProgressBar">
-        <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+        <Setter Property="Height" Value="4" />
+        <Setter Property="MinHeight" Value="4" />
+        <Setter Property="Background" Value="{DynamicResource ControlBackgroundBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ProgressBar">
-                    <Grid>
+                    <Grid x:Name="TemplateRoot" ClipToBounds="True" MinHeight="4">
                         <Border Background="{TemplateBinding Background}"
-                                BorderBrush="{DynamicResource BorderBrush}"
-                                BorderThickness="1"
                                 CornerRadius="2" />
-                        <Rectangle x:Name="PART_Track" Margin="1" />
+                        <!-- PART_Track：确定进度用其 ActualWidth 计算填充 -->
+                        <Border x:Name="PART_Track" Background="Transparent" />
                         <Border x:Name="PART_Indicator"
-                                Background="{DynamicResource AccentBrush}"
+                                Background="{TemplateBinding Foreground}"
                                 HorizontalAlignment="Left"
-                                CornerRadius="1" />
+                                VerticalAlignment="Stretch"
+                                CornerRadius="2" />
+                        <Grid x:Name="IndeterminateRoot"
+                              Visibility="Collapsed"
+                              ClipToBounds="True">
+                            <Border Width="96"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Stretch"
+                                    Background="{TemplateBinding Foreground}"
+                                    CornerRadius="2">
+                                <Border.RenderTransform>
+                                    <TranslateTransform x:Name="IndeterminateTransform" X="-100" />
+                                </Border.RenderTransform>
+                            </Border>
+                        </Grid>
                     </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsIndeterminate" Value="True">
+                            <Setter TargetName="PART_Indicator" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="IndeterminateRoot" Property="Visibility" Value="Visible" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard x:Name="IndeterminateStoryboard">
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimation Storyboard.TargetName="IndeterminateTransform"
+                                                         Storyboard.TargetProperty="X"
+                                                         From="-100"
+                                                         To="900"
+                                                         Duration="0:0:1.4" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <StopStoryboard BeginStoryboardName="IndeterminateStoryboard" />
+                            </Trigger.ExitActions>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
@@ -326,7 +368,7 @@
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsSelected" Value="true">
                             <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
-                            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+                            <Setter Property="Foreground" Value="{DynamicResource AccentForegroundBrush}" />
                         </Trigger>
                         <Trigger Property="IsMouseOver" Value="true">
                             <Setter TargetName="border" Property="BorderBrush"
@@ -338,11 +380,7 @@
         </Setter>
     </Style>
 
-    <!-- Menu 菜单项基础样式（使用App.xaml中的完整模板） -->
-    <Style TargetType="MenuItem">
-        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
-        <Setter Property="Background" Value="Transparent" />
-    </Style>
+    <!-- MenuItem 完整模板在 AppControlStyles；主题勿再声明隐式 MenuItem，否则会盖掉模板导致下拉变系统浅色底+主题浅色字 -->
 
     <!-- DataGrid 选中行和悬停行使用主题色 -->
     <Style TargetType="DataGridRow">

@@ -20,7 +20,7 @@ namespace GuiPiao.ViewModel;
 /// </summary>
 public partial class MapSettingsViewModel : ObservableObject, ISettingsViewModel
 {
-    private readonly MapSettingsService _settingsService;
+    private readonly MapSettingsService _settingsService = null!;
 
     #region 开发者选项
 
@@ -29,7 +29,7 @@ public partial class MapSettingsViewModel : ObservableObject, ISettingsViewModel
     #endregion
 
     private bool _isLoadingConfig;
-    private MapSettingsConfig _originalConfig;
+    private MapSettingsConfig _originalConfig = null!;
 
     public MapSettingsViewModel()
     {

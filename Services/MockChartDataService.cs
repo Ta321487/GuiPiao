@@ -15,7 +15,7 @@ namespace GuiPiao.Services;
 public class MockChartDataService : IChartDataService
 {
     private readonly string _mockDataPath;
-    private List<MockTicket> _tickets;
+    private List<MockTicket> _tickets = new();
 
     public MockChartDataService()
     {

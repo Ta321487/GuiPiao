@@ -1,7 +1,7 @@
 <Application x:Class="GuiPiao.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             StartupUri="View/MainWindow.xaml">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- StartupUri 已改为 App.OnStartup 中在主题就绪后手动创建 MainWindow，避免无主题/资源未就绪时整窗空白 -->
     <Application.Resources>
         <ResourceDictionary>
             <!--
@@ -15,6 +15,7 @@
                 <ResourceDictionary Source="Resources/AppConverters.xaml" />
                 <ResourceDictionary Source="Resources/AppThemeTokens.xaml" />
                 <ResourceDictionary Source="Resources/AppControlStyles.xaml" />
+                <ResourceDictionary Source="Resources/AppIconStyles.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>

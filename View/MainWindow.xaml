@@ -5,8 +5,12 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GuiPiao.View"
         xmlns:controls="clr-namespace:GuiPiao.Controls"
+        xmlns:icons="clr-namespace:GuiPiao.Icons"
+        xmlns:vm="clr-namespace:GuiPiao.ViewModel"
+        xmlns:model="clr-namespace:GuiPiao.Model"
         xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF"
         mc:Ignorable="d"
+        d:DataContext="{d:DesignInstance Type=vm:MainViewModel, IsDesignTimeCreatable=False}"
         Title="火车票管理系统 - v1.0.0"
         Height="700"
         Width="1000"
@@ -24,12 +28,6 @@
             <Setter Property="VerticalContentAlignment" Value="Center" />
             <Setter Property="Padding" Value="8,6" />
             <Setter Property="MinHeight" Value="38" />
-        </Style>
-        <Style x:Key="SidebarQuickGlyphStyle" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
-            <Setter Property="FontSize" Value="15" />
-            <Setter Property="VerticalAlignment" Value="Center" />
-            <Setter Property="HorizontalAlignment" Value="Center" />
         </Style>
         <Style x:Key="SidebarQuickCaptionStyle" TargetType="TextBlock">
             <Setter Property="Foreground" Value="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
@@ -65,37 +63,37 @@
                         CornerRadius="4"
                         Padding="4,2">
                     <StackPanel Orientation="Horizontal">
-                        <Button Content="👁"
+                        <Button Content="{x:Static icons:AppIcons.View}"
                                 ToolTip="查看"
-                                Style="{StaticResource TableActionButtonStyle}"
+                                Style="{StaticResource Mdl2IconButtonStyle}"
                                 Margin="2,0"
                                 Visibility="{Binding DataContext.Layout.ShowViewButton, RelativeSource={RelativeSource AncestorType=local:MainWindow}, Converter={StaticResource BooleanToVisibilityConverter}}"
                                 Click="ViewButton_Click"
                                 Tag="{Binding}" />
-                        <Button Content="✏️"
+                        <Button Content="{x:Static icons:AppIcons.Edit}"
                                 ToolTip="编辑"
-                                Style="{StaticResource TableActionButtonStyle}"
+                                Style="{StaticResource Mdl2IconButtonStyle}"
                                 Margin="2,0"
                                 Visibility="{Binding DataContext.Layout.ShowEditButton, RelativeSource={RelativeSource AncestorType=local:MainWindow}, Converter={StaticResource BooleanToVisibilityConverter}}"
                                 Click="EditButton_Click"
                                 Tag="{Binding}" />
-                        <Button Content="🔄"
+                        <Button Content="{x:Static icons:AppIcons.Refresh}"
                                 ToolTip="改签"
-                                Style="{StaticResource TableActionButtonStyle}"
+                                Style="{StaticResource Mdl2IconButtonStyle}"
                                 Margin="2,0"
                                 Visibility="{Binding DataContext.Layout.ShowRescheduleButton, RelativeSource={RelativeSource AncestorType=local:MainWindow}, Converter={StaticResource BooleanToVisibilityConverter}}"
                                 Click="RescheduleButton_Click"
                                 Tag="{Binding}" />
-                        <Button Content="💰"
+                        <Button Content="{x:Static icons:AppIcons.Money}"
                                 ToolTip="退票"
-                                Style="{StaticResource TableActionButtonStyle}"
+                                Style="{StaticResource Mdl2IconButtonStyle}"
                                 Margin="2,0"
                                 Visibility="{Binding DataContext.Layout.ShowRefundButton, RelativeSource={RelativeSource AncestorType=local:MainWindow}, Converter={StaticResource BooleanToVisibilityConverter}}"
                                 Click="RefundButton_Click"
                                 Tag="{Binding}" />
-                        <Button Content="🗑️"
+                        <Button Content="{x:Static icons:AppIcons.Delete}"
                                 ToolTip="删除"
-                                Style="{StaticResource TableActionButtonStyle}"
+                                Style="{StaticResource Mdl2IconButtonStyle}"
                                 Margin="2,0"
                                 Visibility="{Binding DataContext.Layout.ShowDeleteButton, RelativeSource={RelativeSource AncestorType=local:MainWindow}, Converter={StaticResource BooleanToVisibilityConverter}}"
                                 Click="DeleteButton_Click"
@@ -111,26 +109,26 @@
             <!-- 1. 存储 -->
             <MenuItem Header="存储(_S)">
                 <MenuItem Header="数据导入">
-                    <MenuItem Header="从Excel/CSV导入..." Command="{Binding StorageMenuCommandCommand}"
+                    <MenuItem Header="从Excel/CSV导入..." Command="{Binding StorageMenuCommand}"
                               CommandParameter="Import" />
                 </MenuItem>
                 <Separator />
                 <MenuItem Header="数据库操作">
-                    <MenuItem Header="全量备份数据库..." Command="{Binding StorageMenuCommandCommand}"
+                    <MenuItem Header="全量备份数据库..." Command="{Binding StorageMenuCommand}"
                               CommandParameter="BackupFull" />
-                    <MenuItem Header="增量备份数据库..." Command="{Binding StorageMenuCommandCommand}"
+                    <MenuItem Header="增量备份数据库..." Command="{Binding StorageMenuCommand}"
                               CommandParameter="BackupIncremental" />
-                    <MenuItem Header="恢复数据库..." Command="{Binding StorageMenuCommandCommand}" CommandParameter="Restore" />
+                    <MenuItem Header="恢复数据库..." Command="{Binding StorageMenuCommand}" CommandParameter="Restore" />
                     <Separator />
-                    <MenuItem Header="打开存储目录" Command="{Binding StorageMenuCommandCommand}"
+                    <MenuItem Header="打开存储目录" Command="{Binding StorageMenuCommand}"
                               CommandParameter="OpenStorageDir" />
                 </MenuItem>
                 <Separator />
-                <MenuItem Header="数据完整性校验..." Command="{Binding StorageMenuCommandCommand}" CommandParameter="VerifyData" />
-                <MenuItem Header="清空票务记录..." Command="{Binding StorageMenuCommandCommand}"
+                <MenuItem Header="数据完整性校验..." Command="{Binding StorageMenuCommand}" CommandParameter="VerifyData" />
+                <MenuItem Header="清空票务记录..." Command="{Binding StorageMenuCommand}"
                           CommandParameter="ClearAllTickets" />
                 <Separator />
-                <MenuItem Header="退出" Command="{Binding StorageMenuCommandCommand}" CommandParameter="Exit" />
+                <MenuItem Header="退出" Command="{Binding StorageMenuCommand}" CommandParameter="Exit" />
             </MenuItem>
 
             <!-- 2. 票务 -->
@@ -159,38 +157,38 @@
             <MenuItem Header="行程管理(_M)">
                 <MenuItem Header="高级筛选">
                     <MenuItem Header="按时间筛选">
-                        <MenuItem Header="本年度" Command="{Binding TripMenuCommandCommand}"
+                        <MenuItem Header="本年度" Command="{Binding TripMenuCommand}"
                                   CommandParameter="FilterThisYear" InputGestureText="{Binding ShortcutKeys[FilterThisYear]}" />
-                        <MenuItem Header="上年度" Command="{Binding TripMenuCommandCommand}"
+                        <MenuItem Header="上年度" Command="{Binding TripMenuCommand}"
                                   CommandParameter="FilterLastYear" InputGestureText="{Binding ShortcutKeys[FilterLastYear]}" />
-                        <MenuItem Header="自定义时间区间..." Command="{Binding TripMenuCommandCommand}"
+                        <MenuItem Header="自定义时间区间..." Command="{Binding TripMenuCommand}"
                                   CommandParameter="FilterCustomDate" />
                         <Separator />
-                        <MenuItem Header="未出行行程" Command="{Binding TripMenuCommandCommand}"
+                        <MenuItem Header="未出行行程" Command="{Binding TripMenuCommand}"
                                   CommandParameter="FilterUpcoming" InputGestureText="{Binding ShortcutKeys[FilterUpcoming]}" />
                     </MenuItem>
-                    <MenuItem Header="按车次/站点筛选..." Command="{Binding TripMenuCommandCommand}"
+                    <MenuItem Header="按车次/站点筛选..." Command="{Binding TripMenuCommand}"
                               CommandParameter="FilterTrainStation" />
-                    <MenuItem Header="按标签筛选..." Command="{Binding TripMenuCommandCommand}" CommandParameter="FilterByTag" />
+                    <MenuItem Header="按标签筛选..." Command="{Binding TripMenuCommand}" CommandParameter="FilterByTag" />
                     <Separator />
-                    <MenuItem Header="取消筛选" Command="{Binding TripMenuCommandCommand}" CommandParameter="ClearFilter" />
+                    <MenuItem Header="取消筛选" Command="{Binding TripMenuCommand}" CommandParameter="ClearFilter" />
                 </MenuItem>
                 <Separator />
                 <MenuItem Header="车票地图..." Command="{Binding OpenTicketMapCommand}" InputGestureText="{Binding ShortcutKeys[OpenMap]}" />
                 <MenuItem Header="仪表盘统计">
-                    <MenuItem Header="统计配置..." Command="{Binding TripMenuCommandCommand}" CommandParameter="StatsConfig" />
-                    <MenuItem Header="刷新统计" Command="{Binding TripMenuCommandCommand}" CommandParameter="RefreshStats"
+                    <MenuItem Header="统计配置..." Command="{Binding TripMenuCommand}" CommandParameter="StatsConfig" />
+                    <MenuItem Header="刷新统计" Command="{Binding TripMenuCommand}" CommandParameter="RefreshStats"
                               InputGestureText="{Binding ShortcutKeys[RefreshData]}" />
-                    <MenuItem Header="导出统计图表..." Command="{Binding TripMenuCommandCommand}" CommandParameter="ExportChart" />
+                    <MenuItem Header="导出统计图表..." Command="{Binding TripMenuCommand}" CommandParameter="ExportChart" />
                 </MenuItem>
                 <Separator />
                 <MenuItem Header="视图配置">
-                    <MenuItem Header="专业列表视图" Command="{Binding TripMenuCommandCommand}" CommandParameter="ViewList" />
-                    <MenuItem Header="简洁卡片视图" Command="{Binding TripMenuCommandCommand}" CommandParameter="ViewCard" />
-                    <MenuItem Header="自定义显示列..." Command="{Binding TripMenuCommandCommand}"
+                    <MenuItem Header="专业列表视图" Command="{Binding TripMenuCommand}" CommandParameter="ViewList" />
+                    <MenuItem Header="简洁卡片视图" Command="{Binding TripMenuCommand}" CommandParameter="ViewCard" />
+                    <MenuItem Header="自定义显示列..." Command="{Binding TripMenuCommand}"
                               CommandParameter="ViewCustomColumns" />
                 </MenuItem>
-                <MenuItem Header="刷新行程" Command="{Binding TripMenuCommandCommand}" CommandParameter="RefreshList"
+                <MenuItem Header="刷新行程" Command="{Binding TripMenuCommand}" CommandParameter="RefreshList"
                           InputGestureText="{Binding ShortcutKeys[RefreshData]}" />
             </MenuItem>
 
@@ -198,12 +196,12 @@
             <MenuItem Header="工具集(_T)">
                 <Separator />
                 <MenuItem Header="数据工具">
-                    <MenuItem Header="票务数据校验..." Command="{Binding ToolsMenuCommandCommand}" CommandParameter="DataVerify" InputGestureText="{Binding ShortcutKeys[DataVerify]}" />
-                    <MenuItem Header="数据库碎片整理..." Command="{Binding ToolsMenuCommandCommand}" CommandParameter="DbCompact" InputGestureText="{Binding ShortcutKeys[DbCompact]}" />
+                    <MenuItem Header="票务数据校验..." Command="{Binding ToolsMenuCommand}" CommandParameter="DataVerify" InputGestureText="{Binding ShortcutKeys[DataVerify]}" />
+                    <MenuItem Header="数据库碎片整理..." Command="{Binding ToolsMenuCommand}" CommandParameter="DbCompact" InputGestureText="{Binding ShortcutKeys[DbCompact]}" />
                     <Separator />
                     <MenuItem Header="日志管理..." Command="{Binding OpenLogManagerCommand}" InputGestureText="{Binding ShortcutKeys[OpenLogManager]}" />
                 </MenuItem>
-                <MenuItem Header="数据清理..." Command="{Binding ToolsMenuCommandCommand}" CommandParameter="DataClean" />
+                <MenuItem Header="数据清理..." Command="{Binding ToolsMenuCommand}" CommandParameter="DataClean" />
                 <Separator />
                 <MenuItem Header="备份/恢复数据库..." Command="{Binding BackupRestoreDatabaseCommand}" InputGestureText="{Binding ShortcutKeys[BackupDatabase]}" />
             </MenuItem>
@@ -220,11 +218,11 @@
 
             <!-- 6. 帮助与信息 -->
             <MenuItem Header="帮助与信息(_H)">
-                <MenuItem Header="帮助文档..." Command="{Binding HelpMenuCommandCommand}" CommandParameter="HelpDoc" InputGestureText="{Binding ShortcutKeys[HelpDoc]}" />
-                <MenuItem Header="使用手册..." Command="{Binding HelpMenuCommandCommand}" CommandParameter="Manual" />
+                <MenuItem Header="帮助文档..." Command="{Binding HelpMenuCommand}" CommandParameter="HelpDoc" InputGestureText="{Binding ShortcutKeys[HelpDoc]}" />
+                <MenuItem Header="使用手册..." Command="{Binding HelpMenuCommand}" CommandParameter="Manual" />
                 <Separator />
-                <MenuItem Header="关于系统..." Command="{Binding HelpMenuCommandCommand}" CommandParameter="About" />
-                <MenuItem Header="检查更新..." Command="{Binding HelpMenuCommandCommand}" CommandParameter="CheckUpdate" InputGestureText="{Binding ShortcutKeys[CheckUpdate]}" />
+                <MenuItem Header="关于系统..." Command="{Binding HelpMenuCommand}" CommandParameter="About" />
+                <MenuItem Header="检查更新..." Command="{Binding HelpMenuCommand}" CommandParameter="CheckUpdate" InputGestureText="{Binding ShortcutKeys[CheckUpdate]}" />
             </MenuItem>
         </Menu>
 
@@ -232,7 +230,12 @@
         <StatusBar DockPanel.Dock="Bottom" Background="{DynamicResource StatusBarBackgroundBrush}">
             <StatusBarItem>
                 <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="🟢 " FontSize="{DynamicResource SmallFontSize}" />
+                    <TextBlock Text="{x:Static icons:AppIcons.StatusCircle}"
+                               FontFamily="Segoe MDL2 Assets"
+                               FontSize="{DynamicResource SmallFontSize}"
+                               Foreground="{DynamicResource SuccessBrush}"
+                               Margin="0,0,4,0"
+                               VerticalAlignment="Center" />
                     <TextBlock Text="{Binding StatusMessage}" FontSize="{DynamicResource SmallFontSize}" />
                 </StackPanel>
             </StatusBarItem>
@@ -290,8 +293,11 @@
                             <Border Background="{DynamicResource PanelBackgroundBrush}" Margin="10"
                                     BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1">
                                 <StackPanel>
-                                    <TextBlock Text="🔍 高级检索区" FontSize="{DynamicResource LargeFontSize}"
-                                               FontWeight="Bold" Margin="0,0,0,10" TextWrapping="Wrap" />
+                                    <controls:IconLabel Glyph="{x:Static icons:AppIcons.Search}"
+                                                        Text="高级检索区"
+                                                        FontSize="{DynamicResource LargeFontSize}"
+                                                        FontWeight="Bold"
+                                                        Margin="0,0,0,10" />
                                     <Grid>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto" />
@@ -443,13 +449,17 @@
                                                     Orientation="Horizontal"
                                                     HorizontalAlignment="Right"
                                                     Margin="0,6,0,0">
-                                            <Button Content="🔎" ToolTip="检索" Command="{Binding SearchCommandCommand}"
-                                                    Style="{StaticResource StandardButtonStyle}" Margin="0,0,6,0"
-                                                    MinWidth="40" Padding="4,2" FontSize="12" />
-                                            <Button Content="🗑️" ToolTip="清空条件"
-                                                    Command="{Binding ClearConditionCommandCommand}"
-                                                    Style="{StaticResource StandardButtonStyle}"
-                                                    MinWidth="40" Padding="4,2" FontSize="12" />
+                                            <Button Content="{x:Static icons:AppIcons.Search}"
+                                                    ToolTip="检索"
+                                                    Command="{Binding SearchCommand}"
+                                                    Style="{StaticResource Mdl2IconButtonStyle}"
+                                                    Margin="0,0,6,0"
+                                                    MinWidth="40" Padding="4,2" />
+                                            <Button Content="{x:Static icons:AppIcons.Clear}"
+                                                    ToolTip="清空条件"
+                                                    Command="{Binding ClearConditionCommand}"
+                                                    Style="{StaticResource Mdl2IconButtonStyle}"
+                                                    MinWidth="40" Padding="4,2" />
                                         </StackPanel>
                                     </Grid>
                                 </StackPanel>
@@ -458,9 +468,12 @@
                             <!-- 快捷功能区：侧栏「图标+文案」列表 + 分组圆角容器（常见桌面应用范式） -->
                             <Border Background="{DynamicResource PanelBackgroundBrush}" Margin="10">
                                 <StackPanel>
-                                    <TextBlock Text="📌 快捷功能区" FontSize="{DynamicResource LargeFontSize}"
-                                               FontWeight="Bold" Margin="0,10,0,8" TextWrapping="Wrap"
-                                               Foreground="{DynamicResource TextPrimaryBrush}" />
+                                    <controls:IconLabel Glyph="{x:Static icons:AppIcons.Pin}"
+                                                        Text="快捷功能区"
+                                                        FontSize="{DynamicResource LargeFontSize}"
+                                                        FontWeight="Bold"
+                                                        Margin="0,10,0,8"
+                                                        Foreground="{DynamicResource TextPrimaryBrush}" />
                                     <Border Background="{DynamicResource ControlBackgroundBrush}"
                                             BorderBrush="{DynamicResource BorderBrush}"
                                             BorderThickness="1"
@@ -476,7 +489,7 @@
                                                         <ColumnDefinition Width="28" />
                                                         <ColumnDefinition Width="*" />
                                                     </Grid.ColumnDefinitions>
-                                                    <TextBlock Grid.Column="0" Text="🆕" Style="{StaticResource SidebarQuickGlyphStyle}" />
+                                                    <TextBlock Grid.Column="0" Text="{x:Static icons:AppIcons.Add}" Style="{StaticResource SidebarMdl2GlyphStyle}" />
                                                     <TextBlock Grid.Column="1" Text="新增车票" Style="{StaticResource SidebarQuickCaptionStyle}" />
                                                 </Grid>
                                             </Button>
@@ -489,7 +502,7 @@
                                                         <ColumnDefinition Width="28" />
                                                         <ColumnDefinition Width="*" />
                                                     </Grid.ColumnDefinitions>
-                                                    <TextBlock Grid.Column="0" Text="🔍" Style="{StaticResource SidebarQuickGlyphStyle}" />
+                                                    <TextBlock Grid.Column="0" Text="{x:Static icons:AppIcons.Search}" Style="{StaticResource SidebarMdl2GlyphStyle}" />
                                                     <TextBlock Grid.Column="1" Text="OCR 识别" Style="{StaticResource SidebarQuickCaptionStyle}" />
                                                 </Grid>
                                             </Button>
@@ -502,7 +515,7 @@
                                                         <ColumnDefinition Width="28" />
                                                         <ColumnDefinition Width="*" />
                                                     </Grid.ColumnDefinitions>
-                                                    <TextBlock Grid.Column="0" Text="🗺️" Style="{StaticResource SidebarQuickGlyphStyle}" />
+                                                    <TextBlock Grid.Column="0" Text="{x:Static icons:AppIcons.MapPin}" Style="{StaticResource SidebarMdl2GlyphStyle}" />
                                                     <TextBlock Grid.Column="1" Text="车票地图" Style="{StaticResource SidebarQuickCaptionStyle}" />
                                                 </Grid>
                                             </Button>
@@ -515,7 +528,7 @@
                                                         <ColumnDefinition Width="28" />
                                                         <ColumnDefinition Width="*" />
                                                     </Grid.ColumnDefinitions>
-                                                    <TextBlock Grid.Column="0" Text="🎫" Style="{StaticResource SidebarQuickGlyphStyle}" />
+                                                    <TextBlock Grid.Column="0" Text="{x:Static icons:AppIcons.Tag}" Style="{StaticResource SidebarMdl2GlyphStyle}" />
                                                     <TextBlock Grid.Column="1" Text="票面预览" Style="{StaticResource SidebarQuickCaptionStyle}" />
                                                 </Grid>
                                             </Button>
@@ -528,7 +541,7 @@
                                                         <ColumnDefinition Width="28" />
                                                         <ColumnDefinition Width="*" />
                                                     </Grid.ColumnDefinitions>
-                                                    <TextBlock Grid.Column="0" Text="🔐" Style="{StaticResource SidebarQuickGlyphStyle}" />
+                                                    <TextBlock Grid.Column="0" Text="{x:Static icons:AppIcons.Permissions}" Style="{StaticResource SidebarMdl2GlyphStyle}" />
                                                     <TextBlock Grid.Column="1" Text="备份 / 恢复" Style="{StaticResource SidebarQuickCaptionStyle}" />
                                                 </Grid>
                                             </Button>
@@ -541,7 +554,7 @@
                                                         <ColumnDefinition Width="28" />
                                                         <ColumnDefinition Width="*" />
                                                     </Grid.ColumnDefinitions>
-                                                    <TextBlock Grid.Column="0" Text="⚙️" Style="{StaticResource SidebarQuickGlyphStyle}" />
+                                                    <TextBlock Grid.Column="0" Text="{x:Static icons:AppIcons.Settings}" Style="{StaticResource SidebarMdl2GlyphStyle}" />
                                                     <TextBlock Grid.Column="1" Text="系统配置" Style="{StaticResource SidebarQuickCaptionStyle}" />
                                                 </Grid>
                                             </Button>
@@ -563,13 +576,14 @@
                         </Grid.RowDefinitions>
 
                         <!-- 标题 -->
-                        <TextBlock Grid.Row="0" Text="📊 仪表盘"
-                                   FontSize="{DynamicResource LargeFontSize}"
-                                   FontWeight="Bold"
-                                   Margin="10,10,10,5"
-                                   HorizontalAlignment="Center"
-                                   Foreground="{DynamicResource TextPrimaryBrush}"
-                                   TextWrapping="Wrap" />
+                        <controls:IconLabel Grid.Row="0"
+                                            Glyph="{x:Static icons:AppIcons.AreaChart}"
+                                            Text="仪表盘"
+                                            FontSize="{DynamicResource LargeFontSize}"
+                                            FontWeight="Bold"
+                                            Margin="10,10,10,5"
+                                            HorizontalAlignment="Center"
+                                            Foreground="{DynamicResource TextPrimaryBrush}" />
 
                         <!-- 图表区域 -->
                         <Grid Grid.Row="1" Margin="5,0">
@@ -615,7 +629,9 @@
                                     <!-- 空状态提示 -->
                                     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
                                                 Visibility="{Binding HasDashboardCharts, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
-                                        <TextBlock Text="📊" FontSize="48" HorizontalAlignment="Center"
+                                        <TextBlock Text="{x:Static icons:AppIcons.AreaChart}"
+                                                   FontFamily="Segoe MDL2 Assets"
+                                                   FontSize="48" HorizontalAlignment="Center"
                                                    Margin="0,0,0,10"
                                                    Foreground="{DynamicResource TextSecondaryBrush}" />
                                         <TextBlock Text="暂无图表" FontSize="{DynamicResource LargeFontSize}"
@@ -669,7 +685,8 @@
                                                     VerticalContentAlignment="Stretch">
                                         <ContentControl.ContentTemplate>
                                             <DataTemplate>
-                                                <ContentControl Content="{Binding}" VerticalAlignment="Stretch"
+                                                <ContentControl d:DataContext="{d:DesignInstance Type=vm:DashboardChartViewModel, IsDesignTimeCreatable=False}"
+                                                                Content="{Binding}" VerticalAlignment="Stretch"
                                                                 VerticalContentAlignment="Stretch">
                                                     <ContentControl.Style>
                                                         <Style TargetType="ContentControl">
@@ -755,9 +772,10 @@
                                         </Grid.ColumnDefinitions>
 
                                         <Button Grid.Column="0"
-                                                Content="◀"
+                                                Content="{x:Static icons:AppIcons.ChevronLeft}"
                                                 Command="{Binding NavigateToPreviousChartCommand}"
                                                 Style="{StaticResource StandardButtonStyle}"
+                                                FontFamily="Segoe MDL2 Assets"
                                                 Width="50"
                                                 Height="30"
                                                 FontSize="16"
@@ -771,9 +789,10 @@
                                                    Foreground="{DynamicResource TextSecondaryBrush}" />
 
                                         <Button Grid.Column="2"
-                                                Content="▶"
+                                                Content="{x:Static icons:AppIcons.ChevronRight}"
                                                 Command="{Binding NavigateToNextChartCommand}"
                                                 Style="{StaticResource StandardButtonStyle}"
+                                                FontFamily="Segoe MDL2 Assets"
                                                 Width="50"
                                                 Height="30"
                                                 FontSize="16"
@@ -785,14 +804,16 @@
 
                         <!-- 操作按钮 -->
                         <WrapPanel Grid.Row="2" HorizontalAlignment="Center" Margin="10">
-                            <Button Content="📝 统计配置"
+                            <Button Style="{StaticResource StandardButtonStyle}"
                                     Command="{Binding StatisticsConfigCommand}"
-                                    Style="{StaticResource StandardButtonStyle}"
-                                    Margin="0,0,8,0" />
-                            <Button Content="🔄 刷新统计"
+                                    Margin="0,0,8,0">
+                                <controls:IconLabel Glyph="{x:Static icons:AppIcons.CharacterEditing}" Text="统计配置" />
+                            </Button>
+                            <Button Style="{StaticResource StandardButtonStyle}"
                                     Command="{Binding RefreshStatisticsCommand}"
-                                    IsEnabled="{Binding HasDashboardCharts}"
-                                    Style="{StaticResource StandardButtonStyle}" />
+                                    IsEnabled="{Binding HasDashboardCharts}">
+                                <controls:IconLabel Glyph="{x:Static icons:AppIcons.Refresh}" Text="刷新统计" />
+                            </Button>
                         </WrapPanel>
                     </Grid>
                 </Border>
@@ -807,8 +828,10 @@
                         </Grid.RowDefinitions>
                         <Border Grid.Row="0" Background="{DynamicResource PanelBackgroundBrush}" Margin="10"
                                 BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1">
-                            <TextBlock Text="📜 日志面板" FontSize="{DynamicResource LargeFontSize}" FontWeight="Bold"
-                                       TextWrapping="Wrap" />
+                            <controls:IconLabel Glyph="{x:Static icons:AppIcons.ReadingList}"
+                                                Text="日志面板"
+                                                FontSize="{DynamicResource LargeFontSize}"
+                                                FontWeight="Bold" />
                         </Border>
                         <DataGrid x:Name="LogDataGrid" Grid.Row="1" AutoGenerateColumns="False"
                                   ItemsSource="{Binding LogItems}"
@@ -854,10 +877,14 @@
                             </DataGrid.Columns>
                         </DataGrid>
                         <WrapPanel Grid.Row="2" HorizontalAlignment="Right" Margin="10">
-                            <Button Content="📤 导出" Command="{Binding ExportLogCommand}"
-                                    Style="{StaticResource StandardButtonStyle}" Margin="0,0,5,5" MinWidth="60" />
-                            <Button Content="🗑️ 清空" Command="{Binding ClearLogCommand}"
-                                    Style="{StaticResource StandardButtonStyle}" Margin="0,0,0,5" MinWidth="60" />
+                            <Button Command="{Binding ExportLogCommand}"
+                                    Style="{StaticResource StandardButtonStyle}" Margin="0,0,5,5" MinWidth="60">
+                                <controls:IconLabel Glyph="{x:Static icons:AppIcons.Upload}" Text="导出" />
+                            </Button>
+                            <Button Command="{Binding ClearLogCommand}"
+                                    Style="{StaticResource StandardButtonStyle}" Margin="0,0,0,5" MinWidth="60">
+                                <controls:IconLabel Glyph="{x:Static icons:AppIcons.Delete}" Text="清空" />
+                            </Button>
                         </WrapPanel>
                     </Grid>
                 </Border>
@@ -954,7 +981,7 @@
                                                             <ColumnDefinition Width="*" />
                                                         </SelectiveScrollingGrid.ColumnDefinitions>
                                                         <SelectiveScrollingGrid.RowDefinitions>
-                                                            <RowDefinition Height="*" />
+                                                            <RowDefinition Height="Auto" />
                                                             <RowDefinition Height="Auto" />
                                                         </SelectiveScrollingGrid.RowDefinitions>
                                                         <DataGridRowHeader Grid.Row="0"
@@ -1033,22 +1060,32 @@
                                 <TextBlock Text="{Binding TripList.SelectedItemsCount}" VerticalAlignment="Center"
                                            Margin="0,0,20,0"
                                            FontSize="{DynamicResource BaseFontSize}"
-                                           Foreground="{DynamicResource AccentBrush}" FontWeight="Bold" />
-                                <Button Content="👁 查看" Style="{StaticResource StandardButtonStyle}" Margin="0,0,5,0"
+                                           Foreground="{DynamicResource AccentForegroundBrush}" FontWeight="Bold" />
+                                <Button Style="{StaticResource StandardButtonStyle}" Margin="0,0,5,0"
                                         Visibility="{Binding Layout.CardBatchShowView, Converter={StaticResource BooleanToVisibilityConverter}}"
-                                        Click="BatchViewButton_Click" />
-                                <Button Content="✏️ 编辑" Style="{StaticResource StandardButtonStyle}" Margin="0,0,5,0"
+                                        Click="BatchViewButton_Click">
+                                    <controls:IconLabel Glyph="{x:Static icons:AppIcons.View}" Text="查看" />
+                                </Button>
+                                <Button Style="{StaticResource StandardButtonStyle}" Margin="0,0,5,0"
                                         Visibility="{Binding Layout.CardBatchShowEdit, Converter={StaticResource BooleanToVisibilityConverter}}"
-                                        Click="BatchEditButton_Click" />
-                                <Button Content="🔄 改签" Style="{StaticResource StandardButtonStyle}" Margin="0,0,5,0"
+                                        Click="BatchEditButton_Click">
+                                    <controls:IconLabel Glyph="{x:Static icons:AppIcons.Edit}" Text="编辑" />
+                                </Button>
+                                <Button Style="{StaticResource StandardButtonStyle}" Margin="0,0,5,0"
                                         Visibility="{Binding Layout.CardBatchShowReschedule, Converter={StaticResource BooleanToVisibilityConverter}}"
-                                        Click="BatchRescheduleButton_Click" />
-                                <Button Content="💰 退票" Style="{StaticResource StandardButtonStyle}" Margin="0,0,5,0"
+                                        Click="BatchRescheduleButton_Click">
+                                    <controls:IconLabel Glyph="{x:Static icons:AppIcons.Refresh}" Text="改签" />
+                                </Button>
+                                <Button Style="{StaticResource StandardButtonStyle}" Margin="0,0,5,0"
                                         Visibility="{Binding Layout.CardBatchShowRefund, Converter={StaticResource BooleanToVisibilityConverter}}"
-                                        Click="BatchRefundButton_Click" />
-                                <Button Content="🗑️ 删除" Style="{StaticResource StandardButtonStyle}" Margin="0,0,5,0"
+                                        Click="BatchRefundButton_Click">
+                                    <controls:IconLabel Glyph="{x:Static icons:AppIcons.Money}" Text="退票" />
+                                </Button>
+                                <Button Style="{StaticResource StandardButtonStyle}" Margin="0,0,5,0"
                                         Visibility="{Binding Layout.CardBatchShowDelete, Converter={StaticResource BooleanToVisibilityConverter}}"
-                                        Click="BatchDeleteButton_Click" />
+                                        Click="BatchDeleteButton_Click">
+                                    <controls:IconLabel Glyph="{x:Static icons:AppIcons.Delete}" Text="删除" />
+                                </Button>
                                 <Button Content="清除选择" Style="{StaticResource StandardButtonStyle}"
                                         Click="ClearCardSelection_Click" />
                             </StackPanel>
@@ -1072,6 +1109,7 @@
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
                                         <Border
+                                            d:DataContext="{d:DesignInstance Type=model:TripItem, IsDesignTimeCreatable=False}"
                                             HorizontalAlignment="Stretch"
                                             VerticalAlignment="Top"
                                             Background="{DynamicResource PanelBackgroundBrush}"
@@ -1086,28 +1124,43 @@
                                                              BorderThickness="1"
                                                              FontSize="{DynamicResource BaseFontSize}"
                                                              Opened="CardContextMenu_Opened">
-                                                    <MenuItem Header="👁 查看"
-                                                              Click="CardViewMenuItem_Click"
+                                                    <MenuItem Click="CardViewMenuItem_Click"
                                                               Tag="View"
-                                                              Style="{StaticResource ContextMenuItemStyle}" />
-                                                    <MenuItem Header="✏️ 编辑"
-                                                              Click="CardViewMenuItem_Click"
+                                                              Style="{StaticResource ContextMenuItemStyle}">
+                                                        <MenuItem.Header>
+                                                            <controls:IconLabel Glyph="{x:Static icons:AppIcons.View}" Text="查看" />
+                                                        </MenuItem.Header>
+                                                    </MenuItem>
+                                                    <MenuItem Click="CardViewMenuItem_Click"
                                                               Tag="Edit"
-                                                              Style="{StaticResource ContextMenuItemStyle}" />
+                                                              Style="{StaticResource ContextMenuItemStyle}">
+                                                        <MenuItem.Header>
+                                                            <controls:IconLabel Glyph="{x:Static icons:AppIcons.Edit}" Text="编辑" />
+                                                        </MenuItem.Header>
+                                                    </MenuItem>
                                                     <Separator Background="{DynamicResource BorderBrush}" />
-                                                    <MenuItem Header="🔄 改签"
-                                                              Click="CardViewMenuItem_Click"
+                                                    <MenuItem Click="CardViewMenuItem_Click"
                                                               Tag="Reschedule"
-                                                              Style="{StaticResource ContextMenuItemStyle}" />
-                                                    <MenuItem Header="💰 退票"
-                                                              Click="CardViewMenuItem_Click"
+                                                              Style="{StaticResource ContextMenuItemStyle}">
+                                                        <MenuItem.Header>
+                                                            <controls:IconLabel Glyph="{x:Static icons:AppIcons.Refresh}" Text="改签" />
+                                                        </MenuItem.Header>
+                                                    </MenuItem>
+                                                    <MenuItem Click="CardViewMenuItem_Click"
                                                               Tag="Refund"
-                                                              Style="{StaticResource ContextMenuItemStyle}" />
+                                                              Style="{StaticResource ContextMenuItemStyle}">
+                                                        <MenuItem.Header>
+                                                            <controls:IconLabel Glyph="{x:Static icons:AppIcons.Money}" Text="退票" />
+                                                        </MenuItem.Header>
+                                                    </MenuItem>
                                                     <Separator Background="{DynamicResource BorderBrush}" />
-                                                    <MenuItem Header="🗑️ 删除"
-                                                              Click="CardViewMenuItem_Click"
+                                                    <MenuItem Click="CardViewMenuItem_Click"
                                                               Tag="Delete"
-                                                              Style="{StaticResource ContextMenuItemStyle}" />
+                                                              Style="{StaticResource ContextMenuItemStyle}">
+                                                        <MenuItem.Header>
+                                                            <controls:IconLabel Glyph="{x:Static icons:AppIcons.Delete}" Text="删除" />
+                                                        </MenuItem.Header>
+                                                    </MenuItem>
                                                 </ContextMenu>
                                             </Border.ContextMenu>
                                             <Border.Style>
@@ -1206,16 +1259,16 @@
                                                                FontSize="{DynamicResource LargeFontSize}"
                                                                FontWeight="Bold"
                                                                Foreground="{DynamicResource TextPrimaryBrush}" />
-                                                    <Border Background="{DynamicResource AccentBrush}"
+                                                    <Border Grid.Column="1"
+                                                            Background="{DynamicResource AccentBrush}"
                                                             CornerRadius="4"
-                                                            Padding="6,2">
+                                                            Padding="6,2"
+                                                            HorizontalAlignment="Right"
+                                                            VerticalAlignment="Center">
                                                         <Border.Style>
                                                             <Style TargetType="Border">
                                                                 <Setter Property="Visibility" Value="Visible" />
-                                                                <Setter Property="Grid.Column" Value="1" />
                                                                 <Setter Property="Grid.ColumnSpan" Value="1" />
-                                                                <Setter Property="HorizontalAlignment" Value="Right" />
-                                                                <Setter Property="VerticalAlignment" Value="Center" />
                                                                 <Style.Triggers>
                                                                     <DataTrigger
                                                                         Binding="{Binding DataContext.Layout.CardContentDensity, RelativeSource={RelativeSource AncestorType=local:MainWindow}}"
@@ -1263,9 +1316,10 @@
                                                                    HorizontalAlignment="Center" />
                                                     </StackPanel>
                                                     <TextBlock Grid.Column="1"
-                                                               Text="→"
-                                                               FontSize="20"
-                                                               Foreground="{DynamicResource AccentBrush}"
+                                                               Text="{x:Static icons:AppIcons.Forward}"
+                                                               FontFamily="Segoe MDL2 Assets"
+                                                               FontSize="16"
+                                                               Foreground="{DynamicResource AccentForegroundBrush}"
                                                                VerticalAlignment="Center"
                                                                Margin="10,0" />
                                                     <StackPanel Grid.Column="2" HorizontalAlignment="Center">
@@ -1286,7 +1340,7 @@
                                                             <TextBlock Text="{Binding ArriveDayOffsetBadge}"
                                                                        FontSize="9"
                                                                        FontWeight="SemiBold"
-                                                                       Foreground="{DynamicResource AccentBrush}"
+                                                                       Foreground="{DynamicResource AccentForegroundBrush}"
                                                                        Canvas.Top="-5"
                                                                        Margin="7,0,0,0"
                                                                        IsHitTestVisible="False"
@@ -1384,7 +1438,8 @@
                                                     </ItemsControl.ItemsPanel>
                                                     <ItemsControl.ItemTemplate>
                                                         <DataTemplate>
-                                                            <Border Background="{DynamicResource AccentBrush}"
+                                                            <Border d:DataContext="{d:DesignInstance Type=model:TicketTag, IsDesignTimeCreatable=False}"
+                                                                    Background="{DynamicResource AccentBrush}"
                                                                     CornerRadius="3"
                                                                     Padding="4,2"
                                                                     Margin="0,0,4,2">
@@ -1401,7 +1456,7 @@
                                                     <TextBlock Text="{Binding Money, StringFormat='{}{0:C}'}"
                                                                FontSize="{DynamicResource BaseFontSize}"
                                                                FontWeight="Bold"
-                                                               Foreground="{DynamicResource AccentBrush}"
+                                                               Foreground="{DynamicResource AccentForegroundBrush}"
                                                                HorizontalAlignment="Right" />
                                                 </Grid>
                                             </Grid>
@@ -1462,11 +1517,14 @@
                                            Foreground="{DynamicResource TextSecondaryBrush}" />
                             </StackPanel>
 
-                            <!-- 中间：分页按钮 -->
+                            <!-- 中间：分页按钮（基于 PaginationButtonStyle / PaginationNavButtonStyle） -->
                             <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center"
                                         VerticalAlignment="Center">
-                                <Button Content="◀" ToolTip="上一页" Command="{Binding PreviousPageCommandCommand}"
-                                        Style="{StaticResource PaginationButtonStyle}" Margin="0,0,4,0" />
+                                <Button Content="{x:Static icons:AppIcons.ChevronLeft}"
+                                        ToolTip="上一页"
+                                        Command="{Binding PreviousPageCommand}"
+                                        Style="{StaticResource PaginationNavButtonStyle}"
+                                        Margin="0,0,4,0" />
                                 <ItemsControl ItemsSource="{Binding PaginationButtons}">
                                     <ItemsControl.ItemsPanel>
                                         <ItemsPanelTemplate>
@@ -1476,7 +1534,7 @@
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
                                             <Button Content="{Binding}"
-                                                    Command="{Binding DataContext.GoToPageCommandCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                    Command="{Binding DataContext.GoToPageCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                                     CommandParameter="{Binding}"
                                                     Margin="0,0,2,0">
                                                 <Button.Style>
@@ -1509,20 +1567,24 @@
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
-                                <Button Content="▶" ToolTip="下一页" Command="{Binding NextPageCommandCommand}"
-                                        Style="{StaticResource PaginationButtonStyle}" Margin="4,0,0,0" />
+                                <Button Content="{x:Static icons:AppIcons.ChevronRight}"
+                                        ToolTip="下一页"
+                                        Command="{Binding NextPageCommand}"
+                                        Style="{StaticResource PaginationNavButtonStyle}"
+                                        Margin="4,0,0,0" />
                             </StackPanel>
 
                             <!-- 右侧：操作按钮 -->
                             <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                                <Button Content="📤 导出"
-                                        Command="{Binding ExportTripListCommand}"
+                                <Button Command="{Binding ExportTripListCommand}"
                                         Style="{StaticResource StandardButtonStyle}"
                                         Margin="0,0,0,0"
                                         Padding="10,5"
                                         FontSize="{DynamicResource SmallFontSize}"
                                         ToolTip="导出行程"
-                                        x:Name="ExportButton" />
+                                        x:Name="ExportButton">
+                                    <controls:IconLabel Glyph="{x:Static icons:AppIcons.Upload}" Text="导出" />
+                                </Button>
                             </StackPanel>
                         </Grid>
                     </Border>

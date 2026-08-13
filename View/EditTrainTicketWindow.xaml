@@ -4,6 +4,8 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GuiPiao.View"
+        xmlns:controls="clr-namespace:GuiPiao.Controls"
+        xmlns:icons="clr-namespace:GuiPiao.Icons"
         mc:Ignorable="d"
         Title="编辑火车票"
         Height="650"
@@ -52,27 +54,30 @@
                 BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0" Padding="15">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                 <Button x:Name="UndoButton"
-                        Content="↩️ 撤销"
                         Style="{StaticResource StandardButtonStyle}"
                         MinWidth="80"
                         Margin="0,0,10,0"
                         Command="{Binding UndoCommand}"
-                        IsEnabled="{Binding CanUndo}" />
+                        IsEnabled="{Binding CanUndo}">
+                    <controls:IconLabel Glyph="{x:Static icons:AppIcons.Undo}" Text="撤销" />
+                </Button>
                 <Button x:Name="RedoButton"
-                        Content="↪️ 重做"
                         Style="{StaticResource StandardButtonStyle}"
                         MinWidth="80"
                         Margin="0,0,20,0"
                         Command="{Binding RedoCommand}"
-                        IsEnabled="{Binding CanRedo}" />
+                        IsEnabled="{Binding CanRedo}">
+                    <controls:IconLabel Glyph="{x:Static icons:AppIcons.Redo}" Text="重做" />
+                </Button>
                 <Button x:Name="SaveButton"
                         Style="{StaticResource PrimaryButtonStyle}"
                         MinWidth="100"
                         Margin="0,0,10,0" />
                 <Button x:Name="CancelButton"
-                        Content="❌ 关闭"
                         Style="{StaticResource StandardButtonStyle}"
-                        MinWidth="100" />
+                        MinWidth="100">
+                    <controls:IconLabel Glyph="{x:Static icons:AppIcons.Cancel}" Text="关闭" />
+                </Button>
             </StackPanel>
         </Border>
     </Grid>

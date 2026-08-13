@@ -1,6 +1,8 @@
 <UserControl x:Class="GuiPiao.View.UISettingsView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:GuiPiao.Controls"
+             xmlns:icons="clr-namespace:GuiPiao.Icons"
              xmlns:model="clr-namespace:GuiPiao.Model"
              xmlns:messages="clr-namespace:GuiPiao.Messages"
              FontSize="{DynamicResource BaseFontSize}">
@@ -69,8 +71,7 @@
                 <Border Grid.Row="1" Background="{DynamicResource PanelBackgroundBrush}"
                         BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
                     <StackPanel>
-                        <TextBlock Text="📐 主界面布局配置" FontWeight="Bold" Margin="0,0,0,10"
-                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+                        <controls:IconLabel Glyph="{x:Static icons:AppIcons.PageMargin}" Text="主界面布局配置" FontWeight="Bold" Margin="0,0,0,10" Foreground="{DynamicResource TextPrimaryBrush}" />
 
                         <WrapPanel Margin="0,0,0,10">
                             <TextBlock Text="左侧检索区宽度：" VerticalAlignment="Center" Margin="0,0,5,5"
@@ -149,10 +150,14 @@
                         </WrapPanel>
 
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,0">
-                            <Button Content="💾 保存当前布局" Command="{Binding SaveLayoutCommand}"
-                                    Style="{StaticResource StandardButtonStyle}" Padding="10,5" Margin="0,0,10,0" />
-                            <Button Content="🔄 重置布局默认" Command="{Binding ResetLayoutCommand}"
-                                    Style="{StaticResource StandardButtonStyle}" Padding="10,5" />
+                            <Button Command="{Binding SaveLayoutCommand}"
+                                    Style="{StaticResource StandardButtonStyle}" Padding="10,5" Margin="0,0,10,0">
+                    <controls:IconLabel Glyph="{x:Static icons:AppIcons.Save}" Text="保存当前布局" />
+                </Button>
+                            <Button Command="{Binding ResetLayoutCommand}"
+                                    Style="{StaticResource StandardButtonStyle}" Padding="10,5">
+                    <controls:IconLabel Glyph="{x:Static icons:AppIcons.Refresh}" Text="重置布局默认" />
+                </Button>
                         </StackPanel>
                     </StackPanel>
                 </Border>
@@ -161,14 +166,17 @@
                 <Border Grid.Row="2" Background="{DynamicResource PanelBackgroundBrush}"
                         BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
                     <StackPanel>
-                        <TextBlock Text="📋 行程列表显示设置" FontWeight="Bold" Margin="0,0,0,10"
-                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+                        <controls:IconLabel Glyph="{x:Static icons:AppIcons.PageList}" Text="行程列表显示设置" FontWeight="Bold" Margin="0,0,0,10" Foreground="{DynamicResource TextPrimaryBrush}" />
 
                         <WrapPanel Margin="0,0,0,10">
-                            <Button Content="⚙️ 自定义列表字段" Command="{Binding CustomizeFieldsCommand}"
-                                    Style="{StaticResource StandardButtonStyle}" Padding="10,5" Margin="0,0,10,5" />
-                            <Button Content="🔄 重置列表默认" Command="{Binding ResetListDefaultsCommand}"
-                                    Style="{StaticResource StandardButtonStyle}" Padding="10,5" Margin="0,0,0,5" />
+                            <Button Command="{Binding CustomizeFieldsCommand}"
+                                    Style="{StaticResource StandardButtonStyle}" Padding="10,5" Margin="0,0,10,5">
+                    <controls:IconLabel Glyph="{x:Static icons:AppIcons.Settings}" Text="自定义列表字段" />
+                </Button>
+                            <Button Command="{Binding ResetListDefaultsCommand}"
+                                    Style="{StaticResource StandardButtonStyle}" Padding="10,5" Margin="0,0,0,5">
+                    <controls:IconLabel Glyph="{x:Static icons:AppIcons.Refresh}" Text="重置列表默认" />
+                </Button>
                         </WrapPanel>
 
                         <WrapPanel Margin="0,0,0,10">
@@ -234,11 +242,21 @@
                         <TextBlock Text="选择要显示的操作按钮：" FontWeight="Bold" Margin="0,0,0,5"
                                    Foreground="{DynamicResource TextPrimaryBrush}" />
                         <WrapPanel Margin="0,0,0,5">
-                            <CheckBox Content="👁 查看" IsChecked="{Binding ShowViewButton}" Margin="0,0,15,5" />
-                            <CheckBox Content="✏️ 编辑" IsChecked="{Binding ShowEditButton}" Margin="0,0,15,5" />
-                            <CheckBox Content="🔄 改签" IsChecked="{Binding ShowRescheduleButton}" Margin="0,0,15,5" />
-                            <CheckBox Content="💰 退票" IsChecked="{Binding ShowRefundButton}" Margin="0,0,15,5" />
-                            <CheckBox Content="🗑️ 删除" IsChecked="{Binding ShowDeleteButton}" Margin="0,0,0,5" />
+                            <CheckBox IsChecked="{Binding ShowViewButton}" Margin="0,0,15,5">
+                    <controls:IconLabel Glyph="{x:Static icons:AppIcons.View}" Text="查看" />
+                </CheckBox>
+                            <CheckBox IsChecked="{Binding ShowEditButton}" Margin="0,0,15,5">
+                    <controls:IconLabel Glyph="{x:Static icons:AppIcons.Edit}" Text="编辑" />
+                </CheckBox>
+                            <CheckBox IsChecked="{Binding ShowRescheduleButton}" Margin="0,0,15,5">
+                    <controls:IconLabel Glyph="{x:Static icons:AppIcons.Refresh}" Text="改签" />
+                </CheckBox>
+                            <CheckBox IsChecked="{Binding ShowRefundButton}" Margin="0,0,15,5">
+                    <controls:IconLabel Glyph="{x:Static icons:AppIcons.Money}" Text="退票" />
+                </CheckBox>
+                            <CheckBox IsChecked="{Binding ShowDeleteButton}" Margin="0,0,0,5">
+                    <controls:IconLabel Glyph="{x:Static icons:AppIcons.Delete}" Text="删除" />
+                </CheckBox>
                         </WrapPanel>
 
                         <CheckBox Content="默认展开行程区域" IsChecked="{Binding IsTripListExpandedByDefault}" Margin="0,5,0,0" />
@@ -249,8 +267,7 @@
                 <Border Grid.Row="3" Background="{DynamicResource PanelBackgroundBrush}"
                         BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
                     <StackPanel>
-                        <TextBlock Text="🎴 卡片视图显示设置" FontWeight="Bold" Margin="0,0,0,10"
-                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+                        <controls:IconLabel Glyph="{x:Static icons:AppIcons.ViewAll}" Text="卡片视图显示设置" FontWeight="Bold" Margin="0,0,0,10" Foreground="{DynamicResource TextPrimaryBrush}" />
 
                         <!-- 布局设置 -->
                         <TextBlock Text="布局设置：" FontWeight="Bold" Margin="0,0,0,8"
@@ -324,11 +341,21 @@
                         <TextBlock Text="右键菜单操作按钮：" Margin="0,0,0,5"
                                    Foreground="{DynamicResource TextPrimaryBrush}" />
                         <WrapPanel Margin="0,0,0,10">
-                            <CheckBox Content="👁 查看" IsChecked="{Binding CardShowViewAction}" Margin="0,0,15,5" />
-                            <CheckBox Content="✏️ 编辑" IsChecked="{Binding CardShowEditAction}" Margin="0,0,15,5" />
-                            <CheckBox Content="🔄 改签" IsChecked="{Binding CardShowRescheduleAction}" Margin="0,0,15,5" />
-                            <CheckBox Content="💰 退票" IsChecked="{Binding CardShowRefundAction}" Margin="0,0,15,5" />
-                            <CheckBox Content="🗑️ 删除" IsChecked="{Binding CardShowDeleteAction}" Margin="0,0,0,5" />
+                            <CheckBox IsChecked="{Binding CardShowViewAction}" Margin="0,0,15,5">
+                    <controls:IconLabel Glyph="{x:Static icons:AppIcons.View}" Text="查看" />
+                </CheckBox>
+                            <CheckBox IsChecked="{Binding CardShowEditAction}" Margin="0,0,15,5">
+                    <controls:IconLabel Glyph="{x:Static icons:AppIcons.Edit}" Text="编辑" />
+                </CheckBox>
+                            <CheckBox IsChecked="{Binding CardShowRescheduleAction}" Margin="0,0,15,5">
+                    <controls:IconLabel Glyph="{x:Static icons:AppIcons.Refresh}" Text="改签" />
+                </CheckBox>
+                            <CheckBox IsChecked="{Binding CardShowRefundAction}" Margin="0,0,15,5">
+                    <controls:IconLabel Glyph="{x:Static icons:AppIcons.Money}" Text="退票" />
+                </CheckBox>
+                            <CheckBox IsChecked="{Binding CardShowDeleteAction}" Margin="0,0,0,5">
+                    <controls:IconLabel Glyph="{x:Static icons:AppIcons.Delete}" Text="删除" />
+                </CheckBox>
                         </WrapPanel>
 
                         <!-- 批量操作 -->
@@ -340,12 +367,22 @@
 
                         <StackPanel IsEnabled="{Binding CardEnableMultiSelect}" Margin="0,0,0,10">
                             <WrapPanel>
-                                <CheckBox Content="👁 查看" IsChecked="{Binding CardBatchShowView}" Margin="0,0,15,5" />
-                                <CheckBox Content="✏️ 编辑" IsChecked="{Binding CardBatchShowEdit}" Margin="0,0,15,5" />
-                                <CheckBox Content="🔄 改签" IsChecked="{Binding CardBatchShowReschedule}"
-                                          Margin="0,0,15,5" />
-                                <CheckBox Content="💰 退票" IsChecked="{Binding CardBatchShowRefund}" Margin="0,0,15,5" />
-                                <CheckBox Content="🗑️ 删除" IsChecked="{Binding CardBatchShowDelete}" Margin="0,0,0,5" />
+                                <CheckBox IsChecked="{Binding CardBatchShowView}" Margin="0,0,15,5">
+                    <controls:IconLabel Glyph="{x:Static icons:AppIcons.View}" Text="查看" />
+                </CheckBox>
+                                <CheckBox IsChecked="{Binding CardBatchShowEdit}" Margin="0,0,15,5">
+                    <controls:IconLabel Glyph="{x:Static icons:AppIcons.Edit}" Text="编辑" />
+                </CheckBox>
+                                <CheckBox IsChecked="{Binding CardBatchShowReschedule}"
+                                          Margin="0,0,15,5">
+                    <controls:IconLabel Glyph="{x:Static icons:AppIcons.Refresh}" Text="改签" />
+                </CheckBox>
+                                <CheckBox IsChecked="{Binding CardBatchShowRefund}" Margin="0,0,15,5">
+                    <controls:IconLabel Glyph="{x:Static icons:AppIcons.Money}" Text="退票" />
+                </CheckBox>
+                                <CheckBox IsChecked="{Binding CardBatchShowDelete}" Margin="0,0,0,5">
+                    <controls:IconLabel Glyph="{x:Static icons:AppIcons.Delete}" Text="删除" />
+                </CheckBox>
                             </WrapPanel>
                         </StackPanel>
 
@@ -376,8 +413,7 @@
                 <Border Grid.Row="4" Background="{DynamicResource PanelBackgroundBrush}"
                         BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
                     <StackPanel>
-                        <TextBlock Text="📄 日志面板显示设置" FontWeight="Bold" Margin="0,0,0,10"
-                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+                        <controls:IconLabel Glyph="{x:Static icons:AppIcons.Document}" Text="日志面板显示设置" FontWeight="Bold" Margin="0,0,0,10" Foreground="{DynamicResource TextPrimaryBrush}" />
 
                         <WrapPanel Margin="0,0,0,10">
                             <TextBlock Text="日志行高：" VerticalAlignment="Center" Margin="0,0,5,5"
@@ -455,8 +491,7 @@
                 <Border Grid.Row="6" Background="{DynamicResource PanelBackgroundBrush}"
                         BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
                     <StackPanel>
-                        <TextBlock Text="🔧 高级界面选项" FontWeight="Bold" Margin="0,0,0,10"
-                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+                        <controls:IconLabel Glyph="{x:Static icons:AppIcons.Repair}" Text="高级界面选项" FontWeight="Bold" Margin="0,0,0,10" Foreground="{DynamicResource TextPrimaryBrush}" />
 
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
                             <TextBlock Text="DPI缩放适配：" VerticalAlignment="Center"
@@ -477,10 +512,14 @@
         <Border Grid.Row="1" Background="{DynamicResource ContentBackgroundBrush}" Padding="10"
                 BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button Content="💾 保存设置" Command="{Binding SaveSettingsCommand}"
-                        Padding="15,8" Margin="0,0,10,0" Style="{StaticResource StandardButtonStyle}" />
-                <Button Content="🔄 恢复默认" Command="{Binding RestoreDefaultsCommand}"
-                        Padding="15,8" Style="{StaticResource StandardButtonStyle}" />
+                <Button Command="{Binding SaveSettingsCommand}"
+                        Padding="15,8" Margin="0,0,10,0" Style="{StaticResource StandardButtonStyle}">
+                    <controls:IconLabel Glyph="{x:Static icons:AppIcons.Save}" Text="保存设置" />
+                </Button>
+                <Button Command="{Binding RestoreDefaultsCommand}"
+                        Padding="15,8" Style="{StaticResource StandardButtonStyle}">
+                    <controls:IconLabel Glyph="{x:Static icons:AppIcons.Refresh}" Text="恢复默认" />
+                </Button>
             </StackPanel>
         </Border>
     </Grid>

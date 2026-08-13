@@ -42,14 +42,14 @@ public partial class ExportChartWindow : Window
         };
     }
 
-    public string SaveFilePath { get; private set; }
+    public string SaveFilePath { get; private set; } = string.Empty;
     public ExportChartFormat ExportFormat { get; private set; }
     public bool IncludeRawData { get; private set; }
     public bool IncludeChartImage { get; private set; }
-    public List<DashboardChartViewModel> SelectedCharts { get; private set; }
+    public List<DashboardChartViewModel> SelectedCharts { get; private set; } = new();
     public bool UseDefaultChartNames { get; private set; }
-    public string FolderName { get; private set; }
-    public string BaseFileName { get; private set; }
+    public string FolderName { get; private set; } = string.Empty;
+    public string BaseFileName { get; private set; } = string.Empty;
 
     private void FormatComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
