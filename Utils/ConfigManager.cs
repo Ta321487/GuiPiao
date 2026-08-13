@@ -13,7 +13,7 @@ public class ConfigManager
     private static readonly Lazy<ConfigManager> _instance = new(() => new ConfigManager());
 
     // UI设置服务
-    private UISettingsService _uiSettingsService;
+    private UISettingsService? _uiSettingsService;
 
     // 私有构造函数
     private ConfigManager()
@@ -22,9 +22,9 @@ public class ConfigManager
     }
 
     // 配置属性
-    public string DatabaseConnectionString { get; private set; }
-    public string TesseractDataPath { get; private set; }
-    public string LogFilePath { get; private set; }
+    public string DatabaseConnectionString { get; private set; } = string.Empty;
+    public string TesseractDataPath { get; private set; } = string.Empty;
+    public string LogFilePath { get; private set; } = string.Empty;
     public int DefaultPageSize { get; private set; }
 
     public UISettingsService UISettingsService

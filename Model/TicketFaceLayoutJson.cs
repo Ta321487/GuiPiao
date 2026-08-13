@@ -549,7 +549,8 @@ public static class TicketFaceLayoutJson
         AllowTrailingCommas = true
     };
 
-    public static string GetDefaultFilePath() => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Config", "ticket-face-layout.json");
+    public static string GetDefaultFilePath() =>
+        GuiPiao.Utils.JsonConfigManager.Instance.GetConfigFilePath("ticket-face-layout.json");
 
     public static TicketFaceLayoutFileDto BuildFileDto(string? defaultFontFamily, ObservableTicketFaceLayout blue,
         ObservableTicketFaceLayout red, string? workbenchSelectedElement = null) =>

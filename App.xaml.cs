@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -90,21 +91,34 @@ public partial class App : Application
             }
         }
 
-        // 在加载主窗口前配置 LiveCharts 字体（StartupUri 会在 base.OnStartup 中创建 MainWindow）
-        ConfigureLiveChartsFont();
+        // 先应用主题/DPI，再创建任何窗口，避免无主题白屏
+        ThemeManager.ApplyTheme(config);
+        _logService.Info("App", "主题应用完成");
 
+        var uiConfig = new UISettingsService().Config;
+        ThemeManager.ApplyDpiScaling(uiConfig.DpiScaling);
+        _logService.Info("App", "DPI缩放设置应用完成");
+
+        ConfigureLiveChartsFont();
         base.OnStartup(e);
+        // 启动过程以启动页为过渡；主窗口就绪后再切过去
+        ShutdownMode = ShutdownMode.OnMainWindowClose;
 
         WindowManager.RegisterFormWindowType<AddTrainTicketWindow>();
         WindowManager.RegisterFormWindowType<EditTrainTicketWindow>();
 
-        ThemeManager.ApplyTheme(config);
-        _logService.Info("App", "主题应用完成");
-
-        // 应用DPI缩放设置
-        var uiConfig = new UISettingsService().Config;
-        ThemeManager.ApplyDpiScaling(uiConfig.DpiScaling);
-        _logService.Info("App", "DPI缩放设置应用完成");
+        SplashWindow? splash = null;
+        try
+        {
+            splash = new SplashWindow();
+            ThemeManager.ApplyThemeToWindow(splash);
+            splash.Show();
+            splash.SetStatus("正在初始化数据库…");
+        }
+        catch (Exception ex)
+        {
+            _logService.Error("App", $"启动页显示失败: {ex.Message}");
+        }
 
         try
         {
@@ -113,13 +127,68 @@ public partial class App : Application
         }
         catch (Exception ex)
         {
+            splash?.Close();
             _logService.Fatal("App", $"数据库初始化失败: {ex.Message}");
-            MessageBoxWindow.Show($"数据库初始化失败，程序即将退出：\n{ex.Message}");
+            if (!TryRecoverDatabase(ex))
+            {
+                MessageBoxWindow.Show(
+                    $"数据库无法打开，程序即将退出：\n{ex.Message}\n\n可稍后从「%AppData%\\GuiPiao\\Backups」手动恢复备份。",
+                    "数据库错误",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+                Current.Shutdown();
+                return;
+            }
+        }
+
+        try
+        {
+            splash?.SetStatus("正在加载主界面…");
+            var mainWindow = new MainWindow();
+            MainWindow = mainWindow;
+            ThemeManager.ApplyThemeToWindow(mainWindow);
+
+            // 主窗先不可见，等首帧渲染完再与启动页切换，杜绝白闪
+            mainWindow.Opacity = 0;
+            mainWindow.ShowInTaskbar = false;
+            EventHandler? rendered = null;
+            rendered = (_, _) =>
+            {
+                mainWindow.ContentRendered -= rendered;
+                mainWindow.ShowInTaskbar = true;
+                mainWindow.Opacity = 1;
+                try
+                {
+                    splash?.Close();
+                }
+                catch
+                {
+                    // ignore
+                }
+
+                mainWindow.Activate();
+            };
+            mainWindow.ContentRendered += rendered;
+            mainWindow.Show();
+            _logService.Info("App",
+                $"主窗口已显示 Content={(mainWindow.Content == null ? "null" : mainWindow.Content.GetType().Name)}");
+        }
+        catch (Exception ex)
+        {
+            try
+            {
+                splash?.Close();
+            }
+            catch
+            {
+            }
+
+            _logService.Fatal("App", $"主窗口创建失败: {ex}");
+            MessageBox.Show($"主窗口创建失败：\n{ex}", "启动错误", MessageBoxButton.OK, MessageBoxImage.Error);
             Current.Shutdown();
             return;
         }
 
-        // 执行启动时数据库生命周期操作
         try
         {
             await _lifecycleService.OnStartupAsync();
@@ -127,8 +196,69 @@ public partial class App : Application
         catch (Exception ex)
         {
             _logService.Error("App", $"启动时生命周期操作失败: {ex.Message}");
-            // 不阻塞启动，仅记录错误
         }
+    }
+
+    /// <summary>
+    ///     数据库损坏时提供恢复选项，避免直接无法启动。
+    /// </summary>
+    private bool TryRecoverDatabase(Exception originalError)
+    {
+        var dbPath = DatabaseRecovery.GetDatabaseFilePath(ConfigManager.Instance.DatabaseConnectionString);
+        var backupDir = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "GuiPiao", "Backups");
+
+        var choice = MessageBoxWindow.Show(
+            $"数据库初始化失败：\n{originalError.Message}\n\n当前文件：\n{dbPath}\n\n【是】从最近自动备份恢复并继续\n【否】隔离损坏文件并新建空库\n【取消】退出程序",
+            "数据库损坏",
+            MessageBoxButton.YesNoCancel,
+            MessageBoxImage.Warning,
+            yesText: "恢复备份",
+            noText: "新建空库",
+            cancelText: "退出");
+
+        try
+        {
+            if (choice == MessageBoxResult.Yes)
+            {
+                if (!DatabaseRecovery.TryRestoreFromBackup(dbPath, backupDir, out var used) || used == null)
+                {
+                    MessageBoxWindow.Show(
+                        "未找到可用的自动备份。\n请检查：\n" + backupDir,
+                        "恢复失败",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error);
+                    return false;
+                }
+
+                ConfigManager.Instance.ReloadConfig();
+                Database.Initialize();
+                _logService.Info("App", $"已从备份恢复数据库: {used}");
+                MessageBoxWindow.Show($"已从备份恢复并启动。\n来源：\n{used}", "恢复成功");
+                return true;
+            }
+
+            if (choice == MessageBoxResult.No)
+            {
+                DatabaseRecovery.CreateEmptyDatabaseFile(dbPath);
+                ConfigManager.Instance.ReloadConfig();
+                Database.Initialize();
+                _logService.Info("App", "已新建空数据库");
+                MessageBoxWindow.Show(
+                    "已新建空数据库。原损坏文件已改名为 *.broken_*，可稍后手动处理。",
+                    "已新建");
+                return true;
+            }
+        }
+        catch (Exception recoverEx)
+        {
+            _logService.Fatal("App", $"数据库恢复失败: {recoverEx.Message}");
+            MessageBoxWindow.Show($"恢复过程失败：\n{recoverEx.Message}", "恢复失败",
+                MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+
+        return false;
     }
 
     protected override async void OnExit(ExitEventArgs e)
@@ -209,7 +339,15 @@ public partial class App : Application
     {
         try
         {
-            _logService.Fatal("App", $"调度器异常: {e.Exception?.Message ?? "未知异常"}");
+            var ex = e.Exception;
+            var detail = ex == null
+                ? "未知异常"
+                : $"{ex.GetType().FullName}: {ex.Message}\n{ex.StackTrace}";
+            if (ex?.InnerException != null)
+                detail +=
+                    $"\n--- Inner ---\n{ex.InnerException.GetType().FullName}: {ex.InnerException.Message}\n{ex.InnerException.StackTrace}";
+
+            _logService.Fatal("App", $"调度器异常: {detail}");
         }
         catch
         {

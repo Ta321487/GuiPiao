@@ -8,7 +8,8 @@ using Newtonsoft.Json.Converters;
 namespace GuiPiao.Utils;
 
 /// <summary>
-///     JSON配置管理器 - 通用配置持久化服务
+///     JSON配置管理器 - 通用配置持久化服务。
+///     用户配置固定写到 %AppData%\GuiPiao\Config，避免清理 bin 输出目录导致设置丢失。
 /// </summary>
 public class JsonConfigManager
 {
@@ -18,12 +19,26 @@ public class JsonConfigManager
 
     private JsonConfigManager()
     {
-        // 配置文件存放在程序目录下的 Config 文件夹
-        _configDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Config");
+        _configDirectory = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "GuiPiao",
+            "Config");
         EnsureConfigDirectoryExists();
+        MigrateFromLegacyDirectoryIfNeeded();
     }
 
     public static JsonConfigManager Instance => _instance.Value;
+
+    /// <summary>
+    ///     当前用户配置目录（%AppData%\GuiPiao\Config）。
+    /// </summary>
+    public string ConfigDirectory => _configDirectory;
+
+    /// <summary>
+    ///     安装目录旁的旧 Config（bin\...\Config），仅作首次迁移种子。
+    /// </summary>
+    public static string LegacyConfigDirectory =>
+        Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Config");
 
     /// <summary>
     ///     确保配置目录存在
@@ -34,8 +49,37 @@ public class JsonConfigManager
         {
             if (!Directory.Exists(_configDirectory)) Directory.CreateDirectory(_configDirectory);
         }
-        catch
+        catch (Exception ex)
         {
+            Debug.WriteLine($"创建配置目录失败: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    ///     将程序目录 Config 中尚不存在于 AppData 的文件拷过去（不覆盖已有用户配置）。
+    /// </summary>
+    private void MigrateFromLegacyDirectoryIfNeeded()
+    {
+        try
+        {
+            var legacy = LegacyConfigDirectory;
+            if (!Directory.Exists(legacy)) return;
+
+            foreach (var sourcePath in Directory.EnumerateFiles(legacy, "*", SearchOption.TopDirectoryOnly))
+            {
+                var fileName = Path.GetFileName(sourcePath);
+                if (string.IsNullOrEmpty(fileName)) continue;
+
+                var destPath = Path.Combine(_configDirectory, fileName);
+                if (File.Exists(destPath)) continue;
+
+                File.Copy(sourcePath, destPath, overwrite: false);
+                Debug.WriteLine($"[JsonConfigManager] 已迁移配置: {fileName} -> {destPath}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"迁移旧配置目录失败: {ex.Message}");
         }
     }
 
