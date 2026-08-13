@@ -227,38 +227,33 @@ public partial class TicketPreviewViewModel
 
     private IReadOnlyList<WorkbenchFontPickItem>? _layoutDefaultFontPickerItemsCache;
     private IReadOnlyList<WorkbenchFontPickItem>? _editorFontPickerItemsCache;
+    private bool _fontPickSync;
 
     /// <summary>默认字体短列表（不强制指定 / 当前值 / 推荐），全部系统字体走「系统…」。</summary>
     public IReadOnlyList<WorkbenchFontPickItem> LayoutDefaultFontPickerItems =>
         _layoutDefaultFontPickerItemsCache ??= BuildLayoutDefaultFontPickItems();
 
-    /// <summary>元素字体短列表（跟随默认 / 当前值 / 推荐）。</summary>
+    /// <summary>元素字体短列表（跟随版式默认 / 当前值 / 推荐）。</summary>
     public IReadOnlyList<WorkbenchFontPickItem> EditorFontPickerItems =>
         _editorFontPickerItemsCache ??= BuildEditorFontPickItems();
 
-    /// <summary>
-    ///     字体下拉 SelectedValue：空布局值映射为哨兵，避免 WPF 对空串 SelectedValue 不回显。
-    /// </summary>
-    public string EditorFontFamilyComboValue
+    [ObservableProperty] private WorkbenchFontPickItem? _selectedEditorFontPickItem;
+    [ObservableProperty] private WorkbenchFontPickItem? _selectedLayoutDefaultFontPickItem;
+
+    partial void OnSelectedEditorFontPickItemChanged(WorkbenchFontPickItem? value)
     {
-        get => FontFamilyPickerSupport.ToComboSource(EditorFontFamily);
-        set
-        {
-            var next = FontFamilyPickerSupport.FromComboSource(value);
-            if (string.Equals(EditorFontFamily, next, StringComparison.Ordinal)) return;
-            EditorFontFamily = next;
-        }
+        if (_fontPickSync || value is null) return;
+        var next = FontFamilyPickerSupport.FromComboSource(value.Source);
+        if (string.Equals(EditorFontFamily, next, StringComparison.Ordinal)) return;
+        EditorFontFamily = next;
     }
 
-    public string LayoutDefaultFontFamilyComboValue
+    partial void OnSelectedLayoutDefaultFontPickItemChanged(WorkbenchFontPickItem? value)
     {
-        get => FontFamilyPickerSupport.ToComboSource(LayoutDefaultFontFamily);
-        set
-        {
-            var next = FontFamilyPickerSupport.FromComboSource(value);
-            if (string.Equals(LayoutDefaultFontFamily, next, StringComparison.Ordinal)) return;
-            LayoutDefaultFontFamily = next;
-        }
+        if (_fontPickSync || value is null) return;
+        var next = FontFamilyPickerSupport.FromComboSource(value.Source);
+        if (string.Equals(LayoutDefaultFontFamily, next, StringComparison.Ordinal)) return;
+        LayoutDefaultFontFamily = next;
     }
 
     partial void OnLayoutDefaultFontFamilyChanged(string value)
@@ -313,14 +308,48 @@ public partial class TicketPreviewViewModel
     {
         _layoutDefaultFontPickerItemsCache = null;
         OnPropertyChanged(nameof(LayoutDefaultFontPickerItems));
-        OnPropertyChanged(nameof(LayoutDefaultFontFamilyComboValue));
+        SyncLayoutDefaultFontPickSelection();
     }
 
     private void InvalidateEditorFontPickerItems()
     {
         _editorFontPickerItemsCache = null;
         OnPropertyChanged(nameof(EditorFontPickerItems));
-        OnPropertyChanged(nameof(EditorFontFamilyComboValue));
+        SyncEditorFontPickSelection();
+    }
+
+    private void SyncEditorFontPickSelection()
+    {
+        var items = EditorFontPickerItems;
+        var want = FontFamilyPickerSupport.ToComboSource(EditorFontFamily);
+        var match = items.FirstOrDefault(i => string.Equals(i.Source, want, StringComparison.Ordinal))
+                    ?? items.FirstOrDefault();
+        _fontPickSync = true;
+        try
+        {
+            SelectedEditorFontPickItem = match;
+        }
+        finally
+        {
+            _fontPickSync = false;
+        }
+    }
+
+    private void SyncLayoutDefaultFontPickSelection()
+    {
+        var items = LayoutDefaultFontPickerItems;
+        var want = FontFamilyPickerSupport.ToComboSource(LayoutDefaultFontFamily);
+        var match = items.FirstOrDefault(i => string.Equals(i.Source, want, StringComparison.Ordinal))
+                    ?? items.FirstOrDefault();
+        _fontPickSync = true;
+        try
+        {
+            SelectedLayoutDefaultFontPickItem = match;
+        }
+        finally
+        {
+            _fontPickSync = false;
+        }
     }
 
     private List<WorkbenchFontPickItem> BuildLayoutDefaultFontPickItems()
@@ -328,7 +357,8 @@ public partial class TicketPreviewViewModel
         var cur = FontFamilyPickerSupport.CanonicalizeSource(LayoutDefaultFontFamily);
         var list = new List<WorkbenchFontPickItem>
         {
-            new(FontFamilyPickerSupport.InheritSourceSentinel, "（默认）", "选项")
+            // 版式级空值：渲染时回退系统/全局字体（不是「跟随元素」）
+            new(FontFamilyPickerSupport.InheritSourceSentinel, "不指定（系统回退）", "选项")
         };
         AppendCurrentAndRecommended(list, cur);
         return list;
@@ -338,8 +368,8 @@ public partial class TicketPreviewViewModel
     {
         var cur = FontFamilyPickerSupport.CanonicalizeSource(EditorFontFamily);
         var inherit = string.IsNullOrWhiteSpace(LayoutDefaultFontFamily)
-            ? "继承默认"
-            : $"继承默认（{FontFamilyPickerSupport.ShortDisplayName(LayoutDefaultFontFamily)}）";
+            ? "跟随版式默认"
+            : $"跟随版式默认（{FontFamilyPickerSupport.ShortDisplayName(LayoutDefaultFontFamily)}）";
         var list = new List<WorkbenchFontPickItem>
         {
             new(FontFamilyPickerSupport.InheritSourceSentinel, inherit, "选项")
@@ -383,6 +413,8 @@ public partial class TicketPreviewViewModel
 
     partial void OnEditorFontFamilyChanged(string value)
     {
+        if (!_fontPickSync)
+            SyncEditorFontPickSelection();
         if (_editorSync) return;
         PushEditorToLayout();
     }
@@ -794,8 +826,7 @@ public partial class TicketPreviewViewModel
         string.IsNullOrWhiteSpace(elementFontFamily) ? string.Empty : elementFontFamily.Trim();
 
     /// <summary>
-    ///     Pull 后刷新「元素字体」短列表，并把当前值规范成可选项（大小写/空串），
-    ///     避免 ComboBox SelectedValue 对不上而空白回显。
+    ///     Pull 后刷新「元素字体」短列表并同步 SelectedItem。
     ///     须在 <see cref="_editorSync"/> 为 true 时调用。
     /// </summary>
     private void SyncEditorFontPickerAfterPull()
@@ -803,6 +834,13 @@ public partial class TicketPreviewViewModel
         EditorFontFamily = FontFamilyPickerSupport.CanonicalizeSource(EditorFontFamily);
         InvalidateEditorFontPickerItems();
         OnPropertyChanged(nameof(EditorFontFamily));
+    }
+
+    /// <summary>窗口 Loaded 后再拉一次编辑器，避免 Slider 初次绑定把错误值写回布局。</summary>
+    public void ResyncLayoutEditorAfterViewLoaded()
+    {
+        PullEditorFromLayout();
+        SyncLayoutDefaultFontPickSelection();
     }
 
     private void PullEditorFromLayout()
@@ -1505,9 +1543,6 @@ public partial class TicketPreviewViewModel
             return;
         }
     }
-
-    /// <summary>窗口 Loaded 后再拉一次编辑器，避免 Slider 初次绑定把错误值写回布局。</summary>
-    public void ResyncLayoutEditorAfterViewLoaded() => PullEditorFromLayout();
 
     private void WireLayoutObservers()
     {

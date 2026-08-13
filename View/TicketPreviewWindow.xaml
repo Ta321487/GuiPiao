@@ -87,12 +87,61 @@
             <Setter Property="IsEditable" Value="False" />
             <Setter Property="MaxDropDownHeight" Value="320" />
             <Setter Property="Margin" Value="0,0,4,0" />
-            <Setter Property="SelectedValuePath" Value="Source" />
             <Setter Property="DisplayMemberPath" Value="Display" />
-            <!--
-              不用 ItemTemplate：自定义模板时 SelectionBoxItem 常变成 SelectedValue 字符串，
-              Display 绑定失败导致关闭态空白；DisplayMemberPath 对项与回显都稳定。
-            -->
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+            <!-- 关闭态不画 SelectionBoxItem（由外侧 TextBlock 单独显示），只保留边框/箭头/下拉列表 -->
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <ToggleButton x:Name="ToggleButton"
+                                          Background="{TemplateBinding Background}"
+                                          BorderBrush="{TemplateBinding BorderBrush}"
+                                          BorderThickness="{TemplateBinding BorderThickness}"
+                                          IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                          ClickMode="Press">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border Background="{TemplateBinding Background}"
+                                                BorderBrush="{TemplateBinding BorderBrush}"
+                                                BorderThickness="{TemplateBinding BorderThickness}">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="20" />
+                                                </Grid.ColumnDefinitions>
+                                                <Path Grid.Column="1"
+                                                      Fill="{DynamicResource TextPrimaryBrush}"
+                                                      HorizontalAlignment="Center"
+                                                      VerticalAlignment="Center"
+                                                      Data="M 0 0 L 4 4 L 8 0 Z" />
+                                            </Grid>
+                                        </Border>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+                            <Popup x:Name="Popup"
+                                   Placement="Bottom"
+                                   IsOpen="{TemplateBinding IsDropDownOpen}"
+                                   AllowsTransparency="True"
+                                   Focusable="False"
+                                   PopupAnimation="Slide">
+                                <Grid SnapsToDevicePixels="True"
+                                      MinWidth="{TemplateBinding ActualWidth}"
+                                      MaxHeight="{TemplateBinding MaxDropDownHeight}">
+                                    <Border Background="{DynamicResource ControlBackgroundBrush}"
+                                            BorderBrush="{DynamicResource BorderBrush}"
+                                            BorderThickness="1" />
+                                    <ScrollViewer Margin="4,6,4,6" SnapsToDevicePixels="True">
+                                        <StackPanel IsItemsHost="True"
+                                                    KeyboardNavigation.DirectionalNavigation="Contained" />
+                                    </ScrollViewer>
+                                </Grid>
+                            </Popup>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
         </ResourceDictionary>
     </Window.Resources>
@@ -164,6 +213,7 @@
                         <StackPanel DataContext="{Binding DataContext, RelativeSource={RelativeSource AncestorType=Window}}">
                             <TextBlock Text="版式" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,8" />
                             <CheckBox Content="可视化编辑" IsChecked="{Binding IsVisualLayoutEdit}"
+                                      Focusable="False"
                                       Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,8"
                                       ToolTip="在票面上点选并拖动布局元素" />
 
@@ -171,6 +221,7 @@
                             <ComboBox ItemsSource="{Binding LayoutElementItems}" DisplayMemberPath="Display"
                                       SelectedItem="{Binding SelectedLayoutElementItem, Mode=TwoWay}" Margin="0,0,0,4" />
                             <CheckBox Content="成组移动" IsChecked="{Binding WorkbenchMoveAsGroup}" Margin="0,0,0,2"
+                                      Focusable="False"
                                       IsEnabled="{Binding EditorShowsMoveAsGroup}"
                                       ToolTip="{Binding WorkbenchMoveGroupToolTip}" />
                             <Button Content="紧贴排布" Margin="0,0,0,8" Padding="8,2" HorizontalAlignment="Left"
@@ -179,9 +230,11 @@
                                     Style="{StaticResource StandardButtonStyle}"
                                     ToolTip="按占位宽度重排简字与支付简字" />
                             <CheckBox Content="含拼音" IsChecked="{Binding WorkbenchStationGroupIncludesPinyin}" Margin="0,0,0,8"
+                                      Focusable="False"
                                       Visibility="{Binding EditorShowsStationGroupIncludesPinyin, Converter={StaticResource BooleanToVisibilityConverter}}"
                                       ToolTip="站名组成组时包含拼音" />
                             <CheckBox Content="简字边框" IsChecked="{Binding ShowFramedTicketBadges}" Margin="0,0,0,8"
+                                      Focusable="False"
                                       ToolTip="显示票种/支付简字边框" />
 
                             <TextBlock Text="{Binding EditorAnchorXLabel}" Style="{StaticResource FormLabel}" />
@@ -240,10 +293,18 @@
                                         <ColumnDefinition Width="Auto" />
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
-                                    <ComboBox Grid.Column="0" Style="{StaticResource WorkbenchFontComboStyle}"
-                                              ItemsSource="{Binding EditorFontPickerItems}"
-                                              SelectedValue="{Binding EditorFontFamilyComboValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                              ToolTip="当前元素字体；空值继承默认字体" />
+                                    <Grid Grid.Column="0" Margin="0,0,4,0">
+                                        <ComboBox Style="{StaticResource WorkbenchFontComboStyle}" Margin="0"
+                                                  ItemsSource="{Binding EditorFontPickerItems}"
+                                                  SelectedItem="{Binding SelectedEditorFontPickItem, Mode=TwoWay}"
+                                                  ToolTip="当前元素字体；未指定时跟随版式默认字体" />
+                                        <TextBlock Margin="8,0,28,0" VerticalAlignment="Center"
+                                                   IsHitTestVisible="False"
+                                                   Text="{Binding SelectedEditorFontPickItem.Display}"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                                   FontSize="{DynamicResource BaseFontSize}"
+                                                   TextTrimming="CharacterEllipsis" />
+                                    </Grid>
                                     <Button Grid.Column="1" Content="系统…" VerticalAlignment="Center"
                                             Command="{Binding PickWorkbenchSystemFontCommand}" CommandParameter="editor"
                                             Style="{StaticResource StandardButtonStyle}" Padding="8,4" Margin="0,0,4,0"
@@ -290,10 +351,18 @@
                                         <ColumnDefinition Width="Auto" />
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
-                                    <ComboBox Grid.Column="0" Style="{StaticResource WorkbenchFontComboStyle}"
-                                              ItemsSource="{Binding LayoutDefaultFontPickerItems}"
-                                              SelectedValue="{Binding LayoutDefaultFontFamilyComboValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                              ToolTip="版式默认字体" />
+                                    <Grid Grid.Column="0" Margin="0,0,4,0">
+                                        <ComboBox Style="{StaticResource WorkbenchFontComboStyle}" Margin="0"
+                                                  ItemsSource="{Binding LayoutDefaultFontPickerItems}"
+                                                  SelectedItem="{Binding SelectedLayoutDefaultFontPickItem, Mode=TwoWay}"
+                                                  ToolTip="版式默认字体；元素未指定字体时使用" />
+                                        <TextBlock Margin="8,0,28,0" VerticalAlignment="Center"
+                                                   IsHitTestVisible="False"
+                                                   Text="{Binding SelectedLayoutDefaultFontPickItem.Display}"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                                   FontSize="{DynamicResource BaseFontSize}"
+                                                   TextTrimming="CharacterEllipsis" />
+                                    </Grid>
                                     <Button Grid.Column="1" Content="系统…" VerticalAlignment="Center"
                                             Command="{Binding PickWorkbenchSystemFontCommand}" CommandParameter="default"
                                             Style="{StaticResource StandardButtonStyle}" Padding="8,4" Margin="0,0,4,0"

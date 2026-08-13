@@ -29,13 +29,25 @@ public partial class TicketPreviewWindow : Window
     private static bool IsTextInputFocused()
     {
         var el = Keyboard.FocusedElement;
-        return el is TextBox or PasswordBox or RichTextBox;
+        return el is TextBoxBase or PasswordBox;
     }
 
-    private static bool IsSpacePanKeyboardContext()
+    private static bool IsComboBoxFocused() => Keyboard.FocusedElement is ComboBox;
+
+    /// <summary>
+    ///     空格用于画布平移。版式工作台中即便焦点在 CheckBox/Button 上也拦截空格，
+    ///     避免「成组移动」等复选框被误切换；文本框与 ComboBox 仍保留空格输入。
+    /// </summary>
+    private bool IsSpacePanKeyboardContext()
     {
-        var el = Keyboard.FocusedElement;
-        return el is not TextBox and not PasswordBox and not RichTextBox and not ComboBox and not ButtonBase;
+        if (IsTextInputFocused() || IsComboBoxFocused())
+            return false;
+
+        if (DataContext is TicketPreviewViewModel { IsLayoutWorkbench: true })
+            return true;
+
+        // 行程预览：焦点在按钮/复选框时让空格走控件默认（勾选），其余可平移
+        return Keyboard.FocusedElement is not ButtonBase;
     }
 
     private void TicketPreviewWindow_PreviewKeyDown(object sender, KeyEventArgs e)
