@@ -1,10 +1,15 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Linq;
 using System.Windows;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using GuiPiao.Controls;
+using GuiPiao.Icons;
 using GuiPiao.Messages;
+using GuiPiao.Model;
 using GuiPiao.Utils;
 using GuiPiao.ViewModel;
 using GuiPiao.ViewModel.TrainTicketForm;
@@ -16,6 +21,8 @@ public partial class AddTrainTicketWindow : Window
     private bool _isRescheduleChangeDestination;
     private bool _isRescheduleMode;
     private bool _isUndoRedoMessageRegistered;
+    private TicketImportDraft? _importDraft;
+    private IReadOnlyList<TicketImportDraft>? _importDrafts;
     private string? _rescheduleArriveStation;
     private string? _rescheduleDepartStation;
 
@@ -45,6 +52,34 @@ public partial class AddTrainTicketWindow : Window
         return window;
     }
 
+    /// <summary>
+    ///     创建 OCR/粘贴导入预填窗口
+    /// </summary>
+    public static AddTrainTicketWindow CreateFromImportDraft(TicketImportDraft draft)
+    {
+        return new AddTrainTicketWindow
+        {
+            _importDraft = draft
+        };
+    }
+
+    /// <summary>
+    ///     创建多图 OCR 导入窗口（同一窗左右切换）
+    /// </summary>
+    public static AddTrainTicketWindow CreateFromImportDrafts(IReadOnlyList<TicketImportDraft> drafts)
+    {
+        if (drafts == null || drafts.Count == 0)
+            throw new ArgumentException("识别稿列表不能为空", nameof(drafts));
+
+        if (drafts.Count == 1)
+            return CreateFromImportDraft(drafts[0]);
+
+        return new AddTrainTicketWindow
+        {
+            _importDrafts = drafts.ToList()
+        };
+    }
+
     private async void OnWindowLoaded(object sender, RoutedEventArgs e)
     {
         // 创建 ViewModel
@@ -61,10 +96,10 @@ public partial class AddTrainTicketWindow : Window
         FormView.DataContext = viewModel;
 
         // 设置标题
-        TitleTextBlock.Text = $"🎫 {viewModel.WindowTitle}";
+        TitleTextBlock.Text = viewModel.WindowTitle;
 
         // 设置按钮绑定
-        SaveButton.Content = $"💾 {viewModel.SaveButtonText}";
+        SaveButton.Content = IconLabel.Create(AppIcons.Save, viewModel.SaveButtonText);
         SaveButton.Command = viewModel.SaveCommand;
         CancelButton.Command = viewModel.CancelCommand;
 
@@ -77,6 +112,16 @@ public partial class AddTrainTicketWindow : Window
             viewModel.IsRescheduleMode = true;
             await viewModel.ApplyRescheduleDataAsync(_rescheduleDepartStation ?? string.Empty,
                 _rescheduleArriveStation ?? string.Empty, _isRescheduleChangeDestination);
+        }
+        else if (_importDrafts != null && _importDrafts.Count > 0)
+        {
+            await viewModel.InitializeImportBatchAsync(_importDrafts);
+            TitleTextBlock.Text = viewModel.WindowTitle;
+            SaveButton.Content = IconLabel.Create(AppIcons.Save, viewModel.SaveButtonText);
+        }
+        else if (_importDraft != null)
+        {
+            await viewModel.ApplyImportDraftAsync(_importDraft);
         }
 
         // 订阅属性变更事件以检测更改（在 ViewModel 初始化完成后订阅）
@@ -130,34 +175,67 @@ public partial class AddTrainTicketWindow : Window
             e.PropertyName != nameof(vm.StationNames) &&
             e.PropertyName != nameof(vm.SelectedTagIds))
             vm.CheckForChanges();
+
+        if (sender is AddTrainTicketViewModel addVm)
+        {
+            if (e.PropertyName is nameof(AddTrainTicketViewModel.WindowTitle) or nameof(AddTrainTicketViewModel.BatchPositionText))
+                TitleTextBlock.Text = addVm.WindowTitle;
+
+            if (e.PropertyName == nameof(AddTrainTicketViewModel.SaveButtonText))
+                SaveButton.Content = IconLabel.Create(AppIcons.Save, addVm.SaveButtonText);
+        }
     }
 
     private async void OnWindowClosing(object? sender, CancelEventArgs e)
     {
-        // 获取 ViewModel（直接从 DataContext 获取，确保不为 null）
         if (DataContext is not TrainTicketFormViewModelBase vm) return;
 
-        // 检查是否有必填项未填写
+        var addVm = DataContext as AddTrainTicketViewModel;
+        var isBatch = addVm?.IsImportBatchMode == true;
+        var unsavedBatchCount = isBatch ? addVm!.CountUnsavedBatchItems() : 0;
+
+        // 必填项：单张/多图共用同一确认框，多图附加队列说明
         if (vm.HasRequiredFieldsEmpty())
         {
-            var emptyFields = vm.GetEmptyRequiredFields();
-            var fieldsText = string.Join("、", emptyFields);
+            var fieldsText = string.Join("、", vm.GetEmptyRequiredFields());
+            var message = isBatch
+                ? $"当前行程（{addVm!.BatchPositionText}）以下必填项尚未填写：\n{fieldsText}\n\n" +
+                  $"队列中尚有 {unsavedBatchCount} 条未保存。关闭后未保存内容将丢失。\n\n" +
+                  "是否仍要关闭窗口？"
+                : $"以下必填项尚未填写：\n{fieldsText}\n\n是否仍要关闭窗口？";
 
             var result = MessageBoxWindow.Show(
                 this,
-                $"以下必填项尚未填写：\n{fieldsText}\n\n是否仍要关闭窗口？",
+                message,
                 "必填项未填写",
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Warning);
 
-            if (result == MessageBoxResult.No) e.Cancel = true;
+            if (result == MessageBoxResult.No)
+                e.Cancel = true;
             return;
         }
 
-        // 检查是否有未保存的更改
+        // 多图：有未保存则 Yes/No 丢弃，不走「是否保存更改」
+        if (isBatch)
+        {
+            if (unsavedBatchCount == 0)
+                return;
+
+            var batchResult = MessageBoxWindow.Show(
+                this,
+                $"队列中尚有 {unsavedBatchCount} 条未保存。关闭后未保存内容将丢失。\n\n是否仍要关闭窗口？",
+                "未保存的行程",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning);
+
+            if (batchResult == MessageBoxResult.No)
+                e.Cancel = true;
+            return;
+        }
+
         if (!vm.HasUnsavedChanges) return;
 
-        // 显示确认对话框
         var result2 = MessageBoxWindow.Show(
             this,
             "您有未保存的车票信息。\n\n是否保存更改？",
@@ -188,9 +266,8 @@ public partial class AddTrainTicketWindow : Window
                 }
                 catch (Exception ex)
                 {
-                    // 保存失败，显示错误信息
                     MessageBoxWindow.Show(
-                        null, // 不传递 owner，避免窗口状态问题
+                        null,
                         $"保存失败：{ex.Message}",
                         "错误",
                         MessageBoxButton.OK,
@@ -199,11 +276,9 @@ public partial class AddTrainTicketWindow : Window
 
                 break;
             case MessageBoxResult.No:
-                // 放弃更改，直接关闭
                 break;
             case MessageBoxResult.Cancel:
             default:
-                // 取消关闭
                 e.Cancel = true;
                 break;
         }

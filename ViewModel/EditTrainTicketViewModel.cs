@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using GuiPiao.View;
 using GuiPiao.ViewModel.TrainTicketForm;
+using GuiPiao.Model;
 
 namespace GuiPiao.ViewModel;
 
@@ -45,6 +46,14 @@ public class EditTrainTicketViewModel : TrainTicketFormViewModelBase
     }
 
     /// <summary>
+    ///     在已加载行程上叠 OCR/粘贴识别稿（预填覆盖，不落库）。
+    /// </summary>
+    public async Task ApplyImportDraftAsync(TicketImportDraft draft)
+    {
+        await FillFromImportDraftAsync(draft);
+    }
+
+    /// <summary>
     ///     执行保存操作 - 更新现有车票
     /// </summary>
     protected override async Task ExecuteSaveAsync()
@@ -62,24 +71,10 @@ public class EditTrainTicketViewModel : TrainTicketFormViewModelBase
         _logService.Info("EditTrainTicketViewModel",
             $"保存前: EditTicketId={EditTicketId.Value}, DepartTimeValue={DepartTimeValue}, DepartTime='{DepartTime}'");
 
-        var trainRide = CreateTrainRideInfo();
-        _logService.Info("EditTrainTicketViewModel",
-            $"保存数据: ID={trainRide.Id}, TrainNo={trainRide.TrainNo}, DepartStation={trainRide.DepartStation}, ArriveStation={trainRide.ArriveStation}");
-
         try
         {
-            // 更新车票信息
-            var rowsAffected = await _trainRideRepository.UpdateTrainRideAsync(trainRide);
-            _logService.Info("EditTrainTicketViewModel", $"更新数据库完成，影响行数: {rowsAffected}");
-
-            if (rowsAffected == 0)
-            {
-                _logService.Error("EditTrainTicketViewModel", "更新失败：没有行被更新，可能是ID不存在");
-                throw new InvalidOperationException("未找到对应的车票记录，可能已被删除");
-            }
-
-            // 更新标签关联
-            await SaveTagsAsync(EditTicketId.Value);
+            await UpdateExistingTrainRideAsync();
+            _logService.Info("EditTrainTicketViewModel", $"更新数据库完成，ID={EditTicketId.Value}");
 
             // 重要：在显示成功消息和关闭窗口之前，先重置未保存更改标志
             // 这样关闭窗口时不会再次弹出确认对话框

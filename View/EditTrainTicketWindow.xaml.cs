@@ -4,7 +4,10 @@ using System.ComponentModel;
 using System.Windows;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using GuiPiao.Controls;
+using GuiPiao.Icons;
 using GuiPiao.Messages;
+using GuiPiao.Model;
 using GuiPiao.Utils;
 using GuiPiao.ViewModel;
 using GuiPiao.ViewModel.TrainTicketForm;
@@ -17,6 +20,7 @@ public partial class EditTrainTicketWindow : Window
     private static readonly object _lock = new();
     private readonly int? _ticketId;
     private bool _isUndoRedoMessageRegistered;
+    private TicketImportDraft? _importDraft;
 
     public EditTrainTicketWindow()
     {
@@ -28,6 +32,18 @@ public partial class EditTrainTicketWindow : Window
     public EditTrainTicketWindow(int ticketId) : this()
     {
         _ticketId = ticketId;
+    }
+
+    /// <summary>
+    ///     打开编辑窗并叠 OCR/粘贴识别稿。
+    /// </summary>
+    public static EditTrainTicketWindow CreateFromImportDraft(int ticketId, TicketImportDraft draft)
+    {
+        var window = GetInstance(ticketId);
+        window._importDraft = draft;
+        if (window.DataContext is EditTrainTicketViewModel vm)
+            _ = vm.ApplyImportDraftAsync(draft);
+        return window;
     }
 
     public static EditTrainTicketWindow GetInstance(int ticketId)
@@ -55,9 +71,12 @@ public partial class EditTrainTicketWindow : Window
 
         if (_ticketId.HasValue) await viewModel.LoadTicketByIdAsync(_ticketId.Value);
 
-        TitleTextBlock.Text = $"✏️ {viewModel.WindowTitle}";
+        if (_importDraft != null)
+            await viewModel.ApplyImportDraftAsync(_importDraft);
 
-        SaveButton.Content = $"💾 {viewModel.SaveButtonText}";
+        TitleTextBlock.Text = viewModel.WindowTitle;
+
+        SaveButton.Content = IconLabel.Create(AppIcons.Save, viewModel.SaveButtonText);
         SaveButton.Command = viewModel.SaveCommand;
         CancelButton.Command = viewModel.CancelCommand;
 

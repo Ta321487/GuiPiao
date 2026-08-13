@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using GuiPiao.Model;
 using GuiPiao.Models;
@@ -40,7 +41,7 @@ public class OcrRecognitionService
 
         try
         {
-            progress?.Report("正在初始化OCR引擎...");
+            progress?.Report("初始化 OCR 引擎…");
 
             // 生成Python脚本
             var script = GenerateOcrScript(imagePath, config);
@@ -50,13 +51,13 @@ public class OcrRecognitionService
             {
                 // 写入临时脚本
                 await File.WriteAllTextAsync(tempScriptPath, script, Encoding.UTF8);
-                progress?.Report("正在执行OCR识别...");
+                progress?.Report("执行 OCR 识别…（首次加载模型可能需数十秒）");
 
                 // 执行Python脚本
                 var processInfo = new ProcessStartInfo
                 {
                     FileName = config.PythonPath,
-                    Arguments = tempScriptPath,
+                    Arguments = $"\"{tempScriptPath}\"",
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
                     UseShellExecute = false,
@@ -68,17 +69,44 @@ public class OcrRecognitionService
                 using var process = Process.Start(processInfo);
                 if (process == null) throw new Exception("无法启动Python进程");
 
-                var output = await process.StandardOutput.ReadToEndAsync();
-                var error = await process.StandardError.ReadToEndAsync();
+                // 并行读 stdout/stderr，避免缓冲区堵死；等待期间刷新秒数提示
+                var outputTask = process.StandardOutput.ReadToEndAsync();
+                var errorTask = process.StandardError.ReadToEndAsync();
+                var sw = Stopwatch.StartNew();
+                using var heartbeatCts = new CancellationTokenSource();
+                var heartbeat = Task.Run(async () =>
+                {
+                    try
+                    {
+                        while (!heartbeatCts.Token.IsCancellationRequested)
+                        {
+                            await Task.Delay(1000, heartbeatCts.Token);
+                            if (process.HasExited) break;
+                            var sec = (int)sw.Elapsed.TotalSeconds;
+                            progress?.Report(
+                                $"执行 OCR 识别…（已等待 {sec} 秒；首次加载 CnOCR 模型耗时较长）");
+                        }
+                    }
+                    catch (OperationCanceledException)
+                    {
+                    }
+                }, heartbeatCts.Token);
+
+                await Task.WhenAll(outputTask, errorTask);
                 await process.WaitForExitAsync();
+                heartbeatCts.Cancel();
+                try { await heartbeat; } catch { /* ignore */ }
+
+                var output = outputTask.Result;
+                var error = errorTask.Result;
 
                 if (process.ExitCode != 0) throw new Exception($"OCR执行失败: {error}");
 
-                progress?.Report("正在解析识别结果...");
+                progress?.Report("解析识别结果…");
 
                 // 解析结果
                 var results = ParseOcrResults(output);
-                progress?.Report($"识别完成，共识别 {results.Count} 个文本区域");
+                progress?.Report($"识别完成，共 {results.Count} 个文本区域");
 
                 return results;
             }
@@ -111,6 +139,8 @@ public class OcrRecognitionService
         var confidenceThreshold = config.ConfidenceThreshold;
         var autoRotate = config.AutoRotateImage;
         var enablePreprocessing = config.EnableImagePreprocessing;
+        // 与设置页校验一致：夹在 100～4096
+        var maxImageSize = Math.Clamp(config.MaxImageSize <= 0 ? 1920 : config.MaxImageSize, 100, 4096);
 
         return $@"
 import sys
@@ -136,6 +166,23 @@ class NumpyEncoder(json.JSONEncoder):
             return int(obj)
         return super().default(obj)
 
+def resize_image_if_needed(img_path, max_size):
+    # 若最长边超过 max_size，按比例缩小并写出临时文件
+    img = Image.open(img_path)
+    w, h = img.size
+    long_side = max(w, h)
+    if long_side <= max_size:
+        return img_path
+    scale = max_size / float(long_side)
+    new_w = max(1, int(round(w * scale)))
+    new_h = max(1, int(round(h * scale)))
+    img = img.resize((new_w, new_h), Image.LANCZOS)
+    temp_path = img_path + '.resized.png'
+    if img.mode in ('RGBA', 'P'):
+        img = img.convert('RGB')
+    img.save(temp_path)
+    return temp_path
+
 def preprocess_image(img_path):
     img = cv2.imread(img_path)
     if img is None:
@@ -159,6 +206,9 @@ def auto_rotate_image(img_path):
 try:
     img_fp = r'{imagePath.Replace("\\", "/")}'
     processed_img = img_fp
+
+    # 最大边限制（设置页「最大图片尺寸」）
+    processed_img = resize_image_if_needed(processed_img, {maxImageSize})
     
     # 自动旋转
     {(autoRotate ? "processed_img = auto_rotate_image(processed_img)" : "")}

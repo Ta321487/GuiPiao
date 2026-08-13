@@ -409,9 +409,28 @@ public abstract partial class TrainTicketFormViewModelBase : ObservableObject
     }
 
     /// <summary>
+    ///     用克隆的表单数据覆盖当前表单并同步到绑定属性（加载/批次切换时使用）。
+    /// </summary>
+    protected void ApplyFormDataClone(TrainTicketFormData data)
+    {
+        if (data == null) return;
+        _isLoadingExistingData = true;
+        try
+        {
+            data.CopyTo(_formData);
+            SyncFromFormData();
+            UpdateSeatLetterOptions();
+        }
+        finally
+        {
+            _isLoadingExistingData = false;
+        }
+    }
+
+    /// <summary>
     ///     从FormData同步到属性
     /// </summary>
-    private void SyncFromFormData()
+    protected void SyncFromFormData()
     {
         SelectedTrainNoPrefix = _formData.SelectedTrainNoPrefix;
         TrainNoNumber = _formData.TrainNoNumber;
@@ -458,78 +477,6 @@ public abstract partial class TrainTicketFormViewModelBase : ObservableObject
             $"[SyncFromFormData] SelectedTagIds 已同步: [{string.Join(",", SelectedTagIds)}]");
     }
 
-    /// <summary>
-    ///     撤销重做状态恢复回调
-    /// </summary>
-    private void OnUndoRedoStateRestored(FormState state, bool isUndo)
-    {
-        _isUndoingOrRedoing = true;
-        try
-        {
-            state.ApplyTo(_formData);
-            SyncFromFormData();
-
-            if (isUndo)
-                MarkOperationAsUndone(state.PropertyName);
-            else
-                UnmarkOperationAsUndone(state.PropertyName);
-
-            CheckForChanges();
-        }
-        finally
-        {
-            _isUndoingOrRedoing = false;
-        }
-    }
-
-    /// <summary>
-    ///     撤销重做状态保存回调
-    /// </summary>
-    private void OnUndoRedoStateSaved(FormState state)
-    {
-        // 状态已保存，可以在这里添加额外逻辑
-    }
-
-    /// <summary>
-    ///     更新撤销重做命令状态
-    /// </summary>
-    private void UpdateUndoRedoCommands()
-    {
-        // 实时读取配置，确保设置变更后立即生效
-        var enableUndo = _generalSettingsService.Config.EnableUndo;
-        var canUndo = _undoRedoManager.CanUndo && enableUndo;
-        var canRedo = _undoRedoManager.CanRedo && enableUndo;
-
-        _logService?.Info("TrainTicketFormViewModelBase",
-            $"UpdateUndoRedoCommands: EnableUndo={enableUndo}, Manager.CanUndo={_undoRedoManager.CanUndo}, CanUndo={canUndo}");
-
-        CanUndo = canUndo;
-        CanRedo = canRedo;
-
-        // 通知命令的 CanExecute 状态已变更
-        UndoCommand.NotifyCanExecuteChanged();
-        RedoCommand.NotifyCanExecuteChanged();
-    }
-
-    /// <summary>
-    ///     刷新撤销重做设置（在设置变更后调用）
-    /// </summary>
-    public void RefreshUndoRedoSettings()
-    {
-        _logService?.Info("TrainTicketFormViewModelBase", "RefreshUndoRedoSettings 被调用");
-
-        // 重新加载配置
-        _generalSettingsService.RefreshConfig();
-
-        _logService?.Info("TrainTicketFormViewModelBase",
-            $"刷新后 EnableUndo={_generalSettingsService.Config.EnableUndo}, MaxUndoSteps={_generalSettingsService.Config.MaxUndoSteps}");
-
-        // 更新最大撤销步数
-        _undoRedoManager.Initialize(_generalSettingsService.Config.MaxUndoSteps);
-
-        // 更新命令状态
-        UpdateUndoRedoCommands();
-    }
 
     /// <summary>
     ///     更新座位字母选项
@@ -543,236 +490,6 @@ public abstract partial class TrainTicketFormViewModelBase : ObservableObject
         if (SeatLetterOptions.Count > 0 && !SeatLetterOptions.Contains(SelectedSeatLetter))
             SelectedSeatLetter = SeatLetterOptions[0];
         else if (SeatLetterOptions.Count == 0) SelectedSeatLetter = string.Empty;
-    }
-
-    /// <summary>
-    ///     异步查询出发车站信息
-    /// </summary>
-    protected async Task QueryDepartStationInfoAsync()
-    {
-        if (string.IsNullOrWhiteSpace(DepartStationInput))
-        {
-            DepartStationCode = string.Empty;
-            DepartStationPinyin = string.Empty;
-            return;
-        }
-
-        try
-        {
-            var station = await _stationQueryService.QueryStationAsync(DepartStationInput);
-            if (station != null)
-            {
-                DepartStationCode = station.StationCode ?? string.Empty;
-                DepartStationPinyin = station.StationPinyin ?? string.Empty;
-                _logService?.Info("TrainTicketFormViewModelBase",
-                    $"查询出发车站成功: {DepartStationInput} -> 代码:{DepartStationCode}, 拼音:{DepartStationPinyin}");
-            }
-            else
-            {
-                DepartStationCode = string.Empty;
-                DepartStationPinyin = string.Empty;
-                _logService?.Info("TrainTicketFormViewModelBase", $"未找到出发车站: {DepartStationInput}");
-            }
-        }
-        catch (Exception ex)
-        {
-            _logService?.Error("TrainTicketFormViewModelBase", $"查询出发车站失败: {ex.Message}");
-        }
-    }
-
-    /// <summary>
-    ///     异步查询到达车站信息
-    /// </summary>
-    protected async Task QueryArriveStationInfoAsync()
-    {
-        if (string.IsNullOrWhiteSpace(ArriveStationInput))
-        {
-            ArriveStationCode = string.Empty;
-            ArriveStationPinyin = string.Empty;
-            return;
-        }
-
-        try
-        {
-            var station = await _stationQueryService.QueryStationAsync(ArriveStationInput);
-            if (station != null)
-            {
-                ArriveStationCode = station.StationCode ?? string.Empty;
-                ArriveStationPinyin = station.StationPinyin ?? string.Empty;
-                _logService?.Info("TrainTicketFormViewModelBase",
-                    $"查询到达车站成功: {ArriveStationInput} -> 代码:{ArriveStationCode}, 拼音:{ArriveStationPinyin}");
-            }
-            else
-            {
-                ArriveStationCode = string.Empty;
-                ArriveStationPinyin = string.Empty;
-                _logService?.Info("TrainTicketFormViewModelBase", $"未找到到达车站: {ArriveStationInput}");
-            }
-        }
-        catch (Exception ex)
-        {
-            _logService?.Error("TrainTicketFormViewModelBase", $"查询到达车站失败: {ex.Message}");
-        }
-    }
-
-    /// <summary>
-    ///     异步搜索出发车站联想建议
-    /// </summary>
-    private async Task SearchDepartStationSuggestionsAsync()
-    {
-        _logService?.Info("TrainTicketFormViewModelBase",
-            $"[DEBUG] SearchDepartStationSuggestionsAsync 开始执行，输入: '{DepartStationInput}'");
-
-        if (string.IsNullOrWhiteSpace(DepartStationInput) || DepartStationInput.Length < 1)
-        {
-            _logService?.Info("TrainTicketFormViewModelBase", "[DEBUG] 输入为空或长度小于1，清空建议并关闭下拉框");
-            if (DepartStationSuggestions.Count > 0)
-                DepartStationSuggestions.Clear();
-            IsDepartStationDropdownOpen = false;
-            return;
-        }
-
-        try
-        {
-            _logService?.Info("TrainTicketFormViewModelBase", $"[DEBUG] 开始搜索车站，关键词: '{DepartStationInput}'");
-            var suggestions = await _stationQueryService.SmartSearchStationNamesAsync(DepartStationInput);
-            _logService?.Info("TrainTicketFormViewModelBase", $"[DEBUG] 搜索完成，找到 {suggestions.Count} 个建议");
-
-            // 使用临时集合避免多次触发CollectionChanged事件
-            var newSuggestions = new ObservableCollection<string>(suggestions);
-            DepartStationSuggestions = newSuggestions;
-            OnPropertyChanged(nameof(DepartStationSuggestions));
-
-            // 有建议时打开下拉框
-            var shouldOpen = DepartStationSuggestions.Count > 0;
-            _logService?.Info("TrainTicketFormViewModelBase",
-                $"[DEBUG] 建议数量: {DepartStationSuggestions.Count}, 是否打开下拉框: {shouldOpen}");
-            IsDepartStationDropdownOpen = shouldOpen;
-            DepartStationSelectedIndex = -1;
-
-            _logService?.Info("TrainTicketFormViewModelBase",
-                $"[DEBUG] IsDepartStationDropdownOpen 设置为: {IsDepartStationDropdownOpen}");
-        }
-        catch (Exception ex)
-        {
-            _logService?.Error("TrainTicketFormViewModelBase", $"[DEBUG] 搜索出发车站联想失败: {ex.Message}");
-            _logService?.Error("TrainTicketFormViewModelBase", $"[DEBUG] 异常详情: {ex.StackTrace}");
-        }
-    }
-
-    /// <summary>
-    ///     异步搜索到达车站联想建议
-    /// </summary>
-    private async Task SearchArriveStationSuggestionsAsync()
-    {
-        _logService?.Info("TrainTicketFormViewModelBase",
-            $"[DEBUG] SearchArriveStationSuggestionsAsync 开始执行，输入: '{ArriveStationInput}'");
-
-        if (string.IsNullOrWhiteSpace(ArriveStationInput) || ArriveStationInput.Length < 1)
-        {
-            _logService?.Info("TrainTicketFormViewModelBase", "[DEBUG] 输入为空或长度小于1，清空建议并关闭下拉框");
-            if (ArriveStationSuggestions.Count > 0)
-                ArriveStationSuggestions.Clear();
-            IsArriveStationDropdownOpen = false;
-            return;
-        }
-
-        try
-        {
-            _logService?.Info("TrainTicketFormViewModelBase", $"[DEBUG] 开始搜索车站，关键词: '{ArriveStationInput}'");
-            var suggestions = await _stationQueryService.SmartSearchStationNamesAsync(ArriveStationInput);
-            _logService?.Info("TrainTicketFormViewModelBase", $"[DEBUG] 搜索完成，找到 {suggestions.Count} 个建议");
-
-            // 使用临时集合避免多次触发CollectionChanged事件
-            var newSuggestions = new ObservableCollection<string>(suggestions);
-            ArriveStationSuggestions = newSuggestions;
-            OnPropertyChanged(nameof(ArriveStationSuggestions));
-
-            // 有建议时打开下拉框
-            var shouldOpen = ArriveStationSuggestions.Count > 0;
-            _logService?.Info("TrainTicketFormViewModelBase",
-                $"[DEBUG] 建议数量: {ArriveStationSuggestions.Count}, 是否打开下拉框: {shouldOpen}");
-            IsArriveStationDropdownOpen = shouldOpen;
-            ArriveStationSelectedIndex = -1;
-
-            _logService?.Info("TrainTicketFormViewModelBase",
-                $"[DEBUG] IsArriveStationDropdownOpen 设置为: {IsArriveStationDropdownOpen}");
-        }
-        catch (Exception ex)
-        {
-            _logService?.Error("TrainTicketFormViewModelBase", $"[DEBUG] 搜索到达车站联想失败: {ex.Message}");
-            _logService?.Error("TrainTicketFormViewModelBase", $"[DEBUG] 异常详情: {ex.StackTrace}");
-        }
-    }
-
-    /// <summary>
-    ///     出发车站文本改变命令（供 AutoCompleteTextBox 使用）
-    /// </summary>
-    [RelayCommand]
-    private async Task DepartStationTextChanged(string keyword)
-    {
-        DepartStationInput = keyword;
-        await SearchDepartStationSuggestionsAsync();
-    }
-
-    /// <summary>
-    ///     到达车站文本改变命令（供 AutoCompleteTextBox 使用）
-    /// </summary>
-    [RelayCommand]
-    private async Task ArriveStationTextChanged(string keyword)
-    {
-        ArriveStationInput = keyword;
-        await SearchArriveStationSuggestionsAsync();
-    }
-
-    /// <summary>
-    ///     选择出发车站联想项
-    /// </summary>
-    [RelayCommand]
-    public void SelectDepartStation(string suggestion)
-    {
-        if (string.IsNullOrEmpty(suggestion))
-            return;
-
-        _isProcessingLinkedChanges = true;
-        try
-        {
-            DepartStationInput = suggestion;
-            IsDepartStationDropdownOpen = false;
-            DepartStationSuggestions.Clear();
-
-            // 触发车站信息查询
-            _ = QueryDepartStationInfoAsync();
-        }
-        finally
-        {
-            _isProcessingLinkedChanges = false;
-        }
-    }
-
-    /// <summary>
-    ///     选择到达车站联想项
-    /// </summary>
-    [RelayCommand]
-    public void SelectArriveStation(string suggestion)
-    {
-        if (string.IsNullOrEmpty(suggestion))
-            return;
-
-        _isProcessingLinkedChanges = true;
-        try
-        {
-            ArriveStationInput = suggestion;
-            IsArriveStationDropdownOpen = false;
-            ArriveStationSuggestions.Clear();
-
-            // 触发车站信息查询
-            _ = QueryArriveStationInfoAsync();
-        }
-        finally
-        {
-            _isProcessingLinkedChanges = false;
-        }
     }
 
     /// <summary>
@@ -880,6 +597,23 @@ public abstract partial class TrainTicketFormViewModelBase : ObservableObject
     }
 
     /// <summary>
+    ///     将脏检查基线设为指定快照（批次切换恢复时使用）。
+    /// </summary>
+    protected void SetOriginalFormData(TrainTicketFormData? original)
+    {
+        _originalFormData = original?.Clone();
+        CheckForChanges();
+    }
+
+    /// <summary>
+    ///     当前脏检查基线的克隆；无基线时返回 null。
+    /// </summary>
+    protected TrainTicketFormData? CloneOriginalFormData()
+    {
+        return _originalFormData?.Clone();
+    }
+
+    /// <summary>
     ///     检查是否有未保存的更改
     /// </summary>
     public void CheckForChanges()
@@ -947,243 +681,6 @@ public abstract partial class TrainTicketFormViewModelBase : ObservableObject
                a.SelectedTagIds.OrderBy(x => x).SequenceEqual(b.SelectedTagIds.OrderBy(x => x));
     }
 
-    /// <summary>
-    ///     添加操作历史记录
-    /// </summary>
-    private void AddOperationHistory(string propertyName)
-    {
-        var description = GetPropertyDescription(propertyName);
-        var newValue = GetPropertyValue(propertyName);
-
-        var item = new OperationHistoryItem
-        {
-            Index = OperationHistory.Count + 1,
-            PropertyName = propertyName,
-            Description = description,
-            NewValue = newValue,
-            Timestamp = DateTime.Now,
-            IsUndone = false
-        };
-
-        OperationHistory.Insert(0, item);
-
-        var maxSteps = _generalSettingsService.Config.MaxUndoSteps;
-        while (OperationHistory.Count > maxSteps && maxSteps > 0) OperationHistory.RemoveAt(OperationHistory.Count - 1);
-    }
-
-    /// <summary>
-    ///     获取属性描述
-    /// </summary>
-    private string GetPropertyDescription(string propertyName)
-    {
-        return propertyName switch
-        {
-            nameof(TrainNoNumber) => "修改车次号",
-            nameof(SelectedTrainNoPrefix) => "修改车次前缀",
-            nameof(DepartStationInput) => "修改出发车站",
-            nameof(ArriveStationInput) => "修改到达车站",
-            nameof(DepartDateTime) => "修改出发日期",
-            nameof(DepartTimeValue) => "修改出发时间",
-            nameof(ArriveTimeValue) => "修改到达时间",
-            nameof(ArriveDayOffset) => "修改到达跨天",
-            nameof(CoachNoInput) => "修改车厢号",
-            nameof(IsJiaChe) => "修改加车",
-            nameof(SeatNoNumber) => "修改座位号",
-            nameof(SelectedSeatLetter) => "修改座位字母",
-            nameof(IsNoSeat) => "修改无座状态",
-            nameof(MoneyText) => "修改金额",
-            nameof(SeatType) => "修改席别",
-            nameof(AdditionalInfo) => "修改附加信息",
-            nameof(TicketPurpose) => "修改车票用途",
-            nameof(TicketModificationType) => "修改改签类型",
-            nameof(Hint) => "修改提示信息",
-            nameof(SelectedStatus) => "修改状态",
-            nameof(IsStudentTicket) => "修改学生票",
-            nameof(IsDiscountTicket) => "修改优惠票",
-            nameof(IsOnlineTicket) => "修改网络售票",
-            nameof(IsChildTicket) => "修改儿童票",
-            nameof(IsAlipay) => "修改支付宝",
-            nameof(IsWeChat) => "修改微信",
-            nameof(IsABC) => "修改农业银行",
-            nameof(IsCCB) => "修改建设银行",
-            nameof(IsICBC) => "修改工商银行",
-            nameof(IsBCOM) => "修改交通银行",
-            nameof(IsCMB) => "修改招商银行",
-            nameof(IsPSBC) => "修改邮储银行",
-            nameof(IsBOC) => "修改中国银行",
-            nameof(TicketNumber) => "修改取票号",
-            nameof(CheckInLocation) => "修改检票位置",
-            nameof(SelectedTagIds) => "修改标签",
-            _ => $"修改 {propertyName}"
-        };
-    }
-
-    /// <summary>
-    ///     获取属性当前值
-    /// </summary>
-    private string GetPropertyValue(string propertyName)
-    {
-        return propertyName switch
-        {
-            nameof(TrainNoNumber) => TrainNoNumber ?? string.Empty,
-            nameof(SelectedTrainNoPrefix) => SelectedTrainNoPrefix ?? string.Empty,
-            nameof(DepartStationInput) => DepartStationInput ?? string.Empty,
-            nameof(ArriveStationInput) => ArriveStationInput ?? string.Empty,
-            nameof(DepartDateTime) => DepartDateTime.HasValue
-                ? RideDateTime.FormatDate(DepartDateTime.Value)
-                : string.Empty,
-            nameof(DepartTimeValue) => DepartTimeValue.HasValue
-                ? RideDateTime.FormatTime(DepartTimeValue.Value)
-                : string.Empty,
-            nameof(ArriveTimeValue) => ArriveTimeValue.HasValue
-                ? RideDateTime.FormatTime(ArriveTimeValue.Value)
-                : string.Empty,
-            nameof(ArriveDayOffset) => ArriveTimeFormat.ToLabel(ArriveDayOffset),
-            nameof(CoachNoInput) => CoachNoInput ?? string.Empty,
-            nameof(IsJiaChe) => IsJiaChe ? "是" : "否",
-            nameof(SeatNoNumber) => SeatNoNumber ?? string.Empty,
-            nameof(SelectedSeatLetter) => SelectedSeatLetter ?? string.Empty,
-            nameof(IsNoSeat) => IsNoSeat ? "是" : "否",
-            nameof(MoneyText) => MoneyText ?? string.Empty,
-            nameof(SeatType) => SeatType ?? string.Empty,
-            nameof(AdditionalInfo) => AdditionalInfo ?? string.Empty,
-            nameof(TicketPurpose) => TicketPurpose ?? string.Empty,
-            nameof(TicketModificationType) => TicketModificationType ?? string.Empty,
-            nameof(Hint) => Hint ?? string.Empty,
-            nameof(SelectedStatus) => SelectedStatus ?? string.Empty,
-            nameof(IsStudentTicket) => IsStudentTicket ? "是" : "否",
-            nameof(IsDiscountTicket) => IsDiscountTicket ? "是" : "否",
-            nameof(IsOnlineTicket) => IsOnlineTicket ? "是" : "否",
-            nameof(IsChildTicket) => IsChildTicket ? "是" : "否",
-            nameof(IsAlipay) => IsAlipay ? "是" : "否",
-            nameof(IsWeChat) => IsWeChat ? "是" : "否",
-            nameof(IsABC) => IsABC ? "是" : "否",
-            nameof(IsCCB) => IsCCB ? "是" : "否",
-            nameof(IsICBC) => IsICBC ? "是" : "否",
-            nameof(IsBCOM) => IsBCOM ? "是" : "否",
-            nameof(IsCMB) => IsCMB ? "是" : "否",
-            nameof(IsPSBC) => IsPSBC ? "是" : "否",
-            nameof(IsBOC) => IsBOC ? "是" : "否",
-            nameof(TicketNumber) => TicketNumber ?? string.Empty,
-            nameof(CheckInLocation) => CheckInLocation ?? string.Empty,
-            nameof(SelectedTagIds) => GetSelectedTagsDisplayValue(),
-            _ => string.Empty
-        };
-    }
-
-    /// <summary>
-    ///     获取已选标签的显示值
-    /// </summary>
-    private string GetSelectedTagsDisplayValue()
-    {
-        if (SelectedTagIds == null || SelectedTagIds.Count == 0)
-            return "无标签";
-
-        var tagNames = new List<string>();
-        foreach (var tagId in SelectedTagIds)
-        {
-            var tag = AvailableTags?.FirstOrDefault(t => t.Id == tagId);
-            if (tag != null) tagNames.Add(tag.Name);
-        }
-
-        return tagNames.Count > 0 ? string.Join(", ", tagNames) : "无标签";
-    }
-
-    /// <summary>
-    ///     标记操作为已撤销
-    /// </summary>
-    private void MarkOperationAsUndone(string propertyName)
-    {
-        if (string.IsNullOrEmpty(propertyName)) return;
-
-        // 查找最新的未撤销记录（列表最前面的是最新的）
-        var item = OperationHistory.FirstOrDefault(h => h.PropertyName == propertyName && !h.IsUndone);
-        if (item != null)
-        {
-            item.IsUndone = true;
-            _logService?.Info("TrainTicketFormViewModelBase", $"标记操作为已撤销: {propertyName}");
-        }
-    }
-
-    /// <summary>
-    ///     取消标记操作为已撤销
-    /// </summary>
-    private void UnmarkOperationAsUndone(string propertyName)
-    {
-        if (string.IsNullOrEmpty(propertyName)) return;
-
-        // 查找最新的已撤销记录（列表最前面的是最新的）
-        var item = OperationHistory.FirstOrDefault(h => h.PropertyName == propertyName && h.IsUndone);
-        if (item != null)
-        {
-            item.IsUndone = false;
-            _logService?.Info("TrainTicketFormViewModelBase", $"取消标记操作为已撤销: {propertyName}");
-        }
-    }
-
-    /// <summary>
-    ///     切换操作历史面板展开/折叠
-    /// </summary>
-    [RelayCommand]
-    public void ToggleOperationHistory()
-    {
-        IsOperationHistoryExpanded = !IsOperationHistoryExpanded;
-    }
-
-    /// <summary>
-    ///     切换标签选择状态
-    /// </summary>
-    [RelayCommand]
-    public void ToggleTagSelection(int tagId)
-    {
-        _logService?.Info("TrainTicketFormViewModelBase", $"[ToggleTagSelection] 开始: tagId={tagId}");
-        _logService?.Info("TrainTicketFormViewModelBase",
-            $"[ToggleTagSelection] 操作前 SelectedTagIds.Count={SelectedTagIds.Count}");
-
-        // 记录操作前状态（UndoRedoManager只保存变更前的状态）
-        // 注意：SelectedTagIds 不在 _formFieldNames 中，不会触发自动撤销重做
-        _undoRedoManager.BeginPropertyChange(nameof(SelectedTagIds));
-        AddOperationHistory(nameof(SelectedTagIds));
-
-        if (SelectedTagIds.Contains(tagId))
-        {
-            _logService?.Info("TrainTicketFormViewModelBase", $"[ToggleTagSelection] 移除标签 {tagId}");
-            SelectedTagIds.Remove(tagId);
-        }
-        else
-        {
-            _logService?.Info("TrainTicketFormViewModelBase", $"[ToggleTagSelection] 添加标签 {tagId}");
-            SelectedTagIds.Add(tagId);
-        }
-
-        _logService?.Info("TrainTicketFormViewModelBase",
-            $"[ToggleTagSelection] 操作后 SelectedTagIds.Count={SelectedTagIds.Count}");
-
-        // 触发属性变更通知，让 PropertyChanged 事件处理器同步到 FormData
-        OnPropertyChanged(nameof(SelectedTagIds));
-
-        _logService?.Info("TrainTicketFormViewModelBase", "[ToggleTagSelection] 完成: OnPropertyChanged 已触发");
-    }
-
-    /// <summary>
-    ///     撤销命令
-    /// </summary>
-    [RelayCommand(CanExecute = nameof(CanUndo))]
-    public void Undo()
-    {
-        _undoRedoManager.Undo();
-        UpdateUndoRedoCommands();
-    }
-
-    /// <summary>
-    ///     重做命令
-    /// </summary>
-    [RelayCommand(CanExecute = nameof(CanRedo))]
-    public void Redo()
-    {
-        _undoRedoManager.Redo();
-        UpdateUndoRedoCommands();
-    }
 
     /// <summary>
     ///     放弃更改，恢复到原始值
@@ -1270,20 +767,21 @@ public abstract partial class TrainTicketFormViewModelBase : ObservableObject
     }
 
     /// <summary>
-    ///     检查是否有必填项未填写
+    ///     静默校验（不弹窗），供 OCR「直接保存」使用。
     /// </summary>
-    public bool HasRequiredFieldsEmpty()
+    public bool TryValidateSilent(out string? errorMessage)
     {
-        return _formValidator.HasRequiredFieldsEmpty(_formData);
+        var result = _formValidator.Validate(_formData);
+        if (result.IsValid)
+        {
+            errorMessage = null;
+            return true;
+        }
+
+        errorMessage = result.Errors.FirstOrDefault()?.ErrorMessage ?? "表单校验未通过";
+        return false;
     }
 
-    /// <summary>
-    ///     获取未填写的必填项列表
-    /// </summary>
-    public List<string> GetEmptyRequiredFields()
-    {
-        return _formValidator.GetEmptyRequiredFields(_formData);
-    }
 
     /// <summary>
     ///     异步加载车站列表
@@ -1309,295 +807,4 @@ public abstract partial class TrainTicketFormViewModelBase : ObservableObject
             _logService?.Error("TrainTicketFormViewModelBase", $"加载标签失败: {ex.Message}");
         }
     }
-
-    /// <summary>
-    ///     保存命令
-    /// </summary>
-    [RelayCommand]
-    protected async Task SaveAsync()
-    {
-        _isSaving = true;
-        try
-        {
-            await ExecuteSaveAsync();
-            // 只有在保存成功后才重置未保存更改标志
-            BackupOriginalValues();
-        }
-        finally
-        {
-            _isSaving = false;
-        }
-    }
-
-    /// <summary>
-    ///     执行保存操作（子类实现具体逻辑）
-    /// </summary>
-    protected abstract Task ExecuteSaveAsync();
-
-    /// <summary>
-    ///     保存标签关联（公共方法）
-    /// </summary>
-    protected async Task SaveTagsAsync(int ticketId)
-    {
-        // 无论是否有选中标签，都要更新数据库（空列表表示删除所有标签）
-        var tagIdsToSave = SelectedTagIds ?? new ObservableCollection<int>();
-        await _ticketTagRepository.SetTagsToRideAsync(ticketId, tagIdsToSave);
-    }
-
-    /// <summary>
-    ///     显示保存成功消息并关闭窗口
-    /// </summary>
-    protected void ShowSaveSuccessAndClose(string message)
-    {
-        // 发送车票保存成功消息，通知行程列表刷新
-        WeakReferenceMessenger.Default.Send(new TicketSavedMessage
-        {
-            TicketId = EditTicketId,
-            IsEditMode = IsEditMode,
-            TrainNo = TrainNo
-        });
-
-        MessageBoxWindow.Show(message);
-        CloseWindow();
-    }
-
-    /// <summary>
-    ///     显示保存失败消息
-    /// </summary>
-    protected void ShowSaveError(string operation, string errorMessage)
-    {
-        _logService?.Error(GetType().Name, $"{operation}火车票失败: {errorMessage}");
-        MessageBoxWindow.Show($"{operation}失败：{errorMessage}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
-    }
-
-    /// <summary>
-    ///     记录保存日志
-    /// </summary>
-    protected void LogSaveOperation(string operation)
-    {
-        _logService?.Info(GetType().Name, $"{operation}火车票: {TrainNo} {DepartStation}->{ArriveStation}");
-    }
-
-    /// <summary>
-    ///     取消命令
-    /// </summary>
-    [RelayCommand]
-    protected void Cancel()
-    {
-        CloseWindow();
-    }
-
-    /// <summary>
-    ///     关闭窗口
-    /// </summary>
-    protected void CloseWindow()
-    {
-        var window = Application.Current.Windows.OfType<Window>().FirstOrDefault(w => w.DataContext == this);
-        window?.Close();
-    }
-
-    #region 绑定属性（代理到FormData）
-
-    // 车次号相关属性
-    public ObservableCollection<string> TrainNoPrefixes => _optionsProvider.TrainNoPrefixes;
-
-    [ObservableProperty] private string _selectedTrainNoPrefix;
-
-    [ObservableProperty] private string _trainNoNumber;
-
-    public string TrainNo => _formData.TrainNo;
-
-    // 车站相关属性
-    [ObservableProperty] private string _departStationInput;
-
-    [ObservableProperty] private string _arriveStationInput;
-
-    public string DepartStation => _formData.DepartStation;
-    public string ArriveStation => _formData.ArriveStation;
-
-    // 日期时间相关属性
-    [ObservableProperty] private DateTime? _departDateTime;
-
-    public string DepartDate => _formData.DepartDate;
-
-    [ObservableProperty] private DateTime? _departTimeValue;
-
-    [ObservableProperty] private DateTime? _arriveTimeValue;
-
-    [ObservableProperty] private int _arriveDayOffset;
-
-    public string DepartTime => _formData.DepartTime;
-
-    // 车厢号相关属性
-    [ObservableProperty] private string _coachNoInput;
-
-    [ObservableProperty] private bool _isJiaChe;
-
-    public string CoachNo => _formData.CoachNo;
-
-    // 座位号相关属性
-    [ObservableProperty] private string _seatNoNumber;
-
-    [ObservableProperty] private ObservableCollection<string> _seatLetterOptions;
-
-    [ObservableProperty] private string _selectedSeatLetter;
-
-    [ObservableProperty] private bool _isNoSeat;
-
-    [ObservableProperty] private bool _isSeatNoInputEnabled = true;
-
-    [ObservableProperty] private bool _isSeatLetterEnabled = true;
-
-    [ObservableProperty] private bool _isSeatLetterVisible = true;
-
-    public string SeatNo => _formData.SeatNo;
-
-    // 席别相关属性
-    public ObservableCollection<string> SeatTypeOptions => _optionsProvider.SeatTypeOptions;
-
-    [ObservableProperty] private string _seatType;
-
-    // 金额相关属性
-    [ObservableProperty] private string _moneyText;
-
-    public decimal Money => _formData.Money;
-
-    // 附加信息相关属性
-    public ObservableCollection<string> AdditionalInfoOptions => _optionsProvider.AdditionalInfoOptions;
-
-    [ObservableProperty] private string _additionalInfo;
-
-    // 车票用途相关属性
-    public ObservableCollection<string> TicketPurposeOptions => _optionsProvider.TicketPurposeOptions;
-
-    [ObservableProperty] private string _ticketPurpose;
-
-    // 改签类型相关属性
-    public ObservableCollection<string> TicketModificationTypeOptions => _optionsProvider.TicketModificationTypeOptions;
-
-    [ObservableProperty] private string _ticketModificationType;
-
-    // 状态相关属性（仅新增窗口）
-    [ObservableProperty] private bool _isStatusVisible;
-
-    public ObservableCollection<string> StatusOptions => _optionsProvider.StatusOptions;
-
-    public ObservableCollection<string> ArriveDayOffsetOptions { get; } =
-        new(ArriveTimeFormat.DayOffsetLabels);
-
-    [ObservableProperty] private string _selectedStatus;
-
-    public int StatusValue => _formData.StatusValue;
-
-    // 票种类型相关属性
-    [ObservableProperty] private bool _isStudentTicket;
-
-    [ObservableProperty] private bool _isDiscountTicket;
-
-    [ObservableProperty] private bool _isOnlineTicket;
-
-    [ObservableProperty] private bool _isChildTicket;
-
-    public int TicketTypeFlags
-    {
-        get => _formData.TicketTypeFlags;
-        set => _formData.TicketTypeFlags = value;
-    }
-
-    // 支付渠道相关属性
-    [ObservableProperty] private bool _isAlipay;
-
-    [ObservableProperty] private bool _isWeChat;
-
-    [ObservableProperty] private bool _isABC;
-
-    [ObservableProperty] private bool _isCCB;
-
-    [ObservableProperty] private bool _isICBC;
-
-    [ObservableProperty] private bool _isBCOM;
-
-    [ObservableProperty] private bool _isCMB;
-
-    [ObservableProperty] private bool _isPSBC;
-
-    [ObservableProperty] private bool _isBOC;
-
-    public int PaymentChannelFlags
-    {
-        get => _formData.PaymentChannelFlags;
-        set => _formData.PaymentChannelFlags = value;
-    }
-
-    // 提示信息相关属性
-    public ObservableCollection<string> HintOptions => _optionsProvider.HintOptions;
-
-    [ObservableProperty] private string _selectedHint;
-
-    [ObservableProperty] private string _hint;
-
-    // 其他属性
-    [ObservableProperty] private string _ticketNumber;
-
-    [ObservableProperty] private string _checkInLocation;
-
-    [ObservableProperty] private string _departStationCode;
-
-    [ObservableProperty] private string _arriveStationCode;
-
-    [ObservableProperty] private string _departStationPinyin;
-
-    [ObservableProperty] private string _arriveStationPinyin;
-
-    [ObservableProperty] private ObservableCollection<string> _stationNames;
-
-    // 车站联想相关属性
-    [ObservableProperty] private ObservableCollection<string> _departStationSuggestions = new();
-
-    [ObservableProperty] private ObservableCollection<string> _arriveStationSuggestions = new();
-
-    [ObservableProperty] private bool _isDepartStationDropdownOpen;
-
-    [ObservableProperty] private bool _isArriveStationDropdownOpen;
-
-    [ObservableProperty] private int _departStationSelectedIndex = -1;
-
-    [ObservableProperty] private int _arriveStationSelectedIndex = -1;
-
-    [ObservableProperty] private ObservableCollection<TicketTag> _availableTags;
-
-    [ObservableProperty] private ObservableCollection<int> _selectedTagIds;
-
-    [ObservableProperty] private string _windowTitle = "火车票";
-
-    [ObservableProperty] private string _saveButtonText = "保存";
-
-    [ObservableProperty] private bool _isEditMode;
-
-    [ObservableProperty] private int? _editTicketId;
-
-    [ObservableProperty] private bool _hasUnsavedChanges;
-
-    [ObservableProperty] private bool _canUndo;
-
-    [ObservableProperty] private bool _canRedo;
-
-    [ObservableProperty] private ObservableCollection<OperationHistoryItem> _operationHistory = new();
-
-    [ObservableProperty] private bool _isOperationHistoryExpanded;
-
-    // 改签相关属性
-    [ObservableProperty] private bool _isRescheduleMode;
-
-    [ObservableProperty] private int _originalTicketId;
-
-    [ObservableProperty] private string _originalTicketStatus = string.Empty;
-
-    [ObservableProperty] private bool _isDepartStationReadOnly;
-
-    [ObservableProperty] private bool _isArriveStationReadOnly;
-
-    [ObservableProperty] private bool _isRescheduleTypeChangeDestination;
-
-    #endregion
 }

@@ -1,0 +1,268 @@
+<Window x:Class="GuiPiao.View.OcrRecognizeTicketWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="OCR识别车票"
+        Width="560"
+        Height="560"
+        MinWidth="480"
+        MinHeight="420"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        WindowStyle="SingleBorderWindow"
+        ShowInTaskbar="False"
+        Background="{DynamicResource WindowBackgroundBrush}"
+        BorderBrush="{DynamicResource BorderBrush}"
+        BorderThickness="1"
+        FontSize="{DynamicResource BaseFontSize}"
+        Foreground="{DynamicResource TextPrimaryBrush}">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0"
+                   Text="OCR识别车票"
+                   FontSize="{DynamicResource LargeFontSize}"
+                   FontWeight="Bold"
+                   Foreground="{DynamicResource TextPrimaryBrush}"
+                   Margin="0,0,0,12" />
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,10">
+            <TextBlock Text="来源："
+                       VerticalAlignment="Center"
+                       Foreground="{DynamicResource TextPrimaryBrush}"
+                       FontSize="{DynamicResource BaseFontSize}"
+                       Margin="0,0,10,0" />
+            <RadioButton Content="粘贴文本"
+                         IsChecked="{Binding IsPasteMode}"
+                         GroupName="OcrSource"
+                         Margin="0,0,16,0"
+                         VerticalAlignment="Center"
+                         FontSize="{DynamicResource BaseFontSize}" />
+            <RadioButton Content="选择图片"
+                         IsChecked="{Binding IsImageMode}"
+                         GroupName="OcrSource"
+                         VerticalAlignment="Center"
+                         FontSize="{DynamicResource BaseFontSize}"
+                         ToolTip="对截图或票面照片执行 CnOCR 识别" />
+        </StackPanel>
+
+        <!-- 粘贴模式：文本框 -->
+        <Border Grid.Row="2"
+                BorderBrush="{DynamicResource BorderBrush}"
+                BorderThickness="1"
+                Background="{DynamicResource ContentBackgroundBrush}"
+                Visibility="{Binding IsPasteMode, Converter={StaticResource BooleanToVisibilityConverter}}"
+                IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}">
+            <TextBox x:Name="RawTextBox"
+                     Text="{Binding RawText, UpdateSourceTrigger=PropertyChanged}"
+                     AcceptsReturn="True"
+                     TextWrapping="Wrap"
+                     VerticalScrollBarVisibility="Auto"
+                     HorizontalScrollBarVisibility="Disabled"
+                     BorderThickness="0"
+                     Background="Transparent"
+                     Foreground="{DynamicResource TextPrimaryBrush}"
+                     CaretBrush="{DynamicResource TextPrimaryBrush}"
+                     Padding="8"
+                     FontSize="{DynamicResource BaseFontSize}"
+                     VerticalContentAlignment="Top"
+                     ContextMenu="{x:Null}" />
+        </Border>
+
+        <!-- 选图模式：图片区 + 识别原文 -->
+        <Grid Grid.Row="2"
+              Visibility="{Binding IsImageMode, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <Border Grid.Row="0"
+                    BorderBrush="{DynamicResource BorderBrush}"
+                    BorderThickness="1"
+                    Background="{DynamicResource ContentBackgroundBrush}"
+                    Cursor="Hand"
+                    IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}">
+                <Border.InputBindings>
+                    <MouseBinding MouseAction="LeftClick" Command="{Binding SelectImageCommand}" />
+                </Border.InputBindings>
+                <Grid>
+                    <!-- 未选图占位 -->
+                    <StackPanel VerticalAlignment="Center"
+                                HorizontalAlignment="Center"
+                                Visibility="{Binding HasSelectedImage, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
+                        <TextBlock Text="选择图片（支持多选）"
+                                   FontSize="{DynamicResource LargeFontSize}"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                   HorizontalAlignment="Center"
+                                   Margin="0,0,0,8" />
+                        <TextBlock Text="格式：png / jpg / bmp / webp"
+                                   FontSize="{DynamicResource SmallFontSize}"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                   HorizontalAlignment="Center" />
+                    </StackPanel>
+                    <!-- 已选图预览 -->
+                    <Image Source="{Binding PreviewImage}"
+                           Stretch="Uniform"
+                           Margin="8"
+                           Visibility="{Binding HasSelectedImage, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                </Grid>
+            </Border>
+
+            <!-- 多图切换 -->
+            <StackPanel Grid.Row="1"
+                        Orientation="Horizontal"
+                        Margin="0,8,0,0"
+                        Visibility="{Binding HasMultipleImages, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <Button Content="上一张"
+                        Command="{Binding PreviousImageCommand}"
+                        Style="{StaticResource StandardButtonStyle}"
+                        MinWidth="70"
+                        Margin="0,0,8,0" />
+                <TextBlock Text="{Binding ImagePositionText}"
+                           VerticalAlignment="Center"
+                           Margin="0,0,8,0"
+                           Foreground="{DynamicResource TextPrimaryBrush}"
+                           FontSize="{DynamicResource BaseFontSize}" />
+                <Button Content="下一张"
+                        Command="{Binding NextImageCommand}"
+                        Style="{StaticResource StandardButtonStyle}"
+                        MinWidth="70" />
+            </StackPanel>
+
+            <!-- 识别出的原文（可改） -->
+            <DockPanel Grid.Row="2"
+                       Margin="0,8,0,0"
+                       Visibility="{Binding HasOcrResultText, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <TextBlock DockPanel.Dock="Top"
+                           Text="识别原文（当前图片，可编辑）"
+                           Foreground="{DynamicResource TextSecondaryBrush}"
+                           FontSize="{DynamicResource SmallFontSize}"
+                           Margin="0,0,0,4" />
+                <Border BorderBrush="{DynamicResource BorderBrush}"
+                        BorderThickness="1"
+                        Background="{DynamicResource ContentBackgroundBrush}"
+                        MaxHeight="140"
+                        IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}">
+                    <TextBox x:Name="OcrResultTextBox"
+                             Text="{Binding RawText, UpdateSourceTrigger=PropertyChanged}"
+                             AcceptsReturn="True"
+                             TextWrapping="Wrap"
+                             VerticalScrollBarVisibility="Auto"
+                             BorderThickness="0"
+                             Background="Transparent"
+                             Foreground="{DynamicResource TextPrimaryBrush}"
+                             CaretBrush="{DynamicResource TextPrimaryBrush}"
+                             Padding="8"
+                             FontSize="{DynamicResource BaseFontSize}"
+                             MinHeight="72"
+                             MaxHeight="132"
+                             VerticalContentAlignment="Top"
+                             ContextMenu="{x:Null}" />
+                </Border>
+            </DockPanel>
+        </Grid>
+
+        <!-- 粘贴模式按钮 -->
+        <StackPanel Grid.Row="3"
+                    Orientation="Horizontal"
+                    Margin="0,8,0,0"
+                    Visibility="{Binding IsPasteMode, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <Button Content="从剪贴板粘贴"
+                    Command="{Binding PasteFromClipboardCommand}"
+                    Style="{StaticResource StandardButtonStyle}"
+                    MinWidth="110"
+                    Margin="0,0,8,0"
+                    IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}" />
+            <Button Content="清空"
+                    Command="{Binding ClearTextCommand}"
+                    Style="{StaticResource StandardButtonStyle}"
+                    MinWidth="70"
+                    IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}" />
+        </StackPanel>
+
+        <!-- 选图模式按钮 -->
+        <StackPanel Grid.Row="3"
+                    Orientation="Horizontal"
+                    Margin="0,8,0,0"
+                    Visibility="{Binding IsImageMode, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <Button Content="选择图片..."
+                    Command="{Binding SelectImageCommand}"
+                    Style="{StaticResource StandardButtonStyle}"
+                    MinWidth="110"
+                    Margin="0,0,8,0"
+                    ToolTip="支持一次选择多张图片"
+                    IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}" />
+            <Button Content="重新识别"
+                    Command="{Binding RecognizeImageCommand}"
+                    Style="{StaticResource StandardButtonStyle}"
+                    MinWidth="90"
+                    Margin="0,0,8,0"
+                    ToolTip="对队列内全部图片重新执行 OCR" />
+            <Button Content="清空"
+                    Command="{Binding ClearTextCommand}"
+                    Style="{StaticResource StandardButtonStyle}"
+                    MinWidth="70"
+                    IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}" />
+        </StackPanel>
+
+        <StackPanel Grid.Row="4" Margin="0,10,0,8"
+                    Visibility="{Binding IsBusy, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <!-- 与 OCR 设置页「测试识别」进度条同一套：阶段百分比，非 indeterminate -->
+            <Grid Margin="0,0,0,5">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0"
+                           Text="{Binding StatusMessage}"
+                           TextWrapping="Wrap"
+                           VerticalAlignment="Center"
+                           Foreground="{DynamicResource TextPrimaryBrush}"
+                           FontSize="{DynamicResource SmallFontSize}" />
+                <TextBlock Grid.Column="1"
+                           Text="{Binding BusyProgressPercent, StringFormat={}{0}%}"
+                           Margin="10,0,0,0"
+                           VerticalAlignment="Center"
+                           Foreground="{DynamicResource AccentForegroundBrush}"
+                           FontWeight="Bold"
+                           FontSize="{DynamicResource SmallFontSize}" />
+            </Grid>
+            <ProgressBar Value="{Binding BusyProgressPercent}"
+                         Maximum="100" />
+        </StackPanel>
+
+        <TextBlock Grid.Row="4"
+                   Text="{Binding StatusMessage}"
+                   TextWrapping="Wrap"
+                   Margin="0,10,0,8"
+                   Foreground="{DynamicResource TextSecondaryBrush}"
+                   FontSize="{DynamicResource SmallFontSize}"
+                   Visibility="{Binding IsBusy, Converter={StaticResource InverseBooleanToVisibilityConverter}}" />
+
+        <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="识别并预填"
+                    Command="{Binding RecognizeAndPrefillCommand}"
+                    Style="{StaticResource PrimaryButtonStyle}"
+                    MinWidth="110"
+                    Margin="0,0,10,0"
+                    IsDefault="True"
+                    IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}" />
+            <Button Content="关闭"
+                    Command="{Binding CancelCommand}"
+                    Style="{StaticResource StandardButtonStyle}"
+                    MinWidth="80"
+                    IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}" />
+        </StackPanel>
+    </Grid>
+</Window>
