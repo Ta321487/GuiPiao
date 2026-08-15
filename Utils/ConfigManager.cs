@@ -120,6 +120,15 @@ public class ConfigManager
     }
 
     /// <summary>
+    ///     仅供单元测试覆盖数据库连接串；生产代码勿调用。
+    /// </summary>
+    public void OverrideDatabaseConnectionStringForTests(string connectionString)
+    {
+        DatabaseConnectionString = connectionString
+                                   ?? throw new ArgumentNullException(nameof(connectionString));
+    }
+
+    /// <summary>
     ///     刷新UI设置配置（从文件重新加载）
     /// </summary>
     public void RefreshUISettingsConfig()

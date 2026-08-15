@@ -43,6 +43,15 @@ public class TrainRideInfo
     /// </summary>
     public int Status { get; set; } = (int)TrainRideStatus.NotTraveled;
 
+    /// <summary>跨端稳定 ID（UUID）。本地 Id 仅本机使用。</summary>
+    public string SyncId { get; set; } = string.Empty;
+
+    /// <summary>最后修改时间（UTC ISO-8601）。</summary>
+    public string UpdatedAt { get; set; } = string.Empty;
+
+    /// <summary>软删时间；空表示未删除。</summary>
+    public string? DeletedAt { get; set; }
+
     /// <summary>
     ///     行程关联的标签列表（非数据库字段，用于UI展示）
     /// </summary>

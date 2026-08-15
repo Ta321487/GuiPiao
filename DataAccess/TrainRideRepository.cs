@@ -6,6 +6,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
 using GuiPiao.Model;
+using GuiPiao.Model.Sync;
+using GuiPiao.Services;
 using GuiPiao.Utils;
 using Microsoft.Data.Sqlite;
 
@@ -14,6 +16,17 @@ namespace GuiPiao.DataAccess;
 public class TrainRideRepository
 {
     private readonly string _connectionString = ConfigManager.Instance.DatabaseConnectionString;
+    private readonly SyncChangeRepository _syncChanges = new();
+
+    /// <summary>列表/统计默认排除软删行。</summary>
+    private const string ActiveRideSql = "(deleted_at IS NULL OR deleted_at = '')";
+
+    private static void EnsureRideSyncMetadata(TrainRideInfo trainRide)
+    {
+        if (string.IsNullOrWhiteSpace(trainRide.SyncId))
+            trainRide.SyncId = SyncClock.NewSyncId();
+        trainRide.UpdatedAt = SyncClock.UtcNowIso();
+    }
 
     /// <summary>
     ///     获取排序列的 SQL 表达式（处理日期和时间字段）
@@ -42,30 +55,55 @@ public class TrainRideRepository
     public async Task<int> AddTrainRideAsync(TrainRideInfo trainRide)
     {
         NormalizeRideDateTimes(trainRide);
+        EnsureRideSyncMetadata(trainRide);
+        trainRide.DeletedAt = null;
 
         using (var connection = new SqliteConnection(_connectionString))
         {
             await connection.OpenAsync();
-            var sql = @"
+            using var transaction = connection.BeginTransaction();
+            try
+            {
+                var sql = @"
                     INSERT INTO train_ride_info (
                         ticket_number, check_in_location, depart_station, train_no, arrive_station,
                         depart_station_pinyin, arrive_station_pinyin, depart_date, depart_time, arrive_time, arrive_day_offset, coach_no,
                         seat_no, money, seat_type, additional_info, ticket_purpose, ticket_modification_type,
-                        ticket_type_flags, payment_channel_flags, hint, depart_station_code, arrive_station_code, status
+                        ticket_type_flags, payment_channel_flags, hint, depart_station_code, arrive_station_code, status,
+                        sync_id, updated_at, deleted_at
                     ) VALUES (
                         @TicketNumber, @CheckInLocation, @DepartStation, @TrainNo, @ArriveStation,
                         @DepartStationPinyin, @ArriveStationPinyin, @DepartDate, @DepartTime, @ArriveTime, @ArriveDayOffset, @CoachNo,
                         @SeatNo, @Money, @SeatType, @AdditionalInfo, @TicketPurpose, @TicketModificationType,
-                        @TicketTypeFlags, @PaymentChannelFlags, @Hint, @DepartStationCode, @ArriveStationCode, @Status
+                        @TicketTypeFlags, @PaymentChannelFlags, @Hint, @DepartStationCode, @ArriveStationCode, @Status,
+                        @SyncId, @UpdatedAt, @DeletedAt
                     );
                     SELECT last_insert_rowid();
                 ";
-            return await connection.QuerySingleAsync<int>(sql, trainRide);
+                var id = await connection.QuerySingleAsync<int>(sql, trainRide, transaction);
+                trainRide.Id = id;
+
+                await _syncChanges.AppendAsync(
+                    SyncEntityTypes.Ride,
+                    trainRide.SyncId,
+                    SyncOps.Upsert,
+                    SyncPayloadSerializer.Ride(trainRide),
+                    existingConnection: connection,
+                    transaction: transaction);
+
+                transaction.Commit();
+                return id;
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
         }
     }
 
 
-    public async Task<TrainRideInfo> GetTrainRideByIdAsync(int id)
+    public async Task<TrainRideInfo?> GetTrainRideByIdAsync(int id)
     {
         using (var connection = new SqliteConnection(_connectionString))
         {
@@ -239,7 +277,24 @@ public class TrainRideRepository
         using (var connection = new SqliteConnection(_connectionString))
         {
             await connection.OpenAsync();
-            var sql = @"
+            using var transaction = connection.BeginTransaction();
+            try
+            {
+                // 必须先取库内 sync_id，再写 updated_at；勿在查找前 NewSyncId，否则会打断跨端身份
+                if (string.IsNullOrWhiteSpace(trainRide.SyncId))
+                {
+                    var existingSyncId = await connection.ExecuteScalarAsync<string>(
+                        "SELECT sync_id FROM train_ride_info WHERE id = @Id",
+                        new { trainRide.Id },
+                        transaction);
+                    trainRide.SyncId = string.IsNullOrWhiteSpace(existingSyncId)
+                        ? SyncClock.NewSyncId()
+                        : existingSyncId;
+                }
+
+                trainRide.UpdatedAt = SyncClock.UtcNowIso();
+
+                var sql = @"
                     UPDATE train_ride_info
                     SET ticket_number = @TicketNumber, check_in_location = @CheckInLocation, depart_station = @DepartStation,
                         train_no = @TrainNo, arrive_station = @ArriveStation, depart_station_pinyin = @DepartStationPinyin,
@@ -248,10 +303,31 @@ public class TrainRideRepository
                         additional_info = @AdditionalInfo, ticket_purpose = @TicketPurpose,
                         ticket_modification_type = @TicketModificationType, ticket_type_flags = @TicketTypeFlags,
                         payment_channel_flags = @PaymentChannelFlags, hint = @Hint, depart_station_code = @DepartStationCode,
-                        arrive_station_code = @ArriveStationCode, status = @Status
+                        arrive_station_code = @ArriveStationCode, status = @Status,
+                        sync_id = @SyncId, updated_at = @UpdatedAt
                     WHERE id = @Id;
                 ";
-            return await connection.ExecuteAsync(sql, trainRide);
+                var affected = await connection.ExecuteAsync(sql, trainRide, transaction);
+
+                if (affected > 0)
+                {
+                    await _syncChanges.AppendAsync(
+                        SyncEntityTypes.Ride,
+                        trainRide.SyncId,
+                        SyncOps.Upsert,
+                        SyncPayloadSerializer.Ride(trainRide),
+                        existingConnection: connection,
+                        transaction: transaction);
+                }
+
+                transaction.Commit();
+                return affected;
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
         }
     }
 
@@ -260,8 +336,53 @@ public class TrainRideRepository
         using (var connection = new SqliteConnection(_connectionString))
         {
             await connection.OpenAsync();
-            var sql = "DELETE FROM train_ride_info WHERE id = @Id";
-            return await connection.ExecuteAsync(sql, new { Id = id });
+            using var transaction = connection.BeginTransaction();
+            try
+            {
+                var row = await connection.QuerySingleOrDefaultAsync<dynamic>(
+                    "SELECT sync_id AS SyncId, deleted_at AS DeletedAt FROM train_ride_info WHERE id = @Id",
+                    new { Id = id },
+                    transaction);
+
+                if (row == null)
+                    return 0;
+
+                string? deletedAt = row.DeletedAt;
+                if (!string.IsNullOrEmpty(deletedAt))
+                    return 0;
+
+                var syncId = (string?)row.SyncId;
+                if (string.IsNullOrWhiteSpace(syncId))
+                    syncId = SyncClock.NewSyncId();
+
+                var now = SyncClock.UtcNowIso();
+
+                var affected = await connection.ExecuteAsync(
+                    @"UPDATE train_ride_info
+                      SET deleted_at = @DeletedAt, updated_at = @UpdatedAt, sync_id = @SyncId
+                      WHERE id = @Id",
+                    new { DeletedAt = now, UpdatedAt = now, SyncId = syncId, Id = id },
+                    transaction);
+
+                if (affected > 0)
+                {
+                    await _syncChanges.AppendAsync(
+                        SyncEntityTypes.Ride,
+                        syncId,
+                        SyncOps.Delete,
+                        null,
+                        existingConnection: connection,
+                        transaction: transaction);
+                }
+
+                transaction.Commit();
+                return affected;
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
         }
     }
 
@@ -273,8 +394,59 @@ public class TrainRideRepository
         using (var connection = new SqliteConnection(_connectionString))
         {
             await connection.OpenAsync();
-            var sql = "UPDATE train_ride_info SET status = @Status WHERE id = @Id";
-            return await connection.ExecuteAsync(sql, new { Status = status, Id = id });
+            using var transaction = connection.BeginTransaction();
+            try
+            {
+                var syncId = await connection.ExecuteScalarAsync<string>(
+                    "SELECT sync_id FROM train_ride_info WHERE id = @Id",
+                    new { Id = id },
+                    transaction);
+                if (string.IsNullOrWhiteSpace(syncId))
+                    syncId = SyncClock.NewSyncId();
+
+                var now = SyncClock.UtcNowIso();
+                var sql =
+                    "UPDATE train_ride_info SET status = @Status, updated_at = @UpdatedAt, sync_id = @SyncId WHERE id = @Id";
+                var affected = await connection.ExecuteAsync(sql,
+                    new { Status = status, UpdatedAt = now, SyncId = syncId, Id = id }, transaction);
+
+                if (affected > 0)
+                {
+                    var ride = await connection.QuerySingleOrDefaultAsync<TrainRideInfo>(
+                        @"SELECT id AS Id, ticket_number AS TicketNumber, check_in_location AS CheckInLocation,
+                                 depart_station AS DepartStation, train_no AS TrainNo, arrive_station AS ArriveStation,
+                                 depart_station_pinyin AS DepartStationPinyin, arrive_station_pinyin AS ArriveStationPinyin,
+                                 depart_date AS DepartDate, depart_time AS DepartTime, arrive_time AS ArriveTime,
+                                 arrive_day_offset AS ArriveDayOffset, coach_no AS CoachNo, seat_no AS SeatNo,
+                                 money AS Money, seat_type AS SeatType, additional_info AS AdditionalInfo,
+                                 ticket_purpose AS TicketPurpose, ticket_modification_type AS TicketModificationType,
+                                 ticket_type_flags AS TicketTypeFlags, payment_channel_flags AS PaymentChannelFlags,
+                                 hint AS Hint, depart_station_code AS DepartStationCode, arrive_station_code AS ArriveStationCode,
+                                 status AS Status, sync_id AS SyncId, updated_at AS UpdatedAt, deleted_at AS DeletedAt
+                          FROM train_ride_info WHERE id = @Id",
+                        new { Id = id },
+                        transaction);
+
+                    if (ride != null)
+                    {
+                        await _syncChanges.AppendAsync(
+                            SyncEntityTypes.Ride,
+                            ride.SyncId,
+                            SyncOps.Upsert,
+                            SyncPayloadSerializer.Ride(ride),
+                            existingConnection: connection,
+                            transaction: transaction);
+                    }
+                }
+
+                transaction.Commit();
+                return affected;
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
         }
     }
 
@@ -289,30 +461,10 @@ public class TrainRideRepository
         if (ids == null || ids.Count == 0)
             return 0;
 
-        using (var connection = new SqliteConnection(_connectionString))
-        {
-            await connection.OpenAsync();
-            using (var transaction = connection.BeginTransaction())
-            {
-                try
-                {
-                    var sql = "UPDATE train_ride_info SET status = @Status WHERE id = @Id";
-                    var totalAffected = 0;
-
-                    foreach (var id in ids)
-                        totalAffected += await connection.ExecuteAsync(sql,
-                            new { Status = status, Id = id }, transaction);
-
-                    transaction.Commit();
-                    return totalAffected;
-                }
-                catch
-                {
-                    transaction.Rollback();
-                    throw;
-                }
-            }
-        }
+        var totalAffected = 0;
+        foreach (var id in ids)
+            totalAffected += await UpdateStatusAsync(id, status);
+        return totalAffected;
     }
 
     /// <summary>
@@ -385,8 +537,9 @@ public class TrainRideRepository
                         arrive_station_code AS ArriveStationCode,
                         status AS Status
                     FROM train_ride_info
-                    WHERE ticket_number LIKE @Keyword OR train_no LIKE @Keyword OR depart_station LIKE @Keyword
-                    OR arrive_station LIKE @Keyword OR coach_no LIKE @Keyword OR seat_no LIKE @Keyword
+                    WHERE (deleted_at IS NULL OR deleted_at = '')
+                      AND (ticket_number LIKE @Keyword OR train_no LIKE @Keyword OR depart_station LIKE @Keyword
+                    OR arrive_station LIKE @Keyword OR coach_no LIKE @Keyword OR seat_no LIKE @Keyword)
                 ";
             return await connection.QueryAsync<TrainRideInfo>(sql, new { Keyword = $"%{keyword}%" });
         }
@@ -422,8 +575,12 @@ public class TrainRideRepository
                     hint AS Hint, 
                     depart_station_code AS DepartStationCode, 
                     arrive_station_code AS ArriveStationCode,
-                    status AS Status
-                FROM train_ride_info";
+                    status AS Status,
+                    sync_id AS SyncId,
+                    updated_at AS UpdatedAt,
+                    deleted_at AS DeletedAt
+                FROM train_ride_info
+                WHERE (deleted_at IS NULL OR deleted_at = '')";
             return await connection.QueryAsync<TrainRideInfo>(sql);
         }
     }
@@ -470,6 +627,7 @@ public class TrainRideRepository
                         arrive_station_code AS ArriveStationCode,
                         status AS Status
                     FROM train_ride_info
+                    WHERE {ActiveRideSql}
                     ORDER BY {orderByColumn} {sortDirection}
                     LIMIT @PageSize OFFSET @Offset
                 ";
@@ -496,9 +654,10 @@ public class TrainRideRepository
             var orderByColumn = GetOrderByColumn(sortColumn);
             var sortDirection = sortDesc ? "DESC" : "ASC";
 
-            var whereClause = "";
+            var whereClause = $"WHERE {ActiveRideSql}";
             if (startDate.HasValue && endDate.HasValue)
-                whereClause = "WHERE DATE(depart_date) >= DATE(@StartDate) AND DATE(depart_date) <= DATE(@EndDate)";
+                whereClause +=
+                    " AND DATE(depart_date) >= DATE(@StartDate) AND DATE(depart_date) <= DATE(@EndDate)";
 
             var sql = $@"
                     SELECT 
@@ -557,7 +716,7 @@ public class TrainRideRepository
             if (startDate.HasValue && endDate.HasValue)
             {
                 sql =
-                    "SELECT COUNT(*) FROM train_ride_info WHERE DATE(depart_date) >= DATE(@StartDate) AND DATE(depart_date) <= DATE(@EndDate)";
+                    $"SELECT COUNT(*) FROM train_ride_info WHERE {ActiveRideSql} AND DATE(depart_date) >= DATE(@StartDate) AND DATE(depart_date) <= DATE(@EndDate)";
                 return await connection.QuerySingleAsync<int>(sql, new
                 {
                     StartDate = startDate.Value.ToString("yyyy-MM-dd"),
@@ -565,7 +724,7 @@ public class TrainRideRepository
                 });
             }
 
-            sql = "SELECT COUNT(*) FROM train_ride_info";
+            sql = $"SELECT COUNT(*) FROM train_ride_info WHERE {ActiveRideSql}";
             return await connection.QuerySingleAsync<int>(sql);
         }
     }
@@ -576,7 +735,7 @@ public class TrainRideRepository
         using (var connection = new SqliteConnection(_connectionString))
         {
             await connection.OpenAsync();
-            var sql = "SELECT COUNT(*) FROM train_ride_info";
+            var sql = $"SELECT COUNT(*) FROM train_ride_info WHERE {ActiveRideSql}";
             return await connection.QuerySingleAsync<int>(sql);
         }
     }
@@ -630,7 +789,7 @@ public class TrainRideRepository
     /// <summary>
     ///     获取行程及其标签的完整信息（单条）
     /// </summary>
-    public async Task<TrainRideInfo> GetTrainRideWithTagsAsync(int id)
+    public async Task<TrainRideInfo?> GetTrainRideWithTagsAsync(int id)
     {
         using (var connection = new SqliteConnection(_connectionString))
         {
@@ -1020,7 +1179,7 @@ public class TrainRideRepository
             await connection.OpenAsync();
 
             // 构建动态查询条件
-            var conditions = new List<string>();
+            var conditions = new List<string> { ActiveRideSql };
             var parameters = new DynamicParameters();
 
             // 出发站条件（模糊匹配）
@@ -1100,6 +1259,7 @@ public class TrainRideRepository
 
             // 标签筛选条件
             var hasTagFilter = criteria.TagId.HasValue && criteria.TagId.Value > 0;
+            var tagIdFilter = criteria.TagId ?? 0;
 
             // 构建WHERE子句
             var whereClause = conditions.Count > 0
@@ -1116,7 +1276,7 @@ public class TrainRideRepository
                     whereClause += " AND rt.tag_id = @TagId";
                 else
                     whereClause = "WHERE rt.tag_id = @TagId";
-                parameters.Add("TagId", criteria.TagId.Value);
+                parameters.Add("TagId", tagIdFilter);
             }
 
             // 先查询总数
