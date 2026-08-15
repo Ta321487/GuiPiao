@@ -111,6 +111,14 @@
                                 CommandParameter="Shortcut">
                     <controls:IconLabel Glyph="{x:Static icons:AppIcons.PageList}" Text="快捷键" />
                 </Button>
+
+                        <!-- 同步 -->
+                        <Button
+                                Style="{Binding CurrentPage, Converter={StaticResource PageToStyleConverter}, ConverterParameter='Sync'}"
+                                Command="{Binding NavigateCommand}"
+                                CommandParameter="Sync">
+                    <controls:IconLabel Glyph="{x:Static icons:AppIcons.Sync}" Text="同步" />
+                </Button>
                     </StackPanel>
                 </ScrollViewer>
 

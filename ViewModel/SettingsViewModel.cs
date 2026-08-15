@@ -35,7 +35,8 @@ public partial class SettingsViewModel : ObservableObject
         { SettingsPageType.Dashboard, "仪表盘" },
         { SettingsPageType.OCR, "OCR" },
         { SettingsPageType.Export, "导出" },
-        { SettingsPageType.Shortcut, "快捷键" }
+        { SettingsPageType.Shortcut, "快捷键" },
+        { SettingsPageType.Sync, "同步" }
     };
 
     private readonly Dictionary<SettingsPageType, UserControl> _viewCache = new();
@@ -56,6 +57,7 @@ public partial class SettingsViewModel : ObservableObject
     private MapSettingsViewModel? _mapSettingsViewModel;
     private OcrSettingsViewModel? _ocrSettingsViewModel;
     private ShortcutSettingsViewModel? _shortcutSettingsViewModel;
+    private SyncSettingsViewModel? _syncSettingsViewModel;
     private UISettingsViewModel? _uiSettingsViewModel;
 
     // 延迟初始化属性
@@ -81,6 +83,9 @@ public partial class SettingsViewModel : ObservableObject
     private ShortcutSettingsViewModel ShortcutSettingsViewModel =>
         _shortcutSettingsViewModel ??= new ShortcutSettingsViewModel();
 
+    private SyncSettingsViewModel SyncSettingsViewModel =>
+        _syncSettingsViewModel ??= new SyncSettingsViewModel();
+
     /// <summary>
     ///     是否有未保存的更改
     /// </summary>
@@ -93,7 +98,8 @@ public partial class SettingsViewModel : ObservableObject
         (_dashboardSettingsViewModel?.HasUnsavedChanges ?? false) ||
         (_ocrSettingsViewModel?.HasUnsavedChanges ?? false) ||
         (_exportSettingsViewModel?.HasUnsavedChanges ?? false) ||
-        (_shortcutSettingsViewModel?.HasUnsavedChanges ?? false);
+        (_shortcutSettingsViewModel?.HasUnsavedChanges ?? false) ||
+        (_syncSettingsViewModel?.HasUnsavedChanges ?? false);
 
     /// <summary>
     ///     初始化默认页面，应在窗口加载完成后调用
@@ -177,6 +183,9 @@ public partial class SettingsViewModel : ObservableObject
             if (ShortcutSettingsViewModel is ISettingsViewModel shortcutSettings)
                 await shortcutSettings.SaveSettingsAsync(false);
 
+            if (SyncSettingsViewModel is ISettingsViewModel syncSettings)
+                await syncSettings.SaveSettingsAsync(false);
+
             MessageBoxWindow.Show(settingsWindow, "所有设置已保存", SettingsDialogMessages.SuccessTitle);
         }
         catch (Exception ex)
@@ -201,6 +210,7 @@ public partial class SettingsViewModel : ObservableObject
         _ocrSettingsViewModel?.ReloadSettings();
         _exportSettingsViewModel?.ReloadSettings();
         _shortcutSettingsViewModel?.ReloadSettings();
+        _syncSettingsViewModel?.ReloadSettings();
     }
 
     /// <summary>
@@ -210,6 +220,7 @@ public partial class SettingsViewModel : ObservableObject
     {
         // 通知OCR设置页面暂停下载
         _ocrSettingsViewModel?.OnWindowClosing();
+        _syncSettingsViewModel?.OnWindowClosing();
     }
 
     /// <summary>
@@ -432,6 +443,7 @@ public partial class SettingsViewModel : ObservableObject
             SettingsPageType.OCR => new OcrSettingsView { DataContext = OcrSettingsViewModel },
             SettingsPageType.Export => new ExportSettingsView { DataContext = ExportSettingsViewModel },
             SettingsPageType.Shortcut => new ShortcutSettingsView { DataContext = ShortcutSettingsViewModel },
+            SettingsPageType.Sync => new SyncSettingsView { DataContext = SyncSettingsViewModel },
             _ => CreatePlaceholderView(page)
         };
     }

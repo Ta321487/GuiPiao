@@ -48,5 +48,10 @@ public enum SettingsPageType
     /// <summary>
     ///     快捷键配置
     /// </summary>
-    Shortcut
+    Shortcut,
+
+    /// <summary>
+    ///     多端同步（配对 / 设备）
+    /// </summary>
+    Sync
 }
