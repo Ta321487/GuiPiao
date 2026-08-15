@@ -2,7 +2,8 @@
 
 > 状态：规划稿（未全部开工）  
 > 背景：PC 端 GuiPiao 已具备行程 CRUD、统计、地图、票面预览/导出、备份等；采集侧仍偏「坐在电脑前手填」。  
-> 本文汇总产品方向、技术约束与验收原则，供排期与实现对照。
+> 本文汇总产品方向、技术约束与验收原则，供排期与实现对照。  
+> **工程实现约束**（迁移、分层、测试等）以 [`工程规范.md`](./工程规范.md) 为准。
 
 ---
 
@@ -41,29 +42,49 @@
 「出门手机记、回家再 sync」在**桌面为主、手机补录**类工具中常见且合理。  
 产品叙事应是「本地优先 / 对齐 PC」，避免宣传成「随时随地多端实时云协作」却依赖家里开机的电脑。
 
-### 3.2 推荐技术栈（省钱、依赖好装）
+### 3.2 已拍板：无云 + 配对码
 
-| 层 | 选型 | 备注 |
-|----|------|------|
-| PC | 继续 WPF + .NET 8 + SQLite | 现有 GuiPiao |
-| 手机 | **.NET MAUI** 或 **PWA** | 避开 Flutter/`pub`；与 C# 栈一致或浏览器即可 |
-| 同步（首选） | PC 内嵌轻量同步服务 + Tailscale / Cloudflare Tunnel 等 | 作者几乎无月费；数据仍在用户本机库 |
-| 同步（备选） | 用户自备 WebDAV / 坚果云等 | 仍可不养自有云库 |
-| 同步（有付费用户后） | 小规格 ECS + ASP.NET Core API + PostgreSQL/SQLite | 短信验证码有成本，可先邮箱/配对码 |
+| 项 | 决策 |
+|----|------|
+| 云服务器 | **不做**。数据留在用户 PC SQLite |
+| 连通方式 | PC 内嵌同步服务（`SyncHttpServer`，默认 `17880`）+ Tailscale / 隧道 / 同局域网 |
+| 鉴权 | **配对码**（6 位数字）→ 兑换长期 device token（仅存哈希）。展示 **60 秒**自动刷新（与 `SyncPairingService.CodeTtlSeconds` / 设置页倒计时一致）；兑换允许上一窗 **30 秒**容错。HTTP：`POST /v1/pair`；此后请求带 `X-GuiPiao-Device-Id` + `Authorization: Bearer <token>` |
+| 传输 | `GET /v1/health`；`GET /v1/changes?after_seq=&limit=` 拉取；`POST /v1/changes` 推送（`change_id` 幂等，PC 分配 `seq`，`SyncIngressService` 应用实体） |
+| 权威端 | PC 分配单调 `seq`；手机对齐该水位 |
+| 手机栈 | **MAUI**（设计语言强制对齐 PC，见 `docs/手机端MAUI设计规范.md`） |
 
-**不推荐作主路径：** 整库拷贝 `guipiao.db`、纯 CSV 往返、Firebase/Supabase 当国内主叙事。
+**不推荐作主路径：** 整库拷贝 `guipiao.db`、纯 CSV 往返、Firebase/Supabase、自建 ECS。
 
-### 3.3 数据与不丢原则
+### 3.3 数据层契约（已开始落地）
 
-- 同步单元：以 `TrainRideInfo` / `train_ride_info` 为主；标签及行程-标签一并同步；车站库一期可只读下发或后做。
-- 现库缺跨端稳定 ID 与时间戳时，实施前需补：`sync_id`（UUID）、`updated_at`、软删/墓碑、（可选）`version` / `server_seq`。
-- 协议形态：增量变更 + 幂等 `change_id`；字段级合并；同字段冲突进冲突箱；**同步前本地 DB 备份**（可接现有备份能力）。
-- 设置/票面布局：默认不同步或单独开关，避免与行程合并搅在一起。
+| 表/列 | 作用 |
+|-------|------|
+| `train_ride_info.sync_id` / `updated_at` / `deleted_at` | 跨端身份、时间、软删 |
+| `ticket_tag` 同上 | 标签同步 |
+| `sync_change` | 增量变更日志；`change_id` 幂等；`seq` 为 PC 游标 |
+| `sync_pairing_code` / `sync_paired_device` | 配对码与已授权设备 |
+| `sync_conflict` | 字段冲突箱（UI 后接） |
 
-### 3.4 手机 MVP 范围
+- 实体类型：`ride` / `tag` / `ride_tags`（行程标签全集替换）
+- 写路径：行程/标签增删改与 `SetTagsToRide` 同事务写 `sync_change`
+- 列表默认过滤软删行；设置/票面布局**不同步**
+- SQLite 启用 `WAL`，便于 UI 与后续同步服务并发
 
-- 做：录入/编辑/列表、状态、简单标签、同步中心（待同步条数、上次时间、冲突）。
-- 不做（MVP）：票面编辑、仪表盘、完整地图、复杂批量、多用户家庭共享。
+### 3.4 互备怎么理解（决策）
+
+| 层级 | 做法 |
+|------|------|
+| 运营互备 | 同步成功后，PC 与手机各自持有完整行程+标签副本 → **即互备**（无云前提下的冗余） |
+| 灾难恢复 | **仍以 PC 本地备份为准**（现有 `DatabaseBackupService`）；同步前建议自动全量备份 |
+| v1 不做 | 单独「备份通道」、用手机当 PC 唯一灾备、双向整库快照互推 |
+| 可后做 | 手机拉取加密行程快照包；或 PC→手机「导出备份」入口（与增量 sync 分开） |
+
+原则：**同步解决「两端对齐」；备份解决「库坏了能回到昨天」。** 不要把手机卸载/清数据当成 PC 的保险箱。
+
+### 3.5 手机 MVP 范围
+
+- 做：录入/编辑/列表、状态、简单标签、同步中心（待同步条数、上次时间、冲突）、配对码兑换。
+- 不做（MVP）：票面编辑、仪表盘、完整地图、复杂批量、多用户家庭共享、云中继。
 
 ---
 
@@ -164,22 +185,27 @@
 
 | 主题 | 现状线索 |
 |------|----------|
-| 行程实体 | `Model/TrainRideInfo.cs` → 表 `train_ride_info` |
+| Schema 迁移 | `PRAGMA user_version` + `DataAccess/Schema/*`（`SchemaCatalog` 追加步骤；当前 v2=同步底座） |
+| 行程实体 | `Model/TrainRideInfo.cs` → 表 `train_ride_info`（含 `sync_id` / `updated_at` / `deleted_at`） |
+| 同步变更 | `sync_change` + `SyncChangeRepository`；写路径在 `TrainRideRepository` / `TicketTagRepository` |
+| 配对 | `SyncPairingService` + `sync_pairing_code` / `sync_paired_device` |
 | 车站路局 | `StationInfo.RailwayBureau` / `station_info.railway_bureau` |
 | OCR 环境 | `OcrSettings*`、`OcrRecognitionService`、`OcrEnvironmentService`；菜单 OCR 入口多为占位 |
 | 表单入库 | `AddTrainTicket*` / `EditTrainTicket*` / `TrainTicketFormViewModelBase` → `TrainRideRepository` |
-| 备份 | `DatabaseBackupService` 等，同步前可复用 |
+| 备份 | `DatabaseBackupService` 等，同步前可复用（灾备主路径） |
 | 票面布局 | 预览窗工作台；证件掩码/姓名/身份证号等已支持独立布局编辑（实现以代码为准） |
 
 ---
 
 ## 8. 待拍板事项
 
-1. 手机端：MAUI 还是 PWA（或其它）？  
-2. 同步：仅「回家对齐 PC」是否接受为 v1？是否预留日后小云中继？  
-3. OCR：v1 是否先做「仅粘贴文本」再接通选图？  
+1. ~~手机端：MAUI 还是 PWA（或其它）？~~ → **MAUI**；UI 见 `docs/手机端MAUI设计规范.md`。  
+2. ~~同步：仅「回家对齐 PC」是否接受为 v1？~~ → **接受；无云。**  
+3. ~~OCR：v1 是否先做「仅粘贴文本」再接通选图？~~ → 已基本接通，见 §4.2。  
 4. 行程「担当路局 / 车头」字段是否进入下一版 schema 迁移？  
-5. OCR 样本由谁提供、存放何处、如何脱敏？
+5. OCR 样本由谁提供、存放何处、如何脱敏？  
+6. ~~同步设置页 UI：展示配对码、设备列表、撤销配对（数据层已就绪）。~~ → 设置「同步」页已接；HTTP 启停已接。
+7. 手机客户端（兑码 + pull/push）。
 
 ---
 
@@ -188,3 +214,7 @@
 | 日期 | 说明 |
 |------|------|
 | 2026-08-13 | 初稿：汇总多端同步、OCR 策略、火车迷向能力与验收原则 |
+| 2026-08-14 | 拍板无云；落地 sync_id/软删/sync_change/配对码；明确互备=同步副本+PC 本地灾备 |
+| 2026-08-14 | schema 正规化：`user_version` + 有序迁移（v1 baseline / v2 sync） |
+| 2026-08-15 | 配对码 60s 展示 TTL + 设置页同步 UI；与实现常量同源 |
+| 2026-08-15 | PC HTTP 传输：health/pair/changes + Ingress 应用 + 设置页启停 |
