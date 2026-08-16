@@ -13,14 +13,17 @@
 
     <ApplicationTitle>GuiPiao</ApplicationTitle>
     <ApplicationId>com.guipiao.mobile</ApplicationId>
-    <ApplicationDisplayVersion>1.0.6</ApplicationDisplayVersion>
-    <ApplicationVersion>7</ApplicationVersion>
+    <ApplicationDisplayVersion>1.0.7</ApplicationDisplayVersion>
+    <ApplicationVersion>8</ApplicationVersion>
 
     <WindowsPackageType>None</WindowsPackageType>
 
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">23.0</SupportedOSPlatformVersion>
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
     <TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
+
+    <!-- Debug 也打完整 APK，避免清存储后 Fast Deployment (.__override__) 坏掉导致 VS「未能启动」 -->
+    <EmbedAssembliesIntoApk Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">true</EmbedAssembliesIntoApk>
   </PropertyGroup>
 
   <!-- VS 常把 SDK 装到 Shared\Android，而非 %LOCALAPPDATA%\Android\Sdk -->
@@ -39,8 +42,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#0078D4" />
-    <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#0078D4" BaseSize="128,128" />
+    <!-- Link 固定为 appicon：AndroidManifest 引用 @mipmap/appicon / appicon_round -->
+    <MauiIcon Include="Resources\AppIcon\guipiao_app.png" Link="Resources\AppIcon\appicon.png" />
+    <MauiSplashScreen Include="Resources\AppIcon\guipiao_mark.png" Color="#0078D4" BaseSize="256,256" />
     <MauiImage Include="Resources\Images\*" />
     <MauiFont Include="Resources\Fonts\*" />
     <MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />

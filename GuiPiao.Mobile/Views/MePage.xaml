@@ -8,14 +8,10 @@
              x:Name="MeRoot"
              x:DataType="vm:MeViewModel"
              Title="我的"
+             Shell.NavBarIsVisible="False"
              BackgroundColor="{DynamicResource WindowBackground}">
     <ScrollView>
         <VerticalStackLayout Padding="16,12" Spacing="0">
-            <Label Text="我的"
-                   FontSize="{DynamicResource TitleFontSize}"
-                   FontAttributes="Bold"
-                   Margin="0,0,0,12" />
-
             <Label Text="{Binding StatsText}"
                    TextColor="{DynamicResource TextSecondary}"
                    Margin="0,0,0,4" />

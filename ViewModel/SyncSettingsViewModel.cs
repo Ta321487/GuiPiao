@@ -27,6 +27,7 @@ public partial class SyncSettingsViewModel : ObservableObject, ISettingsViewMode
     private readonly SyncHttpServer _httpServer = SyncHttpServer.Instance;
     private readonly SyncSettingsService _settingsService = new();
     private readonly DispatcherTimer _countdownTimer;
+    private DispatcherTimer? _statusResetTimer;
     private DateTime? _expiresAtUtc;
     private string _plainCode = string.Empty;
     private bool _isRefreshingCode;
@@ -40,7 +41,8 @@ public partial class SyncSettingsViewModel : ObservableObject, ISettingsViewMode
 
     [ObservableProperty] private bool _hasActiveCode;
 
-    [ObservableProperty] private string _statusMessage = "点击「开始配对」以启动服务并生成二维码。";
+    /// <summary>页内短时/操作反馈；瞬时提示会清空，不占设置窗底栏。</summary>
+    [ObservableProperty] private string _statusMessage = string.Empty;
 
     [ObservableProperty] private long _localSeq;
 
@@ -122,6 +124,7 @@ public partial class SyncSettingsViewModel : ObservableObject, ISettingsViewMode
     public void OnWindowClosing()
     {
         _countdownTimer.Stop();
+        _statusResetTimer?.Stop();
     }
 
     private void LoadFromSettings()
@@ -162,7 +165,7 @@ public partial class SyncSettingsViewModel : ObservableObject, ISettingsViewMode
                 catch (Exception ex)
                 {
                     SyncFromHttpServer();
-                    StatusMessage = "启动失败：" + SimplifyError(ex.Message);
+                    SetStickyStatus("启动失败：" + SimplifyError(ex.Message));
                     return;
                 }
             }
@@ -178,10 +181,10 @@ public partial class SyncSettingsViewModel : ObservableObject, ISettingsViewMode
                 : $"当前同步序号 {baseline.MaxSeq}。";
 
             if (_httpServer.AllowLan)
-                StatusMessage = $"可以开始扫码。{baselineHint}";
+                SetStickyStatus($"可以开始扫码。{baselineHint}");
             else
-                StatusMessage =
-                    $"服务仅在本机监听。{baselineHint}若手机无法连接，请检查防火墙是否放行端口 {port}，或在高级设置中开启局域网。";
+                SetStickyStatus(
+                    $"服务仅在本机监听。{baselineHint}若手机无法连接，请检查防火墙是否放行端口 {port}，或在高级设置中开启局域网。");
 
             await LoadSeqAsync();
             RefreshHealthSummary();
@@ -205,17 +208,17 @@ public partial class SyncSettingsViewModel : ObservableObject, ISettingsViewMode
             _httpServer.Start(port, AllowLan);
             SyncFromHttpServer();
             RefreshConnectionQr();
-            StatusMessage = _httpServer.AllowLan
+            SetTemporaryStatus(_httpServer.AllowLan
                 ? "同步服务已启动（局域网）。"
-                : "同步服务已启动（仅本机）。";
+                : "同步服务已启动（仅本机）。");
             if (!string.IsNullOrWhiteSpace(_httpServer.LastWarning))
-                StatusMessage = _httpServer.LastWarning;
+                SetStickyStatus(_httpServer.LastWarning);
             _ = LoadSeqAsync();
         }
         catch (Exception ex)
         {
             SyncFromHttpServer();
-            StatusMessage = SimplifyError(ex.Message);
+            SetStickyStatus(SimplifyError(ex.Message));
         }
     }
 
@@ -226,7 +229,7 @@ public partial class SyncSettingsViewModel : ObservableObject, ISettingsViewMode
         SyncFromHttpServer();
         ConnectionQrImage = null;
         ClearActiveCodeUi();
-        StatusMessage = "同步服务已暂停。已配对的设备不会解除，再次开始配对即可继续。";
+        SetStickyStatus("同步服务已暂停。已配对的设备不会解除，再次开始配对即可继续。");
         RefreshHealthSummary();
     }
 
@@ -257,7 +260,7 @@ public partial class SyncSettingsViewModel : ObservableObject, ISettingsViewMode
         _countdownTimer.Stop();
         await _pairingService.InvalidateActivePairingCodesAsync();
         ClearActiveCodeUi();
-        StatusMessage = "配对码已作废，二维码已清除。需要时请点击「刷新二维码」。";
+        SetTemporaryStatus("配对码已作废，二维码已清除。需要时请点击「刷新二维码」。");
     }
 
     [RelayCommand]
@@ -273,9 +276,9 @@ public partial class SyncSettingsViewModel : ObservableObject, ISettingsViewMode
     private async Task RefreshConflictsAsync()
     {
         await LoadConflictsAsync();
-        StatusMessage = HasOpenConflicts
+        SetTemporaryStatus(HasOpenConflicts
             ? $"待处理冲突 {OpenConflictCount} 条。"
-            : "暂无待处理冲突。";
+            : "暂无待处理冲突。");
     }
 
     [RelayCommand]
@@ -303,18 +306,18 @@ public partial class SyncSettingsViewModel : ObservableObject, ISettingsViewMode
             });
             if (!result.Ok)
             {
-                StatusMessage = "解决冲突失败：" + (result.Error ?? "未知错误");
+                SetStickyStatus("解决冲突失败：" + (result.Error ?? "未知错误"));
                 return;
             }
 
             await LoadConflictsAsync();
             await LoadSeqAsync();
-            StatusMessage = successHint;
+            SetTemporaryStatus(successHint);
             RefreshHealthSummary();
         }
         catch (Exception ex)
         {
-            StatusMessage = "解决冲突失败：" + SimplifyError(ex.Message);
+            SetStickyStatus("解决冲突失败：" + SimplifyError(ex.Message));
         }
     }
 
@@ -328,11 +331,11 @@ public partial class SyncSettingsViewModel : ObservableObject, ISettingsViewMode
         {
             var result = await _baselinePublisher.PublishMissingAsync();
             await LoadSeqAsync();
-            StatusMessage = result.SummaryText;
+            SetTemporaryStatus(result.SummaryText);
         }
         catch (Exception ex)
         {
-            StatusMessage = "发布现有数据失败：" + SimplifyError(ex.Message);
+            SetStickyStatus("发布现有数据失败：" + SimplifyError(ex.Message));
         }
         finally
         {
@@ -360,7 +363,7 @@ public partial class SyncSettingsViewModel : ObservableObject, ISettingsViewMode
 
         await _pairingService.RevokeDeviceAsync(device.DeviceId, source: "pc");
         await LoadDevicesAsync();
-        StatusMessage = $"已解除配对：{device.DeviceName}";
+        SetTemporaryStatus($"已解除配对：{device.DeviceName}");
         RefreshHealthSummary();
     }
 
@@ -381,12 +384,50 @@ public partial class SyncSettingsViewModel : ObservableObject, ISettingsViewMode
         }
     }
 
+    /// <summary>瞬时提示：约 2 秒后清空（页内反馈，不占设置窗底栏）。</summary>
+    private void SetTemporaryStatus(string message, int delaySeconds = 2)
+    {
+        StatusMessage = message;
+
+        if (_statusResetTimer == null)
+        {
+            _statusResetTimer = new DispatcherTimer();
+            _statusResetTimer.Tick += (_, _) =>
+            {
+                StatusMessage = string.Empty;
+                _statusResetTimer?.Stop();
+            };
+        }
+        else
+        {
+            _statusResetTimer.Stop();
+        }
+
+        _statusResetTimer.Interval = TimeSpan.FromSeconds(Math.Max(1, delaySeconds));
+        _statusResetTimer.Start();
+    }
+
+    /// <summary>引导/错误：留在页内直到下一次状态写入。</summary>
+    private void SetStickyStatus(string message)
+    {
+        _statusResetTimer?.Stop();
+        StatusMessage = message;
+    }
+
     /// <summary>状态文案延后到下一拍，避免与点击手势同一帧抢布局。</summary>
     private void SetStatusAfterCopy(bool ok, string successMessage)
     {
         var message = ok ? successMessage : "复制失败，请手动选中配对码后按 Ctrl+C。";
         var dispatcher = Application.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher;
-        dispatcher.BeginInvoke(() => StatusMessage = message, DispatcherPriority.Background);
+        dispatcher.BeginInvoke(
+            () =>
+            {
+                if (ok)
+                    SetTemporaryStatus(message);
+                else
+                    SetStickyStatus(message);
+            },
+            DispatcherPriority.Background);
     }
 
     private void RefreshConnectionQr()
@@ -506,7 +547,7 @@ public partial class SyncSettingsViewModel : ObservableObject, ISettingsViewMode
         if (_suppressUrlSelection || string.IsNullOrWhiteSpace(value)) return;
         ListenUrlText = value.Trim().TrimEnd('/');
         RefreshConnectionQr();
-        StatusMessage = $"已切换到地址：{ListenUrlText}";
+        SetTemporaryStatus($"已切换到地址：{ListenUrlText}");
     }
 
     private void OnCountdownTick(object? sender, EventArgs e)
@@ -557,7 +598,6 @@ public partial class SyncSettingsViewModel : ObservableObject, ISettingsViewMode
         await LoadDevicesAsync();
         if (string.Equals(e.Source, "device", StringComparison.OrdinalIgnoreCase))
         {
-            StatusMessage = $"手机「{e.DeviceName}」已解除配对。";
             var owner = Application.Current.Windows
                 .OfType<Window>()
                 .FirstOrDefault(w => w.DataContext is SettingsViewModel);
@@ -570,7 +610,7 @@ public partial class SyncSettingsViewModel : ObservableObject, ISettingsViewMode
         }
         else
         {
-            StatusMessage = $"已解除配对：{e.DeviceName}";
+            SetTemporaryStatus($"已解除配对：{e.DeviceName}");
         }
 
         RefreshHealthSummary();
@@ -579,7 +619,7 @@ public partial class SyncSettingsViewModel : ObservableObject, ISettingsViewMode
     private async Task RefreshAfterCodeConsumedAsync()
     {
         if (_isRefreshingCode) return;
-        StatusMessage = "设备已配对。可在手机上执行对齐；若需连接新手机，请再次开始配对。";
+        SetTemporaryStatus("设备已配对。可在手机上执行对齐；若需连接新手机，请再次开始配对。");
         await RotatePairingCodeAsync(showStatus: false);
         await LoadDevicesAsync();
         RefreshHealthSummary();
@@ -594,12 +634,12 @@ public partial class SyncSettingsViewModel : ObservableObject, ISettingsViewMode
             var result = await _pairingService.CreatePairingCodeAsync();
             ApplyCodeResult(result);
             if (showStatus)
-                StatusMessage = $"配对码已刷新，{SyncPairingService.CodeTtlSeconds} 秒内有效。";
+                SetTemporaryStatus($"配对码已刷新，{SyncPairingService.CodeTtlSeconds} 秒内有效。");
             await LoadDevicesAsync();
         }
         catch (Exception ex)
         {
-            StatusMessage = $"生成配对码失败：{ex.Message}";
+            SetStickyStatus($"生成配对码失败：{ex.Message}");
             ClearActiveCodeUi();
         }
         finally
@@ -670,7 +710,7 @@ public partial class SyncSettingsViewModel : ObservableObject, ISettingsViewMode
         }
         catch (Exception ex)
         {
-            StatusMessage = $"加载设备失败：{ex.Message}";
+            SetStickyStatus($"加载设备失败：{ex.Message}");
         }
     }
 

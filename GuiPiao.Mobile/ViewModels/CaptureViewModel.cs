@@ -15,8 +15,12 @@ public partial class CaptureViewModel : ObservableObject
 
     [ObservableProperty] private string _pasteText = string.Empty;
     [ObservableProperty] private string _statusText =
-        "粘贴短信/订单文本，或拍照/选图经 PC OCR 预填；确认入库在表单完成。";
+        "优先拍照；相册与粘贴为辅。图片 OCR 需已配对 PC。";
     [ObservableProperty] private bool _isBusy;
+    [ObservableProperty] private bool _hasPasteText;
+
+    partial void OnPasteTextChanged(string value) =>
+        HasPasteText = !string.IsNullOrWhiteSpace(value);
 
     public CaptureViewModel(
         CapturePrefillStore prefill,
@@ -52,7 +56,7 @@ public partial class CaptureViewModel : ObservableObject
                 PasteText = await Clipboard.Default.GetTextAsync() ?? string.Empty;
                 StatusText = string.IsNullOrWhiteSpace(PasteText)
                     ? "剪贴板为空。"
-                    : "已粘贴，可执行「识别并预填」。";
+                    : "已粘贴，可改原文后点「用此文本预填表单」。";
             }
             else
                 StatusText = "剪贴板没有文本。";

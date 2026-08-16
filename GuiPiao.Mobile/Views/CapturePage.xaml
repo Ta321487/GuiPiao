@@ -1,60 +1,83 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:icons="clr-namespace:GuiPiao.Mobile.Icons"
              xmlns:vm="clr-namespace:GuiPiao.Mobile.ViewModels"
              x:Class="GuiPiao.Mobile.Views.CapturePage"
              x:DataType="vm:CaptureViewModel"
              Title="采集"
+             Shell.NavBarIsVisible="False"
              BackgroundColor="{DynamicResource WindowBackground}">
-    <Grid RowDefinitions="Auto,*,Auto" Padding="16,12" RowSpacing="10">
-        <Label Text="采集"
-               FontSize="{DynamicResource TitleFontSize}"
-               FontAttributes="Bold" />
+    <ScrollView>
+        <VerticalStackLayout Padding="16,12" Spacing="14">
 
-        <Editor Grid.Row="1"
-                Text="{Binding PasteText}"
-                Placeholder="粘贴短信 / 订单 / 票面文本…"
-                AutoSize="Disabled"
-                VerticalOptions="Fill"
-                BackgroundColor="{DynamicResource ControlBackground}" />
+            <Label Text="识别结果仅预填，保存前请核对。"
+                   FontSize="{DynamicResource SmallFontSize}"
+                   TextColor="{DynamicResource TextSecondary}"
+                   LineBreakMode="WordWrap" />
 
-        <VerticalStackLayout Grid.Row="2" Spacing="8">
+            <!-- 主入口：拍照 -->
+            <Button Text="拍票面 / 短信截图"
+                    Style="{StaticResource PrimaryButtonStyle}"
+                    HeightRequest="56"
+                    FontAttributes="Bold"
+                    Command="{Binding TakePhotoCommand}"
+                    IsEnabled="{Binding IsBusy, Converter={StaticResource InvertedBoolConverter}}" />
+
+            <!-- 次入口：相册 / 粘贴 -->
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                <Button Text="相册选图"
+                        Style="{StaticResource SecondaryButtonStyle}"
+                        HeightRequest="48"
+                        Command="{Binding PickPhotoCommand}"
+                        IsEnabled="{Binding IsBusy, Converter={StaticResource InvertedBoolConverter}}" />
+                <Button Grid.Column="1"
+                        Text="粘贴文本"
+                        Style="{StaticResource SecondaryButtonStyle}"
+                        HeightRequest="48"
+                        Command="{Binding PasteFromClipboardCommand}"
+                        IsEnabled="{Binding IsBusy, Converter={StaticResource InvertedBoolConverter}}" />
+            </Grid>
+
+            <ActivityIndicator IsRunning="{Binding IsBusy}"
+                               IsVisible="{Binding IsBusy}"
+                               Color="{DynamicResource AccentColor}"
+                               HeightRequest="28"
+                               HorizontalOptions="Center" />
+
             <Label Text="{Binding StatusText}"
                    FontSize="{DynamicResource SmallFontSize}"
                    TextColor="{DynamicResource TextSecondary}"
                    LineBreakMode="WordWrap" />
-            <Button Text="识别并预填"
-                    Style="{StaticResource PrimaryButtonStyle}"
-                    HeightRequest="48"
-                    Command="{Binding ParsePasteCommand}"
-                    IsEnabled="{Binding IsBusy, Converter={StaticResource InvertedBoolConverter}}" />
-            <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="6">
-                <Button Text="拍照"
-                        Style="{StaticResource SecondaryButtonStyle}"
-                        HeightRequest="44" Padding="4,0"
-                        Command="{Binding TakePhotoCommand}"
+
+            <!-- 有文本时才展开：可改原文 → 预填 -->
+            <VerticalStackLayout Spacing="8"
+                                 IsVisible="{Binding HasPasteText}">
+                <Label Text="识别原文（可改）"
+                       FontSize="{DynamicResource SmallFontSize}"
+                       TextColor="{DynamicResource TextSecondary}" />
+                <Editor Text="{Binding PasteText}"
+                        Placeholder="粘贴短信 / 订单 / 票面文本…"
+                        AutoSize="TextChanges"
+                        MinimumHeightRequest="120"
+                        MaximumHeightRequest="220"
+                        BackgroundColor="{DynamicResource ControlBackground}" />
+                <Button Text="用此文本预填表单"
+                        Style="{StaticResource PrimaryButtonStyle}"
+                        HeightRequest="48"
+                        Command="{Binding ParsePasteCommand}"
                         IsEnabled="{Binding IsBusy, Converter={StaticResource InvertedBoolConverter}}" />
-                <Button Grid.Column="1"
-                        Text="相册"
-                        Style="{StaticResource SecondaryButtonStyle}"
-                        HeightRequest="44" Padding="4,0"
-                        Command="{Binding PickPhotoCommand}"
-                        IsEnabled="{Binding IsBusy, Converter={StaticResource InvertedBoolConverter}}" />
-                <Button Grid.Column="2"
-                        Text="粘贴"
-                        Style="{StaticResource SecondaryButtonStyle}"
-                        HeightRequest="44" Padding="8,0"
-                        Command="{Binding PasteFromClipboardCommand}" />
-                <Button Grid.Column="3"
-                        Text="空白"
-                        Style="{StaticResource SecondaryButtonStyle}"
-                        HeightRequest="44" Padding="8,0"
-                        Command="{Binding OpenBlankFormCommand}" />
-            </Grid>
-            <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}"
-                               Color="{DynamicResource AccentColor}"
-                               HeightRequest="24" />
+            </VerticalStackLayout>
+
+            <BoxView HeightRequest="1" Color="{DynamicResource Divider}" Margin="0,4" />
+
+            <Label Text="或手工填写"
+                   FontSize="{DynamicResource SmallFontSize}"
+                   TextColor="{DynamicResource TextSecondary}"
+                   HorizontalOptions="Center" />
+            <Button Text="打开空白行程表单"
+                    Style="{StaticResource SecondaryButtonStyle}"
+                    HeightRequest="44"
+                    Command="{Binding OpenBlankFormCommand}" />
         </VerticalStackLayout>
-    </Grid>
+    </ScrollView>
 </ContentPage>

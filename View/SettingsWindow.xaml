@@ -162,7 +162,7 @@
 
         <!-- 右侧内容区 -->
         <DockPanel Grid.Column="1" Background="{DynamicResource ContentBackgroundBrush}" LastChildFill="True">
-            <!-- 底部状态栏 -->
+            <!-- 底部：仅当前页名（设置窗不做主窗口式状态栏） -->
             <Border DockPanel.Dock="Bottom" Background="{DynamicResource PanelBackgroundBrush}" Padding="15,8"
                     BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0">
                 <StackPanel Orientation="Horizontal">

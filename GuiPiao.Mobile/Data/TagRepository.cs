@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using GuiPiao.Mobile.Model;
 using Microsoft.Data.Sqlite;
 
@@ -103,30 +105,57 @@ public sealed class TagRepository
         return list;
     }
 
-    public IReadOnlyList<string> GetTagNamesForRide(string rideSyncId)
+    public IReadOnlyDictionary<string, IReadOnlyList<string>> GetTagNamesForRides(IEnumerable<string> rideSyncIds)
     {
-        if (string.IsNullOrWhiteSpace(rideSyncId)) return Array.Empty<string>();
+        var ids = rideSyncIds
+            .Where(id => !string.IsNullOrWhiteSpace(id))
+            .Distinct(StringComparer.Ordinal)
+            .ToList();
+        if (ids.Count == 0)
+            return new Dictionary<string, IReadOnlyList<string>>(StringComparer.Ordinal);
+
         using var connection = _db.OpenConnection();
         using var cmd = connection.CreateCommand();
+        var paramNames = new List<string>(ids.Count);
+        for (var i = 0; i < ids.Count; i++)
+        {
+            var name = "@r" + i;
+            paramNames.Add(name);
+            cmd.Parameters.AddWithValue(name, ids[i]);
+        }
+
         cmd.CommandText =
-            """
-            SELECT t.name FROM ticket_tag t
+            $"""
+            SELECT rt.ride_sync_id, t.name FROM ticket_tag t
             INNER JOIN ride_tag rt ON rt.tag_sync_id = t.sync_id
-            WHERE rt.ride_sync_id = @ride
+            WHERE rt.ride_sync_id IN ({string.Join(", ", paramNames)})
               AND (t.deleted_at IS NULL OR t.deleted_at = '')
             ORDER BY t.sort_order ASC, t.name ASC
             """;
-        cmd.Parameters.AddWithValue("@ride", rideSyncId);
-        var list = new List<string>();
+
+        var map = ids.ToDictionary(id => id, _ => (IList<string>)new List<string>(), StringComparer.Ordinal);
         using var reader = cmd.ExecuteReader();
         while (reader.Read())
         {
-            var name = reader.GetString(0);
-            if (!string.IsNullOrWhiteSpace(name))
+            var rideId = reader.GetString(0);
+            var name = reader.GetString(1);
+            if (string.IsNullOrWhiteSpace(rideId) || string.IsNullOrWhiteSpace(name)) continue;
+            if (map.TryGetValue(rideId, out var list))
                 list.Add(name);
         }
 
-        return list;
+        return map.ToDictionary(
+            kv => kv.Key,
+            kv => (IReadOnlyList<string>)kv.Value.ToList(),
+            StringComparer.Ordinal);
+    }
+
+    public IReadOnlyList<string> GetTagNamesForRide(string rideSyncId)
+    {
+        if (string.IsNullOrWhiteSpace(rideSyncId)) return Array.Empty<string>();
+        return GetTagNamesForRides(new[] { rideSyncId }).TryGetValue(rideSyncId, out var names)
+            ? names
+            : Array.Empty<string>();
     }
 
     public IReadOnlyList<MobileTag> ListActive()

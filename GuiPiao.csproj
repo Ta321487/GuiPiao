@@ -11,6 +11,8 @@
         <ServerGarbageCollection>false</ServerGarbageCollection>
         <!-- 在内存压力下更积极归还内存（略增 GC 频率） -->
         <GCConserveMemory>9</GCConserveMemory>
+        <!-- 窗体/任务栏/托盘：蓝底白标（#0078D4），浅色任务栏也可辨 -->
+        <ApplicationIcon>Resources\AppIcon\guipiao.ico</ApplicationIcon>
     </PropertyGroup>
 
     <ItemGroup>
@@ -19,7 +21,12 @@
 
     <ItemGroup>
         <!-- 地图等资源复制到输出目录（不含 XAML：合并字典须由 WPF 编译进程序集，不能当作 Content） -->
-        <Content Include="Resources\**\*" Exclude="Resources\**\*.xaml">
+        <Content Include="Resources\**\*" Exclude="Resources\**\*.xaml;Resources\AppIcon\**\*">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+        <!-- 应用图标：嵌入程序集，供窗体/启动页 pack URI；并复制到输出目录供托盘加载 -->
+        <Resource Include="Resources\AppIcon\**\*" />
+        <Content Include="Resources\AppIcon\**\*">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
         <Content Include="Config\**\*">

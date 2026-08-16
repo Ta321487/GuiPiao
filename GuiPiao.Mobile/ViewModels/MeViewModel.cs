@@ -18,6 +18,7 @@ public partial class MeViewModel : ObservableObject
     private readonly SyncPushQueue _pushQueue;
     private bool _loadingAppearance;
     private bool _syncingCustomRgb;
+    private CancellationTokenSource? _customAccentDebounce;
 
     [ObservableProperty] private ThemeMode _themeMode = ThemeMode.Light;
     [ObservableProperty] private AccentColor _accentColor = AccentColor.MicrosoftBlue;
@@ -289,9 +290,9 @@ public partial class MeViewModel : ObservableObject
     {
         if (_loadingAppearance) return;
         RefreshSelectionFlags();
+        // 选色命令会 PersistAppearance；此处仅即时预览，避免重复 Apply + 写盘
         _theme.ApplyThemeMode(value);
         _theme.ApplyAccentColor(AccentColor, CustomColor);
-        PersistAppearance(showStatus: false);
     }
 
     partial void OnAccentColorChanged(AccentColor value)
@@ -300,7 +301,6 @@ public partial class MeViewModel : ObservableObject
         IsCustomAccent = value == AccentColor.Custom;
         RefreshSelectionFlags();
         _theme.ApplyAccentColor(value, CustomColor);
-        PersistAppearance(showStatus: false);
     }
 
     partial void OnCustomColorChanged(string value)
@@ -311,9 +311,38 @@ public partial class MeViewModel : ObservableObject
         UpdateCustomPreview(value);
         RefreshCustomAccentSwatch();
         if (AccentColor == AccentColor.Custom)
+            ScheduleCustomAccentPersist(value);
+    }
+
+    /// <summary>滑条拖动时只预览强调色，落盘与完整 Apply 防抖，避免整页卡顿。</summary>
+    private void ScheduleCustomAccentPersist(string value)
+    {
+        _customAccentDebounce?.Cancel();
+        _customAccentDebounce = new CancellationTokenSource();
+        var token = _customAccentDebounce.Token;
+        var hex = NormalizeHex(value);
+        _theme.ApplyAccentHex(hex);
+
+        _ = DebouncePersistCustomAsync(hex, token);
+    }
+
+    private async Task DebouncePersistCustomAsync(string hex, CancellationToken token)
+    {
+        try
         {
-            _theme.ApplyAccentColor(AccentColor, value);
-            PersistAppearance(showStatus: false);
+            await Task.Delay(350, token);
+            if (token.IsCancellationRequested || _loadingAppearance) return;
+            var appearance = new AppearanceConfig
+            {
+                ThemeMode = ThemeMode,
+                AccentColor = AccentColor.Custom,
+                CustomColor = hex
+            };
+            _settings.SaveAppearance(appearance);
+        }
+        catch (TaskCanceledException)
+        {
+            // ignore
         }
     }
 

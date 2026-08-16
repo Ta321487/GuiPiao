@@ -6,37 +6,32 @@
              x:Class="GuiPiao.Mobile.Views.SyncPage"
              x:DataType="vm:SyncViewModel"
              Title="同步"
+             Shell.NavBarIsVisible="False"
              BackgroundColor="{DynamicResource WindowBackground}">
 
     <Grid RowDefinitions="Auto,*,Auto" Padding="16,12">
 
-        <!-- 顶栏：状态 -->
-        <Grid ColumnDefinitions="*,Auto">
-            <Label Text="同步"
-                   FontSize="{DynamicResource TitleFontSize}"
-                   FontAttributes="Bold"
-                   VerticalOptions="Center" />
-            <Border Grid.Column="1"
-                    Padding="10,4"
-                    StrokeThickness="1"
-                    Stroke="{DynamicResource Border}"
-                    BackgroundColor="{DynamicResource PanelBackground}">
-                <Border.StrokeShape>
-                    <RoundRectangle CornerRadius="12" />
-                </Border.StrokeShape>
-                <HorizontalStackLayout Spacing="6">
-                    <BoxView WidthRequest="8" HeightRequest="8" CornerRadius="4"
-                             Color="{DynamicResource AccentColor}"
-                             IsVisible="{Binding IsPaired}" />
-                    <BoxView WidthRequest="8" HeightRequest="8" CornerRadius="4"
-                             Color="{DynamicResource TextSecondary}"
-                             IsVisible="{Binding IsPaired, Converter={StaticResource InvertedBoolConverter}}" />
-                    <Label Text="{Binding StatusText}"
-                           FontSize="{DynamicResource SmallFontSize}"
-                           VerticalOptions="Center" />
-                </HorizontalStackLayout>
-            </Border>
-        </Grid>
+        <!-- 顶栏：连接状态（页标题由 Shell 导航栏提供，避免双标题） -->
+        <Border HorizontalOptions="End"
+                Padding="10,4"
+                StrokeThickness="1"
+                Stroke="{DynamicResource Border}"
+                BackgroundColor="{DynamicResource PanelBackground}">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="12" />
+            </Border.StrokeShape>
+            <HorizontalStackLayout Spacing="6">
+                <BoxView WidthRequest="8" HeightRequest="8" CornerRadius="4"
+                         Color="{DynamicResource AccentColor}"
+                         IsVisible="{Binding IsPaired}" />
+                <BoxView WidthRequest="8" HeightRequest="8" CornerRadius="4"
+                         Color="{DynamicResource TextSecondary}"
+                         IsVisible="{Binding IsPaired, Converter={StaticResource InvertedBoolConverter}}" />
+                <Label Text="{Binding StatusText}"
+                       FontSize="{DynamicResource SmallFontSize}"
+                       VerticalOptions="Center" />
+            </HorizontalStackLayout>
+        </Border>
 
         <!-- 中心：球形仓 -->
         <Grid Grid.Row="1" VerticalOptions="Center" HorizontalOptions="Center">

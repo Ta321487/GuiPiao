@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -16,6 +17,7 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using CommunityToolkit.Mvvm.Messaging;
 using GuiPiao.Converters;
+using GuiPiao.Icons;
 using GuiPiao.Messages;
 using GuiPiao.Model;
 using GuiPiao.Services;
@@ -321,7 +323,11 @@ public partial class MainWindow : Window
     private void InitializeNotifyIcon()
     {
         _notifyIcon = new Forms.NotifyIcon
-            { Icon = SystemIcons.Application, Text = "GuiPiao - 火车票管理", Visible = false };
+        {
+            Icon = LoadTrayIcon(),
+            Text = "GuiPiao - 火车票管理",
+            Visible = false
+        };
 
         // 创建托盘菜单
         var contextMenu = new Forms.ContextMenuStrip();
@@ -332,6 +338,23 @@ public partial class MainWindow : Window
 
         // 双击托盘图标显示窗口
         _notifyIcon.DoubleClick += (s, e) => ShowWindowFromTray();
+    }
+
+    /// <summary>托盘用蓝底白标 ICO（浅色任务栏也可辨，不跟主题强调色变）。</summary>
+    private static Icon LoadTrayIcon()
+    {
+        try
+        {
+            var path = Path.Combine(AppContext.BaseDirectory, "Resources", "AppIcon", "guipiao.ico");
+            if (File.Exists(path))
+                return new Icon(path);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine("[MainWindow] 加载托盘图标失败: " + ex.Message);
+        }
+
+        return SystemIcons.Application;
     }
 
     /// <summary>
@@ -1871,6 +1894,8 @@ public partial class MainWindow : Window
                         card.SortOrder = chartVm.Card.SortOrder;
                         card.GridRow = chartVm.Card.GridRow;
                         card.GridColumn = chartVm.Card.GridColumn;
+                        card.GridRowSpan = chartVm.Card.GridRowSpan;
+                        card.GridColumnSpan = chartVm.Card.GridColumnSpan;
                     }
                 }
             }
@@ -1888,16 +1913,13 @@ public partial class MainWindow : Window
     /// </summary>
     private void DashboardItemsControl_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
-        // 检查是否点击在拖拽手柄上
+        // 仅从拖拽手柄启动（Segoe MDL2 GlobalNav，勿再写死「☰」）
         var source = e.OriginalSource as DependencyObject;
         var textBlock = DragDropHelper.FindVisualParent<TextBlock>(source);
-
-        // 只有点击拖拽手柄（☰）时才启用拖拽
-        if (textBlock == null || textBlock.Text != "☰") return;
+        if (textBlock == null || textBlock.Text != AppIcons.GlobalNav) return;
 
         _dashboardDragDropHelper?.OnPreviewMouseLeftButtonDown(sender, e, originalSource =>
         {
-            // 查找 DashboardChartView 容器
             return DragDropHelper.FindVisualParent<ContentPresenter>(originalSource);
         });
     }

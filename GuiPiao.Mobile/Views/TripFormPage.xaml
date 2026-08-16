@@ -385,7 +385,11 @@
 
         <Grid Grid.Row="1" ColumnDefinitions="*,*" ColumnSpacing="8" Padding="16,8,16,12">
             <Button Text="取消" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding CancelCommand}" HeightRequest="48" />
-            <Button Grid.Column="1" Text="保存" Style="{StaticResource PrimaryButtonStyle}"
+            <Button Grid.Column="1" Text="保存"
+                    BackgroundColor="{DynamicResource AccentColor}"
+                    TextColor="{DynamicResource AccentText}"
+                    FontSize="{DynamicResource BaseFontSize}"
+                    CornerRadius="4"
                     Command="{Binding SaveCommand}" HeightRequest="48"
                     IsEnabled="{Binding IsBusy, Converter={StaticResource InvertedBoolConverter}}" />
         </Grid>

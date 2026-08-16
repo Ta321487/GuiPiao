@@ -18,6 +18,7 @@ public partial class TripsViewModel : ObservableObject, IRecipient<TripsDataChan
     private readonly TagRepository _tags;
     private readonly SyncPullBuffer _pullBuffer;
     private readonly MobileSyncIngressService _ingress;
+    private CancellationTokenSource? _searchDebounce;
 
     [ObservableProperty] private string _searchText = string.Empty;
     [ObservableProperty] private string _statusText = string.Empty;
@@ -84,10 +85,13 @@ public partial class TripsViewModel : ObservableObject, IRecipient<TripsDataChan
                 CurrentPage = 1;
 
             var list = _rides.ListActivePage(search, CurrentPage, DefaultPageSize, status);
+            var tagMap = _tags.GetTagNamesForRides(list.Select(r => r.SyncId));
             foreach (var ride in list)
             {
-                var names = _tags.GetTagNamesForRide(ride.SyncId);
-                ride.TagsText = names.Count == 0 ? string.Empty : string.Join(" · ", names);
+                if (tagMap.TryGetValue(ride.SyncId, out var names) && names.Count > 0)
+                    ride.TagsText = string.Join(" · ", names);
+                else
+                    ride.TagsText = string.Empty;
             }
 
             Items = new ObservableCollection<MobileRide>(list);
@@ -109,7 +113,27 @@ public partial class TripsViewModel : ObservableObject, IRecipient<TripsDataChan
     [RelayCommand]
     private void Search() => Reload(resetPage: true);
 
-    partial void OnSearchTextChanged(string value) => Reload(resetPage: true);
+    partial void OnSearchTextChanged(string value)
+    {
+        _searchDebounce?.Cancel();
+        _searchDebounce = new CancellationTokenSource();
+        var token = _searchDebounce.Token;
+        _ = DebouncedReloadAsync(token);
+    }
+
+    private async Task DebouncedReloadAsync(CancellationToken token)
+    {
+        try
+        {
+            await Task.Delay(280, token);
+            if (token.IsCancellationRequested) return;
+            MainThread.BeginInvokeOnMainThread(() => Reload(resetPage: true));
+        }
+        catch (TaskCanceledException)
+        {
+            // ignore
+        }
+    }
 
     partial void OnStatusFilterChanged(int value) => Reload(resetPage: true);
 

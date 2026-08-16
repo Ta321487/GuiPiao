@@ -24,7 +24,7 @@ public sealed class ThemeService
 
     public void ApplyThemeMode(ThemeMode themeMode)
     {
-        IsDarkTheme = themeMode switch
+        var nextDark = themeMode switch
         {
             ThemeMode.Light => false,
             ThemeMode.Dark => true,
@@ -35,37 +35,24 @@ public sealed class ThemeService
         var app = Application.Current;
         if (app == null) return;
 
-        var merged = app.Resources.MergedDictionaries;
-        if (_currentTheme != null)
-            merged.Remove(_currentTheme);
+        // 仅在深浅切换时替换主题字典；切强调色不要 Clear MergedDictionaries（会卡且 Style 丢绑定）
+        if (_currentTheme == null || IsDarkTheme != nextDark)
+        {
+            IsDarkTheme = nextDark;
+            var merged = app.Resources.MergedDictionaries;
+            if (_currentTheme != null)
+                merged.Remove(_currentTheme);
 
-        _currentTheme = IsDarkTheme ? new DarkTheme() : new LightTheme();
-
-        // MergedDictionaries 无 Insert：清后把主题字典放到最前，保证结构色优先
-        var rest = merged.ToList();
-        merged.Clear();
-        merged.Add(_currentTheme);
-        foreach (var dict in rest)
-            merged.Add(dict);
+            _currentTheme = IsDarkTheme ? new DarkTheme() : new LightTheme();
+            // 只替换主题字典，不清空 Tokens/Controls（避免卡顿与 Style DynamicResource 失效）
+            merged.Add(_currentTheme);
+        }
 
         app.UserAppTheme = IsDarkTheme ? AppTheme.Dark : AppTheme.Light;
     }
 
-    public void ApplyAccentColor(AccentColor accentColor, string customColor)
-    {
-        var hex = accentColor switch
-        {
-            AccentColor.MicrosoftBlue => "#0078D4",
-            AccentColor.FreshGreen => "#28A745",
-            AccentColor.VitalityOrange => "#FD7E14",
-            AccentColor.DarkPurple => "#6F42C1",
-            AccentColor.MinimalGray => "#6C757D",
-            AccentColor.Custom => string.IsNullOrWhiteSpace(customColor) ? "#0078D4" : customColor.Trim(),
-            _ => "#0078D4"
-        };
-
-        ApplyAccentHex(hex);
-    }
+    public void ApplyAccentColor(AccentColor accentColor, string customColor) =>
+        ApplyAccentHex(ResolveAccentHex(accentColor, customColor));
 
     public void ApplyAccentHex(string colorHex)
     {
@@ -105,16 +92,24 @@ public sealed class ThemeService
 
     private void SetColor(string key, Color color)
     {
-        var target = _currentTheme ?? Application.Current?.Resources;
-        if (target == null) return;
-        target[key] = color;
+        // 同时写主题字典与 Application.Resources，避免新开页（如表单）Style 仍解析到默认蓝
+        if (_currentTheme != null)
+            _currentTheme[key] = color;
+
+        var app = Application.Current;
+        if (app != null)
+            app.Resources[key] = color;
     }
 
     private void SetBrush(string key, Color color)
     {
-        var target = _currentTheme ?? Application.Current?.Resources;
-        if (target == null) return;
-        target[key] = new SolidColorBrush(color);
+        var brush = new SolidColorBrush(color);
+        if (_currentTheme != null)
+            _currentTheme[key] = brush;
+
+        var app = Application.Current;
+        if (app != null)
+            app.Resources[key] = brush;
     }
 
     private static bool TryParseColor(string hex, out Color color)
