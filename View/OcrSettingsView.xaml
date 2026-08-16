@@ -137,8 +137,7 @@
                     <controls:IconLabel Glyph="{x:Static icons:AppIcons.Search}" Text="检查环境" />
                 </Button>
                             <Button Command="{Binding InstallAllCommand}"
-                                    Style="{StaticResource PrimaryButtonStyle}" Padding="10,5" Margin="0,0,10,5"
-                                    IsEnabled="{Binding IsEnvironmentCheckCompleted}">
+                                    Style="{StaticResource PrimaryButtonStyle}" Padding="10,5" Margin="0,0,10,5">
                     <controls:IconLabel Glyph="{x:Static icons:AppIcons.Package}" Text="一键安装" />
                 </Button>
                         </WrapPanel>
@@ -185,11 +184,8 @@
                         <controls:IconLabel Glyph="{x:Static icons:AppIcons.Pin}" Text="模型导入" FontWeight="Bold" Margin="0,0,0,10" Foreground="{DynamicResource TextPrimaryBrush}" />
 
                         <TextBlock FontSize="{DynamicResource SmallFontSize}" Margin="0,0,0,10"
-                                   Foreground="{DynamicResource TextSecondaryBrush}">
-                            <TextBlock.Text>
-                                请下载以下两个模型文件，然后点击"选择模型文件"按钮导入：
-                            </TextBlock.Text>
-                        </TextBlock>
+                                   Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"
+                                   Text="请下载以下两个模型文件，再点「选择模型文件」导入。导入时会按规范文件名写入 CnOCR/CNSTD 目录；状态以检查结果为准。" />
 
                         <!-- 模型文件列表 -->
                         <Border Background="{DynamicResource ContentBackgroundBrush}"
@@ -212,14 +208,25 @@
                             </StackPanel>
                         </Border>
 
-                        <!-- 下载来源 -->
-                        <TextBlock Text="下载来源：" Margin="0,0,0,5" Foreground="{DynamicResource TextPrimaryBrush}" />
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                            <Button Command="{Binding OpenBaiduPanCommand}"
-                                    Style="{StaticResource StandardButtonStyle}" Padding="10,5" Margin="0,0,10,0">
-                    <controls:IconLabel Glyph="{x:Static icons:AppIcons.Link}" Text="百度网盘下载" />
-                </Button>
+                        <!-- 下载来源：识别与检测分属两个网盘 -->
+                        <TextBlock Text="下载来源（两个都要下）：" Margin="0,0,0,5"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                            <Button Command="{Binding OpenCnocrBaiduPanCommand}"
+                                    Style="{StaticResource StandardButtonStyle}" Padding="10,5" Margin="0,0,10,0"
+                                    ToolTip="下载 densenet_lite_136-gru（识别模型）">
+                                <controls:IconLabel Glyph="{x:Static icons:AppIcons.Link}" Text="识别模型网盘" />
+                            </Button>
                             <TextBlock Text="提取码：nocr" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource AccentForegroundBrush}" FontWeight="Bold" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                            <Button Command="{Binding OpenCnstdBaiduPanCommand}"
+                                    Style="{StaticResource StandardButtonStyle}" Padding="10,5" Margin="0,0,10,0"
+                                    ToolTip="下载 ch_PP-OCRv4_det（检测模型）">
+                                <controls:IconLabel Glyph="{x:Static icons:AppIcons.Link}" Text="检测模型网盘" />
+                            </Button>
+                            <TextBlock Text="提取码：nstd" VerticalAlignment="Center"
                                        Foreground="{DynamicResource AccentForegroundBrush}" FontWeight="Bold" />
                         </StackPanel>
 
@@ -229,9 +236,9 @@
                     <controls:IconLabel Glyph="{x:Static icons:AppIcons.OpenFolder}" Text="选择模型文件" />
                 </Button>
 
-                        <TextBlock Text="提示：可同时选择两个.onnx文件，程序会自动识别并复制到正确位置"
+                        <TextBlock Text="提示：可同时选择两个 .onnx 文件；即使文件名不同，也会按规范名复制到正确位置。"
                                    FontSize="{DynamicResource SmallFontSize}" Margin="0,10,0,0"
-                                   Foreground="{DynamicResource TextSecondaryBrush}" />
+                                   Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" />
                     </StackPanel>
                 </Border>
 
@@ -241,9 +248,9 @@
                         BorderThickness="1" Margin="0,0,0,10" Padding="10">
                     <StackPanel>
                         <controls:IconLabel Glyph="{x:Static icons:AppIcons.Pin}" Text="单独安装组件" FontWeight="Bold" Margin="0,0,0,10" Foreground="{DynamicResource TextPrimaryBrush}" />
-                        <TextBlock Text="如果一键安装失败，可以单独安装以下组件："
+                        <TextBlock Text="如果一键安装失败，可以单独安装以下组件。一键安装含 Python 与 CnOCR/CNSTD 库，模型文件仍需上方导入。"
                                    FontSize="{DynamicResource SmallFontSize}" Margin="0,0,0,10"
-                                   Foreground="{DynamicResource TextSecondaryBrush}" />
+                                   Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" />
 
                         <StackPanel Orientation="Horizontal">
                             <Button Command="{Binding InstallPythonCommand}"

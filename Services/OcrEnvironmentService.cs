@@ -23,6 +23,13 @@ public class OcrEnvironmentService
     // Python下载地址 (Python 3.12.9)
     private const string PythonDownloadUrl = "https://www.python.org/ftp/python/3.12.9/python-3.12.9-amd64.exe";
 
+    /// <summary>识别模型规范文件名（与 Check / Import / CnOCR 缓存一致）。</summary>
+    public const string RecognitionModelFileName =
+        "cnocr-v2.3-densenet_lite_136-gru-epoch=004-ft-model.onnx";
+
+    /// <summary>检测模型规范文件名（与 Check / Import / CNSTD 缓存一致）。</summary>
+    public const string DetectionModelFileName = "ch_PP-OCRv4_det_infer.onnx";
+
     // 模型文件目标路径
     private static string CnocrModelDir => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
@@ -31,6 +38,19 @@ public class OcrEnvironmentService
     private static string CnstdModelDir => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
         "cnstd", "1.2", "ppocr", "ch_PP-OCRv4_det");
+
+    /// <summary>优先用设置里的 PythonPath；路径不存在则回落 python。</summary>
+    private static string ResolvePythonExecutable(string? pythonPath)
+    {
+        if (!string.IsNullOrWhiteSpace(pythonPath))
+        {
+            var trimmed = pythonPath.Trim();
+            if (!Path.IsPathRooted(trimmed) || File.Exists(trimmed))
+                return trimmed;
+        }
+
+        return "python";
+    }
 
     /// <summary>
     ///     检查Python是否已安装，并返回版本信息
@@ -157,13 +177,13 @@ public class OcrEnvironmentService
     /// <summary>
     ///     检查CnOCR是否已安装
     /// </summary>
-    public async Task<bool> CheckCnocrInstalled()
+    public async Task<bool> CheckCnocrInstalled(string? pythonPath = null)
     {
         try
         {
             var processInfo = new ProcessStartInfo
             {
-                FileName = "python",
+                FileName = ResolvePythonExecutable(pythonPath),
                 Arguments = "-c \"import cnocr; print('OK')\"",
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
@@ -191,13 +211,13 @@ public class OcrEnvironmentService
     /// <summary>
     ///     检查CNSTD是否已安装
     /// </summary>
-    public async Task<bool> CheckCnstdInstalled()
+    public async Task<bool> CheckCnstdInstalled(string? pythonPath = null)
     {
         try
         {
             var processInfo = new ProcessStartInfo
             {
-                FileName = "python",
+                FileName = ResolvePythonExecutable(pythonPath),
                 Arguments = "-c \"import cnstd; print('OK')\"",
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
@@ -227,7 +247,7 @@ public class OcrEnvironmentService
     /// </summary>
     public bool CheckRecognitionModelInstalled()
     {
-        var modelPath = Path.Combine(CnocrModelDir, "cnocr-v2.3-densenet_lite_136-gru-epoch=004-ft-model.onnx");
+        var modelPath = Path.Combine(CnocrModelDir, RecognitionModelFileName);
         return File.Exists(modelPath);
     }
 
@@ -236,7 +256,7 @@ public class OcrEnvironmentService
     /// </summary>
     public bool CheckDetectionModelInstalled()
     {
-        var modelPath = Path.Combine(CnstdModelDir, "ch_PP-OCRv4_det_infer.onnx");
+        var modelPath = Path.Combine(CnstdModelDir, DetectionModelFileName);
         return File.Exists(modelPath);
     }
 
@@ -255,7 +275,7 @@ public class OcrEnvironmentService
             // 使用Python测试CnOCR是否能正常初始化
             var processInfo = new ProcessStartInfo
             {
-                FileName = "python",
+                FileName = ResolvePythonExecutable(null),
                 Arguments = "-c \"from cnocr import CnOcr; ocr = CnOcr(); print('OK')\"",
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
@@ -295,7 +315,7 @@ public class OcrEnvironmentService
             // 使用Python测试CNSTD是否能正常初始化
             var processInfo = new ProcessStartInfo
             {
-                FileName = "python",
+                FileName = ResolvePythonExecutable(null),
                 Arguments = "-c \"from cnstd import CnStd; det = CnStd(); print('OK')\"",
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
@@ -320,6 +340,12 @@ public class OcrEnvironmentService
         }
     }
 
+    /// <summary>识别模型（CnOCR）百度网盘，提取码 nocr。</summary>
+    public const string CnocrBaiduPanUrl = "https://pan.baidu.com/s/1RhLBf8DcLnLuGLPrp89hUg?pwd=nocr";
+
+    /// <summary>检测模型（CnSTD）百度网盘，提取码 nstd。</summary>
+    public const string CnstdBaiduPanUrl = "https://pan.baidu.com/s/1zDMzArCDrrXHWL0AWxwYQQ?pwd=nstd";
+
     /// <summary>
     ///     获取模型下载提示信息
     /// </summary>
@@ -327,19 +353,20 @@ public class OcrEnvironmentService
     {
         return $"请从以下地址下载模型文件：\n\n" +
                $"1. 识别模型（约12MB）：\n" +
-               $"   文件名：cnocr-v2.3-densenet_lite_136-gru-epoch=004-ft-model.onnx\n" +
+               $"   文件名：{RecognitionModelFileName}\n" +
+               $"   网盘：{CnocrBaiduPanUrl}（提取码 nocr）\n" +
+               $"   目录里找 densenet_lite_136-gru-onnx.zip\n" +
                $"   放置位置：{CnocrModelDir}\n\n" +
                $"2. 检测模型（约4MB）：\n" +
-               $"   文件名：ch_PP-OCRv4_det_infer.onnx\n" +
+               $"   文件名：{DetectionModelFileName}\n" +
+               $"   网盘：{CnstdBaiduPanUrl}（提取码 nstd）\n" +
+               $"   目录里找 ch_PP-OCRv4_det（勿选 rec）\n" +
                $"   放置位置：{CnstdModelDir}\n\n" +
-               $"百度网盘下载：\n" +
-               $"   链接：https://pan.baidu.com/s/1RhLBf8DcLnLuGLPrp89hUg?pwd=nocr\n" +
-               $"   提取码：nocr\n\n" +
-               $"下载后使用选择模型文件按钮导入即可。";
+               $"下载解压后，用「选择模型文件」一次选两个 .onnx 导入即可。";
     }
 
     /// <summary>
-    ///     导入本地模型文件到正确位置
+    ///     导入本地模型文件到正确位置（始终写入规范文件名，避免检查与运行脱节）。
     /// </summary>
     public async Task<bool> ImportModelFile(string sourcePath, ModelType modelType)
     {
@@ -348,7 +375,9 @@ public class OcrEnvironmentService
             if (!File.Exists(sourcePath)) throw new FileNotFoundException("模型文件不存在", sourcePath);
 
             var targetDir = modelType == ModelType.Detection ? CnstdModelDir : CnocrModelDir;
-            var fileName = Path.GetFileName(sourcePath);
+            var fileName = modelType == ModelType.Detection
+                ? DetectionModelFileName
+                : RecognitionModelFileName;
             var targetPath = Path.Combine(targetDir, fileName);
 
             // 确保目标目录存在
@@ -357,7 +386,7 @@ public class OcrEnvironmentService
             // 如果目标文件已存在，先删除
             if (File.Exists(targetPath)) File.Delete(targetPath);
 
-            // 复制文件
+            // 复制文件（规范名）
             await Task.Run(() => File.Copy(sourcePath, targetPath, true));
 
             // 验证文件大小
@@ -368,7 +397,9 @@ public class OcrEnvironmentService
                 throw new Exception("导入的文件太小，可能不是有效的模型文件");
             }
 
-            return true;
+            return modelType == ModelType.Detection
+                ? CheckDetectionModelInstalled()
+                : CheckRecognitionModelInstalled();
         }
         catch (Exception ex)
         {
@@ -440,17 +471,20 @@ public class OcrEnvironmentService
     /// <summary>
     ///     安装CnOCR和CNSTD
     /// </summary>
-    public async Task<bool> InstallCnocrAndCnstd(IProgress<(int progress, string message)>? progress = null)
+    public async Task<bool> InstallCnocrAndCnstd(
+        IProgress<(int progress, string message)>? progress = null,
+        string? pythonPath = null)
     {
         try
         {
             progress?.Report((0, "正在安装CnOCR和CNSTD..."));
 
-            // 使用pip安装CnOCR和CNSTD
+            // 使用pip安装CnOCR和CNSTD（extras 必须加引号，避免 Windows 解析方括号）
             var processInfo = new ProcessStartInfo
             {
-                FileName = "python",
-                Arguments = "-m pip install cnocr[ort-cpu] cnstd -i https://pypi.tuna.tsinghua.edu.cn/simple",
+                FileName = ResolvePythonExecutable(pythonPath),
+                Arguments =
+                    "-m pip install \"cnocr[ort-cpu]\" cnstd -i https://pypi.tuna.tsinghua.edu.cn/simple",
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false,
@@ -464,10 +498,13 @@ public class OcrEnvironmentService
                 return false;
             }
 
-            var output = await process.StandardOutput.ReadToEndAsync();
-            var error = await process.StandardError.ReadToEndAsync();
+            // 并行读 stdout/stderr，避免管道塞满导致 pip 卡死（表现为一键安装无响应）
+            var outputTask = process.StandardOutput.ReadToEndAsync();
+            var errorTask = process.StandardError.ReadToEndAsync();
+            await Task.WhenAll(outputTask, errorTask);
             await process.WaitForExitAsync();
 
+            var error = errorTask.Result;
             if (process.ExitCode == 0)
             {
                 progress?.Report((100, "CnOCR和CNSTD安装完成"));

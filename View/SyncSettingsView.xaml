@@ -13,104 +13,142 @@
         <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
             <StackPanel Margin="10">
 
-                <!-- 主路径：开始配对 → 手机端同步（服务地址 + 配对码 + 立即对齐） -->
                 <Border Background="{DynamicResource PanelBackgroundBrush}"
-                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="12">
+                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                        Margin="0,0,0,10" Padding="12,10">
                     <StackPanel>
-                        <controls:IconLabel Glyph="{x:Static icons:AppIcons.Link}" Text="配对"
-                                            FontWeight="Bold" Margin="0,0,0,8"
+                        <controls:IconLabel Glyph="{x:Static icons:AppIcons.Link}" Text="同步"
+                                            FontWeight="Bold" Margin="0,0,0,6"
                                             Foreground="{DynamicResource TextPrimaryBrush}" />
-                        <TextBlock Text="{Binding PhoneGuideText}" TextWrapping="Wrap" Margin="0,0,0,12"
+                        <TextBlock Text="{Binding HealthSummaryText}" TextWrapping="Wrap"
+                                   Foreground="{DynamicResource AccentForegroundBrush}"
+                                   FontWeight="SemiBold" />
+                        <TextBlock Text="{Binding PhoneGuideText}" TextWrapping="Wrap" Margin="0,8,0,0"
                                    Foreground="{DynamicResource TextSecondaryBrush}"
                                    FontSize="{DynamicResource SmallFontSize}" />
+                    </StackPanel>
+                </Border>
 
-                        <WrapPanel Margin="0,0,0,10">
-                            <TextBlock Text="状态：" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
-                            <TextBlock Text="{Binding ServerStatusText}"
-                                       Foreground="{DynamicResource AccentForegroundBrush}" FontWeight="SemiBold"
-                                       VerticalAlignment="Center" Margin="0,0,16,0" />
-                            <TextBlock Text="{Binding ListenUrlText}"
-                                       Foreground="{DynamicResource TextSecondaryBrush}"
-                                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
-                                       MaxWidth="360" ToolTip="{Binding ListenUrlText}" />
-                        </WrapPanel>
+                <Border Background="{DynamicResource PanelBackgroundBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                        Margin="0,0,0,10" Padding="16">
+                    <StackPanel>
+                        <TextBlock Text="连接手机"
+                                   FontWeight="Bold" Margin="0,0,0,12"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" />
 
-                        <Button Command="{Binding ConnectPhoneCommand}"
-                                Style="{StaticResource PrimaryButtonStyle}" Padding="16,10" Margin="0,0,0,8"
-                                HorizontalAlignment="Left"
-                                IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}">
-                            <controls:IconLabel Glyph="{x:Static icons:AppIcons.Sync}" Text="开始配对" />
-                        </Button>
+                        <StackPanel HorizontalAlignment="Center" Margin="0,8,0,12"
+                                    Visibility="{Binding IsServerRunning, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
+                            <Button Command="{Binding ConnectPhoneCommand}"
+                                    Style="{StaticResource PrimaryButtonStyle}" Padding="20,12"
+                                    HorizontalAlignment="Center"
+                                    IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}">
+                                <controls:IconLabel Glyph="{x:Static icons:AppIcons.Sync}" Text="开始配对" />
+                            </Button>
+                        </StackPanel>
 
-                        <Grid Margin="0,4,0,0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-
-                            <Border Grid.Column="0" Padding="20,16" Margin="0,0,12,0"
+                        <StackPanel Visibility="{Binding IsServerRunning, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <Border HorizontalAlignment="Center" Padding="12"
                                     Background="{DynamicResource ContentBackgroundBrush}"
                                     BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
-                                    HorizontalAlignment="Left" MinWidth="220">
-                                <StackPanel HorizontalAlignment="Center">
-                                    <TextBlock Text="配对码" HorizontalAlignment="Center" Margin="0,0,0,6"
-                                               Foreground="{DynamicResource TextSecondaryBrush}"
-                                               FontSize="{DynamicResource SmallFontSize}" />
-                                    <TextBlock Text="{Binding DisplayCode}"
-                                               FontSize="32" FontWeight="Bold"
-                                               FontFamily="Consolas"
-                                               HorizontalAlignment="Center"
+                                    Visibility="{Binding HasActiveCode, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                <Image Source="{Binding ConnectionQrImage}"
+                                       Width="220" Height="220"
+                                       Stretch="Uniform"
+                                       RenderOptions.BitmapScalingMode="NearestNeighbor" />
+                            </Border>
+
+                            <Border HorizontalAlignment="Center" Padding="24,40" MinWidth="244" MinHeight="244"
+                                    Background="{DynamicResource ContentBackgroundBrush}"
+                                    BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                                    Visibility="{Binding HasActiveCode, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
+                                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                    <TextBlock Text="当前没有有效的配对码"
+                                               HorizontalAlignment="Center" FontWeight="SemiBold"
                                                Foreground="{DynamicResource TextPrimaryBrush}" />
-                                    <TextBlock Text="{Binding CountdownText}"
-                                               FontSize="16" HorizontalAlignment="Center" Margin="0,8,0,0"
-                                               Foreground="{DynamicResource AccentForegroundBrush}" />
-                                    <TextBlock Text="使用或到期后自动刷新" HorizontalAlignment="Center" Margin="0,6,0,0"
+                                    <TextBlock Text="请点击下方「刷新二维码」重新生成"
+                                               HorizontalAlignment="Center" Margin="0,8,0,0"
                                                Foreground="{DynamicResource TextSecondaryBrush}"
                                                FontSize="{DynamicResource SmallFontSize}" />
                                 </StackPanel>
                             </Border>
 
-                            <StackPanel Grid.Column="1" VerticalAlignment="Center"
-                                        Visibility="{Binding IsServerRunning, Converter={StaticResource BooleanToVisibilityConverter}}">
-                                <Image Source="{Binding ConnectionQrImage}" Width="120" Height="120"
-                                       Stretch="Uniform" HorizontalAlignment="Center" />
-                                <TextBlock Text="服务地址" HorizontalAlignment="Center" Margin="0,6,0,0"
+                            <StackPanel Margin="0,14,0,0"
+                                        HorizontalAlignment="Center"
+                                        Visibility="{Binding HasActiveCode, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                <TextBlock Text="配对码"
+                                           HorizontalAlignment="Center"
                                            Foreground="{DynamicResource TextSecondaryBrush}"
                                            FontSize="{DynamicResource SmallFontSize}" />
+                                <TextBlock Text="{Binding DisplayCode}"
+                                           FontSize="26" FontWeight="Bold"
+                                           FontFamily="Consolas"
+                                           HorizontalAlignment="Center"
+                                           Margin="0,4,0,0"
+                                           Foreground="{DynamicResource TextPrimaryBrush}" />
+                                <TextBlock HorizontalAlignment="Center" Margin="0,6,0,0"
+                                           Foreground="{DynamicResource AccentForegroundBrush}"
+                                           FontSize="{DynamicResource SmallFontSize}">
+                                    <Run Text="剩余 " />
+                                    <Run Text="{Binding CountdownText, Mode=OneWay}" />
+                                </TextBlock>
+                                <WrapPanel HorizontalAlignment="Center" Margin="0,8,0,0">
+                                    <Button Command="{Binding CopyPairingCodeCommand}"
+                                            Style="{StaticResource StandardButtonStyle}" Padding="10,4" Margin="0,0,8,0">
+                                        <controls:IconLabel Glyph="{x:Static icons:AppIcons.Copy}" Text="复制配对码" />
+                                    </Button>
+                                    <Button Command="{Binding InvalidatePairingCodeCommand}"
+                                            Style="{StaticResource StandardButtonStyle}" Padding="10,4">
+                                        <controls:IconLabel Glyph="{x:Static icons:AppIcons.Block}" Text="作废" />
+                                    </Button>
+                                </WrapPanel>
                             </StackPanel>
-                        </Grid>
 
-                        <WrapPanel Margin="0,12,0,0">
-                            <Button Command="{Binding CopyPairingCodeCommand}"
-                                    Style="{StaticResource StandardButtonStyle}" Padding="12,6" Margin="0,0,8,0">
-                                <controls:IconLabel Glyph="{x:Static icons:AppIcons.Copy}" Text="复制配对码" />
-                            </Button>
-                            <Button Command="{Binding CopyListenUrlCommand}"
-                                    Style="{StaticResource StandardButtonStyle}" Padding="12,6" Margin="0,0,8,0"
-                                    IsEnabled="{Binding IsServerRunning}">
-                                <controls:IconLabel Glyph="{x:Static icons:AppIcons.Copy}" Text="复制服务地址" />
-                            </Button>
-                            <Button Command="{Binding PublishBaselineCommand}"
-                                    Style="{StaticResource StandardButtonStyle}" Padding="12,6" Margin="0,0,8,0"
-                                    IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}">
-                                <controls:IconLabel Glyph="{x:Static icons:AppIcons.Upload}" Text="发布现有行程" />
-                            </Button>
-                            <Button Command="{Binding StopServerCommand}"
-                                    Style="{StaticResource StandardButtonStyle}" Padding="12,6"
-                                    IsEnabled="{Binding IsServerRunning}">
-                                <controls:IconLabel Glyph="{x:Static icons:AppIcons.Block}" Text="停止服务" />
-                            </Button>
-                        </WrapPanel>
+                            <StackPanel Margin="0,14,0,0" MaxWidth="420" HorizontalAlignment="Center">
+                                <TextBlock Text="本机地址（连不上时可切换）"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                           FontSize="{DynamicResource SmallFontSize}"
+                                           Margin="0,0,0,4"
+                                           Visibility="{Binding HasMultipleUrls, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                <ComboBox ItemsSource="{Binding CandidateUrls}"
+                                          SelectedItem="{Binding SelectedListenUrl}"
+                                          MinWidth="280"
+                                          Visibility="{Binding HasMultipleUrls, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                <TextBlock Text="{Binding SelectedListenUrl}"
+                                           TextWrapping="Wrap"
+                                           Margin="0,6,0,0"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                           FontSize="{DynamicResource SmallFontSize}"
+                                           HorizontalAlignment="Center" />
+                            </StackPanel>
 
-                        <TextBlock Text="{Binding StatusMessage}" Margin="0,12,0,0" TextWrapping="Wrap"
+                            <WrapPanel HorizontalAlignment="Center" Margin="0,14,0,0">
+                                <Button Command="{Binding ConnectPhoneCommand}"
+                                        Style="{StaticResource PrimaryButtonStyle}" Padding="14,8" Margin="0,0,8,0"
+                                        IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}">
+                                    <controls:IconLabel Glyph="{x:Static icons:AppIcons.Refresh}" Text="刷新二维码" />
+                                </Button>
+                                <Button Command="{Binding CopyListenUrlCommand}"
+                                        Style="{StaticResource StandardButtonStyle}" Padding="12,8" Margin="0,0,8,0">
+                                    <controls:IconLabel Glyph="{x:Static icons:AppIcons.Copy}" Text="复制地址" />
+                                </Button>
+                                <Button Command="{Binding StopServerCommand}"
+                                        Style="{StaticResource StandardButtonStyle}" Padding="12,8"
+                                        ToolTip="暂停同步服务，不会解除已配对设备">
+                                    <controls:IconLabel Glyph="{x:Static icons:AppIcons.Block}" Text="暂停服务" />
+                                </Button>
+                            </WrapPanel>
+                        </StackPanel>
+
+                        <TextBlock Text="{Binding StatusMessage}" Margin="0,14,0,0" TextWrapping="Wrap"
                                    Foreground="{DynamicResource AccentForegroundBrush}"
                                    FontSize="{DynamicResource SmallFontSize}" />
                     </StackPanel>
                 </Border>
 
-                <!-- 已配对设备 -->
                 <Border Background="{DynamicResource PanelBackgroundBrush}"
-                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,10" Padding="10">
+                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                        Margin="0,0,0,10" Padding="10">
                     <StackPanel>
                         <Grid Margin="0,0,0,10">
                             <controls:IconLabel Glyph="{x:Static icons:AppIcons.People}" Text="已配对设备"
@@ -152,8 +190,9 @@
                                                     Command="{Binding DataContext.RevokeDeviceCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                     CommandParameter="{Binding}"
                                                     Style="{StaticResource StandardButtonStyle}"
-                                                    Padding="10,4" VerticalAlignment="Center">
-                                                <controls:IconLabel Glyph="{x:Static icons:AppIcons.Block}" Text="撤销配对" />
+                                                    Padding="10,4" VerticalAlignment="Center"
+                                                    ToolTip="解除后需重新扫码才能同步">
+                                                <controls:IconLabel Glyph="{x:Static icons:AppIcons.Block}" Text="解除配对" />
                                             </Button>
                                         </Grid>
                                     </Border>
@@ -163,11 +202,88 @@
                     </StackPanel>
                 </Border>
 
-                <!-- 高级：折叠 -->
+                <Border Background="{DynamicResource PanelBackgroundBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                        Margin="0,0,0,10" Padding="10">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,10">
+                            <controls:IconLabel Glyph="{x:Static icons:AppIcons.Warning}" Text="同步冲突"
+                                                FontWeight="Bold"
+                                                Foreground="{DynamicResource TextPrimaryBrush}"
+                                                HorizontalAlignment="Left" />
+                            <Button Command="{Binding RefreshConflictsCommand}"
+                                    Style="{StaticResource StandardButtonStyle}" Padding="10,4"
+                                    HorizontalAlignment="Right">
+                                <controls:IconLabel Glyph="{x:Static icons:AppIcons.Refresh}" Text="刷新" />
+                            </Button>
+                        </Grid>
+
+                        <TextBlock Text="{Binding ConflictsEmptyHint}"
+                                   Margin="0,0,0,8"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                   FontSize="{DynamicResource SmallFontSize}"
+                                   TextWrapping="Wrap"
+                                   Visibility="{Binding HasOpenConflicts, Converter={StaticResource InverseBooleanToVisibilityConverter}}" />
+
+                        <ItemsControl ItemsSource="{Binding OpenConflicts}"
+                                      Visibility="{Binding HasOpenConflicts, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1"
+                                            Padding="0,8">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,12,0">
+                                                <TextBlock FontWeight="SemiBold"
+                                                           Foreground="{DynamicResource TextPrimaryBrush}">
+                                                    <Run Text="{Binding Entity}" />
+                                                    <Run Text=" · " />
+                                                    <Run Text="{Binding Field}" />
+                                                </TextBlock>
+                                                <TextBlock Text="{Binding SyncId}"
+                                                           TextWrapping="Wrap"
+                                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                                           FontSize="{DynamicResource SmallFontSize}" />
+                                                <TextBlock Foreground="{DynamicResource TextSecondaryBrush}"
+                                                           FontSize="{DynamicResource SmallFontSize}"
+                                                           Margin="0,2,0,0">
+                                                    <Run Text="记录于 " />
+                                                    <Run Text="{Binding CreatedAt}" />
+                                                </TextBlock>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Orientation="Horizontal"
+                                                        VerticalAlignment="Center">
+                                                <Button Command="{Binding DataContext.ResolveConflictKeepLocalCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                        CommandParameter="{Binding}"
+                                                        Style="{StaticResource StandardButtonStyle}"
+                                                        Padding="10,4" Margin="0,0,8,0"
+                                                        ToolTip="丢弃手机推送，保留电脑当前数据">
+                                                    <controls:IconLabel Glyph="{x:Static icons:AppIcons.CheckMark}" Text="保留本机" />
+                                                </Button>
+                                                <Button Command="{Binding DataContext.ResolveConflictKeepRemoteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                        CommandParameter="{Binding}"
+                                                        Style="{StaticResource PrimaryButtonStyle}"
+                                                        Padding="10,4"
+                                                        ToolTip="用手机推送稿覆盖电脑，并写入同步变更">
+                                                    <controls:IconLabel Glyph="{x:Static icons:AppIcons.Download}" Text="采用手机" />
+                                                </Button>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
                 <Expander Header="高级设置" Margin="0,0,0,10"
                           Foreground="{DynamicResource TextPrimaryBrush}">
                     <Border Background="{DynamicResource PanelBackgroundBrush}"
-                            BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Padding="10" Margin="0,8,0,0">
+                            BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                            Padding="10" Margin="0,8,0,0">
                         <StackPanel>
                             <Grid Margin="0,0,0,8">
                                 <Grid.ColumnDefinitions>
@@ -186,25 +302,30 @@
                                       Margin="0,0,0,8"
                                       IsEnabled="{Binding IsServerRunning, Converter={StaticResource InverseBooleanConverter}}"
                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <TextBlock TextWrapping="Wrap" Margin="0,0,0,10"
+                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                       FontSize="{DynamicResource SmallFontSize}"
+                                       Text="「发布现有行程」用于补全历史数据；日常配对一般不需要。" />
                             <WrapPanel>
                                 <Button Command="{Binding StartServerCommand}"
                                         Style="{StaticResource StandardButtonStyle}" Padding="12,6" Margin="0,0,8,0"
                                         IsEnabled="{Binding IsServerRunning, Converter={StaticResource InverseBooleanConverter}}">
                                     <controls:IconLabel Glyph="{x:Static icons:AppIcons.Sync}" Text="启动服务" />
                                 </Button>
+                                <Button Command="{Binding PublishBaselineCommand}"
+                                        Style="{StaticResource StandardButtonStyle}" Padding="12,6" Margin="0,0,8,0"
+                                        IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}">
+                                    <controls:IconLabel Glyph="{x:Static icons:AppIcons.Upload}" Text="发布现有行程" />
+                                </Button>
                                 <Button Command="{Binding GeneratePairingCodeCommand}"
-                                        Style="{StaticResource StandardButtonStyle}" Padding="12,6" Margin="0,0,8,0">
+                                        Style="{StaticResource StandardButtonStyle}" Padding="12,6">
                                     <controls:IconLabel Glyph="{x:Static icons:AppIcons.Refresh}" Text="刷新配对码" />
                                 </Button>
-                                <Button Command="{Binding InvalidatePairingCodeCommand}"
-                                        Style="{StaticResource StandardButtonStyle}" Padding="12,6">
-                                    <controls:IconLabel Glyph="{x:Static icons:AppIcons.Block}" Text="作废当前码" />
-                                </Button>
                             </WrapPanel>
-                            <TextBlock Margin="0,8,0,0" TextWrapping="Wrap"
+                            <TextBlock Margin="0,10,0,0" TextWrapping="Wrap"
                                        Foreground="{DynamicResource TextSecondaryBrush}"
                                        FontSize="{DynamicResource SmallFontSize}"
-                                       Text="主题与界面配置不同步。灾难恢复仍以本机数据库备份为准。" />
+                                       Text="主题与界面配置不会同步。灾难恢复请使用本机数据库备份。暂停服务不会解除配对。" />
                         </StackPanel>
                     </Border>
                 </Expander>
@@ -213,7 +334,7 @@
 
         <Border Grid.Row="1" Background="{DynamicResource ContentBackgroundBrush}" Padding="10"
                 BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0">
-            <TextBlock Text="本页状态写入本地库与配置，无需「保存设置」。"
+            <TextBlock Text="本页更改会立即生效，无需另存设置。"
                        VerticalAlignment="Center"
                        Foreground="{DynamicResource TextSecondaryBrush}"
                        FontSize="{DynamicResource SmallFontSize}" />

@@ -91,6 +91,89 @@ public class MobileRide
     public string DepartStationCodeDisplay => OrDash(DepartStationCode);
     public string ArriveStationCodeDisplay => OrDash(ArriveStationCode);
 
+    // —— 报销凭证票面（对齐 PC TicketPreviewDraft 语义，简易只读）——
+
+    public string FaceSerial => (TicketNumber ?? "").Trim();
+    public bool HasFaceSerial => FaceSerial.Length > 0;
+
+    public string FaceCheckInLine =>
+        string.IsNullOrWhiteSpace(CheckInLocation) ? string.Empty : $"检票：{CheckInLocation.Trim()}";
+    public bool HasFaceCheckIn => FaceCheckInLine.Length > 0;
+
+    public string FaceDepartStation => OrDash(DepartStation);
+    public string FaceArriveStation => OrDash(ArriveStation);
+    public string FaceDepartPinyin => (DepartStationPinyin ?? "").Trim().ToLowerInvariant();
+    public string FaceArrivePinyin => (ArriveStationPinyin ?? "").Trim().ToLowerInvariant();
+    public bool HasFaceDepartPinyin => FaceDepartPinyin.Length > 0;
+    public bool HasFaceArrivePinyin => FaceArrivePinyin.Length > 0;
+
+    public string FaceTrainNo => OrDash(TrainNo);
+
+    /// <summary>与 PC 票面一致：yyyy年M月d日 HH:mm开</summary>
+    public string FaceDepartDateOpenLine
+    {
+        get
+        {
+            var datePart = string.Empty;
+            if (DateTime.TryParse(DepartDate, out var d))
+                datePart = $"{d.Year}年{d.Month}月{d.Day}日";
+            else if (!string.IsNullOrWhiteSpace(DepartDate))
+                datePart = DepartDate.Trim();
+
+            var time = (DepartTime ?? "").Trim();
+            if (datePart.Length == 0 && time.Length == 0) return "—";
+            if (time.Length == 0) return datePart;
+            if (datePart.Length == 0) return $"{time}开";
+            return $"{datePart} {time}开";
+        }
+    }
+
+    /// <summary>票面车厢座位：座位号旁补「号」（与 PC 票面 SeatHao 一致）。</summary>
+    public string FaceCoachSeat
+    {
+        get
+        {
+            var c = (CoachNo ?? "").Trim();
+            var s = (SeatNo ?? "").Trim();
+            if (c.Length == 0 && s.Length == 0) return "—";
+
+            var seatPart = FormatFaceSeatNo(s);
+            if (c.Length == 0) return seatPart;
+            if (seatPart.Length == 0) return c;
+            return $"{c} {seatPart}";
+        }
+    }
+
+    /// <summary>有座位号时票面显示「…号」；无座/卧铺保持原文。</summary>
+    private static string FormatFaceSeatNo(string seatNo)
+    {
+        if (seatNo.Length == 0) return string.Empty;
+        if (seatNo.Contains("无座", StringComparison.Ordinal)) return seatNo;
+        if (seatNo.Contains('上') || seatNo.Contains('中') || seatNo.Contains('下'))
+            return seatNo;
+        return seatNo.EndsWith("号", StringComparison.Ordinal) ? seatNo : seatNo + "号";
+    }
+
+    public string FaceSeatType => (SeatType ?? "").Trim();
+    public bool HasFaceSeatType => FaceSeatType.Length > 0;
+
+    /// <summary>票面金额一位小数 + ￥…元</summary>
+    public string FaceMoneyLine => $"￥{Money.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture)}元";
+
+    public string FaceModification => (TicketModificationType ?? "").Trim();
+    public bool HasFaceModification => FaceModification.Length > 0;
+    public string FacePurpose => (TicketPurpose ?? "").Trim();
+    public bool HasFacePurpose => FacePurpose.Length > 0;
+    public string FaceAdditional => (AdditionalInfo ?? "").Trim();
+    public bool HasFaceAdditional => FaceAdditional.Length > 0;
+
+    public string FaceHintMultiline =>
+        string.IsNullOrWhiteSpace(Hint) ? string.Empty : Hint.Replace('|', '\n').Trim();
+    public bool HasFaceHint => FaceHintMultiline.Length > 0;
+
+    public string FaceFooterReceiptLine =>
+        string.IsNullOrWhiteSpace(TicketNumber) ? "报销凭证" : $"{TicketNumber.Trim()} 报销凭证";
+
     public static string OrDash(string? value) =>
         string.IsNullOrWhiteSpace(value) ? "—" : value.Trim();
 }

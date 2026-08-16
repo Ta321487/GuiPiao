@@ -35,9 +35,7 @@ public partial class TicketFaceViewModel : ObservableObject, IQueryAttributable
         }
 
         HasRide = Ride != null;
-        Title = Ride == null
-            ? "票面"
-            : (string.IsNullOrWhiteSpace(Ride.TrainNo) ? "票面预览" : Ride.TrainNo);
+        Title = Ride == null ? "票面" : "报销凭证";
     }
 
     [RelayCommand]

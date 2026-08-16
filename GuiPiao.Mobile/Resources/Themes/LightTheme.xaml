@@ -50,4 +50,31 @@
     <SolidColorBrush x:Key="AccentHoverBrush" Color="#106EBE" />
     <SolidColorBrush x:Key="AccentPressedBrush" Color="#005A9E" />
     <SolidColorBrush x:Key="AccentTextBrush" Color="#FFFFFF" />
+
+    <!-- 报销凭证票面：与 PC Themes 同名同值；深浅主题共用浅票底 -->
+    <Color x:Key="TicketVoucherSerialText">#C62828</Color>
+    <Color x:Key="TicketVoucherPrimaryText">#000000</Color>
+    <Color x:Key="TicketVoucherSecondaryText">#000000</Color>
+    <Color x:Key="TicketVoucherMutedText">#000000</Color>
+    <Color x:Key="TicketVoucherSubtleText">#000000</Color>
+    <Color x:Key="TicketVoucherCardBorder">#7FA8C4</Color>
+    <Color x:Key="TicketVoucherDisclaimerBorder">#000000</Color>
+    <Color x:Key="TicketVoucherFooterForeground">#000000</Color>
+    <Color x:Key="TicketVoucherQrPlaceholderBackground">#ECEFF1</Color>
+    <Color x:Key="TicketVoucherQrPlaceholderBorder">#90A4AE</Color>
+    <Color x:Key="TicketVoucherQrPlaceholderForeground">#000000</Color>
+    <Color x:Key="TicketVoucherBlueSurfaceStart">#D4EBF5</Color>
+    <Color x:Key="TicketVoucherBlueSurfaceEnd">#E8F6FC</Color>
+
+    <LinearGradientBrush x:Key="TicketVoucherBlueSurfaceBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="{StaticResource TicketVoucherBlueSurfaceStart}" Offset="0" />
+        <GradientStop Color="{StaticResource TicketVoucherBlueSurfaceEnd}" Offset="1" />
+    </LinearGradientBrush>
+    <SolidColorBrush x:Key="TicketVoucherSerialTextBrush" Color="{StaticResource TicketVoucherSerialText}" />
+    <SolidColorBrush x:Key="TicketVoucherPrimaryTextBrush" Color="{StaticResource TicketVoucherPrimaryText}" />
+    <SolidColorBrush x:Key="TicketVoucherCardBorderBrush" Color="{StaticResource TicketVoucherCardBorder}" />
+    <SolidColorBrush x:Key="TicketVoucherDisclaimerBorderBrush" Color="{StaticResource TicketVoucherDisclaimerBorder}" />
+    <SolidColorBrush x:Key="TicketVoucherFooterForegroundBrush" Color="{StaticResource TicketVoucherFooterForeground}" />
+    <SolidColorBrush x:Key="TicketVoucherQrPlaceholderBackgroundBrush" Color="{StaticResource TicketVoucherQrPlaceholderBackground}" />
+    <SolidColorBrush x:Key="TicketVoucherQrPlaceholderBorderBrush" Color="{StaticResource TicketVoucherQrPlaceholderBorder}" />
 </ResourceDictionary>

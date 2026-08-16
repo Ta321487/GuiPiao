@@ -6,76 +6,178 @@
              x:DataType="vm:TicketFaceViewModel"
              Title="{Binding Title}"
              BackgroundColor="{DynamicResource WindowBackground}">
-    <ScrollView>
-        <VerticalStackLayout Padding="16" Spacing="16">
-            <Label Text="行程不存在"
-                   IsVisible="{Binding HasRide, Converter={StaticResource InvertedBoolConverter}}"
-                   TextColor="{DynamicResource TextSecondary}"
-                   HorizontalOptions="Center" />
-            <Border IsVisible="{Binding HasRide}"
-                    Stroke="{DynamicResource AccentColor}"
-                    StrokeThickness="2"
-                    BackgroundColor="{DynamicResource PanelBackground}"
-                    Padding="20">
-                <Border.StrokeShape>
-                    <RoundRectangle CornerRadius="8" />
-                </Border.StrokeShape>
-                <VerticalStackLayout Spacing="10">
-                    <Label Text="中国铁路运输客票"
-                           FontSize="{DynamicResource SmallFontSize}"
-                           TextColor="{DynamicResource TextSecondary}"
-                           HorizontalOptions="Center" />
-                    <Label Text="{Binding Ride.TrainNoDisplay}"
-                           FontSize="28"
-                           FontAttributes="Bold"
-                           TextColor="{DynamicResource AccentForeground}"
-                           HorizontalOptions="Center" />
-                    <Grid ColumnDefinitions="*,Auto,*" ColumnSpacing="8">
-                        <VerticalStackLayout>
-                            <Label Text="{Binding Ride.DepartStationDisplay}"
+    <Grid RowDefinitions="*,Auto">
+        <ScrollView>
+            <VerticalStackLayout Padding="16" Spacing="12">
+                <Label Text="行程不存在"
+                       IsVisible="{Binding HasRide, Converter={StaticResource InvertedBoolConverter}}"
+                       TextColor="{DynamicResource TextSecondary}"
+                       HorizontalOptions="Center"
+                       Margin="0,24" />
+
+                <!-- 对齐 PC 报销凭证预览：浅票底 + 红票号 + 黑字（非布局工作台） -->
+                <Border IsVisible="{Binding HasRide}"
+                        Stroke="{DynamicResource TicketVoucherCardBorderBrush}"
+                        StrokeThickness="1"
+                        Background="{DynamicResource TicketVoucherBlueSurfaceBrush}"
+                        Padding="16,14">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="4" />
+                    </Border.StrokeShape>
+                    <VerticalStackLayout Spacing="10">
+                        <!-- 票号 + 检票 -->
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                            <Label Text="{Binding Ride.FaceSerial}"
+                                   FontSize="18"
+                                   FontAttributes="Bold"
+                                   TextColor="{DynamicResource TicketVoucherSerialText}"
+                                   LineBreakMode="TailTruncation" />
+                            <Label Grid.Column="1"
+                                   Text="{Binding Ride.FaceCheckInLine}"
+                                   IsVisible="{Binding Ride.HasFaceCheckIn}"
+                                   FontSize="{DynamicResource SmallFontSize}"
+                                   TextColor="{DynamicResource TicketVoucherPrimaryText}"
+                                   VerticalOptions="Center" />
+                        </Grid>
+
+                        <!-- 发站 | 车次→ | 到站 -->
+                        <Grid ColumnDefinitions="*,Auto,*" ColumnSpacing="6" Margin="0,4,0,0">
+                            <VerticalStackLayout>
+                                <Label Text="{Binding Ride.FaceDepartStation}"
+                                       FontSize="{DynamicResource TitleFontSize}"
+                                       FontAttributes="Bold"
+                                       TextColor="{DynamicResource TicketVoucherPrimaryText}"
+                                       HorizontalTextAlignment="Center"
+                                       LineBreakMode="WordWrap" />
+                                <Label Text="{Binding Ride.FaceDepartPinyin}"
+                                       IsVisible="{Binding Ride.HasFaceDepartPinyin}"
+                                       FontSize="{DynamicResource SmallFontSize}"
+                                       TextColor="{DynamicResource TicketVoucherSecondaryText}"
+                                       HorizontalTextAlignment="Center" />
+                            </VerticalStackLayout>
+                            <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                                <Label Text="{Binding Ride.FaceTrainNo}"
+                                       FontSize="{DynamicResource TitleFontSize}"
+                                       FontAttributes="Bold"
+                                       TextColor="{DynamicResource TicketVoucherPrimaryText}"
+                                       HorizontalTextAlignment="Center" />
+                                <Label Text="→"
+                                       FontSize="18"
+                                       TextColor="{DynamicResource TicketVoucherPrimaryText}"
+                                       HorizontalTextAlignment="Center" />
+                            </VerticalStackLayout>
+                            <VerticalStackLayout Grid.Column="2">
+                                <Label Text="{Binding Ride.FaceArriveStation}"
+                                       FontSize="{DynamicResource TitleFontSize}"
+                                       FontAttributes="Bold"
+                                       TextColor="{DynamicResource TicketVoucherPrimaryText}"
+                                       HorizontalTextAlignment="Center"
+                                       LineBreakMode="WordWrap" />
+                                <Label Text="{Binding Ride.FaceArrivePinyin}"
+                                       IsVisible="{Binding Ride.HasFaceArrivePinyin}"
+                                       FontSize="{DynamicResource SmallFontSize}"
+                                       TextColor="{DynamicResource TicketVoucherSecondaryText}"
+                                       HorizontalTextAlignment="Center" />
+                            </VerticalStackLayout>
+                        </Grid>
+
+                        <!-- 日期开 + 车厢座位 -->
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" Margin="0,2,0,0">
+                            <Label Text="{Binding Ride.FaceDepartDateOpenLine}"
+                                   FontSize="{DynamicResource BaseFontSize}"
+                                   TextColor="{DynamicResource TicketVoucherPrimaryText}"
+                                   LineBreakMode="WordWrap"
+                                   VerticalOptions="Center" />
+                            <Label Grid.Column="1"
+                                   Text="{Binding Ride.FaceCoachSeat}"
+                                   FontSize="{DynamicResource BaseFontSize}"
+                                   TextColor="{DynamicResource TicketVoucherPrimaryText}"
+                                   VerticalOptions="Center" />
+                        </Grid>
+
+                        <!-- 席别 + 金额 -->
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                            <Label Text="{Binding Ride.FaceSeatType}"
+                                   IsVisible="{Binding Ride.HasFaceSeatType}"
+                                   FontSize="{DynamicResource BaseFontSize}"
+                                   TextColor="{DynamicResource TicketVoucherPrimaryText}"
+                                   VerticalOptions="Center" />
+                            <Label Grid.Column="1"
+                                   Text="{Binding Ride.FaceMoneyLine}"
                                    FontSize="{DynamicResource TitleFontSize}"
                                    FontAttributes="Bold"
-                                   HorizontalTextAlignment="Center" />
-                            <Label Text="{Binding Ride.DepartTimeDisplay}"
+                                   TextColor="{DynamicResource TicketVoucherPrimaryText}"
+                                   VerticalOptions="Center" />
+                        </Grid>
+
+                        <!-- 改签 / 用途 / 附加 -->
+                        <VerticalStackLayout Spacing="2">
+                            <Label Text="{Binding Ride.FaceModification}"
+                                   IsVisible="{Binding Ride.HasFaceModification}"
                                    FontSize="{DynamicResource SmallFontSize}"
-                                   TextColor="{DynamicResource TextSecondary}"
-                                   HorizontalTextAlignment="Center" />
-                        </VerticalStackLayout>
-                        <Label Grid.Column="1" Text="→" VerticalOptions="Center" FontSize="22" />
-                        <VerticalStackLayout Grid.Column="2">
-                            <Label Text="{Binding Ride.ArriveStationDisplay}"
-                                   FontSize="{DynamicResource TitleFontSize}"
-                                   FontAttributes="Bold"
-                                   HorizontalTextAlignment="Center" />
-                            <Label Text="{Binding Ride.ArriveTimeDisplay}"
+                                   TextColor="{DynamicResource TicketVoucherMutedText}" />
+                            <Label Text="{Binding Ride.FacePurpose}"
+                                   IsVisible="{Binding Ride.HasFacePurpose}"
                                    FontSize="{DynamicResource SmallFontSize}"
-                                   TextColor="{DynamicResource TextSecondary}"
-                                   HorizontalTextAlignment="Center" />
+                                   TextColor="{DynamicResource TicketVoucherMutedText}" />
+                            <Label Text="{Binding Ride.FaceAdditional}"
+                                   IsVisible="{Binding Ride.HasFaceAdditional}"
+                                   FontSize="{DynamicResource SmallFontSize}"
+                                   TextColor="{DynamicResource TicketVoucherMutedText}" />
                         </VerticalStackLayout>
-                    </Grid>
-                    <Label Text="{Binding Ride.DepartDateDisplay, StringFormat='日期 {0}'}"
-                           HorizontalOptions="Center" />
-                    <Label Text="{Binding Ride.CoachSeatText}"
-                           HorizontalOptions="Center"
-                           TextColor="{DynamicResource TextSecondary}" />
-                    <Label Text="{Binding Ride.SeatTypeDisplay}"
-                           HorizontalOptions="Center"
-                           FontSize="{DynamicResource SmallFontSize}" />
-                    <Label Text="{Binding Ride.MoneyDisplay}"
-                           FontSize="{DynamicResource TitleFontSize}"
-                           FontAttributes="Bold"
-                           HorizontalOptions="Center"
-                           TextColor="{DynamicResource AccentForeground}" />
-                    <Label Text="{Binding Ride.TicketNumberDisplay, StringFormat='车票号码 {0}'}"
-                           FontSize="{DynamicResource SmallFontSize}"
-                           TextColor="{DynamicResource TextSecondary}"
-                           HorizontalOptions="Center" />
-                    <Label Text="{Binding Ride.StatusText}"
-                           FontSize="{DynamicResource SmallFontSize}"
-                           HorizontalOptions="Center" />
-                </VerticalStackLayout>
-            </Border>
-            <Button Text="关闭" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding CloseCommand}" />
-        </VerticalStackLayout>
-    </ScrollView>
+
+                        <!-- 票底提示（虚线框，对齐 PC Hint） -->
+                        <Border IsVisible="{Binding Ride.HasFaceHint}"
+                                Stroke="{DynamicResource TicketVoucherDisclaimerBorderBrush}"
+                                StrokeThickness="1"
+                                StrokeDashArray="4,3"
+                                BackgroundColor="Transparent"
+                                Padding="8,6"
+                                Margin="0,4,0,0">
+                            <Label Text="{Binding Ride.FaceHintMultiline}"
+                                   FontSize="{DynamicResource SmallFontSize}"
+                                   TextColor="{DynamicResource TicketVoucherSubtleText}"
+                                   LineBreakMode="WordWrap" />
+                        </Border>
+
+                        <!-- 二维码占位 + 页脚「…报销凭证」 -->
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12" Margin="0,6,0,0">
+                            <Border WidthRequest="72"
+                                    HeightRequest="72"
+                                    Stroke="{DynamicResource TicketVoucherQrPlaceholderBorderBrush}"
+                                    StrokeThickness="1"
+                                    BackgroundColor="{DynamicResource TicketVoucherQrPlaceholderBackground}"
+                                    VerticalOptions="End">
+                                <Label Text="QR"
+                                       FontSize="{DynamicResource SmallFontSize}"
+                                       TextColor="{DynamicResource TicketVoucherQrPlaceholderForeground}"
+                                       HorizontalOptions="Center"
+                                       VerticalOptions="Center" />
+                            </Border>
+                            <Label Grid.Column="1"
+                                   Text="{Binding Ride.FaceFooterReceiptLine}"
+                                   FontSize="{DynamicResource SmallFontSize}"
+                                   TextColor="{DynamicResource TicketVoucherFooterForeground}"
+                                   VerticalOptions="End"
+                                   HorizontalTextAlignment="End"
+                                   LineBreakMode="WordWrap" />
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <Label IsVisible="{Binding HasRide}"
+                       Text="版式对齐电脑端报销凭证预览；精确坐标与蓝/红票工作台仍在 PC。"
+                       FontSize="{DynamicResource SmallFontSize}"
+                       TextColor="{DynamicResource TextSecondary}"
+                       Margin="4,0,4,0" />
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <Button Grid.Row="1"
+                Text="关闭"
+                Style="{StaticResource SecondaryButtonStyle}"
+                Command="{Binding CloseCommand}"
+                Margin="16,8,16,12"
+                HeightRequest="44" />
+    </Grid>
 </ContentPage>

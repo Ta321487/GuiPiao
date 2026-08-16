@@ -182,25 +182,13 @@ public partial class OcrSettingsViewModel : ObservableObject, ISettingsViewModel
             // 检查Python
             var (pythonInstalled, pythonVer, isVersionValid, pythonPath) = await _envService.CheckPythonInstalled();
             IsPythonInstalled = pythonInstalled;
-
-            // 保存检测到的Python路径用于显示
-            _detectedPythonPath = pythonPath;
-            OnPropertyChanged(nameof(PythonPathDisplay));
-
-            // 如果PythonPath是默认值，触发PythonPathDisplay更新以显示检测到的路径
-            if (PythonPath == "python") OnPropertyChanged(nameof(PythonPathDisplay));
+            ApplyDetectedPythonPath(pythonPath);
 
             if (pythonInstalled)
             {
                 if (isVersionValid)
                 {
                     PythonVersion = pythonVer;
-                    // 自动更新Python路径
-                    if (!string.IsNullOrEmpty(pythonPath) && PythonPath == "python")
-                    {
-                        PythonPath = pythonPath;
-                        OnPropertyChanged(nameof(PythonPathDisplay));
-                    }
                 }
                 else
                 {
@@ -213,10 +201,10 @@ public partial class OcrSettingsViewModel : ObservableObject, ISettingsViewModel
             }
 
             // 检查CnOCR
-            IsCnocrInstalled = await _envService.CheckCnocrInstalled();
+            IsCnocrInstalled = await _envService.CheckCnocrInstalled(PythonPath);
 
             // 检查CNSTD
-            IsCnstdInstalled = await _envService.CheckCnstdInstalled();
+            IsCnstdInstalled = await _envService.CheckCnstdInstalled(PythonPath);
 
             // 检查模型文件是否存在（直接检查文件，不触发自动下载）
             IsDetectionModelInstalled = _envService.CheckDetectionModelInstalled();
@@ -247,7 +235,9 @@ public partial class OcrSettingsViewModel : ObservableObject, ISettingsViewModel
 
             // OCR参数配置
             PythonPath = _originalConfig.PythonPath;
-            SelectedModel = _originalConfig.SelectedModel;
+            SelectedModel = string.IsNullOrWhiteSpace(_originalConfig.SelectedModel)
+                ? "densenet_lite_136-gru"
+                : _originalConfig.SelectedModel.Trim();
             UseGpu = _originalConfig.UseGpu;
             ConfidenceThreshold = _originalConfig.ConfidenceThreshold;
             EnableImagePreprocessing = _originalConfig.EnableImagePreprocessing;
@@ -270,15 +260,21 @@ public partial class OcrSettingsViewModel : ObservableObject, ISettingsViewModel
     /// </summary>
     private OcrConfig GetCurrentConfig()
     {
+        var selected = string.IsNullOrWhiteSpace(SelectedModel)
+            ? "densenet_lite_136-gru"
+            : SelectedModel.Trim();
+
         return new OcrConfig
         {
             PythonPath = PythonPath,
-            SelectedModel = SelectedModel,
+            SelectedModel = selected,
             UseGpu = UseGpu,
             ConfidenceThreshold = ConfidenceThreshold,
             EnableImagePreprocessing = EnableImagePreprocessing,
             AutoRotateImage = AutoRotateImage,
-            MaxImageSize = MaxImageSize
+            MaxImageSize = MaxImageSize,
+            // 保留下载断点，避免保存 OCR 参数时冲掉 Python 下载任务
+            PythonDownloadTask = _settingsService.Config.PythonDownloadTask
         };
     }
 
@@ -428,22 +424,13 @@ public partial class OcrSettingsViewModel : ObservableObject, ISettingsViewModel
             InstallMessage = "正在检测Python环境...";
             var (pythonInstalled, pythonVer, isVersionValid, pythonPath) = await _envService.CheckPythonInstalled();
             IsPythonInstalled = pythonInstalled;
-
-            // 保存检测到的Python路径用于显示
-            _detectedPythonPath = pythonPath;
-            OnPropertyChanged(nameof(PythonPathDisplay));
+            ApplyDetectedPythonPath(pythonPath);
 
             if (pythonInstalled)
             {
                 if (isVersionValid)
                 {
                     PythonVersion = pythonVer;
-                    // 自动更新Python路径
-                    if (!string.IsNullOrEmpty(pythonPath) && PythonPath == "python")
-                    {
-                        PythonPath = pythonPath;
-                        OnPropertyChanged(nameof(PythonPathDisplay));
-                    }
                 }
                 else
                 {
@@ -459,12 +446,12 @@ public partial class OcrSettingsViewModel : ObservableObject, ISettingsViewModel
 
             // 检查CnOCR
             InstallMessage = "正在检测CnOCR...";
-            IsCnocrInstalled = await _envService.CheckCnocrInstalled();
+            IsCnocrInstalled = await _envService.CheckCnocrInstalled(PythonPath);
             InstallProgress = 40;
 
             // 检查CNSTD
             InstallMessage = "正在检测CNSTD...";
-            IsCnstdInstalled = await _envService.CheckCnstdInstalled();
+            IsCnstdInstalled = await _envService.CheckCnstdInstalled(PythonPath);
             InstallProgress = 60;
 
             // 检查检测模型
@@ -489,6 +476,7 @@ public partial class OcrSettingsViewModel : ObservableObject, ISettingsViewModel
             await Task.Delay(500);
             IsInstalling = false;
             IsChecking = false;
+            IsEnvironmentCheckCompleted = true;
         }
     }
 
@@ -642,13 +630,13 @@ public partial class OcrSettingsViewModel : ObservableObject, ISettingsViewModel
         });
 
         Debug.WriteLine("[DEBUG] Starting CnOCR installation...");
-        var success = await _envService.InstallCnocrAndCnstd(progress);
+        var success = await _envService.InstallCnocrAndCnstd(progress, PythonPath);
         Debug.WriteLine($"[DEBUG] CnOCR installation result: {success}");
 
         if (success)
         {
-            IsCnocrInstalled = await _envService.CheckCnocrInstalled();
-            IsCnstdInstalled = await _envService.CheckCnstdInstalled();
+            IsCnocrInstalled = await _envService.CheckCnocrInstalled(PythonPath);
+            IsCnstdInstalled = await _envService.CheckCnstdInstalled(PythonPath);
             UpdateEnvironmentStatus();
             MessageBoxWindow.Show(Application.Current.MainWindow,
                 "CnOCR和CNSTD安装成功！",
@@ -667,25 +655,32 @@ public partial class OcrSettingsViewModel : ObservableObject, ISettingsViewModel
         IsInstalling = false;
     }
 
-    /// <summary>
-    ///     打开百度网盘链接
-    /// </summary>
+    /// <summary>打开识别模型百度网盘（CnOCR，提取码 nocr）。</summary>
     [RelayCommand]
-    private void OpenBaiduPan()
+    private void OpenCnocrBaiduPan() => OpenUrl(
+        OcrEnvironmentService.CnocrBaiduPanUrl,
+        "识别模型网盘（提取码 nocr）");
+
+    /// <summary>打开检测模型百度网盘（CnSTD，提取码 nstd）。</summary>
+    [RelayCommand]
+    private void OpenCnstdBaiduPan() => OpenUrl(
+        OcrEnvironmentService.CnstdBaiduPanUrl,
+        "检测模型网盘（提取码 nstd）");
+
+    private void OpenUrl(string url, string title)
     {
         try
         {
-            var psi = new ProcessStartInfo
+            Process.Start(new ProcessStartInfo
             {
-                FileName = "https://pan.baidu.com/s/1RhLBf8DcLnLuGLPrp89hUg?pwd=nocr",
+                FileName = url,
                 UseShellExecute = true
-            };
-            Process.Start(psi);
+            });
         }
         catch (Exception ex)
         {
-            MessageBoxWindow.Show(Application.Current.MainWindow,
-                $"无法打开浏览器：{ex.Message}\n\n请手动访问：\nhttps://pan.baidu.com/s/1RhLBf8DcLnLuGLPrp89hUg?pwd=nocr",
+            MessageBoxWindow.Show(GetSettingsOwner(),
+                $"无法打开浏览器：{ex.Message}\n\n请手动访问（{title}）：\n{url}",
                 "错误",
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
@@ -729,13 +724,18 @@ public partial class OcrSettingsViewModel : ObservableObject, ISettingsViewModel
                 // 分析选中的文件
                 foreach (var file in files)
                 {
-                    var fileName = Path.GetFileName(file).ToLower();
+                    var fileName = Path.GetFileName(file);
+                    var lower = fileName.ToLowerInvariant();
 
-                    // 识别检测模型
-                    if (fileName.Contains("det") || fileName.Contains("ch_pp-ocrv4_det"))
+                    // 规范文件名优先，其次按关键字猜测
+                    if (string.Equals(fileName, OcrEnvironmentService.DetectionModelFileName,
+                            StringComparison.OrdinalIgnoreCase) ||
+                        lower.Contains("det") || lower.Contains("ch_pp-ocrv4_det"))
                         detectionModelPath = file;
-                    // 识别识别模型
-                    else if (fileName.Contains("densenet") || fileName.Contains("cnocr")) recognitionModelPath = file;
+                    else if (string.Equals(fileName, OcrEnvironmentService.RecognitionModelFileName,
+                                 StringComparison.OrdinalIgnoreCase) ||
+                             lower.Contains("densenet") || lower.Contains("cnocr"))
+                        recognitionModelPath = file;
                 }
 
                 // 导入检测模型
@@ -745,10 +745,7 @@ public partial class OcrSettingsViewModel : ObservableObject, ISettingsViewModel
                     InstallMessage = "正在导入检测模型...";
                     var success = await _envService.ImportModelFile(detectionModelPath, ModelType.Detection);
                     if (success)
-                    {
                         successCount++;
-                        IsDetectionModelInstalled = true;
-                    }
                 }
 
                 // 导入识别模型
@@ -758,11 +755,13 @@ public partial class OcrSettingsViewModel : ObservableObject, ISettingsViewModel
                     InstallMessage = "正在导入识别模型...";
                     var success = await _envService.ImportModelFile(recognitionModelPath, ModelType.Recognition);
                     if (success)
-                    {
                         successCount++;
-                        IsRecognitionModelInstalled = true;
-                    }
                 }
+
+                // 以磁盘检查结果为准，避免乐观标绿
+                IsDetectionModelInstalled = _envService.CheckDetectionModelInstalled();
+                IsRecognitionModelInstalled = _envService.CheckRecognitionModelInstalled();
+                NotifyStatusPropertiesChanged();
 
                 InstallProgress = 100;
 
@@ -777,8 +776,8 @@ public partial class OcrSettingsViewModel : ObservableObject, ISettingsViewModel
                 {
                     MessageBoxWindow.Show(Application.Current.MainWindow,
                         "未能识别有效的模型文件。\n\n请确保选择正确的.onnx文件：\n" +
-                        "1. ch_PP-OCRv4_det_infer.onnx（检测模型）\n" +
-                        "2. cnocr-v2.3-densenet_lite_136-gru-epoch=004-ft-model.onnx（识别模型）",
+                        $"1. {OcrEnvironmentService.DetectionModelFileName}（检测模型）\n" +
+                        $"2. {OcrEnvironmentService.RecognitionModelFileName}（识别模型）",
                         "导入失败",
                         MessageBoxButton.OK,
                         MessageBoxImage.Warning);
@@ -816,6 +815,11 @@ public partial class OcrSettingsViewModel : ObservableObject, ISettingsViewModel
 
         try
         {
+            // 先校正失效的 Python 路径（例如换机后仍指向旧用户目录）
+            var (pyInstalled, _, _, detectedPy) = await _envService.CheckPythonInstalled();
+            IsPythonInstalled = pyInstalled;
+            ApplyDetectedPythonPath(detectedPy);
+
             // 安装Python
             Debug.WriteLine($"[DEBUG] IsPythonInstalled = {IsPythonInstalled}");
             if (!IsPythonInstalled)
@@ -843,6 +847,7 @@ public partial class OcrSettingsViewModel : ObservableObject, ISettingsViewModel
                         return;
                     InstallMessage = "Python下载失败";
                     ShowPauseButton = false;
+                    ShowInstallFailure("Python下载失败，请检查网络后重试。");
                     return;
                 }
 
@@ -855,6 +860,7 @@ public partial class OcrSettingsViewModel : ObservableObject, ISettingsViewModel
                 if (!installSuccess)
                 {
                     InstallMessage = "Python安装失败";
+                    ShowInstallFailure("Python安装失败，请重试或手动安装。");
                     return;
                 }
 
@@ -884,15 +890,18 @@ public partial class OcrSettingsViewModel : ObservableObject, ISettingsViewModel
                     InstallMessage = p.message;
                 });
 
-                var cnocrSuccess = await _envService.InstallCnocrAndCnstd(cnocrProgress);
+                var cnocrSuccess = await _envService.InstallCnocrAndCnstd(cnocrProgress, PythonPath);
                 if (!cnocrSuccess)
                 {
                     InstallMessage = "CnOCR安装失败";
+                    ShowInstallFailure(
+                        "CnOCR/CNSTD 安装失败。请确认 Python 路径正确，或到「单独安装组件」重试。\n\n" +
+                        $"当前 Python：{PythonPathDisplay}");
                     return;
                 }
 
-                IsCnocrInstalled = await _envService.CheckCnocrInstalled();
-                IsCnstdInstalled = await _envService.CheckCnstdInstalled();
+                IsCnocrInstalled = await _envService.CheckCnocrInstalled(PythonPath);
+                IsCnstdInstalled = await _envService.CheckCnstdInstalled(PythonPath);
             }
             else
             {
@@ -918,12 +927,18 @@ public partial class OcrSettingsViewModel : ObservableObject, ISettingsViewModel
                 if (!IsDetectionModelInstalled || !IsRecognitionModelInstalled)
                 {
                     InstallProgress = 90;
-                    var result = MessageBoxWindow.Show(Application.Current.MainWindow,
-                        "模型文件未导入。\n\n请从百度网盘下载模型文件，然后使用\"选择模型文件\"按钮导入。\n\n是否立即打开百度网盘？",
+                    InstallMessage = "库已就绪，还需导入模型文件";
+                    UpdateEnvironmentStatus();
+                    var result = MessageBoxWindow.Show(GetSettingsOwner(),
+                        "Python 与 CnOCR 库已就绪，但模型文件尚未导入。\n\n" +
+                        "需要两个文件：\n" +
+                        "1. 识别模型 →「识别模型网盘」（提取码 nocr）\n" +
+                        "2. 检测模型 →「检测模型网盘」（提取码 nstd）\n\n" +
+                        "是否先打开识别模型网盘？",
                         "需要导入模型",
                         MessageBoxButton.YesNo);
 
-                    if (result == MessageBoxResult.Yes) OpenBaiduPan();
+                    if (result == MessageBoxResult.Yes) OpenCnocrBaiduPan();
                     return;
                 }
             }
@@ -939,11 +954,13 @@ public partial class OcrSettingsViewModel : ObservableObject, ISettingsViewModel
             InstallProgress = 100;
             InstallMessage = "OCR环境安装完成！";
             Debug.WriteLine("[DEBUG] Installation completed successfully");
+            MessageBoxWindow.Show(GetSettingsOwner(), "OCR环境安装完成。", "安装成功");
         }
         catch (Exception ex)
         {
             InstallMessage = $"安装失败: {ex.Message}";
             Debug.WriteLine($"[DEBUG] Installation failed: {ex.Message}");
+            ShowInstallFailure($"安装失败：{ex.Message}");
         }
         finally
         {
@@ -951,6 +968,39 @@ public partial class OcrSettingsViewModel : ObservableObject, ISettingsViewModel
             ShowPauseButton = false;
             Debug.WriteLine("[DEBUG] IsInstalling set to false");
         }
+    }
+
+    /// <summary>
+    ///     配置的 Python 不可用（如旧机器路径）时，改用本机检测到的解释器。
+    /// </summary>
+    private void ApplyDetectedPythonPath(string? detectedFullPath)
+    {
+        _detectedPythonPath = detectedFullPath;
+        OnPropertyChanged(nameof(PythonPathDisplay));
+
+        var needsReplace = string.IsNullOrWhiteSpace(PythonPath)
+                           || string.Equals(PythonPath, "python", StringComparison.OrdinalIgnoreCase)
+                           || (Path.IsPathRooted(PythonPath) && !File.Exists(PythonPath));
+
+        if (needsReplace && !string.IsNullOrWhiteSpace(detectedFullPath) && File.Exists(detectedFullPath))
+        {
+            PythonPath = detectedFullPath;
+            OnPropertyChanged(nameof(PythonPathDisplay));
+        }
+    }
+
+    private static Window? GetSettingsOwner()
+    {
+        return Application.Current.Windows
+                   .OfType<Window>()
+                   .FirstOrDefault(w => w.DataContext is SettingsViewModel)
+               ?? Application.Current.MainWindow;
+    }
+
+    private void ShowInstallFailure(string message)
+    {
+        MessageBoxWindow.Show(GetSettingsOwner(), message, "安装失败",
+            MessageBoxButton.OK, MessageBoxImage.Error);
     }
 
     /// <summary>
