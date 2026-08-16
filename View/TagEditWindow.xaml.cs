@@ -41,25 +41,20 @@ public partial class TagEditWindow : Window
         _tagRepository = new TicketTagRepository();
         _existingTag = existingTag;
 
-        // 初始化颜色选项
-        InitializeColorOptions();
-
-        // 如果是编辑模式，填充现有数据
+        // 如果是编辑模式，先写入已有颜色，再建色板（否则选中框会落在默认蓝上）
         if (existingTag != null)
         {
             Title = "编辑标签";
             TitleTextBlock.Text = "编辑标签";
             NameTextBox.Text = existingTag.Name;
-            _selectedColor = existingTag.Color;
-            _selectedTextColor = existingTag.TextColor;
+            _selectedColor = NormalizeHex(existingTag.Color) ?? "#2196F3";
+            _selectedTextColor = NormalizeHex(existingTag.TextColor) ?? "#FFFFFF";
 
-            // 设置文字颜色单选按钮
-            if (existingTag.TextColor == "#000000" || existingTag.TextColor?.ToUpper() == "#000000")
+            if (string.Equals(_selectedTextColor, "#000000", StringComparison.OrdinalIgnoreCase))
                 BlackTextRadio.IsChecked = true;
             else
                 WhiteTextRadio.IsChecked = true;
 
-            // 设置默认标签状态
             DefaultTagCheckBox.IsChecked = existingTag.IsDefault;
         }
         else
@@ -70,7 +65,8 @@ public partial class TagEditWindow : Window
             DefaultTagCheckBox.IsChecked = false;
         }
 
-        // 订阅文本变化事件
+        InitializeColorOptions();
+
         NameTextBox.TextChanged += (s, e) => UpdatePreview();
         WhiteTextRadio.Checked += (s, e) =>
         {
@@ -83,7 +79,6 @@ public partial class TagEditWindow : Window
             UpdatePreview();
         };
 
-        // 初始更新预览
         UpdatePreview();
     }
 
@@ -92,6 +87,7 @@ public partial class TagEditWindow : Window
     /// </summary>
     private void InitializeColorOptions()
     {
+        ColorPanel.Children.Clear();
         foreach (var color in PresetColors)
         {
             var border = new Border
@@ -102,32 +98,51 @@ public partial class TagEditWindow : Window
                 Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(color.Value)),
                 Margin = new Thickness(0, 0, 8, 8),
                 Cursor = Cursors.Hand,
-                Tag = color.Value
+                Tag = color.Value,
+                BorderThickness = new Thickness(0)
             };
 
-            // 如果匹配当前选中的颜色，添加边框
-            if (color.Value == _selectedColor)
+            border.MouseLeftButtonDown += (s, e) => SelectColor(color.Value);
+
+            ColorPanel.Children.Add(border);
+        }
+
+        ApplyColorSelectionVisual();
+    }
+
+    private void SelectColor(string colorValue)
+    {
+        _selectedColor = NormalizeHex(colorValue) ?? colorValue;
+        ApplyColorSelectionVisual();
+        UpdatePreview();
+    }
+
+    private void ApplyColorSelectionVisual()
+    {
+        foreach (var child in ColorPanel.Children)
+        {
+            if (child is not Border border) continue;
+            var hex = border.Tag as string;
+            var selected = string.Equals(NormalizeHex(hex), NormalizeHex(_selectedColor),
+                StringComparison.OrdinalIgnoreCase);
+            if (selected)
             {
                 border.BorderBrush = new SolidColorBrush(Colors.White);
                 border.BorderThickness = new Thickness(2);
             }
-
-            border.MouseLeftButtonDown += (s, e) =>
+            else
             {
-                // 清除其他选中状态
-                foreach (var child in ColorPanel.Children)
-                    if (child is Border b)
-                        b.BorderThickness = new Thickness(0);
-
-                // 设置当前选中
-                border.BorderBrush = new SolidColorBrush(Colors.White);
-                border.BorderThickness = new Thickness(2);
-                _selectedColor = color.Value;
-                UpdatePreview();
-            };
-
-            ColorPanel.Children.Add(border);
+                border.BorderThickness = new Thickness(0);
+            }
         }
+    }
+
+    private static string? NormalizeHex(string? hex)
+    {
+        if (string.IsNullOrWhiteSpace(hex)) return null;
+        hex = hex.Trim();
+        if (!hex.StartsWith('#')) hex = "#" + hex;
+        return hex.ToUpperInvariant();
     }
 
     /// <summary>

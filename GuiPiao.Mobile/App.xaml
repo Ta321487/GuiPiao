@@ -12,6 +12,7 @@
             </ResourceDictionary.MergedDictionaries>
             <converters:IsCustomAccentConverter x:Key="IsCustomAccentConverter" />
             <converters:InvertedBoolConverter x:Key="InvertedBoolConverter" />
+            <converters:BoolToStrokeThicknessConverter x:Key="BoolToStrokeThicknessConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>
