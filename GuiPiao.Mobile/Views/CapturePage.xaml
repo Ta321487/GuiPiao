@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:icons="clr-namespace:GuiPiao.Mobile.Icons"
+             xmlns:vm="clr-namespace:GuiPiao.Mobile.ViewModels"
+             x:Class="GuiPiao.Mobile.Views.CapturePage"
+             x:DataType="vm:CaptureViewModel"
+             Title="采集"
+             BackgroundColor="{DynamicResource WindowBackground}">
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="12">
+            <Label Text="采集"
+                   FontSize="{DynamicResource TitleFontSize}"
+                   FontAttributes="Bold" />
+            <Label Text="仅预填表单，确认保存后才入库（与 PC OCR 路径一致）。图片经已配对 PC 的 CnOCR。"
+                   TextColor="{DynamicResource TextSecondary}"
+                   FontSize="{DynamicResource SmallFontSize}" />
+
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                <Button Text="{x:Static icons:AppIcons.Camera}"
+                        FontFamily="{x:Static icons:AppIcons.FontFamilyName}"
+                        Style="{StaticResource PrimaryButtonStyle}"
+                        Command="{Binding TakePhotoCommand}"
+                        IsEnabled="{Binding IsBusy, Converter={StaticResource InvertedBoolConverter}}" />
+                <Button Grid.Column="1"
+                        Text="{x:Static icons:AppIcons.Photo}"
+                        FontFamily="{x:Static icons:AppIcons.FontFamilyName}"
+                        Style="{StaticResource SecondaryButtonStyle}"
+                        Command="{Binding PickPhotoCommand}"
+                        IsEnabled="{Binding IsBusy, Converter={StaticResource InvertedBoolConverter}}" />
+            </Grid>
+            <Label Text="拍照 / 相册 → PC OCR → 预填"
+                   FontSize="{DynamicResource SmallFontSize}"
+                   TextColor="{DynamicResource TextSecondary}"
+                   HorizontalOptions="Center" />
+
+            <Border Style="{StaticResource PanelBorderStyle}" Padding="10">
+                <VerticalStackLayout Spacing="8">
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                        <Label Text="粘贴文本" VerticalOptions="Center" FontAttributes="Bold" />
+                        <Button Grid.Column="1"
+                                Text="剪贴板"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Padding="10,6"
+                                Command="{Binding PasteFromClipboardCommand}" />
+                    </Grid>
+                    <Editor Text="{Binding PasteText}"
+                            Placeholder="短信 / 订单详情 / 票面 OCR 文本…"
+                            AutoSize="TextChanges"
+                            MinimumHeightRequest="120" />
+                    <Button Text="识别并预填"
+                            Style="{StaticResource PrimaryButtonStyle}"
+                            Command="{Binding ParsePasteCommand}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Button Text="空白表单"
+                    Style="{StaticResource SecondaryButtonStyle}"
+                    Command="{Binding OpenBlankFormCommand}" />
+
+            <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}"
+                               Color="{DynamicResource AccentColor}" />
+            <Label Text="{Binding StatusText}"
+                   TextColor="{DynamicResource AccentForeground}"
+                   FontSize="{DynamicResource SmallFontSize}" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

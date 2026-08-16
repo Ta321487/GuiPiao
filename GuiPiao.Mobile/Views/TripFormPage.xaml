@@ -1,0 +1,390 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:model="clr-namespace:GuiPiao.Mobile.Model"
+             xmlns:data="clr-namespace:GuiPiao.Mobile.Data"
+             xmlns:vm="clr-namespace:GuiPiao.Mobile.ViewModels"
+             x:Class="GuiPiao.Mobile.Views.TripFormPage"
+             x:Name="FormRoot"
+             x:DataType="vm:TripFormViewModel"
+             Title="{Binding PageTitle}"
+             BackgroundColor="{DynamicResource WindowBackground}">
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="12">
+            <Label Text="{Binding ImportBanner}"
+                   FontSize="{DynamicResource SmallFontSize}"
+                   TextColor="{DynamicResource AccentForeground}" />
+
+            <!-- 车次 -->
+            <Border Style="{StaticResource PanelBorderStyle}" Padding="12">
+                <Border.Triggers>
+                    <DataTrigger TargetType="Border" Binding="{Binding HighlightTrainNo}" Value="True">
+                        <Setter Property="BackgroundColor" Value="{DynamicResource ImportFieldHighlight}" />
+                    </DataTrigger>
+                </Border.Triggers>
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="车次号 *" FontAttributes="Bold" />
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                        <Picker Title="前缀"
+                                ItemsSource="{x:Static vm:TripFormViewModel.TrainNoPrefixes}"
+                                SelectedItem="{Binding SelectedTrainNoPrefix}"
+                                WidthRequest="110" />
+                        <Entry Grid.Column="1" Text="{Binding TrainNoNumber}" Placeholder="1234" Keyboard="Numeric" />
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- 车站 -->
+            <Border Style="{StaticResource PanelBorderStyle}" Padding="12">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="车站 *" FontAttributes="Bold" />
+                    <Border Padding="0">
+                        <Border.Triggers>
+                            <DataTrigger TargetType="Border" Binding="{Binding HighlightDepartStation}" Value="True">
+                                <Setter Property="BackgroundColor" Value="{DynamicResource ImportFieldHighlight}" />
+                            </DataTrigger>
+                        </Border.Triggers>
+                        <VerticalStackLayout Spacing="4" Padding="4">
+                            <Label Text="出发车站" FontSize="{DynamicResource SmallFontSize}" TextColor="{DynamicResource TextSecondary}" />
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6">
+                                <Entry Text="{Binding DepartStation}" Placeholder="北京南" />
+                                <Label Grid.Column="1" Text="站" VerticalOptions="Center" />
+                            </Grid>
+                            <CollectionView ItemsSource="{Binding DepartSuggestions}"
+                                            IsVisible="{Binding ShowDepartSuggestions}"
+                                            HeightRequest="120"
+                                            SelectionMode="None">
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate x:DataType="data:StationCacheItem">
+                                        <Border Padding="8,6" StrokeThickness="0">
+                                            <Border.GestureRecognizers>
+                                                <TapGestureRecognizer
+                                                    Command="{Binding Source={x:Reference FormRoot}, Path=BindingContext.PickDepartStationCommand}"
+                                                    CommandParameter="{Binding .}" />
+                                            </Border.GestureRecognizers>
+                                            <Label>
+                                                <Label.FormattedText>
+                                                    <FormattedString>
+                                                        <Span Text="{Binding DisplayName}" />
+                                                        <Span Text="  " />
+                                                        <Span Text="{Binding StationCode}" TextColor="{DynamicResource TextSecondary}" />
+                                                    </FormattedString>
+                                                </Label.FormattedText>
+                                            </Label>
+                                        </Border>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
+                        </VerticalStackLayout>
+                    </Border>
+                    <Border Padding="0">
+                        <Border.Triggers>
+                            <DataTrigger TargetType="Border" Binding="{Binding HighlightArriveStation}" Value="True">
+                                <Setter Property="BackgroundColor" Value="{DynamicResource ImportFieldHighlight}" />
+                            </DataTrigger>
+                        </Border.Triggers>
+                        <VerticalStackLayout Spacing="4" Padding="4">
+                            <Label Text="到达车站" FontSize="{DynamicResource SmallFontSize}" TextColor="{DynamicResource TextSecondary}" />
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6">
+                                <Entry Text="{Binding ArriveStation}" Placeholder="上海虹桥" />
+                                <Label Grid.Column="1" Text="站" VerticalOptions="Center" />
+                            </Grid>
+                            <CollectionView ItemsSource="{Binding ArriveSuggestions}"
+                                            IsVisible="{Binding ShowArriveSuggestions}"
+                                            HeightRequest="120"
+                                            SelectionMode="None">
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate x:DataType="data:StationCacheItem">
+                                        <Border Padding="8,6" StrokeThickness="0">
+                                            <Border.GestureRecognizers>
+                                                <TapGestureRecognizer
+                                                    Command="{Binding Source={x:Reference FormRoot}, Path=BindingContext.PickArriveStationCommand}"
+                                                    CommandParameter="{Binding .}" />
+                                            </Border.GestureRecognizers>
+                                            <Label>
+                                                <Label.FormattedText>
+                                                    <FormattedString>
+                                                        <Span Text="{Binding DisplayName}" />
+                                                        <Span Text="  " />
+                                                        <Span Text="{Binding StationCode}" TextColor="{DynamicResource TextSecondary}" />
+                                                    </FormattedString>
+                                                </Label.FormattedText>
+                                            </Label>
+                                        </Border>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
+                        </VerticalStackLayout>
+                    </Border>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- 出发 -->
+            <Border Style="{StaticResource PanelBorderStyle}" Padding="12">
+                <Border.Triggers>
+                    <DataTrigger TargetType="Border" Binding="{Binding HighlightDepartDate}" Value="True">
+                        <Setter Property="BackgroundColor" Value="{DynamicResource ImportFieldHighlight}" />
+                    </DataTrigger>
+                </Border.Triggers>
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="出发 *" FontAttributes="Bold" />
+                    <Label Text="日期" FontSize="{DynamicResource SmallFontSize}" TextColor="{DynamicResource TextSecondary}" />
+                    <DatePicker Date="{Binding DepartDateValue}" />
+                    <Label Text="时间" FontSize="{DynamicResource SmallFontSize}" TextColor="{DynamicResource TextSecondary}" />
+                    <TimePicker Time="{Binding DepartTimeValue}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- 到达 -->
+            <Border Style="{StaticResource PanelBorderStyle}" Padding="12">
+                <VerticalStackLayout Spacing="10">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Label Text="到达（可选）" FontAttributes="Bold" VerticalOptions="Center" />
+                        <CheckBox Grid.Column="1" IsChecked="{Binding HasArriveTime}" VerticalOptions="Center" />
+                    </Grid>
+                    <TimePicker Time="{Binding ArriveTimeValue}" IsEnabled="{Binding HasArriveTime}" />
+                    <Picker Title="相对出发日"
+                            ItemsSource="{x:Static vm:TripFormViewModel.ArriveDayOffsetOptions}"
+                            SelectedIndex="{Binding ArriveDayOffsetIndex}"
+                            IsEnabled="{Binding HasArriveTime}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- 席别 / 车厢 / 座位 -->
+            <Border Style="{StaticResource PanelBorderStyle}" Padding="12">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="席别 *" FontAttributes="Bold" />
+                    <Border>
+                        <Border.Triggers>
+                            <DataTrigger TargetType="Border" Binding="{Binding HighlightSeatType}" Value="True">
+                                <Setter Property="BackgroundColor" Value="{DynamicResource ImportFieldHighlight}" />
+                            </DataTrigger>
+                        </Border.Triggers>
+                        <Picker Title="席别"
+                                ItemsSource="{x:Static vm:TripFormViewModel.SeatTypeOptions}"
+                                SelectedItem="{Binding SeatType}" />
+                    </Border>
+
+                    <Label Text="车厢号 *" FontAttributes="Bold" />
+                    <Border>
+                        <Border.Triggers>
+                            <DataTrigger TargetType="Border" Binding="{Binding HighlightCoachNo}" Value="True">
+                                <Setter Property="BackgroundColor" Value="{DynamicResource ImportFieldHighlight}" />
+                            </DataTrigger>
+                        </Border.Triggers>
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8" Padding="4">
+                            <HorizontalStackLayout Spacing="4" VerticalOptions="Center">
+                                <CheckBox IsChecked="{Binding IsJiaChe}" VerticalOptions="Center" />
+                                <Label Text="加车" VerticalOptions="Center" />
+                            </HorizontalStackLayout>
+                            <Entry Grid.Column="1" Text="{Binding CoachNoInput}" Placeholder="05" Keyboard="Numeric" />
+                            <Label Grid.Column="2" Text="车" VerticalOptions="Center" />
+                        </Grid>
+                    </Border>
+
+                    <Label Text="座位号 *" FontAttributes="Bold" />
+                    <Border>
+                        <Border.Triggers>
+                            <DataTrigger TargetType="Border" Binding="{Binding HighlightSeatNo}" Value="True">
+                                <Setter Property="BackgroundColor" Value="{DynamicResource ImportFieldHighlight}" />
+                            </DataTrigger>
+                        </Border.Triggers>
+                        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8" Padding="4">
+                            <Entry Text="{Binding SeatNoNumber}" Placeholder="12" Keyboard="Numeric"
+                                   IsEnabled="{Binding IsSeatInputEnabled}" />
+                            <Picker Grid.Column="1"
+                                    ItemsSource="{Binding SeatLetterOptions}"
+                                    SelectedItem="{Binding SelectedSeatLetter}"
+                                    WidthRequest="96"
+                                    IsEnabled="{Binding IsSeatInputEnabled}"
+                                    IsVisible="{Binding ShowSeatLetter}" />
+                            <HorizontalStackLayout Grid.Column="2" Spacing="4" VerticalOptions="Center">
+                                <CheckBox IsChecked="{Binding IsNoSeat}" VerticalOptions="Center" />
+                                <Label Text="无座" VerticalOptions="Center" />
+                            </HorizontalStackLayout>
+                        </Grid>
+                    </Border>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- 取票 / 检票 / 附加 -->
+            <Border Style="{StaticResource PanelBorderStyle}" Padding="12">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="票面信息" FontAttributes="Bold" />
+                    <Border>
+                        <Border.Triggers>
+                            <DataTrigger TargetType="Border" Binding="{Binding HighlightTicketNumber}" Value="True">
+                                <Setter Property="BackgroundColor" Value="{DynamicResource ImportFieldHighlight}" />
+                            </DataTrigger>
+                        </Border.Triggers>
+                        <VerticalStackLayout Spacing="4" Padding="4">
+                            <Label Text="取票号" FontSize="{DynamicResource SmallFontSize}" TextColor="{DynamicResource TextSecondary}" />
+                            <Entry Text="{Binding TicketNumber}" />
+                        </VerticalStackLayout>
+                    </Border>
+                    <Border>
+                        <Border.Triggers>
+                            <DataTrigger TargetType="Border" Binding="{Binding HighlightCheckIn}" Value="True">
+                                <Setter Property="BackgroundColor" Value="{DynamicResource ImportFieldHighlight}" />
+                            </DataTrigger>
+                        </Border.Triggers>
+                        <VerticalStackLayout Spacing="4" Padding="4">
+                            <Label Text="检票位置" FontSize="{DynamicResource SmallFontSize}" TextColor="{DynamicResource TextSecondary}" />
+                            <Entry Text="{Binding CheckInLocation}" />
+                        </VerticalStackLayout>
+                    </Border>
+                    <Label Text="附加信息" FontSize="{DynamicResource SmallFontSize}" TextColor="{DynamicResource TextSecondary}" />
+                    <Picker ItemsSource="{x:Static vm:TripFormViewModel.AdditionalInfoOptions}"
+                            SelectedItem="{Binding AdditionalInfo}" />
+                    <Label Text="车票用途" FontSize="{DynamicResource SmallFontSize}" TextColor="{DynamicResource TextSecondary}" />
+                    <Picker ItemsSource="{x:Static vm:TripFormViewModel.TicketPurposeOptions}"
+                            SelectedItem="{Binding TicketPurpose}" />
+                    <Label Text="改签类型" FontSize="{DynamicResource SmallFontSize}" TextColor="{DynamicResource TextSecondary}" />
+                    <Picker ItemsSource="{x:Static vm:TripFormViewModel.TicketModificationTypeOptions}"
+                            SelectedItem="{Binding TicketModificationType}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- 金额 / 状态 -->
+            <Border Style="{StaticResource PanelBorderStyle}" Padding="12">
+                <VerticalStackLayout Spacing="10">
+                    <Border>
+                        <Border.Triggers>
+                            <DataTrigger TargetType="Border" Binding="{Binding HighlightMoney}" Value="True">
+                                <Setter Property="BackgroundColor" Value="{DynamicResource ImportFieldHighlight}" />
+                            </DataTrigger>
+                        </Border.Triggers>
+                        <VerticalStackLayout Spacing="4" Padding="4">
+                            <Label Text="金额 *" FontAttributes="Bold" />
+                            <Entry Text="{Binding MoneyText}" Keyboard="Numeric" Placeholder="0.00" />
+                        </VerticalStackLayout>
+                    </Border>
+                    <Label Text="状态 *" FontAttributes="Bold" />
+                    <Picker Title="状态"
+                            ItemsSource="{x:Static vm:TripFormViewModel.StatusOptions}"
+                            SelectedItem="{Binding SelectedStatus}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- 票种 -->
+            <Border Style="{StaticResource PanelBorderStyle}" Padding="12">
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="票种类型" FontAttributes="Bold" />
+                    <FlexLayout Wrap="Wrap" AlignItems="Center">
+                        <HorizontalStackLayout Spacing="4" Margin="0,0,16,8">
+                            <CheckBox IsChecked="{Binding IsStudentTicket}" />
+                            <Label Text="学生票" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                        <HorizontalStackLayout Spacing="4" Margin="0,0,16,8">
+                            <CheckBox IsChecked="{Binding IsDiscountTicket}" />
+                            <Label Text="优惠票" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                        <HorizontalStackLayout Spacing="4" Margin="0,0,16,8">
+                            <CheckBox IsChecked="{Binding IsOnlineTicket}" />
+                            <Label Text="网络售票" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                        <HorizontalStackLayout Spacing="4" Margin="0,0,16,8">
+                            <CheckBox IsChecked="{Binding IsChildTicket}" />
+                            <Label Text="儿童票" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                    </FlexLayout>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- 支付 -->
+            <Border Style="{StaticResource PanelBorderStyle}" Padding="12">
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="支付渠道" FontAttributes="Bold" />
+                    <FlexLayout Wrap="Wrap" AlignItems="Center">
+                        <HorizontalStackLayout Spacing="4" Margin="0,0,12,8">
+                            <CheckBox IsChecked="{Binding IsAlipay}" /><Label Text="支付宝售票" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                        <HorizontalStackLayout Spacing="4" Margin="0,0,12,8">
+                            <CheckBox IsChecked="{Binding IsWeChat}" /><Label Text="微信售票" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                        <HorizontalStackLayout Spacing="4" Margin="0,0,12,8">
+                            <CheckBox IsChecked="{Binding IsABC}" /><Label Text="农业银行" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                        <HorizontalStackLayout Spacing="4" Margin="0,0,12,8">
+                            <CheckBox IsChecked="{Binding IsCCB}" /><Label Text="建设银行" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                        <HorizontalStackLayout Spacing="4" Margin="0,0,12,8">
+                            <CheckBox IsChecked="{Binding IsICBC}" /><Label Text="工商银行" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                        <HorizontalStackLayout Spacing="4" Margin="0,0,12,8">
+                            <CheckBox IsChecked="{Binding IsBCOM}" /><Label Text="交通银行" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                        <HorizontalStackLayout Spacing="4" Margin="0,0,12,8">
+                            <CheckBox IsChecked="{Binding IsCMB}" /><Label Text="招商银行" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                        <HorizontalStackLayout Spacing="4" Margin="0,0,12,8">
+                            <CheckBox IsChecked="{Binding IsPSBC}" /><Label Text="邮储银行" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                        <HorizontalStackLayout Spacing="4" Margin="0,0,12,8">
+                            <CheckBox IsChecked="{Binding IsBOC}" /><Label Text="中国银行" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                    </FlexLayout>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- 标签 -->
+            <Border Style="{StaticResource PanelBorderStyle}" Padding="12">
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="标签" FontAttributes="Bold" />
+                    <CollectionView ItemsSource="{Binding AvailableTags}" SelectionMode="None">
+                        <CollectionView.ItemsLayout>
+                            <LinearItemsLayout Orientation="Vertical" ItemSpacing="6" />
+                        </CollectionView.ItemsLayout>
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="model:SelectableTagItem">
+                                <Border Padding="10,6" StrokeThickness="1"
+                                        Stroke="{DynamicResource Border}">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding ToggleCommand}" />
+                                    </Border.GestureRecognizers>
+                                    <HorizontalStackLayout Spacing="8">
+                                        <CheckBox IsChecked="{Binding IsSelected}" IsEnabled="False" />
+                                        <Label Text="{Binding Name}" VerticalOptions="Center" />
+                                    </HorizontalStackLayout>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                    <Label Text="可在「我的」新建或编辑标签，对齐后同步到 PC。"
+                           FontSize="{DynamicResource SmallFontSize}"
+                           TextColor="{DynamicResource TextSecondary}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- 其他信息 -->
+            <Border Style="{StaticResource PanelBorderStyle}" Padding="12">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="其他信息" FontAttributes="Bold" />
+                    <Label Text="出发车站代码" FontSize="{DynamicResource SmallFontSize}" TextColor="{DynamicResource TextSecondary}" />
+                    <Entry Text="{Binding DepartStationCode}" Placeholder="可手填或由车站联想回填" />
+                    <Label Text="到达车站代码" FontSize="{DynamicResource SmallFontSize}" TextColor="{DynamicResource TextSecondary}" />
+                    <Entry Text="{Binding ArriveStationCode}" />
+                    <Label Text="出发车站拼音" FontSize="{DynamicResource SmallFontSize}" TextColor="{DynamicResource TextSecondary}" />
+                    <Entry Text="{Binding DepartStationPinyin}" />
+                    <Label Text="到达车站拼音" FontSize="{DynamicResource SmallFontSize}" TextColor="{DynamicResource TextSecondary}" />
+                    <Entry Text="{Binding ArriveStationPinyin}" />
+                    <Label Text="提示信息" FontSize="{DynamicResource SmallFontSize}" TextColor="{DynamicResource TextSecondary}" />
+                    <Picker ItemsSource="{x:Static vm:TripFormViewModel.HintOptions}"
+                            SelectedItem="{Binding SelectedHint}" />
+                    <Entry Text="{Binding CustomHint}"
+                           Placeholder="自定义提示内容"
+                           IsVisible="{Binding IsCustomHint}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Label Text="{Binding ErrorText}" TextColor="#C42B1C" FontSize="{DynamicResource SmallFontSize}" />
+
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="8" Margin="0,4,0,24">
+                <Button Text="取消" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding CancelCommand}" />
+                <Button Grid.Column="1" Text="保存" Style="{StaticResource PrimaryButtonStyle}"
+                        Command="{Binding SaveCommand}"
+                        IsEnabled="{Binding IsBusy, Converter={StaticResource InvertedBoolConverter}}" />
+            </Grid>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

@@ -1,0 +1,68 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- 设计规范写 net8；本机 MAUI 工作负载为 net10。默认编 Windows 预览；有 Android SDK 时再加 android。 -->
+    <TargetFrameworks>net10.0-windows10.0.19041.0</TargetFrameworks>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>GuiPiao.Mobile</RootNamespace>
+    <UseMaui>true</UseMaui>
+    <SingleProject>true</SingleProject>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <MauiXamlInflator>SourceGen</MauiXamlInflator>
+
+    <ApplicationTitle>GuiPiao</ApplicationTitle>
+    <ApplicationId>com.guipiao.mobile</ApplicationId>
+    <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+    <ApplicationVersion>1</ApplicationVersion>
+
+    <WindowsPackageType>None</WindowsPackageType>
+
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">21.0</SupportedOSPlatformVersion>
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
+    <TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
+  </PropertyGroup>
+
+  <!-- VS 常把 SDK 装到 Shared\Android，而非 %LOCALAPPDATA%\Android\Sdk -->
+  <PropertyGroup>
+    <_GuiPiaoAndroidSdk Condition="Exists('$(MSBuildProgramFiles32)\Microsoft Visual Studio\Shared\Android\android-sdk')">$(MSBuildProgramFiles32)\Microsoft Visual Studio\Shared\Android\android-sdk</_GuiPiaoAndroidSdk>
+    <_GuiPiaoAndroidSdk Condition="'$(_GuiPiaoAndroidSdk)' == '' and Exists('D:\Program Files (x86)\Microsoft Visual Studio\Shared\Android\android-sdk')">D:\Program Files (x86)\Microsoft Visual Studio\Shared\Android\android-sdk</_GuiPiaoAndroidSdk>
+    <_GuiPiaoJavaSdk Condition="Exists('$(MSBuildProgramFiles32)\Microsoft Visual Studio\Shared\Android\openjdk\jdk-21.0.8')">$(MSBuildProgramFiles32)\Microsoft Visual Studio\Shared\Android\openjdk\jdk-21.0.8</_GuiPiaoJavaSdk>
+    <_GuiPiaoJavaSdk Condition="'$(_GuiPiaoJavaSdk)' == '' and Exists('D:\Program Files (x86)\Microsoft Visual Studio\Shared\Android\openjdk\jdk-21.0.8')">D:\Program Files (x86)\Microsoft Visual Studio\Shared\Android\openjdk\jdk-21.0.8</_GuiPiaoJavaSdk>
+    <AndroidSdkDirectory Condition="'$(AndroidSdkDirectory)' == '' and '$(_GuiPiaoAndroidSdk)' != ''">$(_GuiPiaoAndroidSdk)</AndroidSdkDirectory>
+    <JavaSdkDirectory Condition="'$(JavaSdkDirectory)' == '' and '$(_GuiPiaoJavaSdk)' != ''">$(_GuiPiaoJavaSdk)</JavaSdkDirectory>
+  </PropertyGroup>
+
+  <!-- 显式：dotnet build -p:BuildAndroid=true ；或已解析到 AndroidSdkDirectory -->
+  <PropertyGroup Condition="'$(BuildAndroid)' == 'true' or '$(AndroidSdkDirectory)' != ''">
+    <TargetFrameworks>net10.0-android;$(TargetFrameworks)</TargetFrameworks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#0078D4" />
+    <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#0078D4" BaseSize="128,128" />
+    <MauiImage Include="Resources\Images\*" />
+    <MauiFont Include="Resources\Fonts\*" />
+    <MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <!-- 复用 PC 同步协议 DTO / 实体常量（snake_case 字段由 SyncJson 序列化） -->
+  <ItemGroup>
+    <Compile Include="..\Model\Sync\SyncProtocol.cs" Link="Model\Sync\SyncProtocol.cs" />
+    <Compile Include="..\Model\Sync\SyncEntities.cs" Link="Model\Sync\SyncEntities.cs" />
+    <Compile Include="..\Model\TicketImportDraft.cs" Link="Model\TicketImportDraft.cs" />
+    <Compile Include="..\Services\TicketTextExtractor.cs" Link="Services\TicketTextExtractor.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.5" />
+    <PackageReference Include="ZXing.Net" Version="0.16.9" />
+    <PackageReference Include="ZXing.Net.Bindings.SkiaSharp" Version="0.16.14" />
+    <PackageReference Include="SkiaSharp" Version="2.88.9" />
+  </ItemGroup>
+
+</Project>

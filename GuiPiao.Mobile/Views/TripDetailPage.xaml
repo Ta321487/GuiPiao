@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:GuiPiao.Mobile.ViewModels"
+             x:Class="GuiPiao.Mobile.Views.TripDetailPage"
+             x:DataType="vm:TripDetailViewModel"
+             Title="{Binding Title}"
+             BackgroundColor="{DynamicResource WindowBackground}">
+    <!-- 字段叫法对齐 PC 票面预览侧栏「行程信息」；空值显示 — -->
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="12">
+            <Label Text="行程不存在或已删除"
+                   IsVisible="{Binding HasRide, Converter={StaticResource InvertedBoolConverter}}"
+                   TextColor="{DynamicResource TextSecondary}" />
+
+            <VerticalStackLayout Spacing="12" IsVisible="{Binding HasRide}">
+            <Border Style="{StaticResource PanelBorderStyle}" Padding="14">
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="{Binding Ride.TrainNoDisplay}"
+                           FontSize="{DynamicResource TitleFontSize}"
+                           FontAttributes="Bold"
+                           TextColor="{DynamicResource AccentForeground}" />
+                    <Label Text="{Binding Ride.RouteText}" />
+                    <Label Text="{Binding Ride.WhenText}"
+                           TextColor="{DynamicResource TextSecondary}"
+                           FontSize="{DynamicResource SmallFontSize}" />
+                    <Label Text="{Binding Ride.StatusText}"
+                           TextColor="{DynamicResource TextSecondary}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Border Style="{StaticResource PanelBorderStyle}" Padding="14">
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="行程信息" FontAttributes="Bold" FontSize="{DynamicResource LargeFontSize}" />
+
+                    <Grid ColumnDefinitions="88,*" ColumnSpacing="8">
+                        <Label Text="车票号码" TextColor="{DynamicResource TextSecondary}" />
+                        <Label Grid.Column="1" Text="{Binding Ride.TicketNumberDisplay}" />
+                    </Grid>
+                    <Grid ColumnDefinitions="88,*" ColumnSpacing="8">
+                        <Label Text="检票口" TextColor="{DynamicResource TextSecondary}" />
+                        <Label Grid.Column="1" Text="{Binding Ride.CheckInLocationDisplay}" />
+                    </Grid>
+                    <Grid ColumnDefinitions="88,*" ColumnSpacing="8">
+                        <Label Text="出发站" TextColor="{DynamicResource TextSecondary}" />
+                        <Label Grid.Column="1" Text="{Binding Ride.DepartStationDisplay}" />
+                    </Grid>
+                    <Grid ColumnDefinitions="88,*" ColumnSpacing="8">
+                        <Label Text="到达站" TextColor="{DynamicResource TextSecondary}" />
+                        <Label Grid.Column="1" Text="{Binding Ride.ArriveStationDisplay}" />
+                    </Grid>
+                    <Grid ColumnDefinitions="88,*" ColumnSpacing="8">
+                        <Label Text="出发拼音" TextColor="{DynamicResource TextSecondary}" />
+                        <Label Grid.Column="1" Text="{Binding Ride.DepartStationPinyinDisplay}" />
+                    </Grid>
+                    <Grid ColumnDefinitions="88,*" ColumnSpacing="8">
+                        <Label Text="到达拼音" TextColor="{DynamicResource TextSecondary}" />
+                        <Label Grid.Column="1" Text="{Binding Ride.ArriveStationPinyinDisplay}" />
+                    </Grid>
+                    <Grid ColumnDefinitions="88,*" ColumnSpacing="8">
+                        <Label Text="出发日期" TextColor="{DynamicResource TextSecondary}" />
+                        <Label Grid.Column="1" Text="{Binding Ride.DepartDateDisplay}" />
+                    </Grid>
+                    <Grid ColumnDefinitions="88,*" ColumnSpacing="8">
+                        <Label Text="车次" TextColor="{DynamicResource TextSecondary}" />
+                        <Label Grid.Column="1" Text="{Binding Ride.TrainNoDisplay}" />
+                    </Grid>
+                    <Grid ColumnDefinitions="88,*" ColumnSpacing="8">
+                        <Label Text="出发时间" TextColor="{DynamicResource TextSecondary}" />
+                        <Label Grid.Column="1" Text="{Binding Ride.DepartTimeDisplay}" />
+                    </Grid>
+                    <Grid ColumnDefinitions="88,*" ColumnSpacing="8">
+                        <Label Text="到达时间" TextColor="{DynamicResource TextSecondary}" />
+                        <Label Grid.Column="1" Text="{Binding Ride.ArriveTimeDisplay}" />
+                    </Grid>
+                    <Grid ColumnDefinitions="88,*" ColumnSpacing="8">
+                        <Label Text="车厢" TextColor="{DynamicResource TextSecondary}" />
+                        <Label Grid.Column="1" Text="{Binding Ride.CoachNoDisplay}" />
+                    </Grid>
+                    <Grid ColumnDefinitions="88,*" ColumnSpacing="8">
+                        <Label Text="座位号" TextColor="{DynamicResource TextSecondary}" />
+                        <Label Grid.Column="1" Text="{Binding Ride.SeatNoDisplay}" />
+                    </Grid>
+                    <Grid ColumnDefinitions="88,*" ColumnSpacing="8">
+                        <Label Text="票价" TextColor="{DynamicResource TextSecondary}" />
+                        <Label Grid.Column="1" Text="{Binding Ride.MoneyDisplay}" />
+                    </Grid>
+                    <Grid ColumnDefinitions="88,*" ColumnSpacing="8">
+                        <Label Text="附加信息" TextColor="{DynamicResource TextSecondary}" />
+                        <Label Grid.Column="1" Text="{Binding Ride.AdditionalInfoDisplay}" />
+                    </Grid>
+                    <Grid ColumnDefinitions="88,*" ColumnSpacing="8">
+                        <Label Text="座位类型" TextColor="{DynamicResource TextSecondary}" />
+                        <Label Grid.Column="1" Text="{Binding Ride.SeatTypeDisplay}" />
+                    </Grid>
+                    <Grid ColumnDefinitions="88,*" ColumnSpacing="8">
+                        <Label Text="改签类型" TextColor="{DynamicResource TextSecondary}" />
+                        <Label Grid.Column="1" Text="{Binding Ride.TicketModificationTypeDisplay}" />
+                    </Grid>
+                    <Grid ColumnDefinitions="88,*" ColumnSpacing="8">
+                        <Label Text="车票用途" TextColor="{DynamicResource TextSecondary}" />
+                        <Label Grid.Column="1" Text="{Binding Ride.TicketPurposeDisplay}" />
+                    </Grid>
+                    <Grid ColumnDefinitions="88,*" ColumnSpacing="8">
+                        <Label Text="票底提示" TextColor="{DynamicResource TextSecondary}" />
+                        <Label Grid.Column="1" Text="{Binding Ride.HintDisplay}" />
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+
+            <Border Style="{StaticResource PanelBorderStyle}" Padding="14">
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="其他信息" FontAttributes="Bold" />
+                    <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
+                        <Label Text="出发车站代码" TextColor="{DynamicResource TextSecondary}" FontSize="{DynamicResource SmallFontSize}" />
+                        <Label Grid.Column="1" Text="{Binding Ride.DepartStationCodeDisplay}" />
+                    </Grid>
+                    <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
+                        <Label Text="到达车站代码" TextColor="{DynamicResource TextSecondary}" FontSize="{DynamicResource SmallFontSize}" />
+                        <Label Grid.Column="1" Text="{Binding Ride.ArriveStationCodeDisplay}" />
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+
+            <Button Text="编辑" Style="{StaticResource PrimaryButtonStyle}" Command="{Binding EditCommand}" />
+            <Button Text="票面预览" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding PreviewFaceCommand}" />
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="8" IsVisible="{Binding CanRefundOrReschedule}">
+                <Button Text="改签" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding RescheduleCommand}" />
+                <Button Grid.Column="1" Text="退票" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding RefundCommand}" />
+            </Grid>
+            <Button Text="删除" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding DeleteCommand}"
+                    TextColor="{DynamicResource TextSecondary}" />
+            </VerticalStackLayout>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

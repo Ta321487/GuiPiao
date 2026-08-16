@@ -9,22 +9,31 @@ namespace GuiPiao.Services;
 
 /// <summary>
 ///     同步 HTTP 路由处理（与传输无关，便于单测）。
-///     路径：/v1/health、/v1/pair、/v1/changes
+///     路径：/v1/health、/v1/pair、/v1/changes、/v1/ocr、/v1/stations、/v1/conflicts
 /// </summary>
 public class SyncApiDispatcher
 {
     private readonly SyncPairingService _pairing;
     private readonly SyncChangeRepository _changes;
     private readonly SyncIngressService _ingress;
+    private readonly SyncOcrService _ocr;
+    private readonly SyncConflictResolveService _conflicts;
+    private readonly StationRepository _stations;
 
     public SyncApiDispatcher(
         SyncPairingService? pairing = null,
         SyncChangeRepository? changes = null,
-        SyncIngressService? ingress = null)
+        SyncIngressService? ingress = null,
+        SyncOcrService? ocr = null,
+        SyncConflictResolveService? conflicts = null,
+        StationRepository? stations = null)
     {
         _pairing = pairing ?? new SyncPairingService();
         _changes = changes ?? new SyncChangeRepository();
         _ingress = ingress ?? new SyncIngressService();
+        _ocr = ocr ?? new SyncOcrService();
+        _conflicts = conflicts ?? new SyncConflictResolveService();
+        _stations = stations ?? new StationRepository();
     }
 
     public async Task<SyncHttpResult> DispatchAsync(SyncHttpRequest request)
@@ -45,6 +54,18 @@ public class SyncApiDispatcher
 
             if (method == "POST" && path == "/v1/changes")
                 return await PushAsync(request);
+
+            if (method == "POST" && path == "/v1/ocr")
+                return await OcrAsync(request);
+
+            if (method == "GET" && path == "/v1/stations")
+                return await StationsAsync(request);
+
+            if (method == "GET" && path == "/v1/conflicts")
+                return await ConflictsListAsync(request);
+
+            if (method == "POST" && path == "/v1/conflicts/resolve")
+                return await ConflictsResolveAsync(request);
 
             return SyncHttpResult.Json(404, new SyncErrorResponse { Error = "not_found" });
         }
@@ -116,6 +137,70 @@ public class SyncApiDispatcher
 
         var result = await _ingress.ApplyPushAsync(auth.DeviceId!, body.Changes);
         return SyncHttpResult.Json(200, result);
+    }
+
+    private async Task<SyncHttpResult> OcrAsync(SyncHttpRequest request)
+    {
+        var auth = await AuthenticateAsync(request);
+        if (auth == null)
+            return SyncHttpResult.Json(401, new SyncErrorResponse { Error = "unauthorized" });
+
+        var body = SyncPayloadSerializer.FromJson<SyncOcrRequest>(request.Body);
+        if (body == null)
+            return SyncHttpResult.Json(400, new SyncErrorResponse { Error = "invalid_json" });
+
+        try
+        {
+            var result = await _ocr.RecognizeAsync(body);
+            return SyncHttpResult.Json(200, result);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return SyncHttpResult.Json(400, new SyncErrorResponse { Error = ex.Message });
+        }
+    }
+
+    private async Task<SyncHttpResult> StationsAsync(SyncHttpRequest request)
+    {
+        var auth = await AuthenticateAsync(request);
+        if (auth == null)
+            return SyncHttpResult.Json(401, new SyncErrorResponse { Error = "unauthorized" });
+
+        var all = await _stations.GetAllStationsAsync();
+        return SyncHttpResult.Json(200, new SyncStationsResponse
+        {
+            Stations = all.Select(s => new SyncStationDto
+            {
+                StationName = s.StationName ?? string.Empty,
+                StationCode = s.StationCode ?? string.Empty,
+                StationPinyin = s.StationPinyin ?? string.Empty
+            }).ToList()
+        });
+    }
+
+    private async Task<SyncHttpResult> ConflictsListAsync(SyncHttpRequest request)
+    {
+        var auth = await AuthenticateAsync(request);
+        if (auth == null)
+            return SyncHttpResult.Json(401, new SyncErrorResponse { Error = "unauthorized" });
+
+        return SyncHttpResult.Json(200, await _conflicts.ListOpenAsync());
+    }
+
+    private async Task<SyncHttpResult> ConflictsResolveAsync(SyncHttpRequest request)
+    {
+        var auth = await AuthenticateAsync(request);
+        if (auth == null)
+            return SyncHttpResult.Json(401, new SyncErrorResponse { Error = "unauthorized" });
+
+        var body = SyncPayloadSerializer.FromJson<SyncConflictResolveRequest>(request.Body);
+        if (body == null)
+            return SyncHttpResult.Json(400, new SyncErrorResponse { Error = "invalid_json" });
+
+        var result = await _conflicts.ResolveAsync(body);
+        return result.Ok
+            ? SyncHttpResult.Json(200, result)
+            : SyncHttpResult.Json(400, result);
     }
 
     private async Task<SyncAuthResult?> AuthenticateAsync(SyncHttpRequest request)

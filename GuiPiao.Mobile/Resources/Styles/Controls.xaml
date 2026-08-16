@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <!-- 主按钮：实心 Accent + AccentText；次按钮：浅底/描边 -->
+    <Style x:Key="PrimaryButtonStyle" TargetType="Button">
+        <Setter Property="BackgroundColor" Value="{DynamicResource AccentColor}" />
+        <Setter Property="TextColor" Value="{DynamicResource AccentText}" />
+        <Setter Property="FontSize" Value="{DynamicResource BaseFontSize}" />
+        <Setter Property="CornerRadius" Value="4" />
+        <Setter Property="Padding" Value="14,10" />
+        <Setter Property="MinimumHeightRequest" Value="40" />
+    </Style>
+
+    <Style x:Key="SecondaryButtonStyle" TargetType="Button">
+        <Setter Property="BackgroundColor" Value="{DynamicResource ControlBackground}" />
+        <Setter Property="TextColor" Value="{DynamicResource TextPrimary}" />
+        <Setter Property="BorderColor" Value="{DynamicResource Border}" />
+        <Setter Property="BorderWidth" Value="1" />
+        <Setter Property="FontSize" Value="{DynamicResource BaseFontSize}" />
+        <Setter Property="CornerRadius" Value="4" />
+        <Setter Property="Padding" Value="14,10" />
+        <Setter Property="MinimumHeightRequest" Value="40" />
+    </Style>
+
+    <Style x:Key="PanelBorderStyle" TargetType="Border">
+        <Setter Property="BackgroundColor" Value="{DynamicResource PanelBackground}" />
+        <Setter Property="Stroke" Value="{DynamicResource Border}" />
+        <Setter Property="StrokeThickness" Value="1" />
+        <Setter Property="StrokeShape">
+            <Setter.Value>
+                <RoundRectangle CornerRadius="4" />
+            </Setter.Value>
+        </Setter>
+        <Setter Property="Padding" Value="12" />
+    </Style>
+
+    <Style TargetType="Page">
+        <Setter Property="BackgroundColor" Value="{DynamicResource WindowBackground}" />
+    </Style>
+
+    <Style TargetType="Shell">
+        <Setter Property="BackgroundColor" Value="{DynamicResource WindowBackground}" />
+        <Setter Property="Shell.ForegroundColor" Value="{DynamicResource TextPrimary}" />
+        <Setter Property="Shell.BackgroundColor" Value="{DynamicResource WindowBackground}" />
+        <Setter Property="Shell.TitleColor" Value="{DynamicResource TextPrimary}" />
+        <Setter Property="Shell.TabBarBackgroundColor" Value="{DynamicResource PanelBackground}" />
+        <Setter Property="Shell.TabBarForegroundColor" Value="{DynamicResource AccentColor}" />
+        <Setter Property="Shell.TabBarUnselectedColor" Value="{DynamicResource TextSecondary}" />
+        <Setter Property="Shell.TabBarTitleColor" Value="{DynamicResource AccentColor}" />
+    </Style>
+
+    <Style TargetType="Label">
+        <Setter Property="TextColor" Value="{DynamicResource TextPrimary}" />
+        <Setter Property="FontSize" Value="{DynamicResource BaseFontSize}" />
+    </Style>
+
+    <Style TargetType="Entry">
+        <Setter Property="TextColor" Value="{DynamicResource TextPrimary}" />
+        <Setter Property="PlaceholderColor" Value="{DynamicResource TextSecondary}" />
+        <Setter Property="BackgroundColor" Value="{DynamicResource ControlBackground}" />
+        <Setter Property="FontSize" Value="{DynamicResource BaseFontSize}" />
+    </Style>
+
+    <Style TargetType="Editor">
+        <Setter Property="TextColor" Value="{DynamicResource TextPrimary}" />
+        <Setter Property="PlaceholderColor" Value="{DynamicResource TextSecondary}" />
+        <Setter Property="BackgroundColor" Value="{DynamicResource ControlBackground}" />
+        <Setter Property="FontSize" Value="{DynamicResource BaseFontSize}" />
+    </Style>
+</ResourceDictionary>

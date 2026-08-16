@@ -3,26 +3,27 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GuiPiao.DataAccess;
 using GuiPiao.Model.Sync;
 using GuiPiao.Services;
-using GuiPiao.Utils;
 using GuiPiao.View;
 
 namespace GuiPiao.ViewModel;
 
 /// <summary>
-///     同步设置：配对码倒计时与 <see cref="SyncPairingService"/> 展示 TTL 同源；
-///     HTTP 服务启停走 <see cref="SyncHttpServer"/>。
+///     同步设置：主路径为启动服务并生成配对码；端口等项折叠在高级设置。
 /// </summary>
 public partial class SyncSettingsViewModel : ObservableObject, ISettingsViewModel
 {
     private readonly SyncPairingService _pairingService = new();
     private readonly SyncChangeRepository _changeRepository = new();
+    private readonly SyncBaselinePublisher _baselinePublisher = new();
     private readonly SyncHttpServer _httpServer = SyncHttpServer.Instance;
+    private readonly SyncSettingsService _settingsService = new();
     private readonly DispatcherTimer _countdownTimer;
     private DateTime? _expiresAtUtc;
     private string _plainCode = string.Empty;
@@ -36,23 +37,31 @@ public partial class SyncSettingsViewModel : ObservableObject, ISettingsViewMode
 
     [ObservableProperty] private bool _hasActiveCode;
 
-    [ObservableProperty] private string _statusMessage = string.Empty;
+    [ObservableProperty] private string _statusMessage = "点击「开始配对」启动服务并生成配对码。";
 
     [ObservableProperty] private long _localSeq;
 
-    [ObservableProperty] private string _devicesEmptyHint = "尚无设备 — 生成配对码后在手机端输入";
+    [ObservableProperty] private string _devicesEmptyHint = "暂无已配对设备";
 
     [ObservableProperty] private int _listenPort = SyncHttpServer.DefaultPort;
 
+    [ObservableProperty] private bool _allowLan = true;
+
     [ObservableProperty] private bool _isServerRunning;
 
-    [ObservableProperty] private string _serverStatusText = "已停止";
+    [ObservableProperty] private string _serverStatusText = "未运行";
 
     [ObservableProperty] private string _listenUrlText = string.Empty;
 
+    [ObservableProperty] private string _phoneGuideText =
+        "手机与 PC 需在同一局域网（或经隧道可达）。「开始配对」会启动服务、把现有行程写入同步日志并生成配对码；手机填服务地址与配对码后执行「立即对齐」。若仍无数据，可点「发布现有行程」。";
+
+    [ObservableProperty] private BitmapImage? _connectionQrImage;
+
+    [ObservableProperty] private bool _isBusy;
+
     public ObservableCollection<SyncPairedDevice> ActiveDevices { get; } = new();
 
-    /// <summary>无 JSON 偏好；配对与服务状态在运行时/SQLite。</summary>
     public bool HasUnsavedChanges => false;
 
     public SyncSettingsViewModel()
@@ -63,24 +72,104 @@ public partial class SyncSettingsViewModel : ObservableObject, ISettingsViewMode
         };
         _countdownTimer.Tick += OnCountdownTick;
         _httpServer.StateChanged += OnHttpServerStateChanged;
+        SyncPairingService.PairingCodeConsumed += OnPairingCodeConsumed;
+        LoadFromSettings();
         SyncFromHttpServer();
         _ = RefreshStatusAsync();
     }
 
     public void ReloadSettings()
     {
+        _settingsService.Reload();
+        LoadFromSettings();
         SyncFromHttpServer();
         _ = RefreshStatusAsync();
     }
 
-    public Task SaveSettingsAsync(bool showMessage = true) => Task.CompletedTask;
+    public Task SaveSettingsAsync(bool showMessage = true)
+    {
+        PersistSettings();
+        return Task.CompletedTask;
+    }
 
     async Task ISettingsViewModel.SaveSettingsAsync(bool showMessage) => await SaveSettingsAsync(showMessage);
 
-    /// <summary>设置窗关闭时暂停倒计时（VM 可能被缓存复用，勿拆掉 Timer）。</summary>
     public void OnWindowClosing()
     {
         _countdownTimer.Stop();
+    }
+
+    private void LoadFromSettings()
+    {
+        ListenPort = _settingsService.Config.ListenPort;
+        AllowLan = _settingsService.Config.AllowLan;
+    }
+
+    private void PersistSettings()
+    {
+        _settingsService.Config.ListenPort = ListenPort <= 0 ? SyncHttpServer.DefaultPort : ListenPort;
+        _settingsService.Config.AllowLan = AllowLan;
+        _settingsService.Save();
+    }
+
+    /// <summary>主路径：启动服务（优先局域网）并生成配对码。</summary>
+    [RelayCommand]
+    private async Task ConnectPhoneAsync()
+    {
+        if (IsBusy) return;
+        IsBusy = true;
+        try
+        {
+            var port = ListenPort <= 0 ? SyncHttpServer.DefaultPort : ListenPort;
+            ListenPort = port;
+            AllowLan = true;
+            PersistSettings();
+
+            if (!_httpServer.IsRunning || !_httpServer.AllowLan)
+            {
+                if (_httpServer.IsRunning)
+                    _httpServer.Stop();
+
+                try
+                {
+                    _httpServer.Start(port, allowLan: true);
+                }
+                catch (Exception ex)
+                {
+                    SyncFromHttpServer();
+                    StatusMessage = "启动失败：" + SimplifyError(ex.Message);
+                    return;
+                }
+            }
+
+            SyncFromHttpServer();
+            RefreshConnectionQr();
+
+            var baseline = await _baselinePublisher.PublishMissingAsync();
+            await RotatePairingCodeAsync(showStatus: false);
+            TryCopyCodeSilent();
+
+            var baselineHint = baseline.PublishedTotal > 0
+                ? $" 已把 {baseline.PublishedRides} 条现有行程写入同步日志（seq={baseline.MaxSeq}）。"
+                : $" 同步水位 seq={baseline.MaxSeq}。";
+
+            if (_httpServer.AllowLan)
+            {
+                StatusMessage =
+                    $"配对码已生成。{baselineHint}请在手机端「同步」确认服务地址为 {ListenUrlText}，输入配对码完成绑定后执行「立即对齐」。";
+            }
+            else
+            {
+                StatusMessage =
+                    $"服务已在本机启动（未绑定局域网）。{baselineHint}当前地址 {ListenUrlText}；手机同网连接请检查防火墙是否放行端口 {port}。";
+            }
+
+            await LoadSeqAsync();
+        }
+        finally
+        {
+            IsBusy = false;
+        }
     }
 
     [RelayCommand]
@@ -90,15 +179,23 @@ public partial class SyncSettingsViewModel : ObservableObject, ISettingsViewMode
         {
             var port = ListenPort <= 0 ? SyncHttpServer.DefaultPort : ListenPort;
             ListenPort = port;
-            _httpServer.Start(port);
+            PersistSettings();
+            if (_httpServer.IsRunning)
+                _httpServer.Stop();
+            _httpServer.Start(port, AllowLan);
             SyncFromHttpServer();
-            StatusMessage = "同步服务已启动";
+            RefreshConnectionQr();
+            StatusMessage = _httpServer.AllowLan
+                ? "同步服务已启动（含局域网）。"
+                : "同步服务已启动（仅本机）。";
+            if (!string.IsNullOrWhiteSpace(_httpServer.LastWarning))
+                StatusMessage = _httpServer.LastWarning;
             _ = LoadSeqAsync();
         }
         catch (Exception ex)
         {
             SyncFromHttpServer();
-            StatusMessage = ex.Message;
+            StatusMessage = SimplifyError(ex.Message);
         }
     }
 
@@ -107,7 +204,8 @@ public partial class SyncSettingsViewModel : ObservableObject, ISettingsViewMode
     {
         _httpServer.Stop();
         SyncFromHttpServer();
-        StatusMessage = "同步服务已停止";
+        ConnectionQrImage = null;
+        StatusMessage = "同步服务已停止。";
     }
 
     [RelayCommand(CanExecute = nameof(IsServerRunning))]
@@ -117,11 +215,11 @@ public partial class SyncSettingsViewModel : ObservableObject, ISettingsViewMode
         try
         {
             Clipboard.SetText(ListenUrlText);
-            StatusMessage = "同步地址已复制";
+            StatusMessage = "服务地址已复制。";
         }
         catch (Exception ex)
         {
-            StatusMessage = $"复制失败: {ex.Message}";
+            StatusMessage = $"复制失败：{ex.Message}";
         }
     }
 
@@ -135,16 +233,8 @@ public partial class SyncSettingsViewModel : ObservableObject, ISettingsViewMode
     private async Task CopyPairingCodeAsync()
     {
         if (string.IsNullOrEmpty(_plainCode)) return;
-        try
-        {
-            Clipboard.SetText(_plainCode);
-            StatusMessage = "配对码已复制";
-        }
-        catch (Exception ex)
-        {
-            StatusMessage = $"复制失败: {ex.Message}";
-        }
-
+        TryCopyCodeSilent();
+        StatusMessage = "配对码已复制。";
         await Task.CompletedTask;
     }
 
@@ -154,7 +244,7 @@ public partial class SyncSettingsViewModel : ObservableObject, ISettingsViewMode
         _countdownTimer.Stop();
         await _pairingService.InvalidateActivePairingCodesAsync();
         ClearActiveCodeUi();
-        StatusMessage = "已作废当前配对码";
+        StatusMessage = "当前配对码已作废。";
     }
 
     [RelayCommand]
@@ -162,6 +252,28 @@ public partial class SyncSettingsViewModel : ObservableObject, ISettingsViewMode
     {
         await LoadDevicesAsync();
         await LoadSeqAsync();
+    }
+
+    /// <summary>把库中已有行程/标签补进 sync_change（历史数据无变更日志时手机拉不到）。</summary>
+    [RelayCommand]
+    private async Task PublishBaselineAsync()
+    {
+        if (IsBusy) return;
+        IsBusy = true;
+        try
+        {
+            var result = await _baselinePublisher.PublishMissingAsync();
+            await LoadSeqAsync();
+            StatusMessage = result.SummaryText;
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = "发布现有数据失败：" + SimplifyError(ex.Message);
+        }
+        finally
+        {
+            IsBusy = false;
+        }
     }
 
     [RelayCommand]
@@ -175,7 +287,7 @@ public partial class SyncSettingsViewModel : ObservableObject, ISettingsViewMode
 
         var confirm = MessageBoxWindow.Show(
             owner,
-            $"确定撤销设备「{device.DeviceName}」的配对？\n撤销后该设备需重新输入配对码。",
+            $"撤销设备「{device.DeviceName}」的配对？\n撤销后需重新配对。",
             "撤销配对",
             MessageBoxButton.YesNo,
             MessageBoxImage.Warning);
@@ -185,6 +297,42 @@ public partial class SyncSettingsViewModel : ObservableObject, ISettingsViewMode
         await _pairingService.RevokeDeviceAsync(device.DeviceId);
         await LoadDevicesAsync();
         StatusMessage = $"已撤销：{device.DeviceName}";
+    }
+
+    private void TryCopyCodeSilent()
+    {
+        if (string.IsNullOrEmpty(_plainCode)) return;
+        try
+        {
+            Clipboard.SetText(_plainCode);
+        }
+        catch
+        {
+            // ignore
+        }
+    }
+
+    private void RefreshConnectionQr()
+    {
+        if (string.IsNullOrWhiteSpace(ListenUrlText))
+        {
+            ConnectionQrImage = null;
+            return;
+        }
+
+        // 二维码内容：电脑地址。后续手机可扫码填地址；现阶段也可给人肉对照。
+        ConnectionQrImage = TicketPreviewQrService.CreateQrBitmap(ListenUrlText, 5);
+    }
+
+    private static string SimplifyError(string raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw)) return "未知错误";
+        if (raw.Contains("AddressAlreadyInUse", StringComparison.OrdinalIgnoreCase) ||
+            raw.Contains("已被使用", StringComparison.Ordinal) ||
+            raw.Contains("in use", StringComparison.OrdinalIgnoreCase) ||
+            raw.Contains("占用", StringComparison.Ordinal))
+            return "端口已被占用，请在高级设置中更换端口。";
+        return raw;
     }
 
     private void OnHttpServerStateChanged(object? sender, EventArgs e)
@@ -202,13 +350,26 @@ public partial class SyncSettingsViewModel : ObservableObject, ISettingsViewMode
         if (_httpServer.IsRunning)
         {
             ListenPort = _httpServer.Port;
-            ServerStatusText = "运行中";
-            ListenUrlText = SyncHttpServer.GetPreferredBaseUrl(_httpServer.Port);
+            ServerStatusText = _httpServer.AllowLan ? "运行中 · 局域网" : "运行中 · 本机";
+            ListenUrlText = _httpServer.ListenUrls.FirstOrDefault()
+                            ?? SyncHttpServer.GetPreferredBaseUrl(_httpServer.Port, _httpServer.AllowLan);
+            if (_httpServer.AllowLan)
+            {
+                var lan = _httpServer.ListenUrls.FirstOrDefault(u =>
+                    !u.Contains("127.0.0.1", StringComparison.Ordinal));
+                if (!string.IsNullOrWhiteSpace(lan))
+                    ListenUrlText = lan;
+            }
+
+            RefreshConnectionQr();
         }
         else
         {
-            ServerStatusText = string.IsNullOrWhiteSpace(_httpServer.LastError) ? "已停止" : "启动失败";
-            ListenUrlText = SyncHttpServer.GetPreferredBaseUrl(ListenPort <= 0 ? SyncHttpServer.DefaultPort : ListenPort);
+            ServerStatusText = string.IsNullOrWhiteSpace(_httpServer.LastError) ? "未运行" : "启动失败";
+            ListenUrlText = SyncHttpServer.GetPreferredBaseUrl(
+                ListenPort <= 0 ? SyncHttpServer.DefaultPort : ListenPort,
+                AllowLan);
+            ConnectionQrImage = null;
         }
 
         CopyListenUrlCommand.NotifyCanExecuteChanged();
@@ -220,10 +381,41 @@ public partial class SyncSettingsViewModel : ObservableObject, ISettingsViewMode
 
         ApplyCountdownFromExpiry(_expiresAtUtc.Value);
 
+        if (!string.IsNullOrEmpty(_plainCode) &&
+            await _pairingService.IsPairingCodeConsumedAsync(_plainCode))
+        {
+            StatusMessage = "配对码已使用，正在刷新。";
+            await RotatePairingCodeAsync(showStatus: true);
+            return;
+        }
+
         if (!SyncPairingService.IsDisplayExpired(_expiresAtUtc.Value))
             return;
 
         await RotatePairingCodeAsync(showStatus: false);
+    }
+
+    private void OnPairingCodeConsumed(object? sender, EventArgs e)
+    {
+        var dispatcher = Application.Current?.Dispatcher;
+        if (dispatcher == null)
+        {
+            _ = RefreshAfterCodeConsumedAsync();
+            return;
+        }
+
+        if (dispatcher.CheckAccess())
+            _ = RefreshAfterCodeConsumedAsync();
+        else
+            dispatcher.InvokeAsync(RefreshAfterCodeConsumedAsync);
+    }
+
+    private async Task RefreshAfterCodeConsumedAsync()
+    {
+        if (_isRefreshingCode) return;
+        StatusMessage = "设备已配对，配对码已刷新。";
+        await RotatePairingCodeAsync(showStatus: false);
+        await LoadDevicesAsync();
     }
 
     private async Task RotatePairingCodeAsync(bool showStatus)
@@ -235,12 +427,12 @@ public partial class SyncSettingsViewModel : ObservableObject, ISettingsViewMode
             var result = await _pairingService.CreatePairingCodeAsync();
             ApplyCodeResult(result);
             if (showStatus)
-                StatusMessage = $"配对码已生成，{SyncPairingService.CodeTtlSeconds} 秒后自动刷新";
+                StatusMessage = $"配对码已刷新，{SyncPairingService.CodeTtlSeconds} 秒内有效。";
             await LoadDevicesAsync();
         }
         catch (Exception ex)
         {
-            StatusMessage = $"生成配对码失败: {ex.Message}";
+            StatusMessage = $"生成配对码失败：{ex.Message}";
             ClearActiveCodeUi();
         }
         finally
@@ -300,12 +492,12 @@ public partial class SyncSettingsViewModel : ObservableObject, ISettingsViewMode
             foreach (var d in active)
                 ActiveDevices.Add(d);
             DevicesEmptyHint = active.Count == 0
-                ? "尚无设备 — 生成配对码后在手机端输入"
+                ? "暂无已配对设备"
                 : string.Empty;
         }
         catch (Exception ex)
         {
-            StatusMessage = $"加载设备失败: {ex.Message}";
+            StatusMessage = $"加载设备失败：{ex.Message}";
         }
     }
 

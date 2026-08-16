@@ -34,6 +34,9 @@ public class SyncPairingService
     private readonly string _connectionString = ConfigManager.Instance.DatabaseConnectionString;
     private readonly LogService _logService = new();
 
+    /// <summary>任意实例成功兑换配对码时触发（设置页用于立即换码）。</summary>
+    public static event EventHandler? PairingCodeConsumed;
+
     /// <summary>展示窗口是否已结束（与 UI 倒计时一致）。</summary>
     public static bool IsDisplayExpired(DateTime expiresAtUtc, DateTime? utcNow = null)
     {
@@ -183,6 +186,7 @@ public class SyncPairingService
             tx.Commit();
 
             _logService.Info("SyncPairingService", $"设备已配对: {name} ({deviceId})");
+            PairingCodeConsumed?.Invoke(null, EventArgs.Empty);
 
             return SyncPairingRedeemResult.Ok(deviceId, name, token);
         }
@@ -192,6 +196,22 @@ public class SyncPairingService
             _logService.Error("SyncPairingService", $"兑换配对码失败: {ex.Message}");
             return SyncPairingRedeemResult.Fail("配对失败，请重试");
         }
+    }
+
+    /// <summary>当前展示码是否已被兑换（用于 UI 立即换码）。</summary>
+    public async Task<bool> IsPairingCodeConsumedAsync(string code)
+    {
+        var normalized = new string((code ?? string.Empty).Where(char.IsDigit).ToArray());
+        if (normalized.Length != CodeLength) return false;
+
+        using var connection = new SqliteConnection(_connectionString);
+        await connection.OpenAsync();
+        var consumed = await connection.ExecuteScalarAsync<string?>(
+            @"SELECT consumed_at FROM sync_pairing_code
+              WHERE code_hash = @CodeHash
+              ORDER BY id DESC LIMIT 1",
+            new { CodeHash = Hash(normalized) });
+        return !string.IsNullOrWhiteSpace(consumed);
     }
 
     /// <summary>校验设备 token；通过则刷新 last_seen。</summary>

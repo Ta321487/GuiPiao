@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:GuiPiao.Mobile.ViewModels"
+             x:Class="GuiPiao.Mobile.Views.TicketFacePage"
+             x:DataType="vm:TicketFaceViewModel"
+             Title="{Binding Title}"
+             BackgroundColor="{DynamicResource WindowBackground}">
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="16">
+            <Label Text="行程不存在"
+                   IsVisible="{Binding HasRide, Converter={StaticResource InvertedBoolConverter}}"
+                   TextColor="{DynamicResource TextSecondary}"
+                   HorizontalOptions="Center" />
+            <Border IsVisible="{Binding HasRide}"
+                    Stroke="{DynamicResource AccentColor}"
+                    StrokeThickness="2"
+                    BackgroundColor="{DynamicResource PanelBackground}"
+                    Padding="20">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="8" />
+                </Border.StrokeShape>
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="中国铁路运输客票"
+                           FontSize="{DynamicResource SmallFontSize}"
+                           TextColor="{DynamicResource TextSecondary}"
+                           HorizontalOptions="Center" />
+                    <Label Text="{Binding Ride.TrainNoDisplay}"
+                           FontSize="28"
+                           FontAttributes="Bold"
+                           TextColor="{DynamicResource AccentForeground}"
+                           HorizontalOptions="Center" />
+                    <Grid ColumnDefinitions="*,Auto,*" ColumnSpacing="8">
+                        <VerticalStackLayout>
+                            <Label Text="{Binding Ride.DepartStationDisplay}"
+                                   FontSize="{DynamicResource TitleFontSize}"
+                                   FontAttributes="Bold"
+                                   HorizontalTextAlignment="Center" />
+                            <Label Text="{Binding Ride.DepartTimeDisplay}"
+                                   FontSize="{DynamicResource SmallFontSize}"
+                                   TextColor="{DynamicResource TextSecondary}"
+                                   HorizontalTextAlignment="Center" />
+                        </VerticalStackLayout>
+                        <Label Grid.Column="1" Text="→" VerticalOptions="Center" FontSize="22" />
+                        <VerticalStackLayout Grid.Column="2">
+                            <Label Text="{Binding Ride.ArriveStationDisplay}"
+                                   FontSize="{DynamicResource TitleFontSize}"
+                                   FontAttributes="Bold"
+                                   HorizontalTextAlignment="Center" />
+                            <Label Text="{Binding Ride.ArriveTimeDisplay}"
+                                   FontSize="{DynamicResource SmallFontSize}"
+                                   TextColor="{DynamicResource TextSecondary}"
+                                   HorizontalTextAlignment="Center" />
+                        </VerticalStackLayout>
+                    </Grid>
+                    <Label Text="{Binding Ride.DepartDateDisplay, StringFormat='日期 {0}'}"
+                           HorizontalOptions="Center" />
+                    <Label Text="{Binding Ride.CoachSeatText}"
+                           HorizontalOptions="Center"
+                           TextColor="{DynamicResource TextSecondary}" />
+                    <Label Text="{Binding Ride.SeatTypeDisplay}"
+                           HorizontalOptions="Center"
+                           FontSize="{DynamicResource SmallFontSize}" />
+                    <Label Text="{Binding Ride.MoneyDisplay}"
+                           FontSize="{DynamicResource TitleFontSize}"
+                           FontAttributes="Bold"
+                           HorizontalOptions="Center"
+                           TextColor="{DynamicResource AccentForeground}" />
+                    <Label Text="{Binding Ride.TicketNumberDisplay, StringFormat='车票号码 {0}'}"
+                           FontSize="{DynamicResource SmallFontSize}"
+                           TextColor="{DynamicResource TextSecondary}"
+                           HorizontalOptions="Center" />
+                    <Label Text="{Binding Ride.StatusText}"
+                           FontSize="{DynamicResource SmallFontSize}"
+                           HorizontalOptions="Center" />
+                </VerticalStackLayout>
+            </Border>
+            <Button Text="关闭" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding CloseCommand}" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

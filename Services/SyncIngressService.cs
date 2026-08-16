@@ -19,6 +19,7 @@ public class SyncIngressService
 {
     private readonly string _connectionString = ConfigManager.Instance.DatabaseConnectionString;
     private readonly SyncChangeRepository _changes = new();
+    private readonly SyncConflictRepository _conflicts = new();
 
     public async Task<SyncPushResponse> ApplyPushAsync(string deviceId, IReadOnlyList<SyncChangeDto> changes)
     {
@@ -53,7 +54,15 @@ public class SyncIngressService
                     continue;
                 }
 
-                await ApplyEntityAsync(connection, tx, change);
+                var applied = await ApplyEntityAsync(connection, tx, change);
+                if (!applied)
+                {
+                    // 冲突箱已写入；不写入 sync_change，避免 pull 把被拒稿再分发
+                    tx.Commit();
+                    response.Skipped++;
+                    continue;
+                }
+
                 var (_, seq) = await _changes.TryAppendClientChangeAsync(
                     change.ChangeId,
                     change.Entity,
@@ -79,7 +88,8 @@ public class SyncIngressService
         return response;
     }
 
-    private static async Task ApplyEntityAsync(
+    /// <returns>false = 写入冲突箱且未覆盖本地。</returns>
+    private async Task<bool> ApplyEntityAsync(
         SqliteConnection connection,
         SqliteTransaction tx,
         SyncChangeDto change)
@@ -92,7 +102,7 @@ public class SyncIngressService
             if (op == SyncOps.Delete)
             {
                 await SoftDeleteRideAsync(connection, tx, change.SyncId, change.UpdatedAt);
-                return;
+                return true;
             }
 
             var ride = SyncPayloadSerializer.ParseRide(change.Payload)
@@ -103,8 +113,32 @@ public class SyncIngressService
                 ride.UpdatedAt = string.IsNullOrWhiteSpace(change.UpdatedAt)
                     ? SyncClock.UtcNowIso()
                     : change.UpdatedAt;
+
+            var existing = await connection.QuerySingleOrDefaultAsync<dynamic>(
+                "SELECT updated_at AS UpdatedAt FROM train_ride_info WHERE sync_id = @SyncId",
+                new { ride.SyncId }, tx);
+            if (existing != null)
+            {
+                string? localAt = existing.UpdatedAt;
+                if (IsLocalNewer(localAt, ride.UpdatedAt))
+                {
+                    var localPayload = await BuildLocalRidePayloadAsync(connection, tx, ride.SyncId);
+                    await _conflicts.InsertOpenAsync(
+                        SyncEntityTypes.Ride,
+                        ride.SyncId,
+                        "*",
+                        localPayload,
+                        change.Payload,
+                        localAt,
+                        ride.UpdatedAt,
+                        connection,
+                        tx);
+                    return false;
+                }
+            }
+
             await UpsertRideAsync(connection, tx, ride);
-            return;
+            return true;
         }
 
         if (entity == SyncEntityTypes.Tag)
@@ -112,7 +146,7 @@ public class SyncIngressService
             if (op == SyncOps.Delete)
             {
                 await SoftDeleteTagAsync(connection, tx, change.SyncId, change.UpdatedAt);
-                return;
+                return true;
             }
 
             var tag = SyncPayloadSerializer.ParseTag(change.Payload)
@@ -123,8 +157,31 @@ public class SyncIngressService
                 tag.UpdatedAt = string.IsNullOrWhiteSpace(change.UpdatedAt)
                     ? SyncClock.UtcNowIso()
                     : change.UpdatedAt;
+
+            var existingTag = await connection.QuerySingleOrDefaultAsync<dynamic>(
+                "SELECT updated_at AS UpdatedAt FROM ticket_tag WHERE sync_id = @SyncId",
+                new { tag.SyncId }, tx);
+            if (existingTag != null)
+            {
+                string? localAt = existingTag.UpdatedAt;
+                if (IsLocalNewer(localAt, tag.UpdatedAt))
+                {
+                    await _conflicts.InsertOpenAsync(
+                        SyncEntityTypes.Tag,
+                        tag.SyncId,
+                        "*",
+                        SyncPayloadSerializer.Tag(await LoadTagAsync(connection, tx, tag.SyncId) ?? tag),
+                        change.Payload,
+                        localAt,
+                        tag.UpdatedAt,
+                        connection,
+                        tx);
+                    return false;
+                }
+            }
+
             await UpsertTagAsync(connection, tx, tag);
-            return;
+            return true;
         }
 
         if (entity == SyncEntityTypes.RideTags)
@@ -133,10 +190,50 @@ public class SyncIngressService
                           ?? throw new InvalidOperationException("ride_tags payload 无效");
             var rideSyncId = string.IsNullOrWhiteSpace(payload.RideSyncId) ? change.SyncId : payload.RideSyncId!;
             await ReplaceRideTagsAsync(connection, tx, rideSyncId, payload.TagSyncIds ?? new List<string>());
-            return;
+            return true;
         }
 
         throw new InvalidOperationException($"未知实体类型: {change.Entity}");
+    }
+
+    private static bool IsLocalNewer(string? localUpdatedAt, string? remoteUpdatedAt)
+    {
+        if (string.IsNullOrWhiteSpace(localUpdatedAt)) return false;
+        if (string.IsNullOrWhiteSpace(remoteUpdatedAt)) return true;
+        if (DateTime.TryParse(localUpdatedAt, null, System.Globalization.DateTimeStyles.RoundtripKind, out var l) &&
+            DateTime.TryParse(remoteUpdatedAt, null, System.Globalization.DateTimeStyles.RoundtripKind, out var r))
+            return l > r;
+        return string.CompareOrdinal(localUpdatedAt, remoteUpdatedAt) > 0;
+    }
+
+    private static async Task<string?> BuildLocalRidePayloadAsync(
+        SqliteConnection connection, SqliteTransaction tx, string syncId)
+    {
+        var ride = await connection.QuerySingleOrDefaultAsync<TrainRideInfo>(
+            @"SELECT id AS Id, ticket_number AS TicketNumber, check_in_location AS CheckInLocation,
+                     depart_station AS DepartStation, train_no AS TrainNo, arrive_station AS ArriveStation,
+                     depart_station_pinyin AS DepartStationPinyin, arrive_station_pinyin AS ArriveStationPinyin,
+                     depart_date AS DepartDate, depart_time AS DepartTime, arrive_time AS ArriveTime,
+                     arrive_day_offset AS ArriveDayOffset, coach_no AS CoachNo, seat_no AS SeatNo,
+                     money AS Money, seat_type AS SeatType, additional_info AS AdditionalInfo,
+                     ticket_purpose AS TicketPurpose, ticket_modification_type AS TicketModificationType,
+                     ticket_type_flags AS TicketTypeFlags, payment_channel_flags AS PaymentChannelFlags,
+                     hint AS Hint, depart_station_code AS DepartStationCode, arrive_station_code AS ArriveStationCode,
+                     status AS Status, sync_id AS SyncId, updated_at AS UpdatedAt, deleted_at AS DeletedAt
+              FROM train_ride_info WHERE sync_id = @SyncId",
+            new { SyncId = syncId }, tx);
+        return ride == null ? null : SyncPayloadSerializer.Ride(ride);
+    }
+
+    private static async Task<TicketTag?> LoadTagAsync(
+        SqliteConnection connection, SqliteTransaction tx, string syncId)
+    {
+        return await connection.QuerySingleOrDefaultAsync<TicketTag>(
+            @"SELECT id AS Id, name AS Name, color AS Color, text_color AS TextColor,
+                     sort_order AS SortOrder, is_default AS IsDefault, created_at AS CreatedAt,
+                     sync_id AS SyncId, updated_at AS UpdatedAt, deleted_at AS DeletedAt
+              FROM ticket_tag WHERE sync_id = @SyncId",
+            new { SyncId = syncId }, tx);
     }
 
     private static async Task UpsertRideAsync(SqliteConnection connection, SqliteTransaction tx, TrainRideInfo ride)

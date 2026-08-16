@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+                    x:Class="GuiPiao.Mobile.Resources.Themes.LightTheme">
+
+    <!-- 结构色：与 PC Themes/LightTheme.xaml 同名同值（Brush 后缀对齐 PC） -->
+    <Color x:Key="WindowBackground">#FFFFFF</Color>
+    <Color x:Key="ContentBackground">#F5F5F5</Color>
+    <Color x:Key="PanelBackground">#F8F8F8</Color>
+    <Color x:Key="TextPrimary">#212121</Color>
+    <Color x:Key="TextSecondary">#757575</Color>
+    <Color x:Key="TextDisabled">#BDBDBD</Color>
+    <Color x:Key="Border">#E0E0E0</Color>
+    <Color x:Key="Divider">#EEEEEE</Color>
+    <Color x:Key="ControlBackground">#FFFFFF</Color>
+    <Color x:Key="ControlHover">#F0F0F0</Color>
+    <Color x:Key="ControlPressed">#E0E0E0</Color>
+    <Color x:Key="ImportFieldHighlight">#FFF3CD</Color>
+    <Color x:Key="Success">#28A745</Color>
+    <Color x:Key="Warning">#FD7E14</Color>
+    <Color x:Key="Error">#DC3545</Color>
+    <Color x:Key="Info">#17A2B8</Color>
+
+    <SolidColorBrush x:Key="WindowBackgroundBrush" Color="{StaticResource WindowBackground}" />
+    <SolidColorBrush x:Key="ContentBackgroundBrush" Color="{StaticResource ContentBackground}" />
+    <SolidColorBrush x:Key="PanelBackgroundBrush" Color="{StaticResource PanelBackground}" />
+    <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimary}" />
+    <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondary}" />
+    <SolidColorBrush x:Key="TextDisabledBrush" Color="{StaticResource TextDisabled}" />
+    <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource Border}" />
+    <SolidColorBrush x:Key="DividerBrush" Color="{StaticResource Divider}" />
+    <SolidColorBrush x:Key="ControlBackgroundBrush" Color="{StaticResource ControlBackground}" />
+    <SolidColorBrush x:Key="ControlHoverBrush" Color="{StaticResource ControlHover}" />
+    <SolidColorBrush x:Key="ControlPressedBrush" Color="{StaticResource ControlPressed}" />
+    <SolidColorBrush x:Key="ImportFieldHighlightBrush" Color="{StaticResource ImportFieldHighlight}" />
+    <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource Success}" />
+    <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource Warning}" />
+    <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource Error}" />
+    <SolidColorBrush x:Key="InfoBrush" Color="{StaticResource Info}" />
+
+    <!-- 强调色默认值（运行时由 ThemeService 覆盖，勿在控件里写死 hex） -->
+    <Color x:Key="AccentColor">#0078D4</Color>
+    <Color x:Key="AccentForeground">#005A9E</Color>
+    <Color x:Key="AccentHover">#106EBE</Color>
+    <Color x:Key="AccentPressed">#005A9E</Color>
+    <Color x:Key="AccentText">#FFFFFF</Color>
+    <SolidColorBrush x:Key="AccentBrush" Color="#0078D4" />
+    <SolidColorBrush x:Key="PrimaryBrush" Color="#0078D4" />
+    <SolidColorBrush x:Key="AccentForegroundBrush" Color="#005A9E" />
+    <SolidColorBrush x:Key="AccentHoverBrush" Color="#106EBE" />
+    <SolidColorBrush x:Key="AccentPressedBrush" Color="#005A9E" />
+    <SolidColorBrush x:Key="AccentTextBrush" Color="#FFFFFF" />
+</ResourceDictionary>

@@ -57,6 +57,7 @@ public class SyncPairingServiceTests : IDisposable
 
         var reuse = await service.RedeemPairingCodeAsync(codeResult.Code, "other");
         Assert.False(reuse.Success);
+        Assert.True(await service.IsPairingCodeConsumedAsync(codeResult.Code));
     }
 
     [Fact]

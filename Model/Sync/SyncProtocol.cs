@@ -65,3 +65,58 @@ public class SyncErrorResponse
 {
     public string Error { get; set; } = string.Empty;
 }
+
+public class SyncOcrRequest
+{
+    public string ImageBase64 { get; set; } = string.Empty;
+    public string? FileName { get; set; }
+}
+
+public class SyncOcrResponse
+{
+    public string Text { get; set; } = string.Empty;
+    public string SourceHint { get; set; } = "图片OCR";
+}
+
+public class SyncStationDto
+{
+    public string StationName { get; set; } = string.Empty;
+    public string StationCode { get; set; } = string.Empty;
+    public string StationPinyin { get; set; } = string.Empty;
+}
+
+public class SyncStationsResponse
+{
+    public List<SyncStationDto> Stations { get; set; } = new();
+}
+
+public class SyncConflictDto
+{
+    public long Id { get; set; }
+    public string Entity { get; set; } = string.Empty;
+    public string SyncId { get; set; } = string.Empty;
+    public string Field { get; set; } = string.Empty;
+    public string? LocalValue { get; set; }
+    public string? RemoteValue { get; set; }
+    public string? LocalUpdatedAt { get; set; }
+    public string? RemoteUpdatedAt { get; set; }
+    public string CreatedAt { get; set; } = string.Empty;
+}
+
+public class SyncConflictListResponse
+{
+    public List<SyncConflictDto> Conflicts { get; set; } = new();
+}
+
+public class SyncConflictResolveRequest
+{
+    public long Id { get; set; }
+    /// <summary>local = 保留 PC；remote = 采用手机推送稿。</summary>
+    public string Keep { get; set; } = "local";
+}
+
+public class SyncConflictResolveResponse
+{
+    public bool Ok { get; set; }
+    public string? Error { get; set; }
+}
