@@ -9,7 +9,7 @@ namespace GuiPiao.Services;
 
 /// <summary>
 ///     同步 HTTP 路由处理（与传输无关，便于单测）。
-///     路径：/v1/health、/v1/pair、/v1/changes、/v1/ocr、/v1/stations、/v1/conflicts
+///     路径：/v1/health、/v1/pair、/v1/unpair、/v1/session、/v1/changes、/v1/ocr、/v1/stations、/v1/conflicts
 /// </summary>
 public class SyncApiDispatcher
 {
@@ -48,6 +48,12 @@ public class SyncApiDispatcher
 
             if (method == "POST" && path == "/v1/pair")
                 return await PairAsync(request.Body);
+
+            if (method == "POST" && path == "/v1/unpair")
+                return await UnpairAsync(request);
+
+            if (method == "GET" && path == "/v1/session")
+                return await SessionAsync(request);
 
             if (method == "GET" && path == "/v1/changes")
                 return await PullAsync(request);
@@ -104,11 +110,34 @@ public class SyncApiDispatcher
         });
     }
 
-    private async Task<SyncHttpResult> PullAsync(SyncHttpRequest request)
+    private async Task<SyncHttpResult> UnpairAsync(SyncHttpRequest request)
     {
         var auth = await AuthenticateAsync(request);
         if (auth == null)
             return SyncHttpResult.Json(401, new SyncErrorResponse { Error = "unauthorized" });
+        if (!auth.Success)
+            return SyncHttpResult.Json(401, new SyncErrorResponse { Error = auth.Error ?? "unauthorized" });
+
+        await _pairing.RevokeDeviceAsync(auth.DeviceId!, source: "device");
+        return SyncHttpResult.Json(200, new SyncUnpairResponse { Ok = true });
+    }
+
+    private async Task<SyncHttpResult> SessionAsync(SyncHttpRequest request)
+    {
+        var authResult = await RequireAuthAsync(request);
+        if (authResult.Fail != null) return authResult.Fail;
+        return SyncHttpResult.Json(200, new SyncSessionResponse
+        {
+            Ok = true,
+            DeviceId = authResult.Auth!.DeviceId,
+            DeviceName = authResult.Auth.DeviceName
+        });
+    }
+
+    private async Task<SyncHttpResult> PullAsync(SyncHttpRequest request)
+    {
+        var authResult = await RequireAuthAsync(request);
+        if (authResult.Fail != null) return authResult.Fail;
 
         var afterSeq = ParseLong(request.Query, "after_seq", 0);
         var limit = (int)Math.Clamp(ParseLong(request.Query, "limit", 500), 1, 1000);
@@ -127,23 +156,21 @@ public class SyncApiDispatcher
 
     private async Task<SyncHttpResult> PushAsync(SyncHttpRequest request)
     {
-        var auth = await AuthenticateAsync(request);
-        if (auth == null)
-            return SyncHttpResult.Json(401, new SyncErrorResponse { Error = "unauthorized" });
+        var authResult = await RequireAuthAsync(request);
+        if (authResult.Fail != null) return authResult.Fail;
 
         var body = SyncPayloadSerializer.FromJson<SyncPushRequest>(request.Body);
         if (body?.Changes == null)
             return SyncHttpResult.Json(400, new SyncErrorResponse { Error = "invalid_json" });
 
-        var result = await _ingress.ApplyPushAsync(auth.DeviceId!, body.Changes);
+        var result = await _ingress.ApplyPushAsync(authResult.Auth!.DeviceId!, body.Changes);
         return SyncHttpResult.Json(200, result);
     }
 
     private async Task<SyncHttpResult> OcrAsync(SyncHttpRequest request)
     {
-        var auth = await AuthenticateAsync(request);
-        if (auth == null)
-            return SyncHttpResult.Json(401, new SyncErrorResponse { Error = "unauthorized" });
+        var authResult = await RequireAuthAsync(request);
+        if (authResult.Fail != null) return authResult.Fail;
 
         var body = SyncPayloadSerializer.FromJson<SyncOcrRequest>(request.Body);
         if (body == null)
@@ -162,9 +189,8 @@ public class SyncApiDispatcher
 
     private async Task<SyncHttpResult> StationsAsync(SyncHttpRequest request)
     {
-        var auth = await AuthenticateAsync(request);
-        if (auth == null)
-            return SyncHttpResult.Json(401, new SyncErrorResponse { Error = "unauthorized" });
+        var authResult = await RequireAuthAsync(request);
+        if (authResult.Fail != null) return authResult.Fail;
 
         var all = await _stations.GetAllStationsAsync();
         return SyncHttpResult.Json(200, new SyncStationsResponse
@@ -180,18 +206,16 @@ public class SyncApiDispatcher
 
     private async Task<SyncHttpResult> ConflictsListAsync(SyncHttpRequest request)
     {
-        var auth = await AuthenticateAsync(request);
-        if (auth == null)
-            return SyncHttpResult.Json(401, new SyncErrorResponse { Error = "unauthorized" });
+        var authResult = await RequireAuthAsync(request);
+        if (authResult.Fail != null) return authResult.Fail;
 
         return SyncHttpResult.Json(200, await _conflicts.ListOpenAsync());
     }
 
     private async Task<SyncHttpResult> ConflictsResolveAsync(SyncHttpRequest request)
     {
-        var auth = await AuthenticateAsync(request);
-        if (auth == null)
-            return SyncHttpResult.Json(401, new SyncErrorResponse { Error = "unauthorized" });
+        var authResult = await RequireAuthAsync(request);
+        if (authResult.Fail != null) return authResult.Fail;
 
         var body = SyncPayloadSerializer.FromJson<SyncConflictResolveRequest>(request.Body);
         if (body == null)
@@ -201,6 +225,16 @@ public class SyncApiDispatcher
         return result.Ok
             ? SyncHttpResult.Json(200, result)
             : SyncHttpResult.Json(400, result);
+    }
+
+    private async Task<(SyncAuthResult? Auth, SyncHttpResult? Fail)> RequireAuthAsync(SyncHttpRequest request)
+    {
+        var auth = await AuthenticateAsync(request);
+        if (auth == null)
+            return (null, SyncHttpResult.Json(401, new SyncErrorResponse { Error = "unauthorized" }));
+        if (!auth.Success)
+            return (null, SyncHttpResult.Json(401, new SyncErrorResponse { Error = auth.Error ?? "unauthorized" }));
+        return (auth, null);
     }
 
     private async Task<SyncAuthResult?> AuthenticateAsync(SyncHttpRequest request)
@@ -213,8 +247,7 @@ public class SyncApiDispatcher
         if (string.IsNullOrWhiteSpace(token))
             return null;
 
-        var auth = await _pairing.ValidateDeviceTokenAsync(deviceId.Trim(), token.Trim());
-        return auth.Success ? auth : null;
+        return await _pairing.ValidateDeviceTokenAsync(deviceId.Trim(), token.Trim());
     }
 
     private static string? ExtractBearer(IReadOnlyDictionary<string, string> headers)

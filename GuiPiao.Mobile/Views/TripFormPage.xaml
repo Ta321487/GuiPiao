@@ -9,14 +9,15 @@
              x:DataType="vm:TripFormViewModel"
              Title="{Binding PageTitle}"
              BackgroundColor="{DynamicResource WindowBackground}">
-    <ScrollView>
-        <VerticalStackLayout Padding="16" Spacing="12">
+    <Grid RowDefinitions="*,Auto">
+        <ScrollView>
+        <VerticalStackLayout Padding="16,12" Spacing="10">
             <Label Text="{Binding ImportBanner}"
                    FontSize="{DynamicResource SmallFontSize}"
                    TextColor="{DynamicResource AccentForeground}" />
 
             <!-- 车次 -->
-            <Border Style="{StaticResource PanelBorderStyle}" Padding="12">
+            <Border Padding="0" StrokeThickness="0" BackgroundColor="Transparent">
                 <Border.Triggers>
                     <DataTrigger TargetType="Border" Binding="{Binding HighlightTrainNo}" Value="True">
                         <Setter Property="BackgroundColor" Value="{DynamicResource ImportFieldHighlight}" />
@@ -35,7 +36,7 @@
             </Border>
 
             <!-- 车站 -->
-            <Border Style="{StaticResource PanelBorderStyle}" Padding="12">
+            <Border Padding="0" StrokeThickness="0" BackgroundColor="Transparent">
                 <VerticalStackLayout Spacing="10">
                     <Label Text="车站 *" FontAttributes="Bold" />
                     <Border Padding="0">
@@ -120,7 +121,7 @@
             </Border>
 
             <!-- 出发 -->
-            <Border Style="{StaticResource PanelBorderStyle}" Padding="12">
+            <Border Padding="0" StrokeThickness="0" BackgroundColor="Transparent">
                 <Border.Triggers>
                     <DataTrigger TargetType="Border" Binding="{Binding HighlightDepartDate}" Value="True">
                         <Setter Property="BackgroundColor" Value="{DynamicResource ImportFieldHighlight}" />
@@ -136,7 +137,7 @@
             </Border>
 
             <!-- 到达 -->
-            <Border Style="{StaticResource PanelBorderStyle}" Padding="12">
+            <Border Padding="0" StrokeThickness="0" BackgroundColor="Transparent">
                 <VerticalStackLayout Spacing="10">
                     <Grid ColumnDefinitions="*,Auto">
                         <Label Text="到达（可选）" FontAttributes="Bold" VerticalOptions="Center" />
@@ -151,7 +152,7 @@
             </Border>
 
             <!-- 席别 / 车厢 / 座位 -->
-            <Border Style="{StaticResource PanelBorderStyle}" Padding="12">
+            <Border Padding="0" StrokeThickness="0" BackgroundColor="Transparent">
                 <VerticalStackLayout Spacing="10">
                     <Label Text="席别 *" FontAttributes="Bold" />
                     <Border>
@@ -208,7 +209,7 @@
             </Border>
 
             <!-- 取票 / 检票 / 附加 -->
-            <Border Style="{StaticResource PanelBorderStyle}" Padding="12">
+            <Border Padding="0" StrokeThickness="0" BackgroundColor="Transparent">
                 <VerticalStackLayout Spacing="10">
                     <Label Text="票面信息" FontAttributes="Bold" />
                     <Border>
@@ -246,7 +247,7 @@
             </Border>
 
             <!-- 金额 / 状态 -->
-            <Border Style="{StaticResource PanelBorderStyle}" Padding="12">
+            <Border Padding="0" StrokeThickness="0" BackgroundColor="Transparent">
                 <VerticalStackLayout Spacing="10">
                     <Border>
                         <Border.Triggers>
@@ -267,7 +268,7 @@
             </Border>
 
             <!-- 票种 -->
-            <Border Style="{StaticResource PanelBorderStyle}" Padding="12">
+            <Border Padding="0" StrokeThickness="0" BackgroundColor="Transparent">
                 <VerticalStackLayout Spacing="8">
                     <Label Text="票种类型" FontAttributes="Bold" />
                     <FlexLayout Wrap="Wrap" AlignItems="Center">
@@ -292,7 +293,7 @@
             </Border>
 
             <!-- 支付 -->
-            <Border Style="{StaticResource PanelBorderStyle}" Padding="12">
+            <Border Padding="0" StrokeThickness="0" BackgroundColor="Transparent">
                 <VerticalStackLayout Spacing="8">
                     <Label Text="支付渠道" FontAttributes="Bold" />
                     <FlexLayout Wrap="Wrap" AlignItems="Center">
@@ -328,7 +329,7 @@
             </Border>
 
             <!-- 标签 -->
-            <Border Style="{StaticResource PanelBorderStyle}" Padding="12">
+            <Border Padding="0" StrokeThickness="0" BackgroundColor="Transparent">
                 <VerticalStackLayout Spacing="8">
                     <Label Text="标签" FontAttributes="Bold" />
                     <CollectionView ItemsSource="{Binding AvailableTags}" SelectionMode="None">
@@ -357,7 +358,7 @@
             </Border>
 
             <!-- 其他信息 -->
-            <Border Style="{StaticResource PanelBorderStyle}" Padding="12">
+            <Border Padding="0" StrokeThickness="0" BackgroundColor="Transparent">
                 <VerticalStackLayout Spacing="10">
                     <Label Text="其他信息" FontAttributes="Bold" />
                     <Label Text="出发车站代码" FontSize="{DynamicResource SmallFontSize}" TextColor="{DynamicResource TextSecondary}" />
@@ -378,13 +379,15 @@
             </Border>
 
             <Label Text="{Binding ErrorText}" TextColor="#C42B1C" FontSize="{DynamicResource SmallFontSize}" />
-
-            <Grid ColumnDefinitions="*,*" ColumnSpacing="8" Margin="0,4,0,24">
-                <Button Text="取消" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding CancelCommand}" />
-                <Button Grid.Column="1" Text="保存" Style="{StaticResource PrimaryButtonStyle}"
-                        Command="{Binding SaveCommand}"
-                        IsEnabled="{Binding IsBusy, Converter={StaticResource InvertedBoolConverter}}" />
-            </Grid>
+            <BoxView HeightRequest="1" Color="{DynamicResource Divider}" Margin="0,8,0,0" />
         </VerticalStackLayout>
     </ScrollView>
+
+        <Grid Grid.Row="1" ColumnDefinitions="*,*" ColumnSpacing="8" Padding="16,8,16,12">
+            <Button Text="取消" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding CancelCommand}" HeightRequest="48" />
+            <Button Grid.Column="1" Text="保存" Style="{StaticResource PrimaryButtonStyle}"
+                    Command="{Binding SaveCommand}" HeightRequest="48"
+                    IsEnabled="{Binding IsBusy, Converter={StaticResource InvertedBoolConverter}}" />
+        </Grid>
+    </Grid>
 </ContentPage>

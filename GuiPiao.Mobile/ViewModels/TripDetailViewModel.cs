@@ -18,11 +18,14 @@ public partial class TripDetailViewModel : ObservableObject, IQueryAttributable
     [ObservableProperty] private string _title = "行程详情";
     [ObservableProperty] private bool _canRefundOrReschedule;
     [ObservableProperty] private bool _hasRide;
+    [ObservableProperty] private bool _showMore;
+    [ObservableProperty] private string _moreChevron = "›";
 
     public TripDetailViewModel(RideRepository rides, RideWriteService write)
     {
         _rides = rides;
         _write = write;
+        MoreChevron = Icons.AppIcons.ChevronRight;
     }
 
     public void ApplyQueryAttributes(IDictionary<string, object> query)
@@ -74,6 +77,13 @@ public partial class TripDetailViewModel : ObservableObject, IQueryAttributable
         HasRide = false;
         Title = title;
         CanRefundOrReschedule = false;
+    }
+
+    [RelayCommand]
+    private void ToggleMore()
+    {
+        ShowMore = !ShowMore;
+        MoreChevron = ShowMore ? Icons.AppIcons.Up : Icons.AppIcons.ChevronRight;
     }
 
     [RelayCommand]

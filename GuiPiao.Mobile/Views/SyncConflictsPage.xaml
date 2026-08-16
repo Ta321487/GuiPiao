@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:sync="clr-namespace:GuiPiao.Model.Sync"
+             xmlns:vm="clr-namespace:GuiPiao.Mobile.ViewModels"
+             x:Class="GuiPiao.Mobile.Views.SyncConflictsPage"
+             x:DataType="vm:SyncViewModel"
+             x:Name="ConflictsRoot"
+             Title="冲突"
+             BackgroundColor="{DynamicResource WindowBackground}">
+
+    <Grid RowDefinitions="Auto,*" Padding="16" RowSpacing="12">
+        <Grid ColumnDefinitions="*,Auto">
+            <Label Text="冲突"
+                   FontSize="{DynamicResource TitleFontSize}"
+                   FontAttributes="Bold"
+                   VerticalOptions="Center" />
+            <Button Grid.Column="1"
+                    Text="刷新"
+                    Style="{StaticResource SecondaryButtonStyle}"
+                    Padding="12,6"
+                    Command="{Binding RefreshConflictsCommand}"
+                    IsEnabled="{Binding IsPaired}" />
+        </Grid>
+
+        <Label Grid.Row="1"
+               Text="暂无冲突"
+               IsVisible="{Binding HasConflicts, Converter={StaticResource InvertedBoolConverter}}"
+               HorizontalOptions="Center"
+               VerticalOptions="Center"
+               TextColor="{DynamicResource TextSecondary}" />
+
+        <CollectionView Grid.Row="1"
+                        ItemsSource="{Binding Conflicts}"
+                        IsVisible="{Binding HasConflicts}">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="sync:SyncConflictDto">
+                    <VerticalStackLayout Padding="0,0,0,16" Spacing="6">
+                        <BoxView HeightRequest="1" Color="{DynamicResource Divider}" />
+                        <Label Text="{Binding Entity}" FontAttributes="Bold" />
+                        <Label Text="{Binding SyncId}"
+                               FontSize="{DynamicResource SmallFontSize}"
+                               TextColor="{DynamicResource TextSecondary}"
+                               LineBreakMode="TailTruncation" />
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                            <Button Text="保留电脑"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Command="{Binding Source={x:Reference ConflictsRoot}, Path=BindingContext.ResolveKeepLocalCommand}"
+                                    CommandParameter="{Binding .}" />
+                            <Button Grid.Column="1"
+                                    Text="采用手机"
+                                    Style="{StaticResource PrimaryButtonStyle}"
+                                    Command="{Binding Source={x:Reference ConflictsRoot}, Path=BindingContext.ResolveKeepRemoteCommand}"
+                                    CommandParameter="{Binding .}" />
+                        </Grid>
+                    </VerticalStackLayout>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Grid>
+</ContentPage>

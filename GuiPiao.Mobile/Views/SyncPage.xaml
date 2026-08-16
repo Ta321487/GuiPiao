@@ -1,143 +1,227 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:sync="clr-namespace:GuiPiao.Model.Sync"
+             xmlns:icons="clr-namespace:GuiPiao.Mobile.Icons"
              xmlns:vm="clr-namespace:GuiPiao.Mobile.ViewModels"
              x:Class="GuiPiao.Mobile.Views.SyncPage"
              x:DataType="vm:SyncViewModel"
-             x:Name="SyncRoot"
              Title="同步"
              BackgroundColor="{DynamicResource WindowBackground}">
-    <ScrollView>
-        <VerticalStackLayout Padding="16" Spacing="12">
-            <Label Text="GuiPiao"
+
+    <Grid RowDefinitions="Auto,*,Auto" Padding="16,12">
+
+        <!-- 顶栏：状态 -->
+        <Grid ColumnDefinitions="*,Auto">
+            <Label Text="同步"
                    FontSize="{DynamicResource TitleFontSize}"
-                   FontAttributes="Bold" />
-            <Label Text="在 PC 设置 → 同步点击「开始配对」，确认下方「服务地址」后输入配对码完成绑定，再执行「立即对齐」。"
-                   TextColor="{DynamicResource TextSecondary}"
-                   FontSize="{DynamicResource SmallFontSize}" />
-
-            <Border Style="{StaticResource PanelBorderStyle}">
-                <VerticalStackLayout Spacing="8">
-                    <Label Text="服务地址" FontAttributes="Bold" />
-                    <Entry Text="{Binding BaseUrl}"
-                           Keyboard="Url"
-                           Placeholder="与 PC「服务地址」一致，如 http://192.168.x.x:17880" />
-                    <Entry Text="{Binding DeviceName}" Placeholder="设备名称" />
-                    <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
-                        <Button Grid.Column="0"
-                                Text="保存地址"
-                                Style="{StaticResource SecondaryButtonStyle}"
-                                Command="{Binding SaveServerCommand}"
-                                HeightRequest="44" />
-                        <Button Grid.Column="1"
-                                Text="检测连接"
-                                Style="{StaticResource SecondaryButtonStyle}"
-                                Command="{Binding CheckHealthCommand}"
-                                HeightRequest="44" />
-                    </Grid>
-                    <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
-                        <Button Text="剪贴板填地址"
-                                Style="{StaticResource SecondaryButtonStyle}"
-                                Command="{Binding PasteServerUrlCommand}"
-                                HeightRequest="44" />
-                        <Button Grid.Column="1"
-                                Text="扫码选图"
-                                Style="{StaticResource SecondaryButtonStyle}"
-                                Command="{Binding ScanQrFromPhotoCommand}"
-                                HeightRequest="44" />
-                    </Grid>
-                </VerticalStackLayout>
+                   FontAttributes="Bold"
+                   VerticalOptions="Center" />
+            <Border Grid.Column="1"
+                    Padding="10,4"
+                    StrokeThickness="1"
+                    Stroke="{DynamicResource Border}"
+                    BackgroundColor="{DynamicResource PanelBackground}">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="12" />
+                </Border.StrokeShape>
+                <HorizontalStackLayout Spacing="6">
+                    <BoxView WidthRequest="8" HeightRequest="8" CornerRadius="4"
+                             Color="{DynamicResource AccentColor}"
+                             IsVisible="{Binding IsPaired}" />
+                    <BoxView WidthRequest="8" HeightRequest="8" CornerRadius="4"
+                             Color="{DynamicResource TextSecondary}"
+                             IsVisible="{Binding IsPaired, Converter={StaticResource InvertedBoolConverter}}" />
+                    <Label Text="{Binding StatusText}"
+                           FontSize="{DynamicResource SmallFontSize}"
+                           VerticalOptions="Center" />
+                </HorizontalStackLayout>
             </Border>
+        </Grid>
 
-            <Border Style="{StaticResource PanelBorderStyle}">
-                <VerticalStackLayout Spacing="8">
-                    <Label Text="配对码" FontAttributes="Bold" />
+        <!-- 中心：球形仓 -->
+        <Grid Grid.Row="1" VerticalOptions="Center" HorizontalOptions="Center">
+            <!-- 未配对：虚线环 + 配对码 -->
+            <Border x:Name="UnpairedRing"
+                    WidthRequest="240" HeightRequest="240"
+                    Stroke="{DynamicResource AccentForegroundBrush}"
+                    StrokeThickness="2"
+                    BackgroundColor="Transparent"
+                    IsVisible="{Binding IsPaired, Converter={StaticResource InvertedBoolConverter}}"
+                    SemanticProperties.Description="配对码输入">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="120" />
+                </Border.StrokeShape>
+                <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="4" Padding="24">
                     <Entry Text="{Binding PairingCode}"
-                           Placeholder="6 位配对码"
+                           Placeholder="······"
                            Keyboard="Numeric"
                            MaxLength="6"
                            FontFamily="Consolas"
-                           FontSize="24" />
-                    <Button Text="配对"
-                            Style="{StaticResource PrimaryButtonStyle}"
-                            Command="{Binding PairCommand}" />
-                    <Button Text="撤销配对"
-                            Style="{StaticResource SecondaryButtonStyle}"
-                            Command="{Binding UnpairCommand}"
-                            IsVisible="{Binding IsPaired}" />
+                           FontSize="36"
+                           HorizontalTextAlignment="Center"
+                           BackgroundColor="Transparent"
+                           IsEnabled="{Binding IsBusy, Converter={StaticResource InvertedBoolConverter}}" />
                 </VerticalStackLayout>
             </Border>
 
-            <Button Text="立即对齐"
-                    Style="{StaticResource PrimaryButtonStyle}"
-                    Command="{Binding AlignCommand}"
-                    IsEnabled="{Binding IsPaired}" />
+            <!-- 已配对：实心球 -->
+            <Border x:Name="PairedSphere"
+                    WidthRequest="220" HeightRequest="220"
+                    StrokeThickness="0"
+                    BackgroundColor="{DynamicResource AccentColor}"
+                    IsVisible="{Binding IsPaired}"
+                    SemanticProperties.Description="对齐">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="110" />
+                </Border.StrokeShape>
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding AlignCommand}" />
+                </Border.GestureRecognizers>
+                <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="4">
+                    <Label Text="{Binding SpherePrimary}"
+                           TextColor="{DynamicResource AccentText}"
+                           FontSize="28"
+                           FontAttributes="Bold"
+                           HorizontalTextAlignment="Center" />
+                    <Label Text="{Binding SphereSecondary}"
+                           TextColor="{DynamicResource AccentText}"
+                           FontSize="{DynamicResource BaseFontSize}"
+                           HorizontalTextAlignment="Center"
+                           Opacity="0.9" />
+                </VerticalStackLayout>
+            </Border>
 
-            <Button Text="同步车站库"
-                    Style="{StaticResource SecondaryButtonStyle}"
-                    Command="{Binding SyncStationsCommand}"
-                    IsEnabled="{Binding IsPaired}" />
-            <Label Text="{Binding StationsHint}"
+            <!-- 冲突角标 -->
+            <Border WidthRequest="48" HeightRequest="48"
+                    Margin="0,0,0,12"
+                    HorizontalOptions="Start"
+                    VerticalOptions="End"
+                    TranslationX="-8"
+                    BackgroundColor="{DynamicResource PanelBackground}"
+                    Stroke="{DynamicResource Border}"
+                    StrokeThickness="1"
+                    IsVisible="{Binding IsPaired}"
+                    SemanticProperties.Description="冲突">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="24" />
+                </Border.StrokeShape>
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding OpenConflictsCommand}" />
+                </Border.GestureRecognizers>
+                <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="0">
+                    <Label Text="!"
+                           FontSize="16"
+                           FontAttributes="Bold"
+                           TextColor="{DynamicResource AccentForeground}"
+                           HorizontalTextAlignment="Center" />
+                    <Label Text="{Binding ConflictBadgeText}"
+                           FontSize="11"
+                           HorizontalTextAlignment="Center" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- 车站角标 -->
+            <Border WidthRequest="48" HeightRequest="48"
+                    Margin="0,0,0,12"
+                    HorizontalOptions="End"
+                    VerticalOptions="End"
+                    TranslationX="8"
+                    BackgroundColor="{DynamicResource PanelBackground}"
+                    Stroke="{DynamicResource Border}"
+                    StrokeThickness="1"
+                    IsVisible="{Binding IsPaired}"
+                    SemanticProperties.Description="车站库">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="24" />
+                </Border.StrokeShape>
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding OpenStationsCommand}" />
+                </Border.GestureRecognizers>
+                <Label Text="站"
+                       FontSize="16"
+                       TextColor="{DynamicResource AccentForeground}"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center" />
+            </Border>
+        </Grid>
+
+        <!-- 球下提示：单独一行，避免被球挡住 -->
+        <VerticalStackLayout Grid.Row="1"
+                             VerticalOptions="End"
+                             Margin="0,0,0,4"
+                             Spacing="2">
+            <Label Text="{Binding CenterHint}"
                    FontSize="{DynamicResource SmallFontSize}"
-                   TextColor="{DynamicResource TextSecondary}" />
-
-            <Border Style="{StaticResource PanelBorderStyle}">
-                <VerticalStackLayout Spacing="8">
-                    <Grid ColumnDefinitions="*,Auto">
-                        <Label Text="冲突箱" FontAttributes="Bold" VerticalOptions="Center" />
-                        <Button Grid.Column="1"
-                                Text="刷新"
-                                Style="{StaticResource SecondaryButtonStyle}"
-                                Padding="10,6"
-                                Command="{Binding RefreshConflictsCommand}"
-                                IsEnabled="{Binding IsPaired}" />
-                    </Grid>
-                    <Label Text="无待处理冲突"
-                           IsVisible="{Binding HasConflicts, Converter={StaticResource InvertedBoolConverter}}"
-                           FontSize="{DynamicResource SmallFontSize}"
-                           TextColor="{DynamicResource TextSecondary}" />
-                    <CollectionView ItemsSource="{Binding Conflicts}"
-                                    IsVisible="{Binding HasConflicts}"
-                                    HeightRequest="220">
-                        <CollectionView.ItemTemplate>
-                            <DataTemplate x:DataType="sync:SyncConflictDto">
-                                <Border Style="{StaticResource PanelBorderStyle}" Margin="0,0,0,8" Padding="10">
-                                    <VerticalStackLayout Spacing="6">
-                                        <Label Text="{Binding Entity, StringFormat='实体：{0}'}" FontAttributes="Bold" />
-                                        <Label Text="{Binding SyncId, StringFormat='sync_id：{0}'}"
-                                               FontSize="{DynamicResource SmallFontSize}"
-                                               TextColor="{DynamicResource TextSecondary}" />
-                                        <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
-                                            <Button Text="保留电脑"
-                                                    Style="{StaticResource SecondaryButtonStyle}"
-                                                    Command="{Binding Source={x:Reference SyncRoot}, Path=BindingContext.ResolveKeepLocalCommand}"
-                                                    CommandParameter="{Binding .}" />
-                                            <Button Grid.Column="1"
-                                                    Text="采用手机"
-                                                    Style="{StaticResource PrimaryButtonStyle}"
-                                                    Command="{Binding Source={x:Reference SyncRoot}, Path=BindingContext.ResolveKeepRemoteCommand}"
-                                                    CommandParameter="{Binding .}" />
-                                        </Grid>
-                                    </VerticalStackLayout>
-                                </Border>
-                            </DataTemplate>
-                        </CollectionView.ItemTemplate>
-                    </CollectionView>
-                </VerticalStackLayout>
-            </Border>
-
-            <Border Style="{StaticResource PanelBorderStyle}">
-                <VerticalStackLayout Spacing="4">
-                    <Label Text="{Binding StatusText}" TextColor="{DynamicResource AccentForeground}" />
-                    <Label Text="{Binding DetailText}"
-                           TextColor="{DynamicResource TextSecondary}"
-                           FontSize="{DynamicResource SmallFontSize}" />
-                </VerticalStackLayout>
-            </Border>
-
-            <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}"
-                               Color="{DynamicResource AccentColor}" />
+                   TextColor="{DynamicResource AccentForeground}"
+                   HorizontalTextAlignment="Center"
+                   LineBreakMode="WordWrap" />
+            <Label Text="{Binding ShortHost, StringFormat='当前地址 {0}'}"
+                   FontSize="{DynamicResource SmallFontSize}"
+                   TextColor="{DynamicResource TextSecondary}"
+                   HorizontalTextAlignment="Center"
+                   IsVisible="{Binding IsPaired, Converter={StaticResource InvertedBoolConverter}}"
+                   LineBreakMode="TailTruncation" />
         </VerticalStackLayout>
-    </ScrollView>
+
+        <!-- 底栏 -->
+        <Grid Grid.Row="2" ColumnDefinitions="*,Auto" ColumnSpacing="10" HeightRequest="56">
+            <!-- 未配对：地址 + 扫码 -->
+            <Border IsVisible="{Binding IsPaired, Converter={StaticResource InvertedBoolConverter}}"
+                    BackgroundColor="{DynamicResource PanelBackground}"
+                    Stroke="{DynamicResource AccentForeground}"
+                    StrokeThickness="1"
+                    Padding="14,0"
+                    VerticalOptions="Fill">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="28" />
+                </Border.StrokeShape>
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding AddressActionsCommand}" />
+                </Border.GestureRecognizers>
+                <Label Text="{Binding FooterPrimary}"
+                       VerticalOptions="Center"
+                       LineBreakMode="TailTruncation"
+                       TextColor="{DynamicResource TextPrimary}"
+                       FontAttributes="Bold" />
+            </Border>
+
+            <Button Grid.Column="1"
+                    IsVisible="{Binding IsPaired, Converter={StaticResource InvertedBoolConverter}}"
+                    WidthRequest="72" HeightRequest="56"
+                    CornerRadius="28"
+                    Padding="4,0"
+                    Style="{StaticResource PrimaryButtonStyle}"
+                    Command="{Binding OpenScanCommand}"
+                    SemanticProperties.Description="扫码"
+                    Text="扫码"
+                    FontSize="16" />
+
+            <!-- 已配对：连接行 → 设置 -->
+            <Border Grid.ColumnSpan="2"
+                    IsVisible="{Binding IsPaired}"
+                    BackgroundColor="Transparent"
+                    StrokeThickness="0"
+                    Padding="4,0">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding OpenConnectionCommand}" />
+                </Border.GestureRecognizers>
+                <Grid ColumnDefinitions="*,Auto">
+                    <Label Text="{Binding FooterPrimary}"
+                           FontSize="{DynamicResource SmallFontSize}"
+                           TextColor="{DynamicResource TextSecondary}"
+                           VerticalOptions="Center"
+                           LineBreakMode="TailTruncation" />
+                    <HorizontalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                        <Label Text="设置"
+                               FontSize="{DynamicResource SmallFontSize}"
+                               TextColor="{DynamicResource AccentForeground}" />
+                        <Label Text="›"
+                               FontSize="14"
+                               TextColor="{DynamicResource AccentForeground}"
+                               VerticalOptions="Center" />
+                    </HorizontalStackLayout>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
 </ContentPage>

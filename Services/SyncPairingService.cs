@@ -37,6 +37,9 @@ public class SyncPairingService
     /// <summary>任意实例成功兑换配对码时触发（设置页用于立即换码）。</summary>
     public static event EventHandler? PairingCodeConsumed;
 
+    /// <summary>任意实例撤销设备时触发（设置页用于刷新列表；手机主动解绑时提示）。</summary>
+    public static event EventHandler<SyncDeviceRevokedEventArgs>? DeviceRevoked;
+
     /// <summary>展示窗口是否已结束（与 UI 倒计时一致）。</summary>
     public static bool IsDisplayExpired(DateTime expiresAtUtc, DateTime? utcNow = null)
     {
@@ -229,11 +232,14 @@ public class SyncPairingService
               FROM sync_paired_device WHERE device_id = @DeviceId",
             new { DeviceId = deviceId });
 
-        if (row == null || row.Revoked)
-            return SyncAuthResult.Fail();
+        if (row == null)
+            return SyncAuthResult.Fail("unauthorized");
+
+        if (row.Revoked)
+            return SyncAuthResult.Fail("revoked");
 
         if (!FixedTimeEquals(row.TokenHash, Hash(token)))
-            return SyncAuthResult.Fail();
+            return SyncAuthResult.Fail("unauthorized");
 
         var now = SyncClock.UtcNowIso();
         await connection.ExecuteAsync(
@@ -263,14 +269,33 @@ public class SyncPairingService
         }).ToList();
     }
 
-    public async Task RevokeDeviceAsync(string deviceId)
+    /// <param name="source">pc = 电脑设置页撤销；device = 手机主动解绑。</param>
+    public async Task RevokeDeviceAsync(string deviceId, string source = "pc")
     {
         using var connection = new SqliteConnection(_connectionString);
         await connection.OpenAsync();
-        await connection.ExecuteAsync(
-            "UPDATE sync_paired_device SET revoked = 1 WHERE device_id = @DeviceId",
+
+        var row = await connection.QuerySingleOrDefaultAsync<SyncPairedDevice>(
+            @"SELECT device_id AS DeviceId, device_name AS DeviceName, token_hash AS TokenHash,
+                     created_at AS CreatedAt, last_seen_at AS LastSeenAt, revoked AS Revoked
+              FROM sync_paired_device WHERE device_id = @DeviceId",
             new { DeviceId = deviceId });
-        _logService.Info("SyncPairingService", $"已撤销设备: {deviceId}");
+
+        if (row == null)
+            return;
+
+        if (!row.Revoked)
+        {
+            await connection.ExecuteAsync(
+                "UPDATE sync_paired_device SET revoked = 1 WHERE device_id = @DeviceId",
+                new { DeviceId = deviceId });
+            _logService.Info("SyncPairingService", $"已撤销设备: {deviceId} ({source})");
+        }
+
+        DeviceRevoked?.Invoke(null, new SyncDeviceRevokedEventArgs(
+            row.DeviceId,
+            string.IsNullOrWhiteSpace(row.DeviceName) ? row.DeviceId : row.DeviceName,
+            source));
     }
 
     private static string GenerateNumericCode(int length)
@@ -335,6 +360,8 @@ public class SyncAuthResult
     public bool Success { get; set; }
     public string? DeviceId { get; set; }
     public string? DeviceName { get; set; }
+    /// <summary>失败时：revoked / unauthorized。</summary>
+    public string? Error { get; set; }
 
     public static SyncAuthResult Ok(string deviceId, string deviceName) => new()
     {
@@ -343,5 +370,24 @@ public class SyncAuthResult
         DeviceName = deviceName
     };
 
-    public static SyncAuthResult Fail() => new() { Success = false };
+    public static SyncAuthResult Fail(string error = "unauthorized") => new()
+    {
+        Success = false,
+        Error = error
+    };
+}
+
+public sealed class SyncDeviceRevokedEventArgs : EventArgs
+{
+    public SyncDeviceRevokedEventArgs(string deviceId, string deviceName, string source)
+    {
+        DeviceId = deviceId;
+        DeviceName = deviceName;
+        Source = source;
+    }
+
+    public string DeviceId { get; }
+    public string DeviceName { get; }
+    /// <summary>pc 或 device。</summary>
+    public string Source { get; }
 }

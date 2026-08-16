@@ -16,4 +16,9 @@ public partial class TripsPage : ContentPage
         if (BindingContext is TripsViewModel vm)
             vm.OnAppearing();
     }
+
+    private async void OnGoSyncClicked(object? sender, EventArgs e)
+    {
+        await Shell.Current.GoToAsync("//sync");
+    }
 }

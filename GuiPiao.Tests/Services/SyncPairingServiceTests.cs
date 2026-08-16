@@ -71,6 +71,7 @@ public class SyncPairingServiceTests : IDisposable
         await service.RevokeDeviceAsync(redeem.DeviceId!);
         var auth = await service.ValidateDeviceTokenAsync(redeem.DeviceId!, redeem.DeviceToken!);
         Assert.False(auth.Success);
+        Assert.Equal("revoked", auth.Error);
     }
 
     [Fact]

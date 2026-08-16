@@ -1,8 +1,9 @@
-﻿using GuiPiao.Mobile.Data;
+using GuiPiao.Mobile.Data;
 using GuiPiao.Mobile.Services;
 using GuiPiao.Mobile.ViewModels;
 using GuiPiao.Mobile.Views;
 using Microsoft.Extensions.Logging;
+using BarcodeScanning;
 
 namespace GuiPiao.Mobile;
 
@@ -13,6 +14,7 @@ public static class MauiProgram
         var builder = MauiApp.CreateBuilder();
         builder
             .UseMauiApp<App>()
+            .UseBarcodeScanning()
             .ConfigureFonts(fonts =>
             {
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
@@ -37,15 +39,20 @@ public static class MauiProgram
         builder.Services.AddTransient<TripFormViewModel>();
         builder.Services.AddTransient<TicketFaceViewModel>();
         builder.Services.AddTransient<CaptureViewModel>();
-        builder.Services.AddTransient<SyncViewModel>();
-        builder.Services.AddTransient<MeViewModel>();
+        builder.Services.AddSingleton<SyncViewModel>();
+        builder.Services.AddSingleton<MeViewModel>();
         builder.Services.AddTransient<TripsPage>();
         builder.Services.AddTransient<TripDetailPage>();
         builder.Services.AddTransient<TripFormPage>();
         builder.Services.AddTransient<TicketFacePage>();
         builder.Services.AddTransient<CapturePage>();
         builder.Services.AddTransient<SyncPage>();
+        builder.Services.AddTransient<QrScanPage>();
+        builder.Services.AddTransient<SyncConflictsPage>();
+        builder.Services.AddTransient<SyncConnectionPage>();
+        builder.Services.AddTransient<SyncStationsPage>();
         builder.Services.AddTransient<MePage>();
+        builder.Services.AddTransient<TagsPage>();
 
 #if DEBUG
         builder.Logging.AddDebug();

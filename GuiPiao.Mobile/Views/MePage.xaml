@@ -1,133 +1,109 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:model="clr-namespace:GuiPiao.Mobile.Model"
+             xmlns:icons="clr-namespace:GuiPiao.Mobile.Icons"
              xmlns:vm="clr-namespace:GuiPiao.Mobile.ViewModels"
              x:Class="GuiPiao.Mobile.Views.MePage"
              x:DataType="vm:MeViewModel"
-             x:Name="MeRoot"
              Title="我的"
              BackgroundColor="{DynamicResource WindowBackground}">
     <ScrollView>
-        <VerticalStackLayout Padding="16" Spacing="12">
-            <Label Text="GuiPiao"
+        <VerticalStackLayout Padding="16,12" Spacing="0">
+            <Label Text="我的"
                    FontSize="{DynamicResource TitleFontSize}"
-                   FontAttributes="Bold" />
-            <Label Text="主题与强调色存本机，不同步到 PC。"
+                   FontAttributes="Bold"
+                   Margin="0,0,0,12" />
+
+            <Label Text="{Binding StatsText}"
+                   TextColor="{DynamicResource TextSecondary}"
+                   Margin="0,0,0,4" />
+            <CollectionView ItemsSource="{Binding YearStats}"
+                            HeightRequest="72"
+                            Margin="0,0,0,8">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="x:String">
+                        <Label Text="{Binding .}"
+                               FontSize="{DynamicResource SmallFontSize}"
+                               TextColor="{DynamicResource TextSecondary}"
+                               Margin="0,2" />
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <BoxView HeightRequest="1" Color="{DynamicResource Divider}" />
+            <Grid Padding="0,14" ColumnDefinitions="*,Auto">
+                <Grid.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding OpenTagsCommand}" />
+                </Grid.GestureRecognizers>
+                <Label Text="标签" VerticalOptions="Center" />
+                <Label Grid.Column="1"
+                       Text="›"
+                       TextColor="{DynamicResource TextSecondary}"
+                       VerticalOptions="Center"
+                       FontSize="18" />
+            </Grid>
+
+            <BoxView HeightRequest="1" Color="{DynamicResource Divider}" />
+            <Label Text="外观"
+                   FontAttributes="Bold"
+                   Margin="0,14,0,8"
                    TextColor="{DynamicResource TextSecondary}"
                    FontSize="{DynamicResource SmallFontSize}" />
+            <Grid ColumnDefinitions="100,*" ColumnSpacing="8" Margin="0,0,0,10">
+                <Label Text="主题" VerticalOptions="Center" />
+                <Picker Grid.Column="1"
+                        ItemsSource="{Binding ThemeModes}"
+                        SelectedItem="{Binding ThemeMode}"
+                        Title="主题" />
+            </Grid>
+            <Grid ColumnDefinitions="100,*" ColumnSpacing="8" Margin="0,0,0,10">
+                <Label Text="强调色" VerticalOptions="Center" />
+                <Picker Grid.Column="1"
+                        ItemsSource="{Binding AccentColors}"
+                        SelectedItem="{Binding AccentColor}"
+                        Title="强调色" />
+            </Grid>
+            <Entry Text="{Binding CustomColor}"
+                   Placeholder="#0078D4"
+                   Margin="0,0,0,10"
+                   IsVisible="{Binding AccentColor, Converter={StaticResource IsCustomAccentConverter}}" />
+            <Button Text="应用外观"
+                    Style="{StaticResource SecondaryButtonStyle}"
+                    Command="{Binding ApplyAppearanceCommand}"
+                    HeightRequest="40"
+                    Margin="0,0,0,8" />
 
-            <Border Style="{StaticResource PanelBorderStyle}">
-                <VerticalStackLayout Spacing="6">
-                    <Label Text="统计" FontAttributes="Bold" />
-                    <Label Text="{Binding StatsText}"
-                           TextColor="{DynamicResource TextSecondary}"
-                           FontSize="{DynamicResource SmallFontSize}" />
-                    <CollectionView ItemsSource="{Binding YearStats}" HeightRequest="100">
-                        <CollectionView.ItemTemplate>
-                            <DataTemplate x:DataType="x:String">
-                                <Label Text="{Binding .}"
-                                       Margin="0,2"
-                                       FontSize="{DynamicResource SmallFontSize}"
-                                       TextColor="{DynamicResource TextPrimary}" />
-                            </DataTemplate>
-                        </CollectionView.ItemTemplate>
-                    </CollectionView>
-                </VerticalStackLayout>
-            </Border>
-
-            <Border Style="{StaticResource PanelBorderStyle}">
-                <VerticalStackLayout Spacing="8">
-                    <Label Text="标签" FontAttributes="Bold" />
-                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                        <Entry Text="{Binding NewTagName}" Placeholder="新标签名" />
-                        <Button Grid.Column="1" Text="添加"
-                                Style="{StaticResource PrimaryButtonStyle}"
-                                Command="{Binding AddTagCommand}" />
-                    </Grid>
-                    <CollectionView ItemsSource="{Binding TagsList}" HeightRequest="160">
-                        <CollectionView.ItemTemplate>
-                            <DataTemplate x:DataType="model:MobileTag">
-                                <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6" Margin="0,4">
-                                    <Label Text="{Binding Name}"
-                                           VerticalOptions="Center"
-                                           TextColor="{DynamicResource TextPrimary}" />
-                                    <Button Grid.Column="1" Text="改"
-                                            Style="{StaticResource SecondaryButtonStyle}"
-                                            Padding="10,4"
-                                            Command="{Binding Source={x:Reference MeRoot}, Path=BindingContext.RenameTagCommand}"
-                                            CommandParameter="{Binding .}" />
-                                    <Button Grid.Column="2" Text="删"
-                                            Style="{StaticResource SecondaryButtonStyle}"
-                                            Padding="10,4"
-                                            Command="{Binding Source={x:Reference MeRoot}, Path=BindingContext.DeleteTagCommand}"
-                                            CommandParameter="{Binding .}" />
-                                </Grid>
-                            </DataTemplate>
-                        </CollectionView.ItemTemplate>
-                    </CollectionView>
-                    <Label Text="新建/改名/删除会进待推队列，对齐后同步到 PC。"
-                           FontSize="{DynamicResource SmallFontSize}"
-                           TextColor="{DynamicResource TextSecondary}" />
-                </VerticalStackLayout>
-            </Border>
-
-            <Border Style="{StaticResource PanelBorderStyle}">
-                <VerticalStackLayout Spacing="8">
-                    <Label Text="主题模式" FontAttributes="Bold" />
-                    <Picker ItemsSource="{Binding ThemeModes}"
-                            SelectedItem="{Binding ThemeMode}"
-                            Title="主题模式" />
-                    <Label Text="强调色" FontAttributes="Bold" Margin="0,8,0,0" />
-                    <Picker ItemsSource="{Binding AccentColors}"
-                            SelectedItem="{Binding AccentColor}"
-                            Title="强调色" />
-                    <Label Text="自定义色 (Custom)"
+            <BoxView HeightRequest="1" Color="{DynamicResource Divider}" />
+            <Grid Padding="0,14" ColumnDefinitions="*,Auto">
+                <Grid.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding OpenConnectionCommand}" />
+                </Grid.GestureRecognizers>
+                <VerticalStackLayout>
+                    <Label Text="连接" />
+                    <Label Text="{Binding BaseUrl}"
                            FontSize="{DynamicResource SmallFontSize}"
                            TextColor="{DynamicResource TextSecondary}"
-                           IsVisible="{Binding AccentColor, Converter={StaticResource IsCustomAccentConverter}}" />
-                    <Entry Text="{Binding CustomColor}"
-                           Placeholder="#0078D4"
-                           IsVisible="{Binding AccentColor, Converter={StaticResource IsCustomAccentConverter}}" />
-                    <Button Text="应用主题"
-                            Style="{StaticResource PrimaryButtonStyle}"
-                            Command="{Binding ApplyAppearanceCommand}" />
+                           LineBreakMode="TailTruncation" />
                 </VerticalStackLayout>
-            </Border>
+                <Label Grid.Column="1"
+                       Text="›"
+                       TextColor="{DynamicResource TextSecondary}"
+                       VerticalOptions="Center"
+                       FontSize="18" />
+            </Grid>
 
-            <Border Style="{StaticResource PanelBorderStyle}">
-                <VerticalStackLayout Spacing="8">
-                    <Label Text="服务地址" FontAttributes="Bold" />
-                    <Entry Text="{Binding BaseUrl}" Keyboard="Url" />
-                    <Grid ColumnDefinitions="*,*,*" ColumnSpacing="6">
-                        <Button Text="保存"
-                                Style="{StaticResource SecondaryButtonStyle}"
-                                Command="{Binding SaveServerAddressCommand}" />
-                        <Button Grid.Column="1" Text="剪贴板"
-                                Style="{StaticResource SecondaryButtonStyle}"
-                                Command="{Binding PasteServerUrlCommand}" />
-                        <Button Grid.Column="2" Text="扫码"
-                                Style="{StaticResource SecondaryButtonStyle}"
-                                Command="{Binding ScanQrFromPhotoCommand}" />
-                    </Grid>
-                </VerticalStackLayout>
-            </Border>
-
-            <Border Style="{StaticResource PanelBorderStyle}">
-                <VerticalStackLayout Spacing="4">
-                    <Label Text="关于" FontAttributes="Bold" />
-                    <Label Text="GuiPiao 手机端 · 采集与随身查看"
-                           TextColor="{DynamicResource TextSecondary}"
-                           FontSize="{DynamicResource SmallFontSize}" />
-                    <Label Text="PC SQLite 为权威数据源"
-                           TextColor="{DynamicResource TextSecondary}"
-                           FontSize="{DynamicResource SmallFontSize}" />
-                </VerticalStackLayout>
-            </Border>
+            <BoxView HeightRequest="1" Color="{DynamicResource Divider}" />
+            <VerticalStackLayout Padding="0,14" Spacing="4">
+                <Label Text="关于 GuiPiao" />
+                <Label Text="手机端 · 采集与随身查看 · PC 为权威库"
+                       FontSize="{DynamicResource SmallFontSize}"
+                       TextColor="{DynamicResource TextSecondary}" />
+            </VerticalStackLayout>
 
             <Label Text="{Binding StatusMessage}"
                    TextColor="{DynamicResource AccentForeground}"
-                   FontSize="{DynamicResource SmallFontSize}" />
+                   FontSize="{DynamicResource SmallFontSize}"
+                   Margin="0,8,0,0" />
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

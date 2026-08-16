@@ -1,4 +1,4 @@
-﻿using GuiPiao.Mobile.Services;
+using GuiPiao.Mobile.Services;
 using GuiPiao.Mobile.ViewModels;
 
 namespace GuiPiao.Mobile;
@@ -15,29 +15,15 @@ public partial class App : Application
         _settings = settings;
         _theme.Apply(_settings.LoadAppearance());
 
-        // 联调期：未处理异常记日志，避免完全无迹可循
         AppDomain.CurrentDomain.UnhandledException += (_, e) =>
         {
-            try
-            {
-                System.Diagnostics.Debug.WriteLine("[Unhandled] " + e.ExceptionObject);
-            }
-            catch
-            {
-                // ignore
-            }
+            CrashLog.Write("UnhandledException", e.ExceptionObject as Exception
+                ?? new Exception(e.ExceptionObject?.ToString() ?? "unknown"));
         };
         TaskScheduler.UnobservedTaskException += (_, e) =>
         {
-            try
-            {
-                System.Diagnostics.Debug.WriteLine("[UnobservedTask] " + e.Exception);
-                e.SetObserved();
-            }
-            catch
-            {
-                // ignore
-            }
+            CrashLog.Write("UnobservedTaskException", e.Exception);
+            e.SetObserved();
         };
     }
 

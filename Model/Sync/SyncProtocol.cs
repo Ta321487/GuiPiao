@@ -66,6 +66,18 @@ public class SyncErrorResponse
     public string Error { get; set; } = string.Empty;
 }
 
+public class SyncUnpairResponse
+{
+    public bool Ok { get; set; }
+}
+
+public class SyncSessionResponse
+{
+    public bool Ok { get; set; }
+    public string? DeviceId { get; set; }
+    public string? DeviceName { get; set; }
+}
+
 public class SyncOcrRequest
 {
     public string ImageBase64 { get; set; } = string.Empty;

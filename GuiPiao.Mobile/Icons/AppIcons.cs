@@ -23,4 +23,7 @@ public static class AppIcons
     public const string PageList = "\uE729";
     public const string ChevronLeft = "\uE76B";
     public const string ChevronRight = "\uE76C";
+    public const string MapPin = "\uE707";
+    public const string QRCode = "\uED14";
+    public const string Up = "\uE74A";
 }

@@ -67,6 +67,14 @@ public partial class MeViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private async Task OpenTagsAsync() =>
+        await Shell.Current.GoToAsync("tags");
+
+    [RelayCommand]
+    private async Task OpenConnectionAsync() =>
+        await Shell.Current.GoToAsync("syncconnection");
+
+    [RelayCommand]
     private void ApplyAppearance()
     {
         var appearance = new AppearanceConfig

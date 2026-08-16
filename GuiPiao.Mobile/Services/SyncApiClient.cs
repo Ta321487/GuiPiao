@@ -67,6 +67,17 @@ public sealed class SyncApiClient
             SyncJson.ToJson(new SyncConflictResolveRequest { Id = id, Keep = keep }),
             config, ct);
 
+    /// <summary>轻量鉴权探测：PC 撤销后返回 401 revoked，供手机即时踢出。</summary>
+    public Task<SyncSessionResponse> SessionAsync(SyncClientConfig config, CancellationToken ct = default) =>
+        SendAsync<SyncSessionResponse>(
+            _http, HttpMethod.Get, Combine(config.BaseUrl, "/v1/session"), body: null, config, ct);
+
+    /// <summary>通知 PC 撤销本机凭证；成功后手机应清除本地 DeviceId/Token。</summary>
+    public Task<SyncUnpairResponse> UnpairAsync(SyncClientConfig config, CancellationToken ct = default) =>
+        SendAsync<SyncUnpairResponse>(
+            _http, HttpMethod.Post, Combine(config.BaseUrl, "/v1/unpair"),
+            body: "{}", config, ct);
+
     private static async Task<T> SendAsync<T>(
         HttpClient client,
         HttpMethod method,
@@ -111,9 +122,28 @@ public sealed class SyncApiClient
         if (resp.IsSuccessStatusCode) return;
         var err = SyncJson.FromJson<SyncErrorResponse>(body)?.Error
                   ?? SyncJson.FromJson<SyncConflictResolveResponse>(body)?.Error;
-        throw new InvalidOperationException(
-            string.IsNullOrWhiteSpace(err)
-                ? $"http_{(int)resp.StatusCode}"
-                : err);
+        var code = string.IsNullOrWhiteSpace(err)
+            ? $"http_{(int)resp.StatusCode}"
+            : err;
+        if ((int)resp.StatusCode == 401 ||
+            string.Equals(code, "revoked", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(code, "unauthorized", StringComparison.OrdinalIgnoreCase))
+            throw new SyncUnauthorizedException(code);
+        throw new InvalidOperationException(code);
     }
+}
+
+/// <summary>凭证失效：PC 已撤销或 token 无效。</summary>
+public sealed class SyncUnauthorizedException : InvalidOperationException
+{
+    public SyncUnauthorizedException(string errorCode)
+        : base(errorCode)
+    {
+        ErrorCode = errorCode;
+    }
+
+    public string ErrorCode { get; }
+
+    public bool IsRevoked =>
+        string.Equals(ErrorCode, "revoked", StringComparison.OrdinalIgnoreCase);
 }

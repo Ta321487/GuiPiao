@@ -11,6 +11,7 @@ public partial class CaptureViewModel : ObservableObject
     private readonly CapturePrefillStore _prefill;
     private readonly MobileSettingsStore _settings;
     private readonly SyncApiClient _client;
+    private readonly SyncViewModel _sync;
 
     [ObservableProperty] private string _pasteText = string.Empty;
     [ObservableProperty] private string _statusText =
@@ -20,11 +21,13 @@ public partial class CaptureViewModel : ObservableObject
     public CaptureViewModel(
         CapturePrefillStore prefill,
         MobileSettingsStore settings,
-        SyncApiClient client)
+        SyncApiClient client,
+        SyncViewModel sync)
     {
         _prefill = prefill;
         _settings = settings;
         _client = client;
+        _sync = sync;
     }
 
     [RelayCommand]
@@ -129,6 +132,12 @@ public partial class CaptureViewModel : ObservableObject
         }
         catch (Exception ex)
         {
+            if (await _sync.TryHandleAuthFailureAsync(ex))
+            {
+                StatusText = "配对已失效，请重新扫码配对。";
+                return;
+            }
+
             StatusText = "OCR 失败：" + ex.Message;
         }
         finally

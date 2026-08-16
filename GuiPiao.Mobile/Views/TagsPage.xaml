@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:model="clr-namespace:GuiPiao.Mobile.Model"
+             xmlns:vm="clr-namespace:GuiPiao.Mobile.ViewModels"
+             x:Class="GuiPiao.Mobile.Views.TagsPage"
+             x:DataType="vm:MeViewModel"
+             x:Name="TagsRoot"
+             Title="标签"
+             BackgroundColor="{DynamicResource WindowBackground}">
+    <Grid RowDefinitions="Auto,*,Auto" Padding="16,12" RowSpacing="10">
+        <VerticalStackLayout Spacing="8">
+            <Label Text="标签"
+                   FontSize="{DynamicResource TitleFontSize}"
+                   FontAttributes="Bold" />
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                <Entry Text="{Binding NewTagName}" Placeholder="新标签名" />
+                <Button Grid.Column="1" Text="添加"
+                        Style="{StaticResource PrimaryButtonStyle}"
+                        Command="{Binding AddTagCommand}"
+                        WidthRequest="72" HeightRequest="44" />
+            </Grid>
+            <Label Text="新建/改名/删除会进待推队列，对齐后同步到 PC。"
+                   FontSize="{DynamicResource SmallFontSize}"
+                   TextColor="{DynamicResource TextSecondary}" />
+        </VerticalStackLayout>
+
+        <CollectionView Grid.Row="1" ItemsSource="{Binding TagsList}">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="model:MobileTag">
+                    <VerticalStackLayout>
+                        <BoxView HeightRequest="1" Color="{DynamicResource Divider}" />
+                        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6" Padding="0,10">
+                            <Label Text="{Binding Name}" VerticalOptions="Center" />
+                            <Button Grid.Column="1" Text="改"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Padding="10,4" HeightRequest="36"
+                                    Command="{Binding Source={x:Reference TagsRoot}, Path=BindingContext.RenameTagCommand}"
+                                    CommandParameter="{Binding .}" />
+                            <Button Grid.Column="2" Text="删"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Padding="10,4" HeightRequest="36"
+                                    Command="{Binding Source={x:Reference TagsRoot}, Path=BindingContext.DeleteTagCommand}"
+                                    CommandParameter="{Binding .}" />
+                        </Grid>
+                    </VerticalStackLayout>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <Label Grid.Row="2"
+               Text="{Binding StatusMessage}"
+               TextColor="{DynamicResource AccentForeground}"
+               FontSize="{DynamicResource SmallFontSize}" />
+    </Grid>
+</ContentPage>

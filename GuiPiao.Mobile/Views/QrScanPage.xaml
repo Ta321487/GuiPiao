@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:scanner="clr-namespace:BarcodeScanning;assembly=BarcodeScanning.Native.Maui"
+             x:Class="GuiPiao.Mobile.Views.QrScanPage"
+             Title="扫码连接"
+             BackgroundColor="Black"
+             Shell.NavBarIsVisible="True">
+
+    <Grid>
+        <scanner:CameraView x:Name="CameraView"
+                            CameraEnabled="False"
+                            AimMode="False"
+                            ViewfinderMode="True"
+                            VibrationOnDetected="True"
+                            CaptureQuality="Medium"
+                            BarcodeSymbologies="QRCode"
+                            OnDetectionFinished="OnDetectionFinished"
+                            VerticalOptions="Fill"
+                            HorizontalOptions="Fill" />
+
+        <!-- 取景框（仅装饰，不挡触摸） -->
+        <Border WidthRequest="240" HeightRequest="240"
+                Stroke="White" StrokeThickness="2"
+                BackgroundColor="Transparent"
+                InputTransparent="True"
+                HorizontalOptions="Center" VerticalOptions="Center">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="8" />
+            </Border.StrokeShape>
+        </Border>
+
+        <VerticalStackLayout VerticalOptions="End" Padding="16,12" Spacing="8"
+                             BackgroundColor="#CC000000">
+            <Label Text="将 PC 同步二维码放入框内，自动识别连接"
+                   TextColor="White"
+                   HorizontalTextAlignment="Center"
+                   FontSize="{DynamicResource SmallFontSize}" />
+            <Label x:Name="StatusLabel"
+                   TextColor="#CCCCCC"
+                   HorizontalTextAlignment="Center"
+                   FontSize="{DynamicResource SmallFontSize}"
+                   LineBreakMode="WordWrap" />
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                <Button Text="相册"
+                        Style="{StaticResource SecondaryButtonStyle}"
+                        HeightRequest="44"
+                        Clicked="OnAlbumClicked" />
+                <Button Grid.Column="1"
+                        Text="粘贴"
+                        Style="{StaticResource SecondaryButtonStyle}"
+                        HeightRequest="44"
+                        Clicked="OnPasteClicked" />
+            </Grid>
+        </VerticalStackLayout>
+    </Grid>
+</ContentPage>

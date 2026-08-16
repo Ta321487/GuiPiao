@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:GuiPiao.Mobile.ViewModels"
+             x:Class="GuiPiao.Mobile.Views.SyncStationsPage"
+             x:DataType="vm:SyncViewModel"
+             Title="车站库"
+             BackgroundColor="{DynamicResource WindowBackground}">
+
+    <VerticalStackLayout Padding="16" Spacing="16" VerticalOptions="Center">
+        <Label Text="车站库"
+               FontSize="{DynamicResource TitleFontSize}"
+               FontAttributes="Bold"
+               HorizontalTextAlignment="Center" />
+        <Label Text="{Binding StationsHint}"
+               HorizontalTextAlignment="Center"
+               TextColor="{DynamicResource TextSecondary}" />
+        <Button Text="从 PC 同步车站"
+                Style="{StaticResource PrimaryButtonStyle}"
+                Command="{Binding SyncStationsCommand}"
+                IsEnabled="{Binding IsPaired}"
+                HorizontalOptions="Center"
+                WidthRequest="220"
+                HeightRequest="48" />
+        <Label Text="{Binding DetailText}"
+               FontSize="{DynamicResource SmallFontSize}"
+               TextColor="{DynamicResource TextSecondary}"
+               HorizontalTextAlignment="Center" />
+    </VerticalStackLayout>
+</ContentPage>

@@ -72,6 +72,87 @@ public class SyncApiDispatcherTests : IDisposable
     }
 
     [Fact]
+    public async Task Unpair_RevokesDevice_AndSubsequentAuthFailsWithRevoked()
+    {
+        var pairing = new SyncPairingService();
+        var code = await pairing.CreatePairingCodeAsync();
+        var dispatcher = new SyncApiDispatcher(pairing);
+
+        var pairResult = await dispatcher.DispatchAsync(new SyncHttpRequest
+        {
+            Method = "POST",
+            Path = "/v1/pair",
+            Body = SyncPayloadSerializer.ToJson(new SyncPairRequest
+            {
+                Code = code.Code,
+                DeviceName = "UnpairPhone"
+            })
+        });
+        Assert.Equal(200, pairResult.StatusCode);
+        var pair = SyncPayloadSerializer.FromJson<SyncPairResponse>(pairResult.Body)!;
+
+        var unpair = await dispatcher.DispatchAsync(new SyncHttpRequest
+        {
+            Method = "POST",
+            Path = "/v1/unpair",
+            Headers = AuthHeaders(pair.DeviceId, pair.DeviceToken),
+            Body = "{}"
+        });
+        Assert.Equal(200, unpair.StatusCode);
+        var body = SyncPayloadSerializer.FromJson<SyncUnpairResponse>(unpair.Body);
+        Assert.NotNull(body);
+        Assert.True(body!.Ok);
+
+        var pull = await dispatcher.DispatchAsync(new SyncHttpRequest
+        {
+            Method = "GET",
+            Path = "/v1/changes",
+            Query = new Dictionary<string, string> { ["after_seq"] = "0" },
+            Headers = AuthHeaders(pair.DeviceId, pair.DeviceToken)
+        });
+        Assert.Equal(401, pull.StatusCode);
+        var err = SyncPayloadSerializer.FromJson<SyncErrorResponse>(pull.Body);
+        Assert.Equal("revoked", err?.Error);
+    }
+
+    [Fact]
+    public async Task Session_RequiresAuth_AndOkWhenPaired()
+    {
+        var pairing = new SyncPairingService();
+        var code = await pairing.CreatePairingCodeAsync();
+        var dispatcher = new SyncApiDispatcher(pairing);
+
+        var noAuth = await dispatcher.DispatchAsync(new SyncHttpRequest
+        {
+            Method = "GET",
+            Path = "/v1/session"
+        });
+        Assert.Equal(401, noAuth.StatusCode);
+
+        var pairResult = await dispatcher.DispatchAsync(new SyncHttpRequest
+        {
+            Method = "POST",
+            Path = "/v1/pair",
+            Body = SyncPayloadSerializer.ToJson(new SyncPairRequest
+            {
+                Code = code.Code,
+                DeviceName = "SessionPhone"
+            })
+        });
+        var pair = SyncPayloadSerializer.FromJson<SyncPairResponse>(pairResult.Body)!;
+
+        var session = await dispatcher.DispatchAsync(new SyncHttpRequest
+        {
+            Method = "GET",
+            Path = "/v1/session",
+            Headers = AuthHeaders(pair.DeviceId, pair.DeviceToken)
+        });
+        Assert.Equal(200, session.StatusCode);
+        var body = SyncPayloadSerializer.FromJson<SyncSessionResponse>(session.Body);
+        Assert.True(body!.Ok);
+    }
+
+    [Fact]
     public async Task PairThenPushRide_AppliesAndIsIdempotent()
     {
         var pairing = new SyncPairingService();

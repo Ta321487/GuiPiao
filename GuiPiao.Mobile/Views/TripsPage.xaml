@@ -9,134 +9,137 @@
              x:Name="TripsRoot"
              Title="GuiPiao"
              BackgroundColor="{DynamicResource WindowBackground}">
-    <Grid RowDefinitions="Auto,Auto,Auto,*,Auto" Padding="16" RowSpacing="12">
+    <Grid RowDefinitions="Auto,Auto,*,Auto" Padding="16,12" RowSpacing="10">
+
         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-            <Border Style="{StaticResource PanelBorderStyle}" Padding="10,6">
-                <Entry Placeholder="搜索车次 / 车站 / 日期"
-                       Text="{Binding SearchText}"
-                       BackgroundColor="Transparent"
-                       TextColor="{DynamicResource TextPrimary}"
-                       PlaceholderColor="{DynamicResource TextSecondary}" />
-            </Border>
+            <VerticalStackLayout Spacing="6">
+                <Label Text="GuiPiao"
+                       FontSize="{DynamicResource TitleFontSize}"
+                       FontAttributes="Bold" />
+                <Border Stroke="{DynamicResource Border}"
+                        StrokeThickness="1"
+                        BackgroundColor="{DynamicResource ControlBackground}"
+                        Padding="10,4">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="4" />
+                    </Border.StrokeShape>
+                    <Entry Placeholder="搜索车次 / 车站 / 日期"
+                           Text="{Binding SearchText}"
+                           BackgroundColor="Transparent" />
+                </Border>
+            </VerticalStackLayout>
             <Button Grid.Column="1"
-                    Text="{x:Static icons:AppIcons.Add}"
-                    FontFamily="{x:Static icons:AppIcons.FontFamilyName}"
+                    Text="＋"
                     Style="{StaticResource PrimaryButtonStyle}"
-                    WidthRequest="48"
+                    WidthRequest="44" HeightRequest="44"
+                    VerticalOptions="End"
+                    Padding="0"
+                    FontSize="22"
                     Command="{Binding AddCommand}" />
         </Grid>
 
         <ScrollView Grid.Row="1" Orientation="Horizontal" HorizontalScrollBarVisibility="Never">
-            <HorizontalStackLayout Spacing="8">
-                <Button Text="全部" Style="{StaticResource SecondaryButtonStyle}" Padding="12,6" HeightRequest="36"
+            <HorizontalStackLayout Spacing="6">
+                <Button Text="全部" Style="{StaticResource SecondaryButtonStyle}" Padding="12,6" HeightRequest="34"
                         Command="{Binding SetStatusFilterCommand}" CommandParameter="-1" />
-                <Button Text="未出行" Style="{StaticResource SecondaryButtonStyle}" Padding="12,6" HeightRequest="36"
+                <Button Text="未出行" Style="{StaticResource SecondaryButtonStyle}" Padding="12,6" HeightRequest="34"
                         Command="{Binding SetStatusFilterCommand}" CommandParameter="0" />
-                <Button Text="已完成" Style="{StaticResource SecondaryButtonStyle}" Padding="12,6" HeightRequest="36"
+                <Button Text="已完成" Style="{StaticResource SecondaryButtonStyle}" Padding="12,6" HeightRequest="34"
                         Command="{Binding SetStatusFilterCommand}" CommandParameter="1" />
-                <Button Text="已改签" Style="{StaticResource SecondaryButtonStyle}" Padding="12,6" HeightRequest="36"
+                <Button Text="已改签" Style="{StaticResource SecondaryButtonStyle}" Padding="12,6" HeightRequest="34"
                         Command="{Binding SetStatusFilterCommand}" CommandParameter="2" />
-                <Button Text="已退票" Style="{StaticResource SecondaryButtonStyle}" Padding="12,6" HeightRequest="36"
+                <Button Text="已退票" Style="{StaticResource SecondaryButtonStyle}" Padding="12,6" HeightRequest="34"
                         Command="{Binding SetStatusFilterCommand}" CommandParameter="3" />
             </HorizontalStackLayout>
         </ScrollView>
 
-        <Label Grid.Row="2"
-               Text="{Binding StatusText}"
-               TextColor="{DynamicResource TextSecondary}"
-               FontSize="{DynamicResource SmallFontSize}" />
+        <Grid Grid.Row="2">
+            <CollectionView ItemsSource="{Binding Items}"
+                            SelectionMode="None"
+                            IsVisible="{Binding IsEmpty, Converter={StaticResource InvertedBoolConverter}}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="model:MobileRide">
+                        <VerticalStackLayout>
+                            <BoxView HeightRequest="1" Color="{DynamicResource Divider}" />
+                            <Grid Padding="0,12" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto"
+                                  RowSpacing="2" ColumnSpacing="8">
+                                <Grid.GestureRecognizers>
+                                    <TapGestureRecognizer
+                                        Command="{Binding Source={x:Reference TripsRoot}, Path=BindingContext.OpenDetailCommand}"
+                                        CommandParameter="{Binding .}" />
+                                </Grid.GestureRecognizers>
+                                <Label Text="{Binding TrainNo}"
+                                       FontSize="{DynamicResource TitleFontSize}"
+                                       FontAttributes="Bold"
+                                       TextColor="{DynamicResource AccentForeground}" />
+                                <Label Grid.Column="1"
+                                       Text="{Binding StatusText}"
+                                       FontSize="{DynamicResource SmallFontSize}"
+                                       TextColor="{DynamicResource TextSecondary}"
+                                       VerticalOptions="Center" />
+                                <Label Grid.Row="1" Grid.ColumnSpan="2"
+                                       Text="{Binding RouteText}" />
+                                <Label Grid.Row="2" Grid.ColumnSpan="2"
+                                       Text="{Binding WhenText}"
+                                       FontSize="{DynamicResource SmallFontSize}"
+                                       TextColor="{DynamicResource TextSecondary}" />
+                                <Label Grid.Row="2" Grid.Column="1"
+                                       Text="{Binding TagsText}"
+                                       FontSize="{DynamicResource SmallFontSize}"
+                                       TextColor="{DynamicResource AccentForeground}"
+                                       HorizontalTextAlignment="End"
+                                       IsVisible="{Binding HasTags}"
+                                       LineBreakMode="TailTruncation" />
+                            </Grid>
+                        </VerticalStackLayout>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
 
-        <CollectionView Grid.Row="3"
-                        ItemsSource="{Binding Items}"
-                        SelectionMode="None"
-                        IsVisible="{Binding IsEmpty, Converter={StaticResource InvertedBoolConverter}}">
-            <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="model:MobileRide">
-                    <Border Style="{StaticResource PanelBorderStyle}"
-                            Margin="0,0,0,8"
-                            Padding="12">
-                        <Border.GestureRecognizers>
-                            <TapGestureRecognizer
-                                Command="{Binding Source={x:Reference TripsRoot}, Path=BindingContext.OpenDetailCommand}"
-                                CommandParameter="{Binding .}" />
-                        </Border.GestureRecognizers>
-                        <Grid RowDefinitions="Auto,Auto,Auto,Auto" ColumnDefinitions="*,Auto" RowSpacing="4">
-                            <Label Text="{Binding TrainNo}"
-                                   FontSize="{DynamicResource TitleFontSize}"
-                                   FontAttributes="Bold"
-                                   TextColor="{DynamicResource AccentForeground}" />
-                            <Label Grid.Column="1"
-                                   Text="{Binding StatusText}"
-                                   FontSize="{DynamicResource SmallFontSize}"
-                                   TextColor="{DynamicResource AccentForeground}"
-                                   VerticalOptions="Center" />
-                            <Label Grid.Row="1"
-                                   Grid.ColumnSpan="2"
-                                   Text="{Binding RouteText}"
-                                   TextColor="{DynamicResource TextPrimary}" />
-                            <Label Grid.Row="2"
-                                   Grid.ColumnSpan="2"
-                                   Text="{Binding WhenText}"
-                                   FontSize="{DynamicResource SmallFontSize}"
-                                   TextColor="{DynamicResource TextSecondary}" />
-                            <Label Grid.Row="3"
-                                   Grid.ColumnSpan="2"
-                                   Text="{Binding TagsText}"
-                                   FontSize="{DynamicResource SmallFontSize}"
-                                   TextColor="{DynamicResource AccentForeground}"
-                                   IsVisible="{Binding HasTags}" />
-                        </Grid>
-                    </Border>
-                </DataTemplate>
-            </CollectionView.ItemTemplate>
-        </CollectionView>
-
-        <VerticalStackLayout Grid.Row="3"
-                             IsVisible="{Binding IsEmpty}"
-                             Spacing="8"
-                             VerticalOptions="Center"
-                             HorizontalOptions="Center">
-            <Label Text="{x:Static icons:AppIcons.PageList}"
-                   FontFamily="{x:Static icons:AppIcons.FontFamilyName}"
-                   FontSize="32"
-                   TextColor="{DynamicResource AccentForeground}"
-                   HorizontalOptions="Center" />
-            <Label Text="暂无行程"
-                   FontSize="{DynamicResource TitleFontSize}"
-                   HorizontalOptions="Center" />
-            <Label Text="{Binding StatusText}"
-                   TextColor="{DynamicResource TextSecondary}"
-                   FontSize="{DynamicResource SmallFontSize}"
-                   HorizontalOptions="Center"
-                   HorizontalTextAlignment="Center" />
-        </VerticalStackLayout>
-
-        <!-- 底部分页：对齐 PC 上一页 / 页码 / 下一页 语义 -->
-        <Border Grid.Row="4"
-                Style="{StaticResource PanelBorderStyle}"
-                Padding="8,6"
-                IsVisible="{Binding ShowPager}">
-            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
-                <Button Text="{x:Static icons:AppIcons.ChevronLeft}"
-                        FontFamily="{x:Static icons:AppIcons.FontFamilyName}"
-                        Style="{StaticResource SecondaryButtonStyle}"
-                        WidthRequest="44"
-                        Command="{Binding PreviousPageCommand}"
-                        IsEnabled="{Binding CanGoPrevious}" />
-                <Label Grid.Column="1"
-                       Text="{Binding PageText}"
+            <VerticalStackLayout IsVisible="{Binding IsEmpty}"
+                                 Spacing="8"
+                                 VerticalOptions="Center"
+                                 HorizontalOptions="Center">
+                <Label Text="暂无行程"
+                       FontSize="{DynamicResource TitleFontSize}"
+                       HorizontalOptions="Center" />
+                <Label Text="{Binding StatusText}"
+                       TextColor="{DynamicResource TextSecondary}"
+                       FontSize="{DynamicResource SmallFontSize}"
                        HorizontalOptions="Center"
-                       VerticalOptions="Center"
-                       HorizontalTextAlignment="Center"
-                       TextColor="{DynamicResource TextPrimary}" />
-                <Button Grid.Column="2"
-                        Text="{x:Static icons:AppIcons.ChevronRight}"
-                        FontFamily="{x:Static icons:AppIcons.FontFamilyName}"
-                        Style="{StaticResource SecondaryButtonStyle}"
-                        WidthRequest="44"
-                        Command="{Binding NextPageCommand}"
-                        IsEnabled="{Binding CanGoNext}" />
-            </Grid>
-        </Border>
+                       HorizontalTextAlignment="Center" />
+                <Button Text="去同步"
+                        Style="{StaticResource PrimaryButtonStyle}"
+                        WidthRequest="140"
+                        HorizontalOptions="Center"
+                        Clicked="OnGoSyncClicked" />
+            </VerticalStackLayout>
+        </Grid>
+
+        <Grid Grid.Row="3"
+              ColumnDefinitions="Auto,*,Auto"
+              ColumnSpacing="8"
+              IsVisible="{Binding ShowPager}"
+              Padding="0,4,0,0">
+            <Button Text="‹"
+                    Style="{StaticResource SecondaryButtonStyle}"
+                    WidthRequest="44" HeightRequest="40" Padding="0"
+                    FontSize="20"
+                    Command="{Binding PreviousPageCommand}"
+                    IsEnabled="{Binding CanGoPrevious}" />
+            <Label Grid.Column="1"
+                   Text="{Binding PageText}"
+                   HorizontalOptions="Center"
+                   VerticalOptions="Center"
+                   FontSize="{DynamicResource SmallFontSize}"
+                   TextColor="{DynamicResource TextSecondary}" />
+            <Button Grid.Column="2"
+                    Text="›"
+                    Style="{StaticResource SecondaryButtonStyle}"
+                    WidthRequest="44" HeightRequest="40" Padding="0"
+                    FontSize="20"
+                    Command="{Binding NextPageCommand}"
+                    IsEnabled="{Binding CanGoNext}" />
+        </Grid>
     </Grid>
 </ContentPage>

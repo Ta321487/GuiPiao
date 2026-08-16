@@ -73,6 +73,7 @@ public partial class SyncSettingsViewModel : ObservableObject, ISettingsViewMode
         _countdownTimer.Tick += OnCountdownTick;
         _httpServer.StateChanged += OnHttpServerStateChanged;
         SyncPairingService.PairingCodeConsumed += OnPairingCodeConsumed;
+        SyncPairingService.DeviceRevoked += OnDeviceRevoked;
         LoadFromSettings();
         SyncFromHttpServer();
         _ = RefreshStatusAsync();
@@ -294,7 +295,7 @@ public partial class SyncSettingsViewModel : ObservableObject, ISettingsViewMode
 
         if (confirm != MessageBoxResult.Yes) return;
 
-        await _pairingService.RevokeDeviceAsync(device.DeviceId);
+        await _pairingService.RevokeDeviceAsync(device.DeviceId, source: "pc");
         await LoadDevicesAsync();
         StatusMessage = $"已撤销：{device.DeviceName}";
     }
@@ -320,8 +321,13 @@ public partial class SyncSettingsViewModel : ObservableObject, ISettingsViewMode
             return;
         }
 
-        // 二维码内容：电脑地址。后续手机可扫码填地址；现阶段也可给人肉对照。
-        ConnectionQrImage = TicketPreviewQrService.CreateQrBitmap(ListenUrlText, 5);
+        // 有活跃配对码时写入 GuiPiao|地址|码，手机拍一次即可配对；无码时仍只编码地址。
+        var payload = ListenUrlText.Trim().TrimEnd('/');
+        if (!string.IsNullOrEmpty(_plainCode) && _plainCode.Length == 6 &&
+            _plainCode.All(char.IsDigit))
+            payload = $"GuiPiao|{payload}|{_plainCode}";
+
+        ConnectionQrImage = TicketPreviewQrService.CreateQrBitmap(payload, 5);
     }
 
     private static string SimplifyError(string raw)
@@ -410,6 +416,43 @@ public partial class SyncSettingsViewModel : ObservableObject, ISettingsViewMode
             dispatcher.InvokeAsync(RefreshAfterCodeConsumedAsync);
     }
 
+    private void OnDeviceRevoked(object? sender, SyncDeviceRevokedEventArgs e)
+    {
+        var dispatcher = Application.Current?.Dispatcher;
+        if (dispatcher == null)
+        {
+            _ = HandleDeviceRevokedAsync(e);
+            return;
+        }
+
+        if (dispatcher.CheckAccess())
+            _ = HandleDeviceRevokedAsync(e);
+        else
+            dispatcher.InvokeAsync(() => HandleDeviceRevokedAsync(e));
+    }
+
+    private async Task HandleDeviceRevokedAsync(SyncDeviceRevokedEventArgs e)
+    {
+        await LoadDevicesAsync();
+        if (string.Equals(e.Source, "device", StringComparison.OrdinalIgnoreCase))
+        {
+            StatusMessage = $"手机「{e.DeviceName}」已解除配对。";
+            var owner = Application.Current.Windows
+                .OfType<Window>()
+                .FirstOrDefault(w => w.DataContext is SettingsViewModel);
+            MessageBoxWindow.Show(
+                owner,
+                $"设备「{e.DeviceName}」已在手机端解除配对，凭证已失效。",
+                "设备已解绑",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+        }
+        else
+        {
+            StatusMessage = $"已撤销：{e.DeviceName}";
+        }
+    }
+
     private async Task RefreshAfterCodeConsumedAsync()
     {
         if (_isRefreshingCode) return;
@@ -450,6 +493,7 @@ public partial class SyncSettingsViewModel : ObservableObject, ISettingsViewMode
         ApplyCountdownFromExpiry(result.ExpiresAtUtc);
         CopyPairingCodeCommand.NotifyCanExecuteChanged();
         InvalidatePairingCodeCommand.NotifyCanExecuteChanged();
+        RefreshConnectionQr();
 
         if (!_countdownTimer.IsEnabled)
             _countdownTimer.Start();
@@ -474,6 +518,7 @@ public partial class SyncSettingsViewModel : ObservableObject, ISettingsViewMode
         _countdownTimer.Stop();
         CopyPairingCodeCommand.NotifyCanExecuteChanged();
         InvalidatePairingCodeCommand.NotifyCanExecuteChanged();
+        RefreshConnectionQr();
     }
 
     private async Task RefreshStatusAsync()

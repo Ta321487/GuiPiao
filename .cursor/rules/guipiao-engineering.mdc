@@ -1,0 +1,14 @@
+---
+description: GuiPiao 工程总规范（迁移/同步/分层/测试等）
+alwaysApply: true
+---
+
+# GuiPiao
+
+实现或修改本仓库前，遵循并对照：
+
+**`docs/工程规范.md`**
+
+其中强制项包括：schema 只通过 `DataAccess/Schema/SchemaCatalog` 追加版本；配置写 AppData；行程入库走表单/Repository；同步不静默覆盖；测试见 `docs/TESTING.md`。
+
+专题规划：`docs/功能规划-多端同步OCR与火车迷.md`。
