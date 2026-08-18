@@ -29,6 +29,7 @@ public class DashboardSettingsService
     private DashboardConfig LoadConfig()
     {
         var config = JsonConfigManager.Instance.LoadConfig(ConfigFileName, new DashboardConfig());
+        config.AutoRefresh = AutoRefreshTypeNames.Normalize(config.AutoRefresh);
         return config;
     }
 
@@ -37,6 +38,7 @@ public class DashboardSettingsService
     /// </summary>
     public void SaveConfig(DashboardConfig config)
     {
+        config.AutoRefresh = AutoRefreshTypeNames.Normalize(config.AutoRefresh);
         Config = config;
         JsonConfigManager.Instance.SaveConfig(ConfigFileName, config);
 

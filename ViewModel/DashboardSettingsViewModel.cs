@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
+using GuiPiao.Messages;
 using GuiPiao.Model;
 using GuiPiao.Services;
 using GuiPiao.Utils;
@@ -98,16 +100,6 @@ public partial class DashboardSettingsViewModel : ObservableObject, ISettingsVie
     public static event EventHandler? DashboardConfigSaved;
 
     /// <summary>
-    ///     统计数据刷新事件
-    /// </summary>
-    public static event EventHandler? StatisticsRefreshRequested;
-
-    /// <summary>
-    ///     统计缓存清除事件
-    /// </summary>
-    public static event EventHandler? StatisticsCacheClearRequested;
-
-    /// <summary>
     ///     初始化可用统计项
     /// </summary>
     private void InitializeAvailableStatistics()
@@ -141,7 +133,7 @@ public partial class DashboardSettingsViewModel : ObservableObject, ISettingsVie
             GlobalChartType = loadedConfig.GlobalChartType;
             ExcludeRefundedTickets = loadedConfig.ExcludeRefundedTickets;
             ExcludeDuplicateTickets = loadedConfig.ExcludeDuplicateTickets;
-            AutoRefresh = loadedConfig.AutoRefresh;
+            AutoRefresh = AutoRefreshTypeNames.Normalize(loadedConfig.AutoRefresh);
             EnableChartAnimation = loadedConfig.EnableChartAnimation;
 
             Cards.Clear();
@@ -181,7 +173,7 @@ public partial class DashboardSettingsViewModel : ObservableObject, ISettingsVie
             GlobalChartType = GlobalChartType,
             ExcludeRefundedTickets = ExcludeRefundedTickets,
             ExcludeDuplicateTickets = ExcludeDuplicateTickets,
-            AutoRefresh = AutoRefresh,
+            AutoRefresh = AutoRefreshTypeNames.Normalize(AutoRefresh),
             EnableChartAnimation = EnableChartAnimation
         };
 
@@ -535,38 +527,12 @@ public partial class DashboardSettingsViewModel : ObservableObject, ISettingsVie
     }
 
     /// <summary>
-    ///     立即刷新所有统计数据
+    ///     立即刷新所有统计数据（仪表盘尚未打开也会创建并刷新）。
     /// </summary>
     [RelayCommand]
     private void RefreshAllStatistics()
     {
-        // 触发刷新事件，由 DashboardViewModel 统一处理刷新逻辑和进度显示
-        StatisticsRefreshRequested?.Invoke(this, EventArgs.Empty);
-    }
-
-    /// <summary>
-    ///     清除统计缓存
-    /// </summary>
-    [RelayCommand]
-    private void ClearStatisticsCache()
-    {
-        var result = MessageBoxWindow.Show(
-            Application.Current.MainWindow,
-            "确定要清除统计缓存吗？这将清空所有统计数据。",
-            "确认",
-            MessageBoxButton.YesNo,
-            MessageBoxImage.Question);
-
-        if (result == MessageBoxResult.Yes)
-        {
-            // 触发清除缓存事件，通知 MainViewModel 清除缓存
-            StatisticsCacheClearRequested?.Invoke(this, EventArgs.Empty);
-
-            MessageBoxWindow.Show(
-                Application.Current.MainWindow,
-                "统计缓存已清除，请重新加载数据。",
-                "成功");
-        }
+        WeakReferenceMessenger.Default.Send(new RefreshStatisticsMessage());
     }
 
     /// <summary>
@@ -673,9 +639,6 @@ public partial class DashboardSettingsViewModel : ObservableObject, ISettingsVie
         Debug.WriteLine("[DashboardSettingsViewModel] 恢复默认设置，触发 DashboardConfigSaved 事件");
         DashboardConfigSaved?.Invoke(this, EventArgs.Empty);
 
-        // 清除统计缓存，确保图表数据重新加载
-        StatisticsCacheClearRequested?.Invoke(this, EventArgs.Empty);
-
         await Task.Run(() =>
         {
             Application.Current.Dispatcher.Invoke(() =>
@@ -757,7 +720,7 @@ public partial class DashboardSettingsViewModel : ObservableObject, ISettingsVie
     public LayoutType[] LayoutTypes => (LayoutType[])Enum.GetValues(typeof(LayoutType));
     public TimeRangeType[] TimeRangeTypes => (TimeRangeType[])Enum.GetValues(typeof(TimeRangeType));
     public ChartType[] ChartTypes => (ChartType[])Enum.GetValues(typeof(ChartType));
-    public AutoRefreshType[] AutoRefreshTypes => (AutoRefreshType[])Enum.GetValues(typeof(AutoRefreshType));
+    public AutoRefreshType[] AutoRefreshTypes { get; } = { AutoRefreshType.Off, AutoRefreshType.OnStartup };
 
     #endregion
 }

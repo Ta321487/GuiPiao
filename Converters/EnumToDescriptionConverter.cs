@@ -47,6 +47,7 @@ public class EnumToDescriptionConverter : IValueConverter
 
     private static string GetAutoRefreshTypeName(AutoRefreshType type)
     {
-        return AutoRefreshTypeNames.Names.TryGetValue(type, out var name) ? name : type.ToString();
+        var normalized = AutoRefreshTypeNames.Normalize(type);
+        return AutoRefreshTypeNames.Names.TryGetValue(normalized, out var name) ? name : type.ToString();
     }
 }

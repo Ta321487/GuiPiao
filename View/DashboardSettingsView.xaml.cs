@@ -72,6 +72,22 @@ public partial class DashboardSettingsView : UserControl
     }
 
     /// <summary>
+    ///     DataGrid 内部 ScrollViewer 会吞掉滚轮；转交给本页外层滚动。
+    /// </summary>
+    private void RelayMouseWheelToPage(object sender, MouseWheelEventArgs e)
+    {
+        if (e.Handled) return;
+
+        e.Handled = true;
+        var args = new MouseWheelEventArgs(e.MouseDevice, e.Timestamp, e.Delta)
+        {
+            RoutedEvent = UIElement.MouseWheelEvent,
+            Source = PageScrollViewer
+        };
+        PageScrollViewer.RaiseEvent(args);
+    }
+
+    /// <summary>
     ///     卡片间距输入框失去焦点时验证输入
     /// </summary>
     private void CardSpacingTextBox_LostFocus(object sender, RoutedEventArgs e)

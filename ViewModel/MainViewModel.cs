@@ -83,6 +83,9 @@ public partial class MainViewModel : ObservableObject, IDisposable
         WeakReferenceMessenger.Default.Register<BatchUpdateStatusMessage>(this,
             async (recipient, message) => { await TripList.BatchUpdateStatusAsync(); });
 
+        WeakReferenceMessenger.Default.Register<RefreshStatisticsMessage>(this,
+            async (recipient, message) => { await Dashboard.RefreshStatisticsCommand(); });
+
         Debug.WriteLine("[MainViewModel] 初始化完成");
     }
 

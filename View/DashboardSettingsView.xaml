@@ -10,8 +10,8 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <!-- 可滚动内容区 -->
-        <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <!-- 可滚动内容区：整页一根条；区块内表格随内容撑开，不另开内滚 -->
+        <ScrollViewer x:Name="PageScrollViewer" Grid.Row="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
             <Grid Margin="10">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -38,9 +38,12 @@
                                   CanUserReorderColumns="False"
                                   CanUserResizeColumns="False"
                                   CanUserSortColumns="False"
+                                  EnableRowVirtualization="False"
+                                  VerticalScrollBarVisibility="Disabled"
+                                  HorizontalScrollBarVisibility="Disabled"
                                   BorderThickness="0"
                                   Background="Transparent"
-                                  Height="200">
+                                  PreviewMouseWheel="RelayMouseWheelToPage">
                             <DataGrid.ColumnHeaderStyle>
                                 <Style TargetType="DataGridColumnHeader"
                                        BasedOn="{StaticResource ThemedDataGridColumnHeaderStyle}">
@@ -125,10 +128,13 @@
                                   CanUserReorderColumns="False"
                                   CanUserResizeColumns="False"
                                   CanUserSortColumns="False"
+                                  EnableRowVirtualization="False"
+                                  VerticalScrollBarVisibility="Disabled"
+                                  HorizontalScrollBarVisibility="Disabled"
                                   BorderThickness="0"
                                   Background="Transparent"
-                                  MinHeight="150"
                                   AllowDrop="True"
+                                  PreviewMouseWheel="RelayMouseWheelToPage"
                                   PreviewMouseLeftButtonDown="CardsDataGrid_PreviewMouseLeftButtonDown"
                                   MouseMove="CardsDataGrid_MouseMove"
                                   DragOver="CardsDataGrid_DragOver"
@@ -307,7 +313,7 @@
                         <WrapPanel>
                             <TextBlock Text="自动刷新：" VerticalAlignment="Center" Margin="0,0,5,5"
                                        Foreground="{DynamicResource TextPrimaryBrush}" />
-                            <ComboBox MinWidth="140" SelectedItem="{Binding AutoRefresh}"
+                            <ComboBox MinWidth="160" SelectedItem="{Binding AutoRefresh}"
                                       ItemsSource="{Binding AutoRefreshTypes}" Margin="0,0,20,5">
                                 <ComboBox.ItemTemplate>
                                     <DataTemplate>
@@ -318,14 +324,14 @@
                             </ComboBox>
 
                             <Button Command="{Binding RefreshAllStatisticsCommand}"
-                                    Style="{StaticResource StandardButtonStyle}" Padding="10,5" Margin="0,0,10,5">
+                                    Style="{StaticResource StandardButtonStyle}" Padding="10,5" Margin="0,0,0,5">
                     <controls:IconLabel Glyph="{x:Static icons:AppIcons.Refresh}" Text="立即刷新所有统计数据" />
                 </Button>
-                            <Button Command="{Binding ClearStatisticsCacheCommand}"
-                                    Style="{StaticResource StandardButtonStyle}" Padding="10,5" Margin="0,0,0,5">
-                    <controls:IconLabel Glyph="{x:Static icons:AppIcons.Clear}" Text="清除统计缓存" />
-                </Button>
                         </WrapPanel>
+                        <TextBlock Text="「加载仪表盘时刷新」会跳过短时缓存，从数据库重新统计。关着程序不会后台刷新。"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                   FontSize="{DynamicResource SmallFontSize}"
+                                   TextWrapping="Wrap" />
                     </StackPanel>
                 </Border>
             </Grid>

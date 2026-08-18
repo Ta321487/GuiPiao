@@ -194,9 +194,11 @@ public enum ChartType
 /// </summary>
 public enum AutoRefreshType
 {
-    Off,
-    OnStartup,
-    Weekly
+    Off = 0,
+    /// <summary>加载仪表盘时跳过短时缓存、从数据库取数。JSON 名保持 OnStartup。</summary>
+    OnStartup = 1,
+    /// <summary>旧版「每周周日凌晨」；读取时视为 <see cref="Off"/>，不再出现在选项里。</summary>
+    Weekly = 2
 }
 
 /// <summary>
@@ -278,9 +280,12 @@ public static class AutoRefreshTypeNames
     public static readonly Dictionary<AutoRefreshType, string> Names = new()
     {
         { AutoRefreshType.Off, "关闭" },
-        { AutoRefreshType.OnStartup, "每次启动程序" },
-        { AutoRefreshType.Weekly, "每周（周日凌晨）" }
+        { AutoRefreshType.OnStartup, "加载仪表盘时刷新" }
     };
+
+    /// <summary>旧 Weekly 配置当作关闭，避免整份 dashboardsettings.json 反序列化失败。</summary>
+    public static AutoRefreshType Normalize(AutoRefreshType type) =>
+        type == AutoRefreshType.Weekly ? AutoRefreshType.Off : type;
 }
 
 /// <summary>

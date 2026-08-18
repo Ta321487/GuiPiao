@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Timers;
 using System.Windows;
 using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -16,7 +15,6 @@ using GuiPiao.Model;
 using GuiPiao.Services;
 using GuiPiao.Utils;
 using GuiPiao.View;
-using Timer = System.Timers.Timer;
 
 namespace GuiPiao.ViewModel;
 
@@ -42,9 +40,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
     private bool _isInitialized;
 
     private bool _isInitializingDashboard;
-    private bool _isPendingAutoRefresh;
     private bool _deferredInitializationScheduled;
-    private Timer? _weeklyRefreshTimer;
 
     public DashboardViewModel()
     {
@@ -56,13 +52,6 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
             Debug.WriteLine("[OpenStatisticsConfigMessage] Received");
             EnsureInitialized();
             Application.Current.Dispatcher.Invoke(() => { StatisticsConfigCommand(); });
-        });
-
-        WeakReferenceMessenger.Default.Register<RefreshStatisticsMessage>(this, async (recipient, message) =>
-        {
-            Debug.WriteLine("[RefreshStatisticsMessage] Received");
-            EnsureInitialized();
-            await RefreshStatisticsCommand();
         });
     }
 
@@ -90,7 +79,10 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         {
             _deferredInitializationScheduled = false;
             if (!_isDisposed)
+            {
                 EnsureInitialized();
+                _ = InitializeDashboardAsync();
+            }
         }, DispatcherPriority.ApplicationIdle);
     }
 
@@ -115,11 +107,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
 
         DashboardSettingsViewModel.DashboardConfigSaved -= OnDashboardConfigSaved;
         _dashboardSettingsService.ConfigSaved -= OnDashboardConfigSavedFromService;
-        DashboardSettingsViewModel.StatisticsRefreshRequested -= OnStatisticsRefreshRequested;
-        DashboardSettingsViewModel.StatisticsCacheClearRequested -= OnStatisticsCacheClearRequested;
 
-        _weeklyRefreshTimer?.Stop();
-        _weeklyRefreshTimer?.Dispose();
         _loadChartsLock?.Dispose();
 
         foreach (var chart in _dashboardCharts) chart.Dispose();
@@ -138,31 +126,6 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         // 订阅仪表盘配置保存事件
         DashboardSettingsViewModel.DashboardConfigSaved += OnDashboardConfigSaved;
         _dashboardSettingsService.ConfigSaved += OnDashboardConfigSavedFromService;
-
-        // 订阅统计数据刷新事件
-        DashboardSettingsViewModel.StatisticsRefreshRequested += OnStatisticsRefreshRequested;
-        DashboardSettingsViewModel.StatisticsCacheClearRequested += OnStatisticsCacheClearRequested;
-
-        // 初始化仪表盘
-        _ = InitializeDashboardAsync();
-
-        // 应用自动刷新策略
-        ApplyAutoRefreshStrategy();
-
-        // 如果配置为 OnStartup，延迟后自动刷新数据
-        if (_dashboardSettingsService.Config.AutoRefresh == AutoRefreshType.OnStartup)
-        {
-            _isPendingAutoRefresh = true;
-            _ = Task.Run(async () =>
-            {
-                await Task.Delay(3000);
-                if (_isInitialized && !_isDisposed)
-                    await Application.Current.Dispatcher.InvokeAsync(async () =>
-                    {
-                        await RefreshDashboardDataAsync();
-                    });
-            });
-        }
 
         Debug.WriteLine("[DashboardViewModel] 延迟初始化完成");
     }
@@ -237,6 +200,9 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
                 DashboardCharts.Clear();
             });
 
+            if (_dashboardSettingsService.Config.AutoRefresh == AutoRefreshType.OnStartup)
+                ChartDataService.ClearCache();
+
             Debug.WriteLine($"[LoadDashboardChartsAsync] Cards count: {config.Cards?.Count ?? 0}");
 
             if (config.Cards == null || config.Cards.Count == 0)
@@ -310,6 +276,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
     [RelayCommand]
     public void StatisticsConfigCommand()
     {
+        EnsureInitialized();
         Debug.WriteLine("[DashboardViewModel] StatisticsConfigCommand 被调用");
         var settingsWindow = new SettingsWindow(SettingsPageType.Dashboard);
         Debug.WriteLine("[DashboardViewModel] 打开 SettingsWindow");
@@ -322,6 +289,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
     [RelayCommand]
     public async Task RefreshStatisticsCommand()
     {
+        EnsureInitialized();
         MessageBoxWindow? progressWindow = null;
 
         try
@@ -364,17 +332,9 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         }
     }
 
-    private async Task RefreshDashboardDataAsync()
-    {
-        Debug.WriteLine("[DashboardViewModel] 自动刷新仪表盘数据");
-        await RefreshChartDataAndReloadAsync(false);
-        Debug.WriteLine("[DashboardViewModel] 仪表盘数据刷新完成");
-    }
-
     private async Task RefreshChartDataAndReloadAsync(bool reloadConfig)
     {
-        // 触发数据刷新（通知所有图表重新加载数据）
-        _chartDataService?.RefreshData();
+        ChartDataService.RefreshData();
 
         if (reloadConfig)
         {
@@ -384,45 +344,6 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         else
         {
             await LoadDashboardChartsAsync();
-        }
-    }
-
-    private void SetupWeeklyRefreshTimer()
-    {
-        var now = DateTime.Now;
-        var daysUntilSunday = ((int)DayOfWeek.Sunday - (int)now.DayOfWeek + 7) % 7;
-        if (daysUntilSunday == 0 && now.Hour >= 0) daysUntilSunday = 7;
-        var nextSunday = now.Date.AddDays(daysUntilSunday);
-        var timeUntilNextSunday = nextSunday - now;
-
-        Debug.WriteLine($"[DashboardViewModel] 设置每周自动刷新定时器，下次执行时间: {nextSunday}");
-
-        _weeklyRefreshTimer?.Stop();
-        _weeklyRefreshTimer?.Dispose();
-
-        _weeklyRefreshTimer = new Timer(timeUntilNextSunday.TotalMilliseconds);
-        _weeklyRefreshTimer.Elapsed += OnWeeklyRefreshTimerElapsed;
-        _weeklyRefreshTimer.AutoReset = false;
-        _weeklyRefreshTimer.Start();
-    }
-
-    private async void OnWeeklyRefreshTimerElapsed(object? sender, ElapsedEventArgs e)
-    {
-        try
-        {
-            _weeklyRefreshTimer?.Stop();
-            _weeklyRefreshTimer?.Dispose();
-
-            Debug.WriteLine("[DashboardViewModel] 每周自动刷新触发");
-            await RefreshDashboardDataAsync();
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"[DashboardViewModel] 每周自动刷新失败: {ex.Message}");
-        }
-        finally
-        {
-            SetupWeeklyRefreshTimer();
         }
     }
 
@@ -437,9 +358,6 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
                 _dashboardSettingsService.RefreshConfig();
                 OnPropertyChanged(nameof(DashboardConfig));
                 await InitializeDashboardAsync();
-
-                // 重新应用自动刷新策略
-                ApplyAutoRefreshStrategy();
             }
             catch (Exception ex)
             {
@@ -448,53 +366,10 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         });
     }
 
-    /// <summary>
-    ///     应用自动刷新策略
-    /// </summary>
-    private void ApplyAutoRefreshStrategy()
-    {
-        var autoRefreshType = _dashboardSettingsService.Config.AutoRefresh;
-        Debug.WriteLine($"[DashboardViewModel] 应用自动刷新策略: {autoRefreshType}");
-
-        // 停止现有的定时器
-        _weeklyRefreshTimer?.Stop();
-        _weeklyRefreshTimer?.Dispose();
-        _weeklyRefreshTimer = null;
-
-        switch (autoRefreshType)
-        {
-            case AutoRefreshType.Weekly:
-                SetupWeeklyRefreshTimer();
-                break;
-            case AutoRefreshType.OnStartup:
-                // OnStartup 只在程序启动时执行，不需要设置定时器
-                Debug.WriteLine("[DashboardViewModel] 自动刷新策略为 OnStartup，下次启动时自动刷新");
-                break;
-            case AutoRefreshType.Off:
-            default:
-                Debug.WriteLine("[DashboardViewModel] 自动刷新已关闭");
-                break;
-        }
-    }
-
     private void OnDashboardConfigSavedFromService(object? sender, EventArgs e)
     {
         Debug.WriteLine("[DashboardViewModel] 收到 ConfigSaved 事件");
         OnPropertyChanged(nameof(DashboardConfig));
-    }
-
-    private async void OnStatisticsRefreshRequested(object? sender, EventArgs e)
-    {
-        Debug.WriteLine("[DashboardViewModel] 收到 StatisticsRefreshRequested 事件");
-        // 使用统一的刷新方法，带进度对话框
-        await RefreshStatisticsCommand();
-    }
-
-    private void OnStatisticsCacheClearRequested(object? sender, EventArgs e)
-    {
-        Debug.WriteLine("[DashboardViewModel] 收到 StatisticsCacheClearRequested 事件");
-        // 触发数据刷新事件，通知所有图表重新加载
-        _chartDataService?.ClearCache();
     }
 
     [RelayCommand]
