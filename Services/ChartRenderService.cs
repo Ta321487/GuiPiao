@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using GuiPiao.Model;
+using GuiPiao.Utils;
 using GuiPiao.ViewModel;
 using SkiaSharp;
 
@@ -253,7 +254,7 @@ public class ChartRenderService : IDisposable
                 TextAlign = SKTextAlign.Center,
                 Typeface = SKTypeface.FromFamilyName("Microsoft YaHei")
             };
-            canvas.DrawText(FormatValue(value), x + barWidth / 2f, y - 10f, valuePaint);
+            canvas.DrawText(FormatValue(chartViewModel, value), x + barWidth / 2f, y - 10f, valuePaint);
 
             using var labelPaint = new SKPaint
             {
@@ -324,7 +325,7 @@ public class ChartRenderService : IDisposable
                 TextAlign = SKTextAlign.Left,
                 Typeface = SKTypeface.FromFamilyName("Microsoft YaHei")
             };
-            canvas.DrawText($"{label}: {FormatValue(value)}", legendX + 24f, legendY + i * 30f + 12f, textPaint);
+            canvas.DrawText($"{label}: {FormatValue(chartViewModel, value)}", legendX + 24f, legendY + i * 30f + 12f, textPaint);
         }
 
         return true;
@@ -384,7 +385,7 @@ public class ChartRenderService : IDisposable
                 TextAlign = SKTextAlign.Left,
                 Typeface = SKTypeface.FromFamilyName("Microsoft YaHei")
             };
-            canvas.DrawText(FormatValue(value), x + barWidth + 8f, y + barHeight / 2f + 4f, valuePaint);
+            canvas.DrawText(FormatValue(chartViewModel, value), x + barWidth + 8f, y + barHeight / 2f + 4f, valuePaint);
         }
 
         return true;
@@ -441,7 +442,7 @@ public class ChartRenderService : IDisposable
             canvas.DrawLine(startX - 5, y, startX, y, axisPaint);
 
             // 绘制刻度值
-            canvas.DrawText(FormatValue(value), startX - 8, y + 3, yLabelPaint);
+            canvas.DrawText(FormatValue(chartViewModel, value), startX - 8, y + 3, yLabelPaint);
         }
 
         var points = new SKPoint[values.Length];
@@ -487,7 +488,7 @@ public class ChartRenderService : IDisposable
         for (var i = 0; i < points.Length; i++)
         {
             canvas.DrawCircle(points[i].X, points[i].Y, 5f, pointPaint);
-            canvas.DrawText(FormatValue(values[i]), points[i].X, points[i].Y - 12f, valuePaint);
+            canvas.DrawText(FormatValue(chartViewModel, values[i]), points[i].X, points[i].Y - 12f, valuePaint);
         }
 
         using var labelPaint = new SKPaint
@@ -541,15 +542,20 @@ public class ChartRenderService : IDisposable
             var value = i < values.Length ? values[i] : 0;
 
             canvas.DrawText($"• {label}", Padding, startY, labelPaint);
-            canvas.DrawText(FormatValue(value), ChartWidth - Padding, startY, valuePaint);
+            canvas.DrawText(FormatValue(chartViewModel, value), ChartWidth - Padding, startY, valuePaint);
             startY += 28f;
         }
 
         if (values.Length > 20) canvas.DrawText($"... 共 {values.Length} 项", Padding, startY, labelPaint);
     }
 
-    private string FormatValue(double value)
+    private static string FormatValue(DashboardChartViewModel? chartViewModel, double value)
     {
+        var seriesName = chartViewModel?.ChartData?.SeriesName ?? string.Empty;
+        if (MoneyFormat.LooksLikeMoneyCaption(seriesName))
+            return MoneyFormat.Display(value);
+        if (seriesName.Contains("次数") || seriesName.Contains("数量") || seriesName.Contains("占比"))
+            return value.ToString("F0");
         if (value >= 10000)
             return value.ToString("N0");
         if (value == Math.Floor(value))

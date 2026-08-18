@@ -121,18 +121,8 @@ public partial class TicketPreviewDraft : ObservableObject, IDisposable
         IdMask = ComputeDefaultIdMask(value);
     }
 
-    /// <summary>左侧表单金额：¥ + N2</summary>
-    public string MoneyFormN2
-    {
-        get
-        {
-            if (string.IsNullOrWhiteSpace(Source.Money)) return string.Empty;
-            var raw = Source.Money.Trim().TrimStart('¥', '￥');
-            return decimal.TryParse(raw, NumberStyles.Any, CultureInfo.InvariantCulture, out var d)
-                ? $"¥{d:N2}"
-                : $"¥{raw}";
-        }
-    }
+    /// <summary>只读展示：￥ + 两位小数。</summary>
+    public string MoneyFormN2 => MoneyFormat.DisplayFromRaw(Source.Money);
 
     /// <summary>票面金额：一位小数（文档与表单可不一致）</summary>
     public string MoneyTicketN1
@@ -140,10 +130,9 @@ public partial class TicketPreviewDraft : ObservableObject, IDisposable
         get
         {
             if (string.IsNullOrWhiteSpace(Source.Money)) return string.Empty;
-            var raw = Source.Money.Trim().TrimStart('¥', '￥');
-            return decimal.TryParse(raw, NumberStyles.Any, CultureInfo.InvariantCulture, out var d)
+            return MoneyFormat.TryParse(Source.Money, out var d)
                 ? d.ToString("0.0", CultureInfo.InvariantCulture)
-                : raw;
+                : MoneyFormat.Strip(Source.Money);
         }
     }
 

@@ -58,7 +58,7 @@ public enum DateFormatOption
 public enum MoneyFormatOption
 {
     Yuan = 0, // 523.50
-    YuanWithSymbol = 1, // ¥523.50
+    YuanWithSymbol = 1, // ￥523.50
     Fen = 2 // 52350
 }
 

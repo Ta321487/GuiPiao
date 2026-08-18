@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using GuiPiao.Utils;
 using GuiPiao.ViewModel;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
@@ -417,7 +418,7 @@ public class ChartExportService : IDisposable
                 var valueRect = new XRect(marginLeft + colWidth + 5, y, colWidth - 10, 20);
 
                 gfx.DrawString(xLabels[i], normalFont, XBrushes.Black, labelRect, XStringFormats.CenterLeft);
-                gfx.DrawString(FormatValueForPdf(xValues[i]), normalFont, XBrushes.Black, valueRect,
+                gfx.DrawString(FormatValueForPdf(chart, xValues[i]), normalFont, XBrushes.Black, valueRect,
                     XStringFormats.CenterRight);
 
                 y += 20;
@@ -425,8 +426,11 @@ public class ChartExportService : IDisposable
         }
     }
 
-    private string FormatValueForPdf(double value)
+    private static string FormatValueForPdf(DashboardChartViewModel chart, double value)
     {
+        var seriesName = chart.ChartData?.SeriesName ?? string.Empty;
+        if (MoneyFormat.LooksLikeMoneyCaption(seriesName))
+            return MoneyFormat.Display(value);
         if (value >= 1000)
             return value.ToString("N0");
         if (value == Math.Floor(value))

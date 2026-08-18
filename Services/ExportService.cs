@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using GuiPiao.DataAccess;
 using GuiPiao.Model;
+using GuiPiao.Utils;
 using NPOI.XSSF.UserModel;
 using PdfSharpCore.Drawing;
 using PdfSharpCore.Pdf;
@@ -605,7 +606,7 @@ public class ExportService
         if (config.ExportCoachNo) values.Add(ride.CoachNo);
         if (config.ExportSeatNo) values.Add(ride.SeatNo);
         if (config.ExportSeatType) values.Add(ride.SeatType);
-        if (config.ExportMoney) values.Add(FormatMoney(ride.Money, MoneyFormatOption.Yuan));
+        if (config.ExportMoney) values.Add(FormatMoney(ride.Money, MoneyFormatOption.YuanWithSymbol));
         if (config.ExportCheckInLocation) values.Add(ride.CheckInLocation);
         if (config.ExportTags) values.Add("");
         if (config.ExportAdditionalInfo) values.Add(ride.AdditionalInfo ?? "");
@@ -655,7 +656,7 @@ public class ExportService
         return format switch
         {
             MoneyFormatOption.Yuan => money.ToString("F2"),
-            MoneyFormatOption.YuanWithSymbol => "¥" + money.ToString("F2"),
+            MoneyFormatOption.YuanWithSymbol => MoneyFormat.SymbolText + money.ToString("F2"),
             MoneyFormatOption.Fen => (money * 100).ToString("F0"),
             _ => money.ToString("F2")
         };

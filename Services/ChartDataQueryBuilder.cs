@@ -82,7 +82,7 @@ public static class ChartDataQueryBuilder
             "出行次数" => tripKeySelector != null
                 ? group.Select(tripKeySelector).Distinct().Count() // 按行程去重
                 : group.Sum(countSelector),
-            "平均单次花费" => group.Any() ? group.Average(priceSelector) : 0,
+            "平均单次花费" or "平均花费" => group.Any() ? group.Average(priceSelector) : 0,
             _ => group.Sum(countSelector) // 默认出行次数
         };
     }

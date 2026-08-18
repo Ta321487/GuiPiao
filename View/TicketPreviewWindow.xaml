@@ -534,9 +534,17 @@
                                              IsReadOnly="{Binding DataContext.IsTripFieldsReadOnly, RelativeSource={RelativeSource AncestorType=Window}}"
                                              Text="{Binding Source.SeatNo, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                     <TextBlock Grid.Column="2" Text="票价" Style="{StaticResource FormLabel}" />
-                                    <TextBox Grid.Column="3" Style="{StaticResource FormBox}"
-                                             IsReadOnly="{Binding DataContext.IsTripFieldsReadOnly, RelativeSource={RelativeSource AncestorType=Window}}"
-                                             Text="{Binding Source.Money, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    <Grid Grid.Column="3">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="￥" Style="{StaticResource FormLabel}" Margin="0,0,4,0"
+                                                   VerticalAlignment="Center" />
+                                        <TextBox Grid.Column="1" Style="{StaticResource FormBox}"
+                                                 IsReadOnly="{Binding DataContext.IsTripFieldsReadOnly, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                 Text="{Binding Source.Money, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    </Grid>
                                 </Grid>
                                 <Grid Margin="0,0,0,4">
                                     <Grid.ColumnDefinitions>

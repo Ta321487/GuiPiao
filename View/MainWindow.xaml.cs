@@ -1397,7 +1397,12 @@ public partial class MainWindow : Window
         }
 
         // 普通文本列
-        var fieldName = config.FieldName == "ArriveTime" ? "ArriveTimeDisplay" : config.FieldName;
+        var fieldName = config.FieldName switch
+        {
+            "ArriveTime" => "ArriveTimeDisplay",
+            "Money" => "MoneyDisplay",
+            _ => config.FieldName
+        };
         var binding = new Binding(fieldName);
 
         // 日期列使用格式化转换器
@@ -1407,7 +1412,7 @@ public partial class MainWindow : Window
         {
             Header = config.Header,
             Binding = binding,
-            SortMemberPath = fieldName == "ArriveTimeDisplay" ? "ArriveTime" : fieldName,
+            SortMemberPath = fieldName is "ArriveTimeDisplay" or "MoneyDisplay" ? config.FieldName : fieldName,
             Width = columnWidth,
             MinWidth = config.MinWidth,
             IsReadOnly = config.IsReadOnly

@@ -83,7 +83,8 @@
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
                             <TextBlock Text="金额:" Width="80" VerticalAlignment="Center" />
-                            <TextBox Text="{Binding Money}" Width="200" />
+                            <TextBlock Text="￥" VerticalAlignment="Center" Margin="0,0,4,0" />
+                            <TextBox Text="{Binding Money}" Width="180" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
                             <TextBlock Text="席别:" Width="80" VerticalAlignment="Center" />

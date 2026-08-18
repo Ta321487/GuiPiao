@@ -130,7 +130,9 @@
                 <VerticalStackLayout Spacing="10">
                     <Label Text="出发 *" FontAttributes="Bold" />
                     <Label Text="日期" FontSize="{DynamicResource SmallFontSize}" TextColor="{DynamicResource TextSecondary}" />
-                    <DatePicker Date="{Binding DepartDateValue}" />
+                    <DatePicker Date="{Binding DepartDateValue}"
+                                MinimumDate="{Binding DepartDateMin}"
+                                MaximumDate="{Binding DepartDateMax}" />
                     <Label Text="时间" FontSize="{DynamicResource SmallFontSize}" TextColor="{DynamicResource TextSecondary}" />
                     <TimePicker Time="{Binding DepartTimeValue}" />
                 </VerticalStackLayout>
@@ -257,7 +259,10 @@
                         </Border.Triggers>
                         <VerticalStackLayout Spacing="4" Padding="4">
                             <Label Text="金额 *" FontAttributes="Bold" />
-                            <Entry Text="{Binding MoneyText}" Keyboard="Numeric" Placeholder="0.00" />
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="6">
+                                <Label Text="￥" VerticalOptions="Center" />
+                                <Entry Grid.Column="1" Text="{Binding MoneyText}" Keyboard="Numeric" Placeholder="0.00" />
+                            </Grid>
                         </VerticalStackLayout>
                     </Border>
                     <Label Text="状态 *" FontAttributes="Bold" />

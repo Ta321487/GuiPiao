@@ -1,3 +1,5 @@
+using GuiPiao.Mobile.Services;
+
 namespace GuiPiao.Mobile.Model;
 
 /// <summary>手机副本行程（字段与同步 ride payload 对齐）。</summary>
@@ -83,7 +85,7 @@ public class MobileRide
     public string CoachNoDisplay => OrDash(CoachNo);
     public string SeatNoDisplay => OrDash(SeatNo);
     public string SeatTypeDisplay => OrDash(SeatType);
-    public string MoneyDisplay => $"¥{Money:0.00}";
+    public string MoneyDisplay => MoneyFormat.Display(Money);
     public string AdditionalInfoDisplay => OrDash(AdditionalInfo);
     public string TicketPurposeDisplay => OrDash(TicketPurpose);
     public string TicketModificationTypeDisplay => OrDash(TicketModificationType);
@@ -158,7 +160,8 @@ public class MobileRide
     public bool HasFaceSeatType => FaceSeatType.Length > 0;
 
     /// <summary>票面金额一位小数 + ￥…元</summary>
-    public string FaceMoneyLine => $"￥{Money.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture)}元";
+    public string FaceMoneyLine =>
+        $"{MoneyFormat.SymbolText}{Money.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture)}元";
 
     public string FaceModification => (TicketModificationType ?? "").Trim();
     public bool HasFaceModification => FaceModification.Length > 0;

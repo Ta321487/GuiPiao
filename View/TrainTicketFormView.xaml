@@ -310,10 +310,19 @@
                         <StackPanel Background="{Binding HighlightMoney, Converter={StaticResource BoolToImportHighlightBrushConverter}}">
                             <TextBlock Text="金额 *" FontSize="{DynamicResource BaseFontSize}"
                                        Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4" />
-                            <TextBox Text="{Binding MoneyText}"
-                                     FontSize="{DynamicResource BaseFontSize}"
-                                     Padding="8,6"
-                                     MinHeight="{DynamicResource StandardRowHeight}" />
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="￥" VerticalAlignment="Center" Margin="0,0,6,0"
+                                           FontSize="{DynamicResource BaseFontSize}"
+                                           Foreground="{DynamicResource TextPrimaryBrush}" />
+                                <TextBox Grid.Column="1" Text="{Binding MoneyText}"
+                                         FontSize="{DynamicResource BaseFontSize}"
+                                         Padding="8,6"
+                                         MinHeight="{DynamicResource StandardRowHeight}" />
+                            </Grid>
                         </StackPanel>
                     </StackPanel>
                 </Grid>

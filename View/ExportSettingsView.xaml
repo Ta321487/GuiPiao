@@ -116,7 +116,7 @@
                             <ComboBox MinWidth="120" SelectedValue="{Binding ExcelMoneyFormat}" SelectedValuePath="Tag"
                                       Margin="0,0,0,5">
                                 <ComboBoxItem Content="523.50" Tag="{x:Static model:MoneyFormatOption.Yuan}" />
-                                <ComboBoxItem Content="¥523.50" Tag="{x:Static model:MoneyFormatOption.YuanWithSymbol}" />
+                                <ComboBoxItem Content="￥523.50" Tag="{x:Static model:MoneyFormatOption.YuanWithSymbol}" />
                                 <ComboBoxItem Content="52350" Tag="{x:Static model:MoneyFormatOption.Fen}" />
                             </ComboBox>
                         </WrapPanel>
@@ -170,7 +170,7 @@
                             <ComboBox MinWidth="120" SelectedValue="{Binding CsvMoneyFormat}" SelectedValuePath="Tag"
                                       Margin="0,0,0,5">
                                 <ComboBoxItem Content="523.50" Tag="{x:Static model:MoneyFormatOption.Yuan}" />
-                                <ComboBoxItem Content="¥523.50" Tag="{x:Static model:MoneyFormatOption.YuanWithSymbol}" />
+                                <ComboBoxItem Content="￥523.50" Tag="{x:Static model:MoneyFormatOption.YuanWithSymbol}" />
                                 <ComboBoxItem Content="52350" Tag="{x:Static model:MoneyFormatOption.Fen}" />
                             </ComboBox>
                         </WrapPanel>

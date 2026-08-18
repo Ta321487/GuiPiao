@@ -13,6 +13,7 @@ using CommunityToolkit.Mvvm.Input;
 using GuiPiao.DataAccess;
 using GuiPiao.Model;
 using GuiPiao.Services;
+using GuiPiao.Utils;
 using GuiPiao.View;
 using Microsoft.Web.WebView2.Wpf;
 
@@ -587,7 +588,7 @@ public partial class MapWindowViewModel : ObservableObject
                 $"出发日期：{ticket.DepartDate}\n" +
                 $"出发时间：{ticket.DepartTime}\n" +
                 $"座位类型：{ticket.SeatType}\n" +
-                $"票价：¥{ticket.Price:F2}\n" +
+                $"票价：{MoneyFormat.Display((decimal)ticket.Price)}\n" +
                 $"状态：{ticket.Status}",
                 "车票详情");
         }
@@ -637,7 +638,7 @@ public partial class MapWindowViewModel : ObservableObject
                 $"车次：{ticket.TrainNo}\n" +
                 $"{ticket.DepartStation} → {ticket.ArriveStation}\n" +
                 $"{ticket.DepartDate} {ticket.DepartTime}\n" +
-                $"{ticket.SeatType} ¥{ticket.Price:F2}",
+                $"{ticket.SeatType} {MoneyFormat.Display((decimal)ticket.Price)}",
                 "车票预览");
         }
     }
@@ -674,7 +675,7 @@ public partial class MapWindowViewModel : ObservableObject
             $"出发次数：{departCount} 次\n" +
             $"到达次数：{arriveCount} 次\n" +
             $"经过总计：{stationTickets.Count} 次\n" +
-            $"出发总花费：¥{totalSpent:F2}",
+            $"出发总花费：{MoneyFormat.Display((decimal)totalSpent)}",
             "车站统计");
     }
 

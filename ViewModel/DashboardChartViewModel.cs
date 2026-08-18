@@ -8,6 +8,7 @@ using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using GuiPiao.Model;
 using GuiPiao.Services;
+using GuiPiao.Utils;
 using LiveChartsCore;
 using LiveChartsCore.Drawing;
 using LiveChartsCore.Measure;
@@ -636,8 +637,8 @@ public partial class DashboardChartViewModel : ObservableObject, IDisposable
             MinStep = 1, // 最小步长为1，确保显示整数刻度
             LabelsAlignment = Align.Start,
             Padding = new Padding(5, 0, 0, 0),
-            // 强制使用整数标签
-            Labeler = value => value.ToString("F0")
+            // 轴刻度与数据标签同一套金额/次数格式
+            Labeler = value => FormatValue(value)
         };
         RegisterSkiaResource(yAxis.NamePaint);
         RegisterSkiaResource(yAxis.LabelsPaint);
@@ -688,8 +689,8 @@ public partial class DashboardChartViewModel : ObservableObject, IDisposable
             MinStep = 1, // 最小步长为1，确保显示整数刻度
             LabelsAlignment = Align.Start,
             Padding = new Padding(0, 0, 0, 5),
-            // 强制使用整数标签
-            Labeler = value => value.ToString("F0")
+            // 轴刻度与数据标签同一套金额/次数格式
+            Labeler = value => FormatValue(value)
         };
         RegisterSkiaResource(xAxis.NamePaint);
         RegisterSkiaResource(xAxis.LabelsPaint);
@@ -772,13 +773,12 @@ public partial class DashboardChartViewModel : ObservableObject, IDisposable
         // 根据统计指标类型决定格式化方式
         var seriesName = ChartData?.SeriesName ?? "";
 
-        // 整数类型的统计指标
+        // 金额优先：避免「出行花费占比」被「占比」当成整数次数
+        if (MoneyFormat.LooksLikeMoneyCaption(seriesName))
+            return MoneyFormat.Display(value);
+
         if (seriesName.Contains("次数") || seriesName.Contains("数量") || seriesName.Contains("占比"))
             return value.ToString("F0"); // 整数
-
-        // 金额类型的统计指标
-        if (seriesName.Contains("花费") || seriesName.Contains("金额") || seriesName.Contains("成本"))
-            return value.ToString("F2"); // 2位小数
 
         // 默认1位小数
         return value.ToString("F1");

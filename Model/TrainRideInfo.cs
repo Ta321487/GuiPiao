@@ -28,6 +28,9 @@ public class TrainRideInfo
     public string CoachNo { get; set; } = string.Empty;
     public string SeatNo { get; set; } = string.Empty;
     public decimal Money { get; set; }
+
+    /// <summary>界面展示：￥0.00（入库仍为 <see cref="Money"/>）。</summary>
+    public string MoneyDisplay => MoneyFormat.Display(Money);
     public string SeatType { get; set; } = string.Empty;
     public string AdditionalInfo { get; set; } = string.Empty;
     public string TicketPurpose { get; set; } = string.Empty;

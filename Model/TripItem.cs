@@ -26,6 +26,11 @@ public partial class TripItem : ObservableObject
     [ObservableProperty] private int _arriveDayOffset;
     [ObservableProperty] private string _seatType = string.Empty;
     [ObservableProperty] private string _money = string.Empty;
+
+    /// <summary>界面展示：￥0.00；<see cref="Money"/> 仍为纯数字串。</summary>
+    public string MoneyDisplay => MoneyFormat.DisplayFromRaw(Money);
+
+    partial void OnMoneyChanged(string value) => OnPropertyChanged(nameof(MoneyDisplay));
     public int Status { get; set; }
 
     /// <summary>

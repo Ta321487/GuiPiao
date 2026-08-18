@@ -113,7 +113,7 @@ public class ChartDataService : IChartDataService
             TextListItems = labels.Select((label, index) => new TextListItem
             {
                 Label = label,
-                Value = values[index].ToString("F1")
+                Value = FormatListValue(config, values[index])
             }).ToList()
         };
     }
@@ -219,7 +219,7 @@ public class ChartDataService : IChartDataService
             TextListItems = labels.Select((label, index) => new TextListItem
             {
                 Label = label,
-                Value = $"{values[index]:F0} ({percentages?[index]:F1}%)"
+                Value = FormatListValue(config, values[index], percentages != null ? percentages[index] : null)
             }).ToList()
         };
     }
@@ -273,7 +273,7 @@ public class ChartDataService : IChartDataService
             TextListItems = labels.Select((label, index) => new TextListItem
             {
                 Label = label,
-                Value = values[index].ToString("F0")
+                Value = FormatListValue(config, values[index])
             }).ToList()
         };
     }
@@ -364,7 +364,7 @@ public class ChartDataService : IChartDataService
             TextListItems = labels.Select((label, index) => new TextListItem
             {
                 Label = label,
-                Value = $"{values[index]:F0} ({percentages?[index]:F1}%)"
+                Value = FormatListValue(config, values[index], percentages != null ? percentages[index] : null)
             }).ToList()
         };
     }
@@ -448,8 +448,8 @@ public class ChartDataService : IChartDataService
             {
                 Label = label,
                 Value = comparisonValues != null
-                    ? $"{values[index]:F0} (对比: {comparisonValues[index]:F0})"
-                    : values[index].ToString("F0")
+                    ? $"{FormatListValue(config, values[index])} (对比: {FormatListValue(config, comparisonValues[index])})"
+                    : FormatListValue(config, values[index])
             }).ToList()
         };
     }
@@ -495,24 +495,33 @@ public class ChartDataService : IChartDataService
                         }
                     };
                     Debug.WriteLine($"  车票 {t.TrainNo} {t.DepartTime} -> {period}");
-                    return period;
+                    return (Ticket: t, Period: period);
                 }
 
-                return "未知";
+                return (Ticket: t, Period: "未知");
             })
-            .Where(period => !string.IsNullOrEmpty(period))
-            .GroupBy(period => period)
-            .Select(g => new { Period = g.Key, Count = g.Count() })
+            .Where(x => !string.IsNullOrEmpty(x.Period))
+            .GroupBy(x => x.Period)
+            .Select(g => new
+            {
+                Period = g.Key,
+                Value = g.Select(x => x.Ticket).CalculateValue(
+                    config.StatisticIndicator,
+                    t => 1,
+                    t => t.Price,
+                    t => CalculateDistance(t.DepartLat, t.DepartLng, t.ArriveLat, t.ArriveLng),
+                    t => $"{t.DepartDate}_{t.DepartStation}_{t.ArriveStation}")
+            })
             .OrderBy(x => GetPeriodOrder(x.Period, config.ClassificationBasis, config.CustomTimePeriods))
             .ToList();
 
         Debug.WriteLine($"[GetTripTimeDistributionAsync] 分组结果: {timeData.Count} 组");
-        foreach (var item in timeData) Debug.WriteLine($"  {item.Period}: {item.Count}");
+        foreach (var item in timeData) Debug.WriteLine($"  {item.Period}: {item.Value}");
 
-        var total = timeData.Sum(x => x.Count);
+        var total = timeData.Sum(x => x.Value);
         var labels = timeData.Select(x => x.Period).ToArray();
-        var values = timeData.Select(x => (double)x.Count).ToArray();
-        var percentages = total > 0 ? timeData.Select(x => (double)x.Count / total * 100).ToArray() : null;
+        var values = timeData.Select(x => x.Value).ToArray();
+        var percentages = total > 0 ? timeData.Select(x => x.Value / total * 100).ToArray() : null;
 
         return new ChartData
         {
@@ -523,7 +532,7 @@ public class ChartDataService : IChartDataService
             TextListItems = labels.Select((label, index) => new TextListItem
             {
                 Label = label,
-                Value = $"{values[index]:F0} ({percentages?[index]:F1}%)"
+                Value = FormatListValue(config, values[index], percentages != null ? percentages[index] : null)
             }).ToList()
         };
     }
@@ -537,13 +546,22 @@ public class ChartDataService : IChartDataService
 
         var routeData = filtered
             .GroupBy(t => $"{t.DepartStation}-{t.ArriveStation}")
-            .Select(g => new { Route = g.Key, Count = g.Count() })
-            .OrderByDescending(x => x.Count)
+            .Select(g => new
+            {
+                Route = g.Key,
+                Value = g.CalculateValue(
+                    config.StatisticIndicator,
+                    t => 1,
+                    t => t.Price,
+                    t => CalculateDistance(t.DepartLat, t.DepartLng, t.ArriveLat, t.ArriveLng),
+                    t => $"{t.DepartDate}_{t.DepartStation}_{t.ArriveStation}")
+            })
+            .OrderByDescending(x => x.Value)
             .Take(config.TopCount)
             .ToList();
 
         var labels = routeData.Select(x => x.Route).ToArray();
-        var values = routeData.Select(x => (double)x.Count).ToArray();
+        var values = routeData.Select(x => x.Value).ToArray();
 
         return new ChartData
         {
@@ -553,7 +571,7 @@ public class ChartDataService : IChartDataService
             TextListItems = labels.Select((label, index) => new TextListItem
             {
                 Label = label,
-                Value = values[index].ToString("F0")
+                Value = FormatListValue(config, values[index])
             }).ToList()
         };
     }
@@ -601,7 +619,7 @@ public class ChartDataService : IChartDataService
             TextListItems = labels.Select((label, index) => new TextListItem
             {
                 Label = label,
-                Value = values[index].ToString("F2")
+                Value = FormatListValue(config, values[index])
             }).ToList()
         };
     }
@@ -845,6 +863,12 @@ public class ChartDataService : IChartDataService
         }
 
         return filtered;
+    }
+
+    private static string FormatListValue(StatisticCardConfig config, double value, double? percent = null)
+    {
+        var formatted = MoneyFormat.FormatStatisticValue(config.StatisticIndicator, value);
+        return percent.HasValue ? $"{formatted} ({percent.Value:F1}%)" : formatted;
     }
 
     #endregion
