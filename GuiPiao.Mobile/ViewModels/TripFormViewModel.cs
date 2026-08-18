@@ -139,6 +139,9 @@ public partial class TripFormViewModel : ObservableObject, IQueryAttributable
     public bool IsSeatInputEnabled => !IsNoSeat;
     public bool ShowSeatLetter => !IsNoSeat && SeatLetterOptions.Count > 0;
 
+    public DateTime DepartDateMin { get; } = new(1990, 1, 1);
+    public DateTime DepartDateMax => DateTime.Today.AddYears(2);
+
     public TripFormViewModel(
         RideRepository rides,
         TagRepository tags,

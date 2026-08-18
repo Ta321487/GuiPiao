@@ -1,11 +1,13 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:icons="clr-namespace:GuiPiao.Icons"
                     xmlns:view="clr-namespace:GuiPiao.View">
 
     <!-- 日历按钮样式 -->
     <Style x:Key="CalendarDayButtonStyle" TargetType="Button">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+        <Setter Property="Cursor" Value="Arrow" />
         <Setter Property="Width" Value="32" />
         <Setter Property="Height" Value="32" />
         <Setter Property="FontSize" Value="{DynamicResource BaseFontSize}" />
@@ -31,6 +33,9 @@
                                     Value="{DynamicResource AccentPressedBrush}" />
                             <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}" />
                         </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.35" />
+                        </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
@@ -41,6 +46,7 @@
     <Style x:Key="CalendarMonthYearButtonStyle" TargetType="Button">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+        <Setter Property="Cursor" Value="Arrow" />
         <Setter Property="Width" Value="56" />
         <Setter Property="Height" Value="56" />
         <Setter Property="FontSize" Value="{DynamicResource BaseFontSize}" />
@@ -66,6 +72,9 @@
                                     Value="{DynamicResource AccentPressedBrush}" />
                             <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}" />
                         </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.35" />
+                        </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
@@ -76,6 +85,7 @@
     <Style x:Key="CalendarNavButtonStyle" TargetType="Button">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+        <Setter Property="Cursor" Value="Arrow" />
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="Template">
             <Setter.Value>
@@ -96,6 +106,9 @@
                             <Setter TargetName="Border" Property="Background"
                                     Value="{DynamicResource AccentPressedBrush}" />
                             <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.35" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -203,61 +216,37 @@
                                     <Grid Grid.Row="0" Margin="0,0,0,8">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="Auto" />
-                                            <ColumnDefinition Width="Auto" />
                                             <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="Auto" />
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
 
-                                        <!-- 上一年 -->
-                                        <Button x:Name="PART_PreviousYearButton"
-                                                Grid.Column="0"
-                                                Width="24"
-                                                Height="24"
-                                                Style="{StaticResource CalendarNavButtonStyle}"
-                                                Content="&#xE971;"
-                                                FontFamily="Segoe MDL2 Assets"
-                                                FontSize="{DynamicResource SmallFontSize}"
-                                                Visibility="Collapsed" />
-
-                                        <!-- 上一月 -->
+                                        <!-- 上一页：日视图翻月，年视图翻 12 年 -->
                                         <Button x:Name="PART_PreviousButton"
                                                 Grid.Column="0"
                                                 Width="28"
                                                 Height="28"
                                                 Style="{StaticResource CalendarNavButtonStyle}"
-                                                Content="&#xE76B;"
+                                                Content="{x:Static icons:AppIcons.ChevronLeft}"
                                                 FontFamily="Segoe MDL2 Assets"
                                                 FontSize="{DynamicResource BaseFontSize}" />
 
                                         <!-- 年月标题按钮 -->
                                         <Button x:Name="PART_HeaderButton"
-                                                Grid.Column="2"
+                                                Grid.Column="1"
                                                 Style="{StaticResource CalendarNavButtonStyle}"
                                                 FontWeight="Bold"
                                                 HorizontalAlignment="Center"
                                                 Content="{Binding HeaderText, RelativeSource={RelativeSource TemplatedParent}}" />
 
-                                        <!-- 下一月 -->
+                                        <!-- 下一页 -->
                                         <Button x:Name="PART_NextButton"
-                                                Grid.Column="3"
+                                                Grid.Column="2"
                                                 Width="28"
                                                 Height="28"
                                                 Style="{StaticResource CalendarNavButtonStyle}"
-                                                Content="&#xE76C;"
+                                                Content="{x:Static icons:AppIcons.ChevronRight}"
                                                 FontFamily="Segoe MDL2 Assets"
-                                                FontSize="12" />
-
-                                        <!-- 下一年 -->
-                                        <Button x:Name="PART_NextYearButton"
-                                                Grid.Column="4"
-                                                Width="24"
-                                                Height="24"
-                                                Style="{StaticResource CalendarNavButtonStyle}"
-                                                Content="&#xE972;"
-                                                FontFamily="Segoe MDL2 Assets"
-                                                FontSize="10"
-                                                Visibility="Collapsed" />
+                                                FontSize="{DynamicResource BaseFontSize}" />
                                     </Grid>
 
                                     <!-- 星期标题（仅在日期视图显示） -->

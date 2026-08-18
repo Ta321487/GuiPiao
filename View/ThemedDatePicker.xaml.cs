@@ -6,6 +6,8 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 
+using GuiPiao.Utils;
+
 namespace GuiPiao.View;
 
 /// <summary>
@@ -52,6 +54,14 @@ public class ThemedDatePicker : Control
         DependencyProperty.Register(nameof(HeaderText), typeof(string), typeof(ThemedDatePicker),
             new PropertyMetadata(""));
 
+    public static readonly DependencyProperty DisplayDateStartProperty =
+        DependencyProperty.Register(nameof(DisplayDateStart), typeof(DateTime), typeof(ThemedDatePicker),
+            new PropertyMetadata(DatePickerBounds.Start, OnRangeChanged));
+
+    public static readonly DependencyProperty DisplayDateEndProperty =
+        DependencyProperty.Register(nameof(DisplayDateEnd), typeof(DateTime), typeof(ThemedDatePicker),
+            new PropertyMetadata(DateTime.MaxValue, OnRangeChanged));
+
     #endregion
 
     #region 属性
@@ -86,6 +96,18 @@ public class ThemedDatePicker : Control
         set => SetValue(HeaderTextProperty, value);
     }
 
+    public DateTime DisplayDateStart
+    {
+        get => (DateTime)GetValue(DisplayDateStartProperty);
+        set => SetValue(DisplayDateStartProperty, value);
+    }
+
+    public DateTime DisplayDateEnd
+    {
+        get => (DateTime)GetValue(DisplayDateEndProperty);
+        set => SetValue(DisplayDateEndProperty, value);
+    }
+
     #endregion
 
     #region 私有字段
@@ -100,8 +122,6 @@ public class ThemedDatePicker : Control
     private Button? _dropDownButton;
     private Button? _previousButton;
     private Button? _nextButton;
-    private Button? _previousYearButton;
-    private Button? _nextYearButton;
     private Button? _headerButton;
     private readonly Button[] _dayButtons = new Button[42];
     private readonly Button[] _monthButtons = new Button[12];
@@ -126,6 +146,7 @@ public class ThemedDatePicker : Control
     {
         Loaded += OnLoaded;
         Unloaded += OnUnloaded;
+        DisplayDateEnd = DatePickerBounds.End;
         UpdateHeaderText();
     }
 
@@ -162,8 +183,6 @@ public class ThemedDatePicker : Control
         _dropDownButton = GetTemplateChild("PART_DropDownButton") as Button;
         _previousButton = GetTemplateChild("PART_PreviousButton") as Button;
         _nextButton = GetTemplateChild("PART_NextButton") as Button;
-        _previousYearButton = GetTemplateChild("PART_PreviousYearButton") as Button;
-        _nextYearButton = GetTemplateChild("PART_NextYearButton") as Button;
         _headerButton = GetTemplateChild("PART_HeaderButton") as Button;
 
         // 绑定新事件
@@ -186,10 +205,6 @@ public class ThemedDatePicker : Control
             _previousButton.Click -= OnPreviousButtonClick;
         if (_nextButton != null)
             _nextButton.Click -= OnNextButtonClick;
-        if (_previousYearButton != null)
-            _previousYearButton.Click -= OnPreviousYearButtonClick;
-        if (_nextYearButton != null)
-            _nextYearButton.Click -= OnNextYearButtonClick;
         if (_headerButton != null)
             _headerButton.Click -= OnHeaderButtonClick;
         if (_border != null)
@@ -207,10 +222,6 @@ public class ThemedDatePicker : Control
             _previousButton.Click += OnPreviousButtonClick;
         if (_nextButton != null)
             _nextButton.Click += OnNextButtonClick;
-        if (_previousYearButton != null)
-            _previousYearButton.Click += OnPreviousYearButtonClick;
-        if (_nextYearButton != null)
-            _nextYearButton.Click += OnNextYearButtonClick;
         if (_headerButton != null)
             _headerButton.Click += OnHeaderButtonClick;
         if (_border != null)
@@ -242,6 +253,8 @@ public class ThemedDatePicker : Control
 
     private void OnPreviousButtonClick(object sender, RoutedEventArgs e)
     {
+        if (!CanGoPrevious()) return;
+
         switch (_displayMode)
         {
             case CalendarDisplayMode.Days:
@@ -259,6 +272,8 @@ public class ThemedDatePicker : Control
 
     private void OnNextButtonClick(object sender, RoutedEventArgs e)
     {
+        if (!CanGoNext()) return;
+
         switch (_displayMode)
         {
             case CalendarDisplayMode.Days:
@@ -274,24 +289,6 @@ public class ThemedDatePicker : Control
         }
     }
 
-    private void OnPreviousYearButtonClick(object sender, RoutedEventArgs e)
-    {
-        if (_displayMode == CalendarDisplayMode.Years)
-        {
-            _yearRangeStart -= 12;
-            UpdateYearsDisplay();
-        }
-    }
-
-    private void OnNextYearButtonClick(object sender, RoutedEventArgs e)
-    {
-        if (_displayMode == CalendarDisplayMode.Years)
-        {
-            _yearRangeStart += 12;
-            UpdateYearsDisplay();
-        }
-    }
-
     private void OnHeaderButtonClick(object sender, RoutedEventArgs e)
     {
         switch (_displayMode)
@@ -300,7 +297,8 @@ public class ThemedDatePicker : Control
                 SwitchToMode(CalendarDisplayMode.Months);
                 break;
             case CalendarDisplayMode.Months:
-                _yearRangeStart = DisplayDate.Year - 6;
+                _yearRangeStart = DatePickerBounds.ClampYearRangeStart(
+                    DisplayDate.Year - 6, DisplayDateStart, DisplayDateEnd);
                 SwitchToMode(CalendarDisplayMode.Years);
                 break;
             case CalendarDisplayMode.Years:
@@ -315,6 +313,9 @@ public class ThemedDatePicker : Control
     {
         if (sender is Button button && button.Tag is DateTime date)
         {
+            if (!DatePickerBounds.IsSelectable(date, DisplayDateStart, DisplayDateEnd))
+                return;
+
             SelectedDate = date;
             DisplayDate = date;
             IsDropDownOpen = false;
@@ -325,6 +326,9 @@ public class ThemedDatePicker : Control
     {
         if (sender is Button button && button.Tag is int month)
         {
+            if (!DatePickerBounds.MonthOverlapsRange(DisplayDate.Year, month, DisplayDateStart, DisplayDateEnd))
+                return;
+
             DisplayDate = new DateTime(DisplayDate.Year, month, 1);
             SwitchToMode(CalendarDisplayMode.Days);
         }
@@ -334,7 +338,14 @@ public class ThemedDatePicker : Control
     {
         if (sender is Button button && button.Tag is int year)
         {
-            DisplayDate = new DateTime(year, DisplayDate.Month, 1);
+            if (year < DisplayDateStart.Year || year > DisplayDateEnd.Year)
+                return;
+
+            var month = DisplayDate.Month;
+            if (!DatePickerBounds.MonthOverlapsRange(year, month, DisplayDateStart, DisplayDateEnd))
+                month = year == DisplayDateStart.Year ? DisplayDateStart.Month : DisplayDateEnd.Month;
+
+            DisplayDate = new DateTime(year, month, 1);
             SwitchToMode(CalendarDisplayMode.Months);
         }
     }
@@ -418,6 +429,11 @@ public class ThemedDatePicker : Control
         if ((bool)e.NewValue) picker.UpdateCalendarDisplay();
     }
 
+    private static void OnRangeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        ((ThemedDatePicker)d).UpdateCalendarDisplay();
+    }
+
     #endregion
 
     #region 私有方法
@@ -443,18 +459,12 @@ public class ThemedDatePicker : Control
             case CalendarDisplayMode.Days:
                 if (_daysGrid != null) _daysGrid.Visibility = Visibility.Visible;
                 if (_weekDaysGrid != null) _weekDaysGrid.Visibility = Visibility.Visible;
-                if (_previousYearButton != null) _previousYearButton.Visibility = Visibility.Collapsed;
-                if (_nextYearButton != null) _nextYearButton.Visibility = Visibility.Collapsed;
                 break;
             case CalendarDisplayMode.Months:
                 if (_monthsGrid != null) _monthsGrid.Visibility = Visibility.Visible;
-                if (_previousYearButton != null) _previousYearButton.Visibility = Visibility.Collapsed;
-                if (_nextYearButton != null) _nextYearButton.Visibility = Visibility.Collapsed;
                 break;
             case CalendarDisplayMode.Years:
                 if (_yearsGrid != null) _yearsGrid.Visibility = Visibility.Visible;
-                if (_previousYearButton != null) _previousYearButton.Visibility = Visibility.Visible;
-                if (_nextYearButton != null) _nextYearButton.Visibility = Visibility.Visible;
                 break;
         }
 
@@ -546,7 +556,38 @@ public class ThemedDatePicker : Control
                 UpdateYearsDisplay();
                 break;
         }
+
+        UpdateNavigationButtons();
     }
+
+    private DateTime RangeStart => DisplayDateStart;
+    private DateTime RangeEnd => DisplayDateEnd;
+
+    private bool CanGoPrevious() => _displayMode switch
+    {
+        CalendarDisplayMode.Days => DatePickerBounds.CanGoPreviousMonth(DisplayDate, RangeStart),
+        CalendarDisplayMode.Months => DatePickerBounds.CanGoPreviousYear(DisplayDate.Year, RangeStart),
+        CalendarDisplayMode.Years => DatePickerBounds.CanGoPreviousYearRange(_yearRangeStart, RangeStart),
+        _ => false
+    };
+
+    private bool CanGoNext() => _displayMode switch
+    {
+        CalendarDisplayMode.Days => DatePickerBounds.CanGoNextMonth(DisplayDate, RangeEnd),
+        CalendarDisplayMode.Months => DatePickerBounds.CanGoNextYear(DisplayDate.Year, RangeEnd),
+        CalendarDisplayMode.Years => DatePickerBounds.CanGoNextYearRange(_yearRangeStart, RangeEnd),
+        _ => false
+    };
+
+    private void UpdateNavigationButtons()
+    {
+        if (_previousButton != null) _previousButton.IsEnabled = CanGoPrevious();
+        if (_nextButton != null) _nextButton.IsEnabled = CanGoNext();
+    }
+
+    private bool IsDateSelectable(DateTime date) =>
+        DatePickerBounds.IsSelectable(date, RangeStart, RangeEnd)
+        || (SelectedDate.HasValue && SelectedDate.Value.Date == date.Date);
 
     private void UpdateDaysDisplay()
     {
@@ -570,6 +611,7 @@ public class ThemedDatePicker : Control
             var button = _dayButtons[i];
             button.Content = "";
             button.Tag = null;
+            button.IsEnabled = true;
             button.Visibility = Visibility.Hidden;
             button.ClearValue(BackgroundProperty);
             button.ClearValue(ForegroundProperty);
@@ -587,6 +629,7 @@ public class ThemedDatePicker : Control
                 button.Content = day.ToString();
                 button.Tag = date;
                 button.Visibility = Visibility.Visible;
+                button.IsEnabled = IsDateSelectable(date);
 
                 // 设置选中状态样式
                 if (SelectedDate.HasValue && SelectedDate.Value.Date == date.Date)
@@ -620,6 +663,7 @@ public class ThemedDatePicker : Control
             button.Content = day.ToString();
             button.Tag = date;
             button.Visibility = Visibility.Visible;
+            button.IsEnabled = IsDateSelectable(date);
             button.ClearValue(BackgroundProperty);
             button.BorderThickness = new Thickness(0);
             button.Foreground = (Brush)FindResource("CalendarOtherMonthBrush");
@@ -636,6 +680,7 @@ public class ThemedDatePicker : Control
             button.Content = nextMonthDay.ToString();
             button.Tag = date;
             button.Visibility = Visibility.Visible;
+            button.IsEnabled = IsDateSelectable(date);
             button.ClearValue(BackgroundProperty);
             button.BorderThickness = new Thickness(0);
             button.Foreground = (Brush)FindResource("CalendarOtherMonthBrush");
@@ -649,6 +694,8 @@ public class ThemedDatePicker : Control
         {
             var button = _monthButtons[i];
             var month = i + 1;
+            button.IsEnabled = DatePickerBounds.MonthOverlapsRange(
+                DisplayDate.Year, month, RangeStart, RangeEnd);
 
             // 设置选中状态样式
             if (DisplayDate.Month == month)
@@ -667,6 +714,7 @@ public class ThemedDatePicker : Control
     private void UpdateYearsDisplay()
     {
         if (_yearRangeStart == 0) _yearRangeStart = DisplayDate.Year - 6;
+        _yearRangeStart = DatePickerBounds.ClampYearRangeStart(_yearRangeStart, RangeStart, RangeEnd);
 
         for (var i = 0; i < 12; i++)
         {
@@ -674,6 +722,7 @@ public class ThemedDatePicker : Control
             var year = _yearRangeStart + i;
             button.Content = year.ToString();
             button.Tag = year;
+            button.IsEnabled = year >= RangeStart.Year && year <= RangeEnd.Year;
 
             // 设置选中状态样式
             if (DisplayDate.Year == year)
@@ -689,6 +738,7 @@ public class ThemedDatePicker : Control
         }
 
         UpdateHeaderText();
+        UpdateNavigationButtons();
     }
 
     private void UpdateTextBoxDisplay()
