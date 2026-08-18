@@ -6,7 +6,6 @@
     <Style x:Key="TimeAdjustButtonStyle" TargetType="Button">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderThickness" Value="0" />
-        <Setter Property="Cursor" Value="Hand" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
@@ -37,7 +36,6 @@
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="Height" Value="32" />
         <Setter Property="FontSize" Value="{DynamicResource SmallFontSize}" />
-        <Setter Property="Cursor" Value="Hand" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
@@ -70,7 +68,6 @@
         <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}" />
         <Setter Property="BorderThickness" Value="0" />
-        <Setter Property="Cursor" Value="Hand" />
         <Setter Property="FontSize" Value="{DynamicResource BaseFontSize}" />
         <Setter Property="Template">
             <Setter.Value>
@@ -100,7 +97,6 @@
         <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="Cursor" Value="Hand" />
         <Setter Property="FontSize" Value="{DynamicResource BaseFontSize}" />
         <Setter Property="Template">
             <Setter.Value>
