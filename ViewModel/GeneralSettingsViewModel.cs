@@ -560,6 +560,20 @@ public partial class GeneralSettingsViewModel : ObservableObject, ISettingsViewM
 
     public bool IsCardDefaultActionVisible => CardActionTrigger == "DoubleClick";
 
+    partial void OnOcrDirectSaveChanged(bool value)
+    {
+        if (_isLoadingConfig) return;
+        if (value && OcrEditConfirm)
+            OcrEditConfirm = false;
+    }
+
+    partial void OnOcrEditConfirmChanged(bool value)
+    {
+        if (_isLoadingConfig) return;
+        if (value && OcrDirectSave)
+            OcrDirectSave = false;
+    }
+
     partial void OnCardActionTriggerChanged(string value)
     {
         OnPropertyChanged(nameof(IsCardDefaultActionVisible));

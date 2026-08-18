@@ -85,7 +85,7 @@
                                 </StackPanel>
                             </RadioButton>
                             <RadioButton GroupName="AccentColor" IsChecked="{Binding IsCustomColor}" Margin="0,0,10,5">
-                                <StackPanel Orientation="Horizontal" Cursor="Hand">
+                                <StackPanel Orientation="Horizontal">
                                     <controls:IconLabel Glyph="{x:Static icons:AppIcons.Color}" Text="自定义" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
                                     <Border Width="24" Height="16"
                                             Background="{Binding CustomColorBrush}"
@@ -93,6 +93,7 @@
                                             BorderThickness="1"
                                             CornerRadius="2"
                                             Margin="8,0,0,0"
+                                            Cursor="Hand"
                                             ToolTip="点击选择颜色"
                                             MouseLeftButtonDown="CustomColorBorder_MouseLeftButtonDown" />
                                 </StackPanel>
@@ -210,14 +211,15 @@
                             </ComboBox>
                         </WrapPanel>
 
-                        <WrapPanel Margin="20,0,0,10" IsEnabled="False"
-                                   ToolTip="OCR 功能尚未接入，此项暂不可用">
+                        <WrapPanel Margin="20,0,0,10">
                             <TextBlock Text="OCR识别后行为：" VerticalAlignment="Center" Margin="0,0,10,5"
-                                       Foreground="{DynamicResource TextSecondaryBrush}" />
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
                             <RadioButton Content="直接保存" GroupName="OcrBehavior" IsChecked="{Binding OcrDirectSave}"
-                                         Margin="0,0,15,5" />
+                                         Margin="0,0,15,5"
+                                         ToolTip="识别通过校验后直接入库，不打开编辑窗" />
                             <RadioButton Content="弹出编辑窗口确认" GroupName="OcrBehavior"
-                                         IsChecked="{Binding OcrEditConfirm}" Margin="0,0,0,5" />
+                                         IsChecked="{Binding OcrEditConfirm}" Margin="0,0,0,5"
+                                         ToolTip="识别后先打开行程表单核对，再决定是否保存" />
                         </WrapPanel>
                     </StackPanel>
                 </Border>
