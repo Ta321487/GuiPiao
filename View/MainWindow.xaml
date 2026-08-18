@@ -109,10 +109,8 @@
         <Menu DockPanel.Dock="Top" Background="{DynamicResource MenuBackgroundBrush}">
             <!-- 1. 存储 -->
             <MenuItem Header="存储(_S)">
-                <MenuItem Header="数据导入">
-                    <MenuItem Header="从Excel/CSV导入..." Command="{Binding StorageMenuCommand}"
-                              CommandParameter="Import" />
-                </MenuItem>
+                <MenuItem Header="从表格导入..." Command="{Binding StorageMenuCommand}"
+                          CommandParameter="Import" />
                 <Separator />
                 <MenuItem Header="数据库操作">
                     <MenuItem Header="全量备份数据库..." Command="{Binding StorageMenuCommand}"
@@ -195,14 +193,12 @@
 
             <!-- 4. 工具集 -->
             <MenuItem Header="工具集(_T)">
-                <Separator />
                 <MenuItem Header="数据工具">
                     <MenuItem Header="票务数据校验..." Command="{Binding ToolsMenuCommand}" CommandParameter="DataVerify" InputGestureText="{Binding ShortcutKeys[DataVerify]}" />
                     <MenuItem Header="数据库碎片整理..." Command="{Binding ToolsMenuCommand}" CommandParameter="DbCompact" InputGestureText="{Binding ShortcutKeys[DbCompact]}" />
                     <Separator />
                     <MenuItem Header="日志管理..." Command="{Binding OpenLogManagerCommand}" InputGestureText="{Binding ShortcutKeys[OpenLogManager]}" />
                 </MenuItem>
-                <MenuItem Header="数据清理..." Command="{Binding ToolsMenuCommand}" CommandParameter="DataClean" />
                 <Separator />
                 <MenuItem Header="备份/恢复数据库..." Command="{Binding BackupRestoreDatabaseCommand}" InputGestureText="{Binding ShortcutKeys[BackupDatabase]}" />
             </MenuItem>
@@ -1454,7 +1450,7 @@
 
                                                 <!-- 底部：金额（所有模式都显示） -->
                                                 <Grid Grid.Row="8" Margin="12,6,12,10">
-                                                    <TextBlock Text="{Binding Money, StringFormat='{}{0:C}'}"
+                                                    <TextBlock Text="{Binding MoneyDisplay}"
                                                                FontSize="{DynamicResource BaseFontSize}"
                                                                FontWeight="Bold"
                                                                Foreground="{DynamicResource AccentForegroundBrush}"

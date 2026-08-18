@@ -59,7 +59,7 @@ public partial class MenuViewModel : ObservableObject
         switch (action)
         {
             case "Import":
-                await ImportFromExcelOrCsvAsync();
+                await ImportFromTableAsync();
                 break;
 
             case "BackupFull":
@@ -98,7 +98,7 @@ public partial class MenuViewModel : ObservableObject
 
     #region 数据导入
 
-    private async Task ImportFromExcelOrCsvAsync()
+    private async Task ImportFromTableAsync()
     {
         var owner = Application.Current.MainWindow;
 
@@ -106,52 +106,41 @@ public partial class MenuViewModel : ObservableObject
         {
             var dialog = new OpenFileDialog
             {
-                Title = "选择要导入的文件",
-                Filter = "Excel文件|*.xlsx;*.xls|CSV文件|*.csv|所有文件|*.*",
+                Title = "从表格导入",
+                Filter = "表格文件|*.xlsx;*.xls;*.csv|Excel 工作簿|*.xlsx;*.xls|CSV|*.csv|所有文件|*.*",
                 InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
             };
 
             if (dialog.ShowDialog() != true) return;
 
             var filePath = dialog.FileName;
-            var extension = Path.GetExtension(filePath).ToLower();
-
-            var importedCount = 0;
-
-            if (extension == ".csv")
+            var extension = Path.GetExtension(filePath).ToLowerInvariant();
+            if (extension is not (".csv" or ".xlsx" or ".xls"))
             {
-                importedCount = await _trainTicketService.ImportFromCsvAsync(filePath);
-            }
-            else if (extension == ".xlsx" || extension == ".xls")
-            {
-                MessageBoxWindow.Show(owner, "Excel导入功能即将推出，请先将Excel另存为CSV格式后导入。");
+                MessageBoxWindow.Show(owner, "不支持的文件格式，请选择 Excel（.xlsx / .xls）或 CSV。", "提示",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
-            else
-            {
-                MessageBoxWindow.Show(owner, "不支持的文件格式，请选择Excel或CSV文件。", "提示", MessageBoxButton.OK,
-                    MessageBoxImage.Warning);
-                return;
-            }
+
+            var importedCount = await _trainTicketService.ImportFromTableAsync(filePath);
 
             if (importedCount > 0)
             {
                 MessageBoxWindow.Show(owner, $"成功导入 {importedCount} 条票务记录！", "导入成功");
-                _logService?.Info("MenuViewModel", $"从 {filePath} 导入 {importedCount} 条记录");
-
-                // 发送刷新消息
+                _logService?.Info("MenuViewModel", $"从表格导入 {filePath}，共 {importedCount} 条");
                 WeakReferenceMessenger.Default.Send(new RefreshTripListMessage());
             }
             else
             {
-                MessageBoxWindow.Show(owner, "导入失败或未找到有效数据，请检查文件格式。", "导入失败", MessageBoxButton.OK,
-                    MessageBoxImage.Warning);
+                MessageBoxWindow.Show(owner, "导入失败或未找到有效数据，请检查表头与行列内容。", "导入失败",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
         catch (Exception ex)
         {
-            MessageBoxWindow.Show(owner, $"导入过程中发生错误:\n{ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
-            _logService?.Error("MenuViewModel", $"导入失败: {ex.Message}");
+            MessageBoxWindow.Show(owner, $"导入过程中发生错误:\n{ex.Message}", "错误", MessageBoxButton.OK,
+                MessageBoxImage.Error);
+            _logService?.Error("MenuViewModel", $"表格导入失败: {ex.Message}");
         }
     }
 
@@ -467,11 +456,6 @@ public partial class MenuViewModel : ObservableObject
                 await CompactDatabaseAsync();
                 break;
 
-            case "DataClean":
-                // 数据清理
-                await ShowDataCleanDialogAsync();
-                break;
-
             default:
                 MessageBoxWindow.Show(owner, $"工具集菜单 - {action}\n\n该功能正在开发中，敬请期待！");
                 break;
@@ -521,26 +505,6 @@ public partial class MenuViewModel : ObservableObject
 
     #endregion
 
-    #region 数据清理
-
-    private async Task ShowDataCleanDialogAsync()
-    {
-        var owner = Application.Current.MainWindow;
-
-        // 显示功能说明对话框
-        var result = MessageBoxWindow.Show(
-            owner,
-            "数据清理功能可以帮助您：\n\n" +
-            "• 清理已删除车票的残留数据\n" +
-            "• 清理过期的临时文件\n" +
-            "• 优化数据库性能\n\n" +
-            "该功能即将推出，敬请期待！",
-            "数据清理"
-        );
-    }
-
-    #endregion
-
     [RelayCommand]
     public void ConfigMenuCommand(string action)
     {
@@ -566,7 +530,7 @@ public partial class MenuViewModel : ObservableObject
                     "• 编辑票务：双击行程中的记录或选中后按 Ctrl+E\n" +
                     "• 删除票务：选中记录后按 Delete 键\n\n" +
                     "【数据管理】\n" +
-                    "• 数据导入：支持从CSV文件导入票务数据\n" +
+                    "• 数据导入：支持从 Excel / CSV 表格导入票务数据\n" +
                     "• 数据备份：支持全量备份和增量备份\n" +
                     "• 数据恢复：可从备份文件恢复数据库\n\n" +
                     "【快捷键】\n" +

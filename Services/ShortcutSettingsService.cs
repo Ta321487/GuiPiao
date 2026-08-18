@@ -173,7 +173,7 @@ public class ShortcutSettingsService
                 // 文件存储
                 new()
                 {
-                    ActionId = "ImportData", ActionName = "数据导入", Description = "从Excel/CSV导入数据", Category = "文件存储",
+                    ActionId = "ImportData", ActionName = "从表格导入", Description = "从 Excel 或 CSV 表格导入票务", Category = "文件存储",
                     DefaultKey = "", CurrentKey = ""
                 },
                 new()

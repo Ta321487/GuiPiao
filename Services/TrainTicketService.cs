@@ -3,9 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Globalization;
 using GuiPiao.DataAccess;
 using GuiPiao.Model;
-using GuiPiao.Utils;
+using NPOI.HSSF.UserModel;
+using NPOI.SS.UserModel;
+using NPOI.XSSF.UserModel;
 
 namespace GuiPiao.Services;
 
@@ -28,20 +31,17 @@ public class TrainTicketService
     /// <summary>
     ///     导出火车票数据到CSV文件（使用流式读取，避免加载全部数据到内存）
     /// </summary>
-    /// <param name="filePath">文件路径</param>
-    /// <returns>是否成功</returns>
     public async Task<bool> ExportToCsvAsync(string filePath)
     {
         try
         {
-            // 使用分页方式导出，避免一次性加载全部数据
             var pageSize = 100;
             var pageIndex = 1;
             var totalExported = 0;
 
             using (var writer = new StreamWriter(filePath))
             {
-                writer.WriteLine("取票号,检票位置,出发车站,车次号,到达车站,出发日期,出发时间,到达时间,到达跨天,车厢号,座位号,金额,席别");
+                writer.WriteLine(string.Join(",", TableTicketImportParser.LegacyCsvHeaders));
 
                 while (true)
                 {
@@ -74,113 +74,138 @@ public class TrainTicketService
         }
     }
 
-    public async Task<int> ImportFromCsvAsync(string filePath)
+    /// <summary>
+    ///     从表格文件导入行程。按扩展名选择 CSV / Excel 读表，字段映射与入库共用。
+    /// </summary>
+    public async Task<int> ImportFromTableAsync(string filePath)
     {
         try
         {
-            var count = 0;
-
-            using (var reader = new StreamReader(filePath))
+            var extension = Path.GetExtension(filePath).ToLowerInvariant();
+            IReadOnlyList<TrainRideInfo> rides = extension switch
             {
-                var line = await reader.ReadLineAsync();
+                ".csv" => await ReadCsvRowsAsync(filePath),
+                ".xlsx" or ".xls" => await Task.Run(() => ReadExcelRows(filePath)),
+                _ => throw new NotSupportedException($"不支持的表格格式: {extension}")
+            };
 
-                while ((line = await reader.ReadLineAsync()) != null)
-                {
-                    var parts = line.Split(',');
-                    if (parts.Length >= 13)
-                    {
-                        var trainRide = new TrainRideInfo
-                        {
-                            TicketNumber = parts[0],
-                            CheckInLocation = parts[1],
-                            DepartStation = parts[2],
-                            TrainNo = parts[3],
-                            ArriveStation = parts[4],
-                            DepartDate = RideDateTime.NormalizeDate(parts[5]),
-                            DepartTime = RideDateTime.NormalizeTime(parts[6]),
-                            ArriveTime = RideDateTime.NormalizeTime(parts[7]),
-                            ArriveDayOffset = int.TryParse(parts[8], out var dayOffset) ? dayOffset : 0,
-                            CoachNo = parts[9],
-                            SeatNo = parts[10],
-                            Money = decimal.TryParse(parts[11], out var money) ? money : 0m,
-                            SeatType = parts[12]
-                        };
-
-                        await TrainRideRepository.AddTrainRideAsync(trainRide);
-                        count++;
-                    }
-                }
+            var count = 0;
+            foreach (var trainRide in rides)
+            {
+                await TrainRideRepository.AddTrainRideAsync(trainRide);
+                count++;
             }
 
-            _logService.Info("TrainTicketService", $"导入CSV成功: {filePath}, 导入记录数: {count}");
+            _logService.Info("TrainTicketService", $"表格导入成功: {filePath}, 导入记录数: {count}");
             return count;
         }
         catch (Exception ex)
         {
-            _logService.Error("TrainTicketService", $"导入CSV失败: {ex.Message}");
+            _logService.Error("TrainTicketService", $"表格导入失败: {ex.Message}");
             return 0;
         }
+    }
+
+    /// <summary>兼容旧调用名，等价于 <see cref="ImportFromTableAsync"/>（仅 CSV）。</summary>
+    public Task<int> ImportFromCsvAsync(string filePath) => ImportFromTableAsync(filePath);
+
+    private static async Task<IReadOnlyList<TrainRideInfo>> ReadCsvRowsAsync(string filePath)
+    {
+        using var reader = new StreamReader(filePath);
+        var headerLine = await reader.ReadLineAsync();
+        var headers = string.IsNullOrWhiteSpace(headerLine)
+            ? null
+            : (IReadOnlyList<string>)TableTicketImportParser.SplitCsvLine(headerLine);
+
+        var dataRows = new List<IReadOnlyList<string>>();
+        string? line;
+        while ((line = await reader.ReadLineAsync()) != null)
+        {
+            if (string.IsNullOrWhiteSpace(line))
+                continue;
+            dataRows.Add(TableTicketImportParser.SplitCsvLine(line));
+        }
+
+        return TableTicketImportParser.ParseRows(headers, dataRows);
+    }
+
+    private static IReadOnlyList<TrainRideInfo> ReadExcelRows(string filePath)
+    {
+        using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+        using IWorkbook workbook = Path.GetExtension(filePath).Equals(".xls", StringComparison.OrdinalIgnoreCase)
+            ? new HSSFWorkbook(stream)
+            : new XSSFWorkbook(stream);
+
+        var sheet = workbook.NumberOfSheets > 0 ? workbook.GetSheetAt(0) : null;
+        if (sheet == null)
+            return Array.Empty<TrainRideInfo>();
+
+        var formatter = new DataFormatter(CultureInfo.InvariantCulture);
+        var headerRow = sheet.GetRow(sheet.FirstRowNum);
+        IReadOnlyList<string>? headers = null;
+        var startRow = sheet.FirstRowNum;
+
+        if (headerRow != null)
+        {
+            headers = ReadExcelRow(headerRow, formatter);
+            startRow = sheet.FirstRowNum + 1;
+        }
+
+        var dataRows = new List<IReadOnlyList<string>>();
+        for (var r = startRow; r <= sheet.LastRowNum; r++)
+        {
+            var row = sheet.GetRow(r);
+            if (row == null)
+                continue;
+            dataRows.Add(ReadExcelRow(row, formatter));
+        }
+
+        return TableTicketImportParser.ParseRows(headers, dataRows);
+    }
+
+    private static List<string> ReadExcelRow(IRow row, DataFormatter formatter)
+    {
+        var last = row.LastCellNum > 0 ? row.LastCellNum : (short)0;
+        var cells = new List<string>(last);
+        for (var c = 0; c < last; c++)
+        {
+            var cell = row.GetCell(c);
+            cells.Add(cell == null ? string.Empty : formatter.FormatCellValue(cell)?.Trim() ?? string.Empty);
+        }
+
+        return cells;
     }
 
     /// <summary>
     ///     统计指定日期范围内的火车票数量（使用SQL统计）
     /// </summary>
-    /// <param name="startDate">开始日期</param>
-    /// <param name="endDate">结束日期</param>
-    /// <returns>火车票数量</returns>
     public async Task<int> CountTrainRidesByDateRangeAsync(string startDate, string endDate)
     {
         return await TrainRideRepository.CountByDateRangeAsync(startDate, endDate);
     }
 
-    /// <summary>
-    ///     统计指定车站的出发火车票数量
-    /// </summary>
-    /// <param name="stationName">车站名称</param>
-    /// <returns>火车票数量</returns>
     public async Task<int> CountTrainRidesByDepartStationAsync(string stationName)
     {
         var rides = await TrainRideRepository.GetTrainRidesByStationAsync(stationName);
         return rides.Count(r => r.DepartStation == stationName);
     }
 
-    /// <summary>
-    ///     统计指定车站的到达火车票数量
-    /// </summary>
-    /// <param name="stationName">车站名称</param>
-    /// <returns>火车票数量</returns>
     public async Task<int> CountTrainRidesByArriveStationAsync(string stationName)
     {
         var rides = await TrainRideRepository.GetTrainRidesByStationAsync(stationName);
         return rides.Count(r => r.ArriveStation == stationName);
     }
 
-    /// <summary>
-    ///     计算指定日期范围内的火车票总金额（使用SQL统计）
-    /// </summary>
-    /// <param name="startDate">开始日期</param>
-    /// <param name="endDate">结束日期</param>
-    /// <returns>总金额</returns>
     public async Task<decimal> CalculateTotalAmountByDateRangeAsync(string startDate, string endDate)
     {
         return await TrainRideRepository.CalculateTotalAmountByDateRangeAsync(startDate, endDate);
     }
 
-    /// <summary>
-    ///     获取热门出发车站（使用SQL统计）
-    /// </summary>
-    /// <param name="topCount">数量</param>
-    /// <returns>热门车站列表</returns>
     public async Task<List<(string StationName, int Count)>> GetHotDepartStationsAsync(int topCount = 10)
     {
         return await TrainRideRepository.GetHotDepartStationsAsync(topCount);
     }
 
-    /// <summary>
-    ///     获取热门到达车站（使用SQL统计）
-    /// </summary>
-    /// <param name="topCount">数量</param>
-    /// <returns>热门车站列表</returns>
     public async Task<List<(string StationName, int Count)>> GetHotArriveStationsAsync(int topCount = 10)
     {
         return await TrainRideRepository.GetHotArriveStationsAsync(topCount);
