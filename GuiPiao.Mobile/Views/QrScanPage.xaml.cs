@@ -28,7 +28,7 @@ public partial class QrScanPage : ContentPage
             var camStatus = await Permissions.CheckStatusAsync<Permissions.Camera>();
             if (camStatus != PermissionStatus.Granted)
             {
-                StatusLabel.Text = "需要相机权限。也可使用下方相册/粘贴。";
+                StatusLabel.Text = "需要相机权限。可改用下方相册。";
                 CameraView.CameraEnabled = false;
                 return;
             }
@@ -40,7 +40,7 @@ public partial class QrScanPage : ContentPage
         catch (Exception ex)
         {
             CrashLog.Write("QrScanPage.OnAppearing", ex);
-            StatusLabel.Text = "相机启动失败，请用相册或粘贴。";
+            StatusLabel.Text = "相机启动失败，请用相册。";
             CameraView.CameraEnabled = false;
         }
     }
@@ -110,27 +110,6 @@ public partial class QrScanPage : ContentPage
             StatusLabel.Text = "相册失败：" + ex.Message;
             CameraView.CameraEnabled = true;
             CameraView.PauseScanning = false;
-        }
-    }
-
-    private async void OnPasteClicked(object? sender, EventArgs e)
-    {
-        if (_busy || _handled) return;
-        try
-        {
-            if (!Clipboard.Default.HasText)
-            {
-                StatusLabel.Text = "剪贴板为空。";
-                return;
-            }
-
-            var text = (await Clipboard.Default.GetTextAsync() ?? "").Trim();
-            await ConnectFromRawAsync(text, "粘贴");
-        }
-        catch (Exception ex)
-        {
-            CrashLog.Write("QrScanPage.Paste", ex);
-            StatusLabel.Text = "粘贴失败：" + ex.Message;
         }
     }
 

@@ -11,7 +11,7 @@
 
     <Grid RowDefinitions="Auto,*,Auto" Padding="16,12">
 
-        <!-- 顶栏：连接状态（页标题由 Shell 导航栏提供，避免双标题） -->
+        <!-- 顶栏：连接状态（Tab 页关闭 NavBar，仅保留状态 chip） -->
         <Border HorizontalOptions="End"
                 Padding="10,4"
                 StrokeThickness="1"
@@ -171,8 +171,9 @@
                     <RoundRectangle CornerRadius="28" />
                 </Border.StrokeShape>
                 <Border.GestureRecognizers>
-                    <TapGestureRecognizer Command="{Binding AddressActionsCommand}" />
+                    <TapGestureRecognizer Command="{Binding OpenConnectionCommand}" />
                 </Border.GestureRecognizers>
+
                 <Label Text="{Binding FooterPrimary}"
                        VerticalOptions="Center"
                        LineBreakMode="TailTruncation"

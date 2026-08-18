@@ -67,17 +67,7 @@
                         Command="{Binding ParsePasteCommand}"
                         IsEnabled="{Binding IsBusy, Converter={StaticResource InvertedBoolConverter}}" />
             </VerticalStackLayout>
-
-            <BoxView HeightRequest="1" Color="{DynamicResource Divider}" Margin="0,4" />
-
-            <Label Text="或手工填写"
-                   FontSize="{DynamicResource SmallFontSize}"
-                   TextColor="{DynamicResource TextSecondary}"
-                   HorizontalOptions="Center" />
-            <Button Text="打开空白行程表单"
-                    Style="{StaticResource SecondaryButtonStyle}"
-                    HeightRequest="44"
-                    Command="{Binding OpenBlankFormCommand}" />
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>
+

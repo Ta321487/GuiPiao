@@ -168,7 +168,7 @@ public partial class SyncViewModel : ObservableObject
         {
             SpherePrimary = string.Empty;
             SphereSecondary = string.Empty;
-            // 扫码/粘贴后保留反馈；空闲时提示输入配对码
+            // 扫码后保留反馈；空闲时提示输入配对码
             if (!string.IsNullOrWhiteSpace(DetailText) &&
                 (DetailText.Contains("已填", StringComparison.Ordinal) ||
                  DetailText.Contains("可达", StringComparison.Ordinal) ||
@@ -344,33 +344,6 @@ public partial class SyncViewModel : ObservableObject
     [RelayCommand]
     private async Task OpenStationsAsync() =>
         await Shell.Current.GoToAsync("syncstations");
-
-    [RelayCommand]
-    private async Task AddressActionsAsync()
-    {
-        var page = Shell.Current.CurrentPage;
-        if (page == null) return;
-
-        var choice = await page.DisplayActionSheetAsync(
-            "服务地址",
-            "取消",
-            null,
-            "粘贴",
-            "手输",
-            "检测连接");
-        switch (choice)
-        {
-            case "粘贴":
-                await PasteServerUrlAsync();
-                break;
-            case "手输":
-                await OpenConnectionAsync();
-                break;
-            case "检测连接":
-                await CheckHealthAsync();
-                break;
-        }
-    }
 
     [RelayCommand]
     private async Task CheckHealthAsync()
@@ -752,74 +725,5 @@ public partial class SyncViewModel : ObservableObject
         DetailText = $"服务地址：{BaseUrl}";
         RefreshChrome();
     }
-
-    [RelayCommand]
-    private async Task PasteServerUrlAsync()
-    {
-        try
-        {
-            if (!Clipboard.Default.HasText)
-            {
-                StatusText = "剪贴板为空";
-                DetailText = "请复制 PC 上的服务地址后再粘贴。";
-                RefreshChrome();
-                return;
-            }
-
-            var text = (await Clipboard.Default.GetTextAsync() ?? "").Trim();
-            var url = ServerUrlQrHelper.ExtractHttpUrl(text);
-            if (string.IsNullOrWhiteSpace(url))
-            {
-                StatusText = "未识别到服务地址";
-                DetailText = "请复制 PC 二维码旁的地址，或扫码连接。";
-                RefreshChrome();
-                return;
-            }
-
-            ApplyScannedBaseUrl(url);
-            StatusText = "已填入服务地址";
-            DetailText = url;
-            RefreshChrome();
-        }
-        catch (Exception ex)
-        {
-            StatusText = "读取失败";
-            DetailText = ex.Message;
-            RefreshChrome();
-        }
-    }
-
-    [RelayCommand]
-    private async Task ScanQrFromPhotoAsync()
-    {
-        try
-        {
-            var photo = await MediaPicker.Default.PickPhotoAsync();
-            if (photo == null) return;
-
-            await using var stream = await photo.OpenReadAsync();
-            using var ms = new MemoryStream();
-            await stream.CopyToAsync(ms);
-            var decoded = ServerUrlQrHelper.TryDecodeQr(ms.ToArray());
-            var url = ServerUrlQrHelper.ExtractHttpUrl(decoded);
-            if (string.IsNullOrWhiteSpace(url))
-            {
-                StatusText = "未识别到二维码地址";
-                DetailText = "请对准 PC 服务地址二维码，或改用扫码连接 / 粘贴。";
-                RefreshChrome();
-                return;
-            }
-
-            ApplyScannedBaseUrl(url);
-            StatusText = "已连接";
-            DetailText = url;
-            RefreshChrome();
-        }
-        catch (Exception ex)
-        {
-            StatusText = "识别失败";
-            DetailText = ex.Message;
-            RefreshChrome();
-        }
-    }
 }
+

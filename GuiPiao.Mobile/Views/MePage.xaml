@@ -1,50 +1,20 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:icons="clr-namespace:GuiPiao.Mobile.Icons"
              xmlns:vm="clr-namespace:GuiPiao.Mobile.ViewModels"
              xmlns:model="clr-namespace:GuiPiao.Mobile.Model"
              x:Class="GuiPiao.Mobile.Views.MePage"
              x:Name="MeRoot"
              x:DataType="vm:MeViewModel"
-             Title="我的"
+             Title="设置"
              Shell.NavBarIsVisible="False"
              BackgroundColor="{DynamicResource WindowBackground}">
     <ScrollView>
         <VerticalStackLayout Padding="16,12" Spacing="0">
-            <Label Text="{Binding StatsText}"
-                   TextColor="{DynamicResource TextSecondary}"
-                   Margin="0,0,0,4" />
-            <CollectionView ItemsSource="{Binding YearStats}"
-                            HeightRequest="72"
-                            Margin="0,0,0,8">
-                <CollectionView.ItemTemplate>
-                    <DataTemplate x:DataType="x:String">
-                        <Label Text="{Binding .}"
-                               FontSize="{DynamicResource SmallFontSize}"
-                               TextColor="{DynamicResource TextSecondary}"
-                               Margin="0,2" />
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
 
-            <BoxView HeightRequest="1" Color="{DynamicResource Divider}" />
-            <Grid Padding="0,14" ColumnDefinitions="*,Auto">
-                <Grid.GestureRecognizers>
-                    <TapGestureRecognizer Command="{Binding OpenTagsCommand}" />
-                </Grid.GestureRecognizers>
-                <Label Text="标签" VerticalOptions="Center" />
-                <Label Grid.Column="1"
-                       Text="›"
-                       TextColor="{DynamicResource TextSecondary}"
-                       VerticalOptions="Center"
-                       FontSize="18" />
-            </Grid>
-
-            <BoxView HeightRequest="1" Color="{DynamicResource Divider}" />
             <Label Text="外观"
                    FontAttributes="Bold"
-                   Margin="0,14,0,8"
+                   Margin="0,4,0,8"
                    TextColor="{DynamicResource TextSecondary}"
                    FontSize="{DynamicResource SmallFontSize}" />
 
@@ -82,7 +52,7 @@
                 </BindableLayout.ItemTemplate>
             </FlexLayout>
 
-            <Label Text="强调色（主题色）"
+            <Label Text="强调色"
                    Margin="0,0,0,6"
                    TextColor="{DynamicResource TextPrimary}" />
             <FlexLayout BindableLayout.ItemsSource="{Binding AccentColorOptions}"
@@ -214,42 +184,69 @@
                 </FlexLayout>
             </VerticalStackLayout>
 
-            <Label Text="切换后即时生效并保存"
-                   FontSize="{DynamicResource SmallFontSize}"
-                   TextColor="{DynamicResource TextSecondary}"
-                   Margin="0,0,0,8" />
+            <Label Text="字号"
+                   Margin="0,4,0,6"
+                   TextColor="{DynamicResource TextPrimary}" />
+            <FlexLayout BindableLayout.ItemsSource="{Binding FontSizeOptions}"
+                        Wrap="Wrap"
+                        Margin="0,0,0,8">
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="model:FontSizeOptionItem">
+                        <Border Margin="0,0,8,8"
+                                Padding="12,8"
+                                Stroke="{DynamicResource Border}"
+                                StrokeThickness="{Binding IsSelected, Converter={StaticResource BoolToStrokeThicknessConverter}}"
+                                BackgroundColor="{DynamicResource PanelBackground}">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="4" />
+                            </Border.StrokeShape>
+                            <Border.Triggers>
+                                <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="True">
+                                    <Setter Property="Stroke" Value="{DynamicResource AccentForeground}" />
+                                </DataTrigger>
+                            </Border.Triggers>
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer
+                                    Command="{Binding Source={x:Reference MeRoot}, Path=BindingContext.SelectFontSizeCommand}"
+                                    CommandParameter="{Binding .}" />
+                            </Border.GestureRecognizers>
+                            <Label Text="{Binding Title}"
+                                   TextColor="{DynamicResource TextPrimary}"
+                                   VerticalOptions="Center" />
+                        </Border>
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </FlexLayout>
 
             <BoxView HeightRequest="1" Color="{DynamicResource Divider}" />
-            <Grid Padding="0,14" ColumnDefinitions="*,Auto">
-                <Grid.GestureRecognizers>
-                    <TapGestureRecognizer Command="{Binding OpenConnectionCommand}" />
-                </Grid.GestureRecognizers>
+            <Label Text="操作"
+                   FontAttributes="Bold"
+                   Margin="0,14,0,8"
+                   TextColor="{DynamicResource TextSecondary}"
+                   FontSize="{DynamicResource SmallFontSize}" />
+            <Grid Padding="0,4,0,14" ColumnDefinitions="*,Auto">
                 <VerticalStackLayout>
-                    <Label Text="连接" />
-                    <Label Text="{Binding BaseUrl}"
+                    <Label Text="删除前确认" />
+                    <Label Text="关闭后点删除将直接软删行程"
                            FontSize="{DynamicResource SmallFontSize}"
-                           TextColor="{DynamicResource TextSecondary}"
-                           LineBreakMode="TailTruncation" />
+                           TextColor="{DynamicResource TextSecondary}" />
                 </VerticalStackLayout>
-                <Label Grid.Column="1"
-                       Text="›"
-                       TextColor="{DynamicResource TextSecondary}"
-                       VerticalOptions="Center"
-                       FontSize="18" />
+                <Switch Grid.Column="1"
+                        IsToggled="{Binding ConfirmDelete}"
+                        VerticalOptions="Center"
+                        OnColor="{DynamicResource AccentColor}" />
             </Grid>
 
             <BoxView HeightRequest="1" Color="{DynamicResource Divider}" />
             <VerticalStackLayout Padding="0,14" Spacing="4">
                 <Label Text="关于 GuiPiao" />
-                <Label Text="手机端 · 采集与随身查看 · PC 为权威库"
+                <Label Text="{Binding AboutVersion}"
+                       FontSize="{DynamicResource SmallFontSize}"
+                       TextColor="{DynamicResource TextSecondary}" />
+                <Label Text="手机端 · 采集与随身查看 · PC 为权威库 · 设置不同步"
                        FontSize="{DynamicResource SmallFontSize}"
                        TextColor="{DynamicResource TextSecondary}" />
             </VerticalStackLayout>
-
-            <Label Text="{Binding StatusMessage}"
-                   TextColor="{DynamicResource AccentForeground}"
-                   FontSize="{DynamicResource SmallFontSize}"
-                   Margin="0,8,0,0" />
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

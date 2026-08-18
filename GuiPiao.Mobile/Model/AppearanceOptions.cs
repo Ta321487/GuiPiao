@@ -28,3 +28,11 @@ public sealed class CustomColorSwatch
     public string Hex { get; init; } = "#0078D4";
     public Color Color => Color.FromArgb(Hex);
 }
+
+public sealed partial class FontSizeOptionItem : ObservableObject
+{
+    public FontSizeOption Value { get; init; }
+    public string Title { get; init; } = string.Empty;
+
+    [ObservableProperty] private bool _isSelected;
+}

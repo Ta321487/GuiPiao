@@ -168,6 +168,10 @@ public partial class TripsViewModel : ObservableObject, IRecipient<TripsDataChan
     }
 
     [RelayCommand]
+    private async Task OpenTagsAsync() =>
+        await Shell.Current.GoToAsync("tags");
+
+    [RelayCommand]
     private async Task AddAsync()
     {
         await Shell.Current.GoToAsync("tripform");

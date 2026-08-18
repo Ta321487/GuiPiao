@@ -17,7 +17,7 @@
         <ShellContent Title="同步"
                       ContentTemplate="{DataTemplate views:SyncPage}"
                       Route="sync" />
-        <ShellContent Title="我的"
+        <ShellContent Title="设置"
                       ContentTemplate="{DataTemplate views:MePage}"
                       Route="me" />
     </TabBar>

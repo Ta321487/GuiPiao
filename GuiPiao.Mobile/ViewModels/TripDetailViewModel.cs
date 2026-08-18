@@ -12,6 +12,7 @@ public partial class TripDetailViewModel : ObservableObject, IQueryAttributable
 {
     private readonly RideRepository _rides;
     private readonly RideWriteService _write;
+    private readonly MobileSettingsStore _settings;
 
     [ObservableProperty] private string _syncId = string.Empty;
     [ObservableProperty] private MobileRide? _ride;
@@ -21,10 +22,11 @@ public partial class TripDetailViewModel : ObservableObject, IQueryAttributable
     [ObservableProperty] private bool _showMore;
     [ObservableProperty] private string _moreChevron = "›";
 
-    public TripDetailViewModel(RideRepository rides, RideWriteService write)
+    public TripDetailViewModel(RideRepository rides, RideWriteService write, MobileSettingsStore settings)
     {
         _rides = rides;
         _write = write;
+        _settings = settings;
         MoreChevron = Icons.AppIcons.ChevronRight;
     }
 
@@ -135,12 +137,16 @@ public partial class TripDetailViewModel : ObservableObject, IQueryAttributable
     private async Task DeleteAsync()
     {
         if (string.IsNullOrWhiteSpace(SyncId)) return;
-        var ok = await Shell.Current.DisplayAlertAsync(
-            "删除",
-            "确认删除此行程？（软删，对齐后同步到 PC）",
-            "删除",
-            "取消");
-        if (!ok) return;
+        if (_settings.LoadAppearance().ConfirmDelete)
+        {
+            var ok = await Shell.Current.DisplayAlertAsync(
+                "删除",
+                "确认删除此行程？（软删，对齐后同步到 PC）",
+                "删除",
+                "取消");
+            if (!ok) return;
+        }
+
         _write.SoftDelete(SyncId);
         NotifyChanged();
         await Shell.Current.GoToAsync("..");

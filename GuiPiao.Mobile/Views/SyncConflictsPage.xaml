@@ -10,18 +10,13 @@
              BackgroundColor="{DynamicResource WindowBackground}">
 
     <Grid RowDefinitions="Auto,*" Padding="16" RowSpacing="12">
-        <Grid ColumnDefinitions="*,Auto">
-            <Label Text="冲突"
-                   FontSize="{DynamicResource TitleFontSize}"
-                   FontAttributes="Bold"
-                   VerticalOptions="Center" />
-            <Button Grid.Column="1"
-                    Text="刷新"
-                    Style="{StaticResource SecondaryButtonStyle}"
-                    Padding="12,6"
-                    Command="{Binding RefreshConflictsCommand}"
-                    IsEnabled="{Binding IsPaired}" />
-        </Grid>
+        <Button Text="刷新"
+                Style="{StaticResource SecondaryButtonStyle}"
+                Padding="12,6"
+                HorizontalOptions="End"
+                Command="{Binding RefreshConflictsCommand}"
+                IsEnabled="{Binding IsPaired}" />
+
 
         <Label Grid.Row="1"
                Text="暂无冲突"

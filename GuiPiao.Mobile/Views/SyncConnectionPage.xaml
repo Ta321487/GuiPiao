@@ -9,26 +9,10 @@
 
     <ScrollView>
         <VerticalStackLayout Padding="16" Spacing="14">
-            <Label Text="连接与配对"
-                   FontSize="{DynamicResource TitleFontSize}"
-                   FontAttributes="Bold" />
-
             <Label Text="服务地址" FontAttributes="Bold" />
             <Entry Text="{Binding BaseUrl}"
                    Keyboard="Url"
                    Placeholder="http://192.168.x.x:17880" />
-
-            <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
-                <Button Text="重新扫码"
-                        Style="{StaticResource PrimaryButtonStyle}"
-                        Command="{Binding OpenScanCommand}"
-                        HeightRequest="44" />
-                <Button Grid.Column="1"
-                        Text="粘贴"
-                        Style="{StaticResource SecondaryButtonStyle}"
-                        Command="{Binding PasteServerUrlCommand}"
-                        HeightRequest="44" />
-            </Grid>
 
             <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
                 <Button Text="检测连接"
@@ -41,6 +25,10 @@
                         Command="{Binding SaveServerCommand}"
                         HeightRequest="44" />
             </Grid>
+
+            <Label Text="扫码请回同步页。地址可在此框长按粘贴。"
+                   FontSize="{DynamicResource SmallFontSize}"
+                   TextColor="{DynamicResource TextSecondary}" />
 
             <BoxView HeightRequest="1" Color="{DynamicResource Divider}" Margin="0,4" />
 
@@ -64,12 +52,6 @@
                     IsVisible="{Binding IsPaired}"
                     Margin="0,8,0,0"
                     HeightRequest="44" />
-
-            <Button Text="从相册识别（备用）"
-                    Style="{StaticResource SecondaryButtonStyle}"
-                    Command="{Binding ScanQrFromPhotoCommand}"
-                    HeightRequest="40"
-                    Opacity="0.85" />
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

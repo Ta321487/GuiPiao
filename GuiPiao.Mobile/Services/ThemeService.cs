@@ -19,7 +19,24 @@ public sealed class ThemeService
     {
         ApplyThemeMode(config.ThemeMode);
         ApplyAccentColor(config.AccentColor, config.CustomColor);
+        ApplyFontSize(config.FontSize);
         ThemeChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    /// <summary>对齐 PC 字号档：小12 / 中14 / 大16 / 特大18（Base），并按比例推演相关 token。</summary>
+    public void ApplyFontSize(FontSizeOption fontSize)
+    {
+        var baseSize = fontSize switch
+        {
+            FontSizeOption.Small => 12.0,
+            FontSizeOption.Large => 16.0,
+            FontSizeOption.ExtraLarge => 18.0,
+            _ => 14.0
+        };
+        SetDouble("BaseFontSize", baseSize);
+        SetDouble("SmallFontSize", Math.Max(10, baseSize - 2));
+        SetDouble("LargeFontSize", baseSize + 2);
+        SetDouble("TitleFontSize", baseSize + 4);
     }
 
     public void ApplyThemeMode(ThemeMode themeMode)
@@ -99,6 +116,13 @@ public sealed class ThemeService
         var app = Application.Current;
         if (app != null)
             app.Resources[key] = color;
+    }
+
+    private static void SetDouble(string key, double value)
+    {
+        var app = Application.Current;
+        if (app == null) return;
+        app.Resources[key] = value;
     }
 
     private void SetBrush(string key, Color color)

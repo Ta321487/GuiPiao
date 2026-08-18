@@ -8,13 +8,10 @@
              BackgroundColor="{DynamicResource WindowBackground}">
 
     <VerticalStackLayout Padding="16" Spacing="16" VerticalOptions="Center">
-        <Label Text="车站库"
-               FontSize="{DynamicResource TitleFontSize}"
-               FontAttributes="Bold"
-               HorizontalTextAlignment="Center" />
         <Label Text="{Binding StationsHint}"
                HorizontalTextAlignment="Center"
                TextColor="{DynamicResource TextSecondary}" />
+
         <Button Text="从 PC 同步车站"
                 Style="{StaticResource PrimaryButtonStyle}"
                 Command="{Binding SyncStationsCommand}"

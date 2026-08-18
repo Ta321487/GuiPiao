@@ -42,8 +42,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Link 固定为 appicon：AndroidManifest 引用 @mipmap/appicon / appicon_round -->
-    <MauiIcon Include="Resources\AppIcon\guipiao_app.png" Link="Resources\AppIcon\appicon.png" />
+    <!-- 文件名必须为 appicon：AndroidManifest 引用 @mipmap/appicon / appicon_round -->
+    <MauiIcon Include="Resources\AppIcon\appicon.png" />
     <MauiSplashScreen Include="Resources\AppIcon\guipiao_mark.png" Color="#0078D4" BaseSize="256,256" />
     <MauiImage Include="Resources\Images\*" />
     <MauiFont Include="Resources\Fonts\*" />

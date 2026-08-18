@@ -167,8 +167,5 @@ public partial class CaptureViewModel : ObservableObject
         StatusText = $"已预填（{draft.SourceHint}）· {review}";
         await Shell.Current.GoToAsync("tripform?prefill=1");
     }
-
-    [RelayCommand]
-    private async Task OpenBlankFormAsync() =>
-        await Shell.Current.GoToAsync("tripform");
 }
+

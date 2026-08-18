@@ -10,9 +10,6 @@
              BackgroundColor="{DynamicResource WindowBackground}">
     <Grid RowDefinitions="Auto,*,Auto" Padding="16,12" RowSpacing="10">
         <VerticalStackLayout Spacing="8">
-            <Label Text="标签"
-                   FontSize="{DynamicResource TitleFontSize}"
-                   FontAttributes="Bold" />
             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                 <Entry Text="{Binding NewTagName}" Placeholder="新标签名" />
                 <Button Grid.Column="1" Text="添加"

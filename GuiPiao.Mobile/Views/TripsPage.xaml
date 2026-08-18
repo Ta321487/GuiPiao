@@ -11,17 +11,27 @@
              BackgroundColor="{DynamicResource WindowBackground}">
     <Grid RowDefinitions="Auto,Auto,*,Auto" Padding="16,12" RowSpacing="10">
 
-        <Border Stroke="{DynamicResource Border}"
-                StrokeThickness="1"
-                BackgroundColor="{DynamicResource ControlBackground}"
-                Padding="10,4">
-            <Border.StrokeShape>
-                <RoundRectangle CornerRadius="4" />
-            </Border.StrokeShape>
-            <Entry Placeholder="搜索车次 / 车站 / 日期"
-                   Text="{Binding SearchText}"
-                   BackgroundColor="Transparent" />
-        </Border>
+        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+            <Border Stroke="{DynamicResource Border}"
+                    StrokeThickness="1"
+                    BackgroundColor="{DynamicResource ControlBackground}"
+                    Padding="10,4">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="4" />
+                </Border.StrokeShape>
+                <Entry Placeholder="搜索车次 / 车站 / 日期"
+                       Text="{Binding SearchText}"
+                       BackgroundColor="Transparent" />
+            </Border>
+            <Button Grid.Column="1"
+                    Text="标签"
+                    Style="{StaticResource SecondaryButtonStyle}"
+                    Padding="12,6"
+                    HeightRequest="40"
+                    VerticalOptions="Center"
+                    Command="{Binding OpenTagsCommand}"
+                    SemanticProperties.Description="管理标签" />
+        </Grid>
 
         <ScrollView Grid.Row="1" Orientation="Horizontal" HorizontalScrollBarVisibility="Never">
             <HorizontalStackLayout Spacing="6">

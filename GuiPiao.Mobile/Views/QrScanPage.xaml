@@ -5,7 +5,8 @@
              x:Class="GuiPiao.Mobile.Views.QrScanPage"
              Title="扫码连接"
              BackgroundColor="Black"
-             Shell.NavBarIsVisible="True">
+             Shell.NavBarIsVisible="True"
+             Shell.TabBarIsVisible="False">
 
     <Grid>
         <scanner:CameraView x:Name="CameraView"
@@ -30,28 +31,25 @@
             </Border.StrokeShape>
         </Border>
 
-        <VerticalStackLayout VerticalOptions="End" Padding="16,12" Spacing="8"
-                             BackgroundColor="#CC000000">
-            <Label Text="将 PC 同步二维码放入框内，自动识别连接"
-                   TextColor="White"
+        <VerticalStackLayout VerticalOptions="End" Padding="16,12,16,28" Spacing="6">
+            <Label Text="对准 PC 同步二维码，自动识别"
+                   TextColor="#CCFFFFFF"
                    HorizontalTextAlignment="Center"
                    FontSize="{DynamicResource SmallFontSize}" />
             <Label x:Name="StatusLabel"
-                   TextColor="#CCCCCC"
+                   TextColor="#99FFFFFF"
                    HorizontalTextAlignment="Center"
                    FontSize="{DynamicResource SmallFontSize}"
                    LineBreakMode="WordWrap" />
-            <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
-                <Button Text="相册"
-                        Style="{StaticResource SecondaryButtonStyle}"
-                        HeightRequest="44"
-                        Clicked="OnAlbumClicked" />
-                <Button Grid.Column="1"
-                        Text="粘贴"
-                        Style="{StaticResource SecondaryButtonStyle}"
-                        HeightRequest="44"
-                        Clicked="OnPasteClicked" />
-            </Grid>
+            <Label Text="从相册选图"
+                   TextColor="#CCFFFFFF"
+                   HorizontalTextAlignment="Center"
+                   Padding="12,10"
+                   FontSize="{DynamicResource SmallFontSize}">
+                <Label.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnAlbumClicked" />
+                </Label.GestureRecognizers>
+            </Label>
         </VerticalStackLayout>
     </Grid>
 </ContentPage>

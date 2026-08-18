@@ -19,12 +19,25 @@ public enum AccentColor
     Custom = 5
 }
 
-/// <summary>手机本机外观设置（存 AppData，不同步）。</summary>
+/// <summary>与 PC FontSizeOption 一致（本机，不同步）。</summary>
+public enum FontSizeOption
+{
+    Small = 0,
+    Medium = 1,
+    Large = 2,
+    ExtraLarge = 3
+}
+
+/// <summary>手机本机外观与操作偏好（存 AppData，不同步）。</summary>
 public class AppearanceConfig
 {
     public ThemeMode ThemeMode { get; set; } = ThemeMode.Light;
     public AccentColor AccentColor { get; set; } = AccentColor.MicrosoftBlue;
     public string CustomColor { get; set; } = "#0078D4";
+    /// <summary>全局字号档位；默认中（14）。</summary>
+    public FontSizeOption FontSize { get; set; } = FontSizeOption.Medium;
+    /// <summary>删除行程前是否弹确认；默认开。</summary>
+    public bool ConfirmDelete { get; set; } = true;
 }
 
 /// <summary>同步客户端连接与水位（本机）。</summary>

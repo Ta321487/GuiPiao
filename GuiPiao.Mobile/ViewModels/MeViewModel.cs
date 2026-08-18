@@ -8,30 +8,29 @@ using GuiPiao.Mobile.Services;
 
 namespace GuiPiao.Mobile.ViewModels;
 
+/// <summary>第四 Tab「设置」：外观 / 操作偏好 / 关于；标签管理仍挂本 VM 供 TagsPage 使用。</summary>
 public partial class MeViewModel : ObservableObject
 {
     private readonly MobileSettingsStore _settings;
     private readonly ThemeService _theme;
-    private readonly RideRepository _rides;
     private readonly TagRepository _tags;
     private readonly TagWriteService _tagWrite;
-    private readonly SyncPushQueue _pushQueue;
     private bool _loadingAppearance;
     private bool _syncingCustomRgb;
     private CancellationTokenSource? _customAccentDebounce;
 
     [ObservableProperty] private ThemeMode _themeMode = ThemeMode.Light;
     [ObservableProperty] private AccentColor _accentColor = AccentColor.MicrosoftBlue;
+    [ObservableProperty] private FontSizeOption _fontSize = FontSizeOption.Medium;
+    [ObservableProperty] private bool _confirmDelete = true;
     [ObservableProperty] private string _customColor = "#0078D4";
     [ObservableProperty] private Color _customPreview = Color.FromArgb("#0078D4");
     [ObservableProperty] private double _customRed = 0;
     [ObservableProperty] private double _customGreen = 120;
     [ObservableProperty] private double _customBlue = 212;
     [ObservableProperty] private bool _isCustomAccent;
-    [ObservableProperty] private string _baseUrl = "http://127.0.0.1:17880";
     [ObservableProperty] private string _statusMessage = string.Empty;
-    [ObservableProperty] private string _statsText = string.Empty;
-    [ObservableProperty] private ObservableCollection<string> _yearStats = new();
+    [ObservableProperty] private string _aboutVersion = string.Empty;
     [ObservableProperty] private ObservableCollection<MobileTag> _tagsList = new();
     [ObservableProperty] private string _newTagName = string.Empty;
 
@@ -52,6 +51,14 @@ public partial class MeViewModel : ObservableObject
         new() { Value = AccentColor.Custom, Title = "自定义", Hex = "#0078D4" }
     ];
 
+    public IReadOnlyList<FontSizeOptionItem> FontSizeOptions { get; } =
+    [
+        new() { Value = FontSizeOption.Small, Title = "小" },
+        new() { Value = FontSizeOption.Medium, Title = "中" },
+        new() { Value = FontSizeOption.Large, Title = "大" },
+        new() { Value = FontSizeOption.ExtraLarge, Title = "特大" }
+    ];
+
     /// <summary>自定义色板（对齐 PC ColorPickerDialog 常用色）。</summary>
     public IReadOnlyList<CustomColorSwatch> CustomColorPresets { get; } =
     [
@@ -66,17 +73,13 @@ public partial class MeViewModel : ObservableObject
     public MeViewModel(
         MobileSettingsStore settings,
         ThemeService theme,
-        RideRepository rides,
         TagRepository tags,
-        TagWriteService tagWrite,
-        SyncPushQueue pushQueue)
+        TagWriteService tagWrite)
     {
         _settings = settings;
         _theme = theme;
-        _rides = rides;
         _tags = tags;
         _tagWrite = tagWrite;
-        _pushQueue = pushQueue;
         Reload();
     }
 
@@ -88,6 +91,8 @@ public partial class MeViewModel : ObservableObject
         {
             ThemeMode = appearance.ThemeMode;
             AccentColor = appearance.AccentColor;
+            FontSize = appearance.FontSize;
+            ConfirmDelete = appearance.ConfirmDelete;
             CustomColor = NormalizeHex(appearance.CustomColor);
             SyncCustomRgbFromHex(CustomColor);
             RefreshSelectionFlags();
@@ -97,31 +102,16 @@ public partial class MeViewModel : ObservableObject
             _loadingAppearance = false;
         }
 
-        BaseUrl = _settings.LoadSync().BaseUrl;
-
-        var total = _rides.CountActive();
-        var pending = _pushQueue.Count;
-        StatsText = $"行程 {total} 条 · 待推送 {pending} 条";
-        YearStats = new ObservableCollection<string>(
-            _rides.StatsByDepartYear()
-                .Select(x => $"{x.Year} 年 · {x.Count} 趟 · ¥{x.Money:0.##}"));
+        AboutVersion = $"版本 {AppInfo.Current.VersionString}";
         TagsList = new ObservableCollection<MobileTag>(_tags.ListActive());
     }
-
-    [RelayCommand]
-    private async Task OpenTagsAsync() =>
-        await Shell.Current.GoToAsync("tags");
-
-    [RelayCommand]
-    private async Task OpenConnectionAsync() =>
-        await Shell.Current.GoToAsync("syncconnection");
 
     [RelayCommand]
     private void SelectThemeMode(ThemeModeOption? option)
     {
         if (option == null) return;
         ThemeMode = option.Value;
-        PersistAppearance(showStatus: true);
+        PersistAppearance();
     }
 
     [RelayCommand]
@@ -131,7 +121,15 @@ public partial class MeViewModel : ObservableObject
         AccentColor = option.Value;
         if (option.Value == AccentColor.Custom)
             SyncCustomRgbFromHex(CustomColor);
-        PersistAppearance(showStatus: true);
+        PersistAppearance();
+    }
+
+    [RelayCommand]
+    private void SelectFontSize(FontSizeOptionItem? option)
+    {
+        if (option == null) return;
+        FontSize = option.Value;
+        PersistAppearance();
     }
 
     [RelayCommand]
@@ -141,13 +139,16 @@ public partial class MeViewModel : ObservableObject
         AccentColor = AccentColor.Custom;
         CustomColor = swatch.Hex;
         SyncCustomRgbFromHex(CustomColor);
-        PersistAppearance(showStatus: true);
+        PersistAppearance();
     }
 
-    [RelayCommand]
-    private void ApplyAppearance() => PersistAppearance(showStatus: true);
+    partial void OnConfirmDeleteChanged(bool value)
+    {
+        if (_loadingAppearance) return;
+        PersistAppearance();
+    }
 
-    private void PersistAppearance(bool showStatus)
+    private void PersistAppearance()
     {
         if (_loadingAppearance) return;
 
@@ -155,78 +156,13 @@ public partial class MeViewModel : ObservableObject
         {
             ThemeMode = ThemeMode,
             AccentColor = AccentColor,
-            CustomColor = NormalizeHex(CustomColor)
+            CustomColor = NormalizeHex(CustomColor),
+            FontSize = FontSize,
+            ConfirmDelete = ConfirmDelete
         };
         _settings.SaveAppearance(appearance);
         _theme.Apply(appearance);
         RefreshSelectionFlags();
-        if (showStatus)
-            StatusMessage = $"已应用 · {ThemeService.ResolveAccentHex(AccentColor, CustomColor)}";
-    }
-
-    [RelayCommand]
-    private void SaveServerAddress()
-    {
-        var sync = _settings.LoadSync();
-        sync.BaseUrl = BaseUrl.Trim();
-        _settings.SaveSync(sync);
-        StatusMessage = "服务地址已保存";
-    }
-
-    [RelayCommand]
-    private async Task PasteServerUrlAsync()
-    {
-        try
-        {
-            if (!Clipboard.Default.HasText)
-            {
-                StatusMessage = "剪贴板为空";
-                return;
-            }
-
-            var text = await Clipboard.Default.GetTextAsync() ?? "";
-            var url = ServerUrlQrHelper.ExtractHttpUrl(text);
-            if (string.IsNullOrWhiteSpace(url))
-            {
-                StatusMessage = "未识别到 http 地址";
-                return;
-            }
-
-            BaseUrl = url;
-            SaveServerAddress();
-        }
-        catch (Exception ex)
-        {
-            StatusMessage = ex.Message;
-        }
-    }
-
-    [RelayCommand]
-    private async Task ScanQrFromPhotoAsync()
-    {
-        try
-        {
-            var photo = await MediaPicker.Default.PickPhotoAsync();
-            if (photo == null) return;
-            await using var stream = await photo.OpenReadAsync();
-            using var ms = new MemoryStream();
-            await stream.CopyToAsync(ms);
-            var decoded = ServerUrlQrHelper.TryDecodeQr(ms.ToArray());
-            var url = ServerUrlQrHelper.ExtractHttpUrl(decoded);
-            if (string.IsNullOrWhiteSpace(url))
-            {
-                StatusMessage = "未识别到二维码地址";
-                return;
-            }
-
-            BaseUrl = url;
-            SaveServerAddress();
-            StatusMessage = "扫码已填入服务地址";
-        }
-        catch (Exception ex)
-        {
-            StatusMessage = "扫码失败：" + ex.Message;
-        }
     }
 
     [RelayCommand]
@@ -290,7 +226,6 @@ public partial class MeViewModel : ObservableObject
     {
         if (_loadingAppearance) return;
         RefreshSelectionFlags();
-        // 选色命令会 PersistAppearance；此处仅即时预览，避免重复 Apply + 写盘
         _theme.ApplyThemeMode(value);
         _theme.ApplyAccentColor(AccentColor, CustomColor);
     }
@@ -314,7 +249,6 @@ public partial class MeViewModel : ObservableObject
             ScheduleCustomAccentPersist(value);
     }
 
-    /// <summary>滑条拖动时只预览强调色，落盘与完整 Apply 防抖，避免整页卡顿。</summary>
     private void ScheduleCustomAccentPersist(string value)
     {
         _customAccentDebounce?.Cancel();
@@ -336,7 +270,9 @@ public partial class MeViewModel : ObservableObject
             {
                 ThemeMode = ThemeMode,
                 AccentColor = AccentColor.Custom,
-                CustomColor = hex
+                CustomColor = hex,
+                FontSize = FontSize,
+                ConfirmDelete = ConfirmDelete
             };
             _settings.SaveAppearance(appearance);
         }
@@ -405,6 +341,9 @@ public partial class MeViewModel : ObservableObject
             if (option.Value == AccentColor.Custom)
                 RefreshCustomAccentSwatch();
         }
+
+        foreach (var option in FontSizeOptions)
+            option.IsSelected = option.Value == FontSize;
 
         IsCustomAccent = AccentColor == AccentColor.Custom;
     }
