@@ -67,7 +67,7 @@ public partial class SearchPanelViewModel : ObservableObject
 
         var suggestions = await _trainRideRepository.SearchUserDepartStationsAsync(keyword);
         // 去掉联想建议中的"站"字
-        var processedSuggestions = suggestions.Select(s => s.EndsWith("站") ? s.Substring(0, s.Length - 1) : s).ToList();
+        var processedSuggestions = suggestions.Select(StationFormRules.ToNameBody).ToList();
         DepartStationSuggestions = new ObservableCollection<string>(processedSuggestions);
         IsDepartStationDropDownOpen = processedSuggestions.Count > 0;
     }
@@ -84,7 +84,7 @@ public partial class SearchPanelViewModel : ObservableObject
 
         var suggestions = await _trainRideRepository.SearchUserArriveStationsAsync(keyword);
         // 去掉联想建议中的"站"字
-        var processedSuggestions = suggestions.Select(s => s.EndsWith("站") ? s.Substring(0, s.Length - 1) : s).ToList();
+        var processedSuggestions = suggestions.Select(StationFormRules.ToNameBody).ToList();
         ArriveStationSuggestions = new ObservableCollection<string>(processedSuggestions);
         IsArriveStationDropDownOpen = processedSuggestions.Count > 0;
     }

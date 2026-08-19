@@ -1003,6 +1003,29 @@ public class TrainRideRepository
     }
 
     /// <summary>
+    ///     未软删行程中，出发或到达电报码等于指定车站的条数。
+    /// </summary>
+    public async Task<int> CountActiveRidesUsingStationCodeAsync(string stationCode)
+    {
+        var code = StationFormRules.NormalizeCode(stationCode);
+        if (string.IsNullOrEmpty(code))
+            return 0;
+
+        using (var connection = new SqliteConnection(_connectionString))
+        {
+            await connection.OpenAsync();
+            var sql = $@"
+                    SELECT COUNT(*)
+                    FROM train_ride_info
+                    WHERE {ActiveRideSql}
+                      AND (depart_station_code = @Code COLLATE NOCASE
+                           OR arrive_station_code = @Code COLLATE NOCASE)
+                ";
+            return await connection.ExecuteScalarAsync<int>(sql, new { Code = code });
+        }
+    }
+
+    /// <summary>
     ///     统计车次类型占比
     /// </summary>
     public async Task<(int GCount, int DCount, int OtherCount)> GetTrainTypeCountsAsync()

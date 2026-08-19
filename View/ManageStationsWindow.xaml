@@ -1,0 +1,18 @@
+<Window x:Class="GuiPiao.View.ManageStationsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:view="clr-namespace:GuiPiao.View"
+        Title="车站管理"
+        Height="560"
+        Width="900"
+        ResizeMode="CanMinimize"
+        WindowStartupLocation="CenterOwner"
+        FontSize="{DynamicResource BaseFontSize}"
+        Background="{DynamicResource WindowBackgroundBrush}"
+        BorderBrush="{DynamicResource BorderBrush}"
+        BorderThickness="1"
+        Icon="pack://application:,,,/Resources/AppIcon/guipiao.ico"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True">
+    <view:ManageStationsView />
+</Window>

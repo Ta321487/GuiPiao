@@ -153,6 +153,7 @@ public partial class MainWindow : Window
 
         // 注册快捷键动作 - 行程管理
         ShortcutManager.Instance.RegisterAction("OpenMap", () => viewModel.OpenTicketMapCommand.Execute(null));
+        ShortcutManager.Instance.RegisterAction("ManageStations", () => viewModel.OpenManageStations());
         ShortcutManager.Instance.RegisterAction("RefreshData", () => viewModel.TripMenu("RefreshList"));
         ShortcutManager.Instance.RegisterAction("PreviousPage", () => viewModel.PreviousPage());
         ShortcutManager.Instance.RegisterAction("NextPage", () => viewModel.NextPage());

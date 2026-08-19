@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+
 namespace GuiPiao.Model;
 
 /// <summary>
@@ -31,13 +34,39 @@ public enum PaymentChannel
 
 public enum StationLevel
 {
-    // 车站等级枚举
+    Unspecified = 0, // 未分级
     Special = 1, // 特等站
     First = 2, // 一等站
     Second = 4, // 二等站
     Third = 8, // 三等站
     Fourth = 16, // 四等站
     Fifth = 32 // 五等站
+}
+
+public static class StationLevelNames
+{
+    public static readonly IReadOnlyDictionary<StationLevel, string> Names = new Dictionary<StationLevel, string>
+    {
+        [StationLevel.Unspecified] = "未分级",
+        [StationLevel.Special] = "特等站",
+        [StationLevel.First] = "一等站",
+        [StationLevel.Second] = "二等站",
+        [StationLevel.Third] = "三等站",
+        [StationLevel.Fourth] = "四等站",
+        [StationLevel.Fifth] = "五等站"
+    };
+
+    public static StationLevel FromStoredValue(int value)
+    {
+        return Enum.IsDefined(typeof(StationLevel), value)
+            ? (StationLevel)value
+            : StationLevel.Unspecified;
+    }
+
+    public static string GetDisplayName(int value)
+    {
+        return Names[FromStoredValue(value)];
+    }
 }
 
 public enum TrainRideStatus

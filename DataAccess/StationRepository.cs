@@ -70,13 +70,14 @@ public class StationRepository
                         longitude AS Longitude,
                         latitude AS Latitude
                     FROM station_info 
-                    WHERE station_code = @Code
+                    WHERE TRIM(station_code) = @Code COLLATE NOCASE
                 ";
-            return await connection.QuerySingleOrDefaultAsync<StationInfo>(sql, new { Code = code });
+            var normalized = StationFormRules.NormalizeCode(code);
+            return await connection.QueryFirstOrDefaultAsync<StationInfo>(sql, new { Code = normalized });
         }
     }
 
-    public async Task<StationInfo> GetStationByNameAsync(string name)
+    public async Task<StationInfo?> GetStationByNameAsync(string name, string? excludeCode = null)
     {
         using (var connection = new SqliteConnection(_connectionString))
         {
@@ -95,13 +96,17 @@ public class StationRepository
                         longitude AS Longitude,
                         latitude AS Latitude
                     FROM station_info 
-                    WHERE station_name = @Name
+                    WHERE station_name = @Name COLLATE NOCASE
                 ";
-            return await connection.QuerySingleOrDefaultAsync<StationInfo>(sql, new { Name = name });
+            if (!string.IsNullOrWhiteSpace(excludeCode))
+                sql += " AND TRIM(station_code) <> @ExcludeCode COLLATE NOCASE";
+
+            return await connection.QueryFirstOrDefaultAsync<StationInfo>(sql,
+                new { Name = name.Trim(), ExcludeCode = StationFormRules.NormalizeCode(excludeCode) });
         }
     }
 
-    public async Task<int> UpdateStationAsync(StationInfo station)
+    public async Task<int> UpdateStationAsync(StationInfo station, string previousCode)
     {
         using (var connection = new SqliteConnection(_connectionString))
         {
@@ -109,11 +114,24 @@ public class StationRepository
             var sql = @"
                     UPDATE station_info
                     SET station_name = @StationName, province = @Province, city = @City, district = @District,
-                        station_pinyin = @StationPinyin, station_level = @StationLevel, railway_bureau = @RailwayBureau,
-                        longitude = @Longitude, latitude = @Latitude
-                    WHERE station_code = @StationCode;
+                        station_code = @StationCode, station_pinyin = @StationPinyin, station_level = @StationLevel,
+                        railway_bureau = @RailwayBureau, longitude = @Longitude, latitude = @Latitude
+                    WHERE TRIM(station_code) = @PreviousCode COLLATE NOCASE;
                 ";
-            return await connection.ExecuteAsync(sql, station);
+            return await connection.ExecuteAsync(sql, new
+            {
+                station.StationName,
+                station.Province,
+                station.City,
+                station.District,
+                station.StationCode,
+                station.StationPinyin,
+                station.StationLevel,
+                station.RailwayBureau,
+                station.Longitude,
+                station.Latitude,
+                PreviousCode = StationFormRules.NormalizeCode(previousCode)
+            });
         }
     }
 

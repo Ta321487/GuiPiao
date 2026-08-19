@@ -1,3 +1,4 @@
+using GuiPiao.Model;
 using Microsoft.Data.Sqlite;
 
 namespace GuiPiao.Mobile.Data;
@@ -11,10 +12,8 @@ public sealed class StationCacheRepository
 
     public void Upsert(string name, string? code, string? pinyin)
     {
-        var n = (name ?? "").Trim();
+        var n = StationFormRules.ToStoredName(name);
         if (string.IsNullOrWhiteSpace(n)) return;
-        if (!n.EndsWith("站", StringComparison.Ordinal))
-            n += "站";
 
         using var connection = _db.OpenConnection();
         using var cmd = connection.CreateCommand();
@@ -40,10 +39,8 @@ public sealed class StationCacheRepository
         using var tx = connection.BeginTransaction();
         foreach (var s in stations)
         {
-            var n = (s.Name ?? "").Trim();
+            var n = StationFormRules.ToStoredName(s.Name);
             if (string.IsNullOrWhiteSpace(n)) continue;
-            if (!n.EndsWith("站", StringComparison.Ordinal))
-                n += "站";
 
             using var cmd = connection.CreateCommand();
             cmd.Transaction = tx;
@@ -95,7 +92,7 @@ public sealed class StationCacheRepository
             """;
         cmd.Parameters.AddWithValue("@Q", "%" + q + "%");
         cmd.Parameters.AddWithValue("@Exact", q);
-        cmd.Parameters.AddWithValue("@ExactZhan", q.EndsWith("站") ? q : q + "站");
+        cmd.Parameters.AddWithValue("@ExactZhan", StationFormRules.ToStoredName(q));
         cmd.Parameters.AddWithValue("@Limit", limit);
         var list = new List<StationCacheItem>();
         using var reader = cmd.ExecuteReader();
@@ -116,7 +113,7 @@ public sealed class StationCacheRepository
     {
         var n = (name ?? "").Trim();
         if (string.IsNullOrWhiteSpace(n)) return null;
-        var withZhan = n.EndsWith("站") ? n : n + "站";
+        var withZhan = StationFormRules.ToStoredName(n);
         using var connection = _db.OpenConnection();
         using var cmd = connection.CreateCommand();
         cmd.CommandText =
@@ -144,6 +141,5 @@ public sealed class StationCacheItem
     public string StationCode { get; set; } = string.Empty;
     public string StationPinyin { get; set; } = string.Empty;
 
-    public string DisplayName =>
-        StationName.EndsWith("站", StringComparison.Ordinal) ? StationName[..^1] : StationName;
+    public string DisplayName => StationFormRules.ToNameBody(StationName);
 }

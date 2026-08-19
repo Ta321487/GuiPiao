@@ -243,18 +243,11 @@ public partial class TicketPreviewDraft : ObservableObject, IDisposable
         return string.Join(sp, t.ToCharArray());
     }
 
-    public static string TrimTrailingStation(string? station)
-    {
-        if (string.IsNullOrWhiteSpace(station)) return string.Empty;
-        var t = station.Trim();
-        return t.EndsWith("站", StringComparison.Ordinal) && t.Length > 1 ? t[..^1] : t;
-    }
+    public static string TrimTrailingStation(string? station) => StationFormRules.ToInputName(station);
 
-    public bool DepartStationShowZhan =>
-        Source.DepartStation != null && Source.DepartStation.TrimEnd().EndsWith("站", StringComparison.Ordinal);
+    public bool DepartStationShowZhan => StationFormRules.HasStationSuffix(Source.DepartStation);
 
-    public bool ArriveStationShowZhan =>
-        Source.ArriveStation != null && Source.ArriveStation.TrimEnd().EndsWith("站", StringComparison.Ordinal);
+    public bool ArriveStationShowZhan => StationFormRules.HasStationSuffix(Source.ArriveStation);
 
     public bool HasAdditionalInfo => !string.IsNullOrWhiteSpace(Source.AdditionalInfo);
 

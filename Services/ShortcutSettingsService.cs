@@ -127,6 +127,12 @@ public class ShortcutSettingsService
                 },
                 new()
                 {
+                    ActionId = "ManageStations", ActionName = "车站管理", Description = "维护本机车站库（站名、电报码、路局、坐标）",
+                    Category = "行程管理",
+                    DefaultKey = "", CurrentKey = ""
+                },
+                new()
+                {
                     ActionId = "RefreshData", ActionName = "刷新数据", Description = "刷新行程数据", Category = "行程管理",
                     DefaultKey = "F5", CurrentKey = "F5"
                 },

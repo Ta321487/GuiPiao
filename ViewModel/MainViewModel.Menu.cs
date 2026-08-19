@@ -78,6 +78,12 @@ public partial class MainViewModel
     }
 
     [RelayCommand]
+    public void OpenManageStations()
+    {
+        Menu.OpenManageStations();
+    }
+
+    [RelayCommand]
     public void OpenLogManager()
     {
         Menu.OpenLogManager();

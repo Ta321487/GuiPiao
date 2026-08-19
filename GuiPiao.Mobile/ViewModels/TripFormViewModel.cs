@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using GuiPiao.Model;
 using GuiPiao.Mobile.Data;
 using GuiPiao.Mobile.Messaging;
 using GuiPiao.Mobile.Model;
@@ -386,13 +387,13 @@ public partial class TripFormViewModel : ObservableObject, IQueryAttributable
 
         if (!string.IsNullOrWhiteSpace(draft.DepartStation))
         {
-            DepartStation = StripStationSuffix(draft.DepartStation);
+            DepartStation = StationFormRules.ToNameBody(draft.DepartStation);
             HighlightDepartStation = true;
         }
 
         if (!string.IsNullOrWhiteSpace(draft.ArriveStation))
         {
-            ArriveStation = StripStationSuffix(draft.ArriveStation);
+            ArriveStation = StationFormRules.ToNameBody(draft.ArriveStation);
             HighlightArriveStation = true;
         }
 
@@ -470,8 +471,8 @@ public partial class TripFormViewModel : ObservableObject, IQueryAttributable
         try
         {
             ParseTrainNo(ride.TrainNo);
-            DepartStation = StripStationSuffix(ride.DepartStation);
-            ArriveStation = StripStationSuffix(ride.ArriveStation);
+            DepartStation = StationFormRules.ToNameBody(ride.DepartStation);
+            ArriveStation = StationFormRules.ToNameBody(ride.ArriveStation);
             if (DateTime.TryParse(ride.DepartDate, CultureInfo.InvariantCulture, DateTimeStyles.None, out var d))
                 DepartDateValue = d.Date;
             DepartTimeValue = TryParseTime(ride.DepartTime, out var dt) ? dt : new TimeSpan(12, 0, 0);
@@ -643,8 +644,8 @@ public partial class TripFormViewModel : ObservableObject, IQueryAttributable
             }
 
             ride.TrainNo = BuildTrainNo();
-            ride.DepartStation = EnsureStationSuffix(DepartStation);
-            ride.ArriveStation = EnsureStationSuffix(ArriveStation);
+            ride.DepartStation = StationFormRules.ToStoredName(DepartStation);
+            ride.ArriveStation = StationFormRules.ToStoredName(ArriveStation);
             ride.DepartDate = DepartDateValue.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
             ride.DepartTime = FormatTime(DepartTimeValue);
             ride.ArriveTime = HasArriveTime ? FormatTime(ArriveTimeValue) : string.Empty;
@@ -903,18 +904,5 @@ public partial class TripFormViewModel : ObservableObject, IQueryAttributable
     {
         if (!query.TryGetValue(key, out var v) || v == null) return string.Empty;
         return Uri.UnescapeDataString(v.ToString() ?? "");
-    }
-
-    private static string StripStationSuffix(string name)
-    {
-        var n = (name ?? "").Trim();
-        return n.EndsWith("站", StringComparison.Ordinal) ? n[..^1] : n;
-    }
-
-    private static string EnsureStationSuffix(string name)
-    {
-        var n = name.Trim();
-        if (string.IsNullOrEmpty(n)) return n;
-        return n.EndsWith("站", StringComparison.Ordinal) ? n : n + "站";
     }
 }

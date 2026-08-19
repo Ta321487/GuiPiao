@@ -32,13 +32,11 @@ public class StationQueryService
 
         try
         {
-            // 添加"站"字进行查询（因为数据库中存储的是"大连站"这样的完整名称）
-            var fullName = stationName.EndsWith("站") ? stationName : $"{stationName}站";
-            var station = await _stationRepository.GetStationByNameAsync(fullName);
+            var trimmed = stationName.Trim();
+            var station = await _stationRepository.GetStationByNameAsync(StationFormRules.ToStoredName(trimmed));
 
             if (station == null)
-                // 尝试直接查询（如果用户输入了完整名称）
-                station = await _stationRepository.GetStationByNameAsync(stationName);
+                station = await _stationRepository.GetStationByNameAsync(trimmed);
 
             return station;
         }
@@ -94,7 +92,7 @@ public class StationQueryService
 
             // 去重并去掉"站"字
             var names = stations
-                .Select(s => RemoveStationSuffix(s.StationName))
+                .Select(s => StationFormRules.ToNameBody(s.StationName))
                 .Where(name => !string.IsNullOrEmpty(name))
                 .Distinct()
                 .Take(10)
@@ -124,7 +122,7 @@ public class StationQueryService
             foreach (var station in stations)
             {
                 // 去掉"站"字返回
-                var name = RemoveStationSuffix(station.StationName);
+                var name = StationFormRules.ToNameBody(station.StationName);
                 if (!string.IsNullOrEmpty(name)) names.Add(name);
             }
 
@@ -145,9 +143,7 @@ public class StationQueryService
         if (string.IsNullOrEmpty(stationName))
             return string.Empty;
 
-        return stationName.EndsWith("站")
-            ? stationName.Substring(0, stationName.Length - 1)
-            : stationName;
+        return StationFormRules.RemoveStationSuffix(stationName);
     }
 
     /// <summary>
@@ -155,11 +151,6 @@ public class StationQueryService
     /// </summary>
     public static string AddStationSuffix(string? stationName)
     {
-        if (string.IsNullOrEmpty(stationName))
-            return string.Empty;
-
-        return stationName.EndsWith("站")
-            ? stationName
-            : $"{stationName}站";
+        return StationFormRules.AddStationSuffix(stationName);
     }
 }

@@ -52,6 +52,7 @@
 
   <!-- 复用 PC 同步协议 DTO / 实体常量（snake_case 字段由 SyncJson 序列化） -->
   <ItemGroup>
+    <Compile Include="..\Model\StationFormRules.cs" Link="Model\StationFormRules.cs" />
     <Compile Include="..\Model\Sync\SyncProtocol.cs" Link="Model\Sync\SyncProtocol.cs" />
     <Compile Include="..\Model\Sync\SyncEntities.cs" Link="Model\Sync\SyncEntities.cs" />
     <Compile Include="..\Model\TicketImportDraft.cs" Link="Model\TicketImportDraft.cs" />

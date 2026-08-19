@@ -346,8 +346,8 @@ public class TicketTextExtractor
 
         draft.DepartDate ??= BuildDate(null, m.Groups[1].Value, m.Groups[2].Value);
         draft.TrainNo ??= m.Groups[3].Value.ToUpperInvariant();
-        var d = StripStationSuffix(m.Groups[4].Value);
-        var a = StripStationSuffix(m.Groups[5].Value);
+        var d = StationFormRules.ToInputName(m.Groups[4].Value);
+        var a = StationFormRules.ToInputName(m.Groups[5].Value);
         if (IsPlausibleStation(d)) draft.DepartStation ??= d;
         if (IsPlausibleStation(a)) draft.ArriveStation ??= a;
     }
@@ -393,7 +393,7 @@ public class TicketTextExtractor
         var faChe = TimeStationFaCheRegex.Match(text);
         if (faChe.Success)
         {
-            var d = StripStationSuffix(faChe.Groups[3].Value);
+            var d = StationFormRules.ToInputName(faChe.Groups[3].Value);
             if (IsPlausibleStation(d))
                 draft.DepartStation ??= d;
         }
@@ -402,7 +402,7 @@ public class TicketTextExtractor
         var stations = new List<string>();
         foreach (Match m in StationWithZhanRegex.Matches(text))
         {
-            var name = StripStationSuffix(m.Groups[1].Value);
+            var name = StationFormRules.ToInputName(m.Groups[1].Value);
             if (!IsPlausibleStation(name)) continue;
             if (stations.Count == 0 || !string.Equals(stations[^1], name, StringComparison.Ordinal))
                 stations.Add(name);
@@ -418,13 +418,13 @@ public class TicketTextExtractor
         {
             if (!string.IsNullOrWhiteSpace(depLabeled))
             {
-                var d = StripStationSuffix(depLabeled);
+                var d = StationFormRules.ToInputName(depLabeled);
                 if (IsPlausibleStation(d)) draft.DepartStation ??= d;
             }
 
             if (!string.IsNullOrWhiteSpace(arrLabeled))
             {
-                var a = StripStationSuffix(arrLabeled);
+                var a = StationFormRules.ToInputName(arrLabeled);
                 if (IsPlausibleStation(a)) draft.ArriveStation ??= a;
             }
         }
@@ -440,8 +440,8 @@ public class TicketTextExtractor
     {
         if (string.IsNullOrWhiteSpace(depRaw) || string.IsNullOrWhiteSpace(arrRaw))
             return false;
-        var d = StripStationSuffix(depRaw);
-        var a = StripStationSuffix(arrRaw);
+        var d = StationFormRules.ToInputName(depRaw);
+        var a = StationFormRules.ToInputName(arrRaw);
         if (!IsPlausibleStation(d) || !IsPlausibleStation(a))
             return false;
         draft.DepartStation ??= d;
@@ -455,14 +455,6 @@ public class TicketTextExtractor
         if (NonStationNames.Contains(name)) return false;
         if (name.EndsWith("口", StringComparison.Ordinal)) return false;
         return true;
-    }
-
-    private static string StripStationSuffix(string name)
-    {
-        var s = name.Trim();
-        if (s.EndsWith("站", StringComparison.Ordinal) && s.Length > 1)
-            s = s[..^1];
-        return s;
     }
 
     private static void TryExtractDateTime(string text, TicketImportDraft draft)

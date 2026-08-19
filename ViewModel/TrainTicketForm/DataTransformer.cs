@@ -145,8 +145,8 @@ public class DataTransformer
         ParseTrainNo(entity.TrainNo, data);
 
         // 解析车站（去掉"站"字）
-        data.DepartStationInput = ExtractStationName(entity.DepartStation);
-        data.ArriveStationInput = ExtractStationName(entity.ArriveStation);
+        data.DepartStationInput = StationFormRules.ToNameBody(entity.DepartStation);
+        data.ArriveStationInput = StationFormRules.ToNameBody(entity.ArriveStation);
 
         // 解析车厢号（含加挂）
         ParseCoachNo(entity.CoachNo, data);
@@ -216,17 +216,6 @@ public class DataTransformer
 
         data.IsJiaChe = isJia;
         data.CoachNoInput = s;
-    }
-
-    /// <summary>
-    ///     提取车站名（去掉"站"字）
-    /// </summary>
-    private string ExtractStationName(string stationName)
-    {
-        if (string.IsNullOrEmpty(stationName))
-            return string.Empty;
-
-        return stationName.EndsWith("站") ? stationName.Substring(0, stationName.Length - 1) : stationName;
     }
 
     /// <summary>

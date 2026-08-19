@@ -628,6 +628,16 @@ public partial class MenuViewModel : ObservableObject
     #endregion
 
     [RelayCommand]
+    public void OpenManageStations()
+    {
+        var owner = Application.Current.MainWindow;
+        var window = new ManageStationsWindow();
+        if (owner != null && owner != window)
+            window.Owner = owner;
+        window.ShowDialog();
+    }
+
+    [RelayCommand]
     public void OpenLogManager()
     {
         var logWindow = WindowManager.ShowWindow(() => new LogManagerWindow

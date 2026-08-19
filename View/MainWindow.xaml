@@ -27,8 +27,8 @@
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
-            <Setter Property="Padding" Value="8,6" />
-            <Setter Property="MinHeight" Value="38" />
+            <Setter Property="Padding" Value="8,8" />
+            <Setter Property="MinHeight" Value="40" />
         </Style>
         <Style x:Key="SidebarQuickCaptionStyle" TargetType="TextBlock">
             <Setter Property="Foreground" Value="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
@@ -174,6 +174,8 @@
                 </MenuItem>
                 <Separator />
                 <MenuItem Header="车票地图..." Command="{Binding OpenTicketMapCommand}" InputGestureText="{Binding ShortcutKeys[OpenMap]}" />
+                <MenuItem Header="车站管理..." Command="{Binding OpenManageStationsCommand}"
+                          InputGestureText="{Binding ShortcutKeys[ManageStations]}" />
                 <MenuItem Header="仪表盘统计">
                     <MenuItem Header="统计配置..." Command="{Binding TripMenuCommand}" CommandParameter="StatsConfig" />
                     <MenuItem Header="刷新统计" Command="{Binding TripMenuCommand}" CommandParameter="RefreshStats"
@@ -282,19 +284,27 @@
                               DragCompleted="RightSplitter_DragCompleted"
                               DragDelta="RightSplitter_DragDelta" />
 
-                <!-- 左侧：高级检索区和快捷功能区 -->
-                <Border Grid.Column="0" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="5">
+                <!-- 左侧：高级检索区和快捷功能区（两块之间露出窗体底色，避免贴成一条） -->
+                <Border Grid.Column="0"
+                        Background="{DynamicResource WindowBackgroundBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}"
+                        BorderThickness="1"
+                        Margin="5">
                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                         <StackPanel>
                             <!-- 高级检索区 -->
-                            <Border Background="{DynamicResource PanelBackgroundBrush}" Margin="10"
-                                    BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1">
+                            <Border Background="{DynamicResource PanelBackgroundBrush}"
+                                    Margin="8,8,8,0"
+                                    Padding="8,8,8,12"
+                                    BorderBrush="{DynamicResource BorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="8">
                                 <StackPanel>
                                     <controls:IconLabel Glyph="{x:Static icons:AppIcons.Search}"
                                                         Text="高级检索区"
                                                         FontSize="{DynamicResource LargeFontSize}"
                                                         FontWeight="Bold"
-                                                        Margin="0,0,0,10" />
+                                                        Margin="0,0,0,12" />
                                     <Grid>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto" />
@@ -314,10 +324,10 @@
                                                    Text="出发站："
                                                    VerticalAlignment="Center"
                                                    TextAlignment="Right"
-                                                   Margin="0,0,10,8"
+                                                   Margin="0,0,10,10"
                                                    FontSize="{DynamicResource BaseFontSize}"
                                                    Foreground="{DynamicResource TextPrimaryBrush}" />
-                                        <Grid Grid.Row="0" Grid.Column="1" Margin="0,0,0,8">
+                                        <Grid Grid.Row="0" Grid.Column="1" Margin="0,0,0,10">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*" MinWidth="0" />
                                                 <ColumnDefinition Width="Auto" />
@@ -334,7 +344,7 @@
                                             <TextBlock Grid.Column="1"
                                                        Text="站"
                                                        VerticalAlignment="Center"
-                                                       Margin="6,0,0,0"
+                                                       Margin="8,0,0,0"
                                                        FontSize="{DynamicResource BaseFontSize}"
                                                        Foreground="{DynamicResource TextPrimaryBrush}" />
                                         </Grid>
@@ -344,10 +354,10 @@
                                                    Text="到达站："
                                                    VerticalAlignment="Center"
                                                    TextAlignment="Right"
-                                                   Margin="0,0,10,8"
+                                                   Margin="0,0,10,10"
                                                    FontSize="{DynamicResource BaseFontSize}"
                                                    Foreground="{DynamicResource TextPrimaryBrush}" />
-                                        <Grid Grid.Row="1" Grid.Column="1" Margin="0,0,0,8">
+                                        <Grid Grid.Row="1" Grid.Column="1" Margin="0,0,0,10">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*" MinWidth="0" />
                                                 <ColumnDefinition Width="Auto" />
@@ -364,7 +374,7 @@
                                             <TextBlock Grid.Column="1"
                                                        Text="站"
                                                        VerticalAlignment="Center"
-                                                       Margin="6,0,0,0"
+                                                       Margin="8,0,0,0"
                                                        FontSize="{DynamicResource BaseFontSize}"
                                                        Foreground="{DynamicResource TextPrimaryBrush}" />
                                         </Grid>
@@ -377,7 +387,7 @@
                                                    TextAlignment="Right"
                                                    FontSize="{DynamicResource BaseFontSize}"
                                                    Foreground="{DynamicResource TextPrimaryBrush}" />
-                                        <StackPanel Grid.Row="2" Grid.Column="1" Margin="0,0,0,8">
+                                        <StackPanel Grid.Row="2" Grid.Column="1" Margin="0,0,0,10">
                                             <ComboBox ItemsSource="{Binding TrainNoPrefixes}"
                                                       SelectedItem="{Binding SelectedTrainNoPrefix}"
                                                       MinWidth="52"
@@ -386,7 +396,7 @@
                                                       FontSize="{DynamicResource BaseFontSize}"
                                                       Padding="4,2"
                                                       MinHeight="24" />
-                                            <TextBox Margin="0,6,0,0"
+                                            <TextBox Margin="0,8,0,0"
                                                      Text="{Binding TrainNoNumber}"
                                                      IsEnabled="{Binding IsTrainNoNumberEnabled}"
                                                      FontSize="{DynamicResource BaseFontSize}"
@@ -401,14 +411,14 @@
                                                    Text="日期范围："
                                                    VerticalAlignment="Center"
                                                    TextAlignment="Right"
-                                                   Margin="0,0,10,8"
+                                                   Margin="0,0,10,10"
                                                    FontSize="{DynamicResource BaseFontSize}"
                                                    Foreground="{DynamicResource TextPrimaryBrush}" />
                                         <ComboBox Grid.Row="3" Grid.Column="1"
                                                   Text="{Binding DateRange}"
                                                   MinWidth="0"
                                                   HorizontalAlignment="Stretch"
-                                                  Margin="0,0,0,8"
+                                                  Margin="0,0,0,10"
                                                   FontSize="{DynamicResource BaseFontSize}"
                                                   VerticalAlignment="Center"
                                                   Padding="4,2"
@@ -424,14 +434,14 @@
                                                    Text="状态："
                                                    VerticalAlignment="Center"
                                                    TextAlignment="Right"
-                                                   Margin="0,0,10,8"
+                                                   Margin="0,0,10,10"
                                                    FontSize="{DynamicResource BaseFontSize}"
                                                    Foreground="{DynamicResource TextPrimaryBrush}" />
                                         <ComboBox Grid.Row="4" Grid.Column="1"
                                                   Text="{Binding Status}"
                                                   MinWidth="0"
                                                   HorizontalAlignment="Stretch"
-                                                  Margin="0,0,0,8"
+                                                  Margin="0,0,0,10"
                                                   FontSize="{DynamicResource BaseFontSize}"
                                                   VerticalAlignment="Center"
                                                   Padding="4,2"
@@ -445,7 +455,7 @@
                                         <StackPanel Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2"
                                                     Orientation="Horizontal"
                                                     HorizontalAlignment="Right"
-                                                    Margin="0,6,0,0">
+                                                    Margin="0,10,0,2">
                                             <Button Content="{x:Static icons:AppIcons.Search}"
                                                     ToolTip="检索"
                                                     Command="{Binding SearchCommand}"
@@ -463,24 +473,29 @@
                             </Border>
 
                             <!-- 快捷功能区：侧栏「图标+文案」列表 + 分组圆角容器（常见桌面应用范式） -->
-                            <Border Background="{DynamicResource PanelBackgroundBrush}" Margin="10">
+                            <Border Background="{DynamicResource PanelBackgroundBrush}"
+                                    Margin="8,12,8,8"
+                                    Padding="8,8,8,8"
+                                    BorderBrush="{DynamicResource BorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="8">
                                 <StackPanel>
                                     <controls:IconLabel Glyph="{x:Static icons:AppIcons.Pin}"
                                                         Text="快捷功能区"
                                                         FontSize="{DynamicResource LargeFontSize}"
                                                         FontWeight="Bold"
-                                                        Margin="0,10,0,8"
+                                                        Margin="0,0,0,10"
                                                         Foreground="{DynamicResource TextPrimaryBrush}" />
                                     <Border Background="{DynamicResource ControlBackgroundBrush}"
                                             BorderBrush="{DynamicResource BorderBrush}"
                                             BorderThickness="1"
                                             CornerRadius="8"
-                                            Padding="4,6">
+                                            Padding="6,8">
                                         <StackPanel>
                                             <Button Style="{StaticResource SidebarQuickActionStyle}"
                                                     Command="{Binding NewTicketRecordCommand}"
                                                     ToolTip="新增车票记录"
-                                                    Margin="0,0,0,2">
+                                                    Margin="0,0,0,4">
                                                 <Grid>
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="28" />
@@ -493,7 +508,7 @@
                                             <Button Style="{StaticResource SidebarQuickActionStyle}"
                                                     Command="{Binding OcrRecognizeTicketCommand}"
                                                     ToolTip="OCR 识别票面"
-                                                    Margin="0,0,0,2">
+                                                    Margin="0,0,0,4">
                                                 <Grid>
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="28" />
@@ -506,7 +521,7 @@
                                             <Button Style="{StaticResource SidebarQuickActionStyle}"
                                                     Command="{Binding OpenTicketMapCommand}"
                                                     ToolTip="打开车票地图"
-                                                    Margin="0,0,0,2">
+                                                    Margin="0,0,0,4">
                                                 <Grid>
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="28" />
@@ -519,7 +534,7 @@
                                             <Button Style="{StaticResource SidebarQuickActionStyle}"
                                                     Command="{Binding TicketPreviewCommand}"
                                                     ToolTip="查看票面"
-                                                    Margin="0,0,0,2">
+                                                    Margin="0,0,0,4">
                                                 <Grid>
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="28" />
@@ -532,7 +547,7 @@
                                             <Button Style="{StaticResource SidebarQuickActionStyle}"
                                                     Command="{Binding BackupRestoreDatabaseCommand}"
                                                     ToolTip="备份与恢复数据库"
-                                                    Margin="0,0,0,2">
+                                                    Margin="0,0,0,4">
                                                 <Grid>
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="28" />
@@ -936,8 +951,10 @@
                               HorizontalAlignment="Stretch"
                               VerticalAlignment="Stretch"
                               MouseDoubleClick="TripDataGrid_DoubleClick"
+                              RowStyle="{StaticResource ThemedDataGridRowStyle}"
                               ColumnHeaderStyle="{StaticResource ThemedDataGridColumnHeaderStyle}"
                               CellStyle="{StaticResource ThemedDataGridCellStyle}"
+                              RowDetailsVisibilityMode="Collapsed"
                               ScrollViewer.CanContentScroll="True"
                               ScrollViewer.HorizontalScrollBarVisibility="Auto"
                               ScrollViewer.VerticalScrollBarVisibility="Auto"
@@ -961,45 +978,6 @@
                                 </Style.Triggers>
                             </Style>
                         </DataGrid.Style>
-                        <DataGrid.RowStyle>
-                            <Style TargetType="DataGridRow" BasedOn="{StaticResource ThemedDataGridRowStyle}">
-                                <Setter Property="Template">
-                                    <Setter.Value>
-                                        <ControlTemplate TargetType="DataGridRow">
-                                            <Grid>
-                                                <Border x:Name="DGR_Border"
-                                                        Background="{TemplateBinding Background}"
-                                                        BorderBrush="{TemplateBinding BorderBrush}"
-                                                        BorderThickness="{TemplateBinding BorderThickness}"
-                                                        SnapsToDevicePixels="True">
-                                                    <SelectiveScrollingGrid>
-                                                        <SelectiveScrollingGrid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="Auto" />
-                                                            <ColumnDefinition Width="*" />
-                                                        </SelectiveScrollingGrid.ColumnDefinitions>
-                                                        <SelectiveScrollingGrid.RowDefinitions>
-                                                            <RowDefinition Height="Auto" />
-                                                            <RowDefinition Height="Auto" />
-                                                        </SelectiveScrollingGrid.RowDefinitions>
-                                                        <DataGridRowHeader Grid.Row="0"
-                                                                Grid.RowSpan="2"
-                                                                Grid.Column="0"
-                                                                SelectiveScrollingGrid.SelectiveScrollingOrientation="Vertical"
-                                                                Visibility="{Binding HeadersVisibility, ConverterParameter={x:Static DataGridHeadersVisibility.Row}, Converter={x:Static DataGrid.HeadersVisibilityConverter}, RelativeSource={RelativeSource AncestorType=DataGrid}}" />
-                                                        <DataGridCellsPresenter Grid.Column="1"
-                                                                ItemsPanel="{TemplateBinding ItemsPanel}"
-                                                                SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
-                                                        <DataGridDetailsPresenter Grid.Column="1" Grid.Row="1"
-                                                                SelectiveScrollingGrid.SelectiveScrollingOrientation="{Binding AreRowDetailsFrozen, ConverterParameter={x:Static SelectiveScrollingOrientation.Vertical}, Converter={x:Static DataGrid.RowDetailsScrollingConverter}, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                                                                Visibility="{TemplateBinding DetailsVisibility}" />
-                                                    </SelectiveScrollingGrid>
-                                                </Border>
-                                            </Grid>
-                                        </ControlTemplate>
-                                    </Setter.Value>
-                                </Setter>
-                            </Style>
-                        </DataGrid.RowStyle>
                         <DataGrid.GroupStyle>
                             <GroupStyle>
                                 <GroupStyle.ContainerStyle>

@@ -1,4 +1,4 @@
-<UserControl x:Class="GuiPiao.View.ManageStationsView"
+﻿<UserControl x:Class="GuiPiao.View.ManageStationsView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -6,109 +6,221 @@
              xmlns:vm="clr-namespace:GuiPiao.ViewModel"
              mc:Ignorable="d"
              d:DesignHeight="450"
-             d:DesignWidth="800">
+             d:DesignWidth="800"
+             FontSize="{DynamicResource BaseFontSize}"
+             Background="{DynamicResource WindowBackgroundBrush}">
     <UserControl.DataContext>
         <vm:ManageStationsViewModel />
     </UserControl.DataContext>
     <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="340" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
 
-        <Border Grid.Row="0" Background="{DynamicResource ControlBackgroundBrush}" Margin="10">
-            <StackPanel Orientation="Horizontal">
-                <TextBlock Text="车站管理" FontSize="{DynamicResource TitleFontSize}" FontWeight="Bold"
-                           Foreground="{DynamicResource TextPrimaryBrush}" />
+        <Grid Grid.Column="0" Margin="16">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <StackPanel Grid.Row="0" Margin="0,0,0,10">
+                <TextBlock Text="车站列表" FontSize="{DynamicResource LargeFontSize}" FontWeight="Bold" />
+                <TextBlock Text="点击车站可编辑；点空白取消选择"
+                           Foreground="{DynamicResource TextSecondaryBrush}"
+                           FontSize="{DynamicResource SmallFontSize}" Margin="0,4,0,0"
+                           TextWrapping="Wrap" />
             </StackPanel>
-        </Border>
+            <Grid Grid.Row="1" Margin="0,0,0,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBox Grid.Column="0"
+                         Text="{Binding SearchKeyword}"
+                         VerticalAlignment="Center"
+                         Padding="8,4"
+                         FontSize="{DynamicResource BaseFontSize}" />
+                <Button Grid.Column="1"
+                        Content="搜索"
+                        Command="{Binding SearchStationsCommand}"
+                        Style="{StaticResource StandardButtonStyle}"
+                        MinWidth="60"
+                        Margin="8,0,0,0"
+                        VerticalAlignment="Center" />
+            </Grid>
+            <Grid Grid.Row="2">
+                <ListBox x:Name="StationList"
+                         ItemsSource="{Binding Stations}"
+                         DisplayMemberPath="StationName"
+                         SelectedItem="{Binding SelectedStation, Mode=OneWay}"
+                         SelectionChanged="StationList_OnSelectionChanged"
+                         PreviewMouseLeftButtonDown="StationList_OnPreviewMouseLeftButtonDown"
+                         SelectionMode="Single"
+                         Background="{DynamicResource ControlBackgroundBrush}"
+                         Foreground="{DynamicResource TextPrimaryBrush}"
+                         BorderBrush="{DynamicResource BorderBrush}"
+                         BorderThickness="1" />
+                <TextBlock Text="暂无车站，请在右侧新增"
+                           Foreground="{DynamicResource TextSecondaryBrush}"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           IsHitTestVisible="False"
+                           Visibility="{Binding IsStationListEmpty, Converter={StaticResource BooleanToVisibilityConverter}}" />
+            </Grid>
+        </Grid>
 
-        <Grid Grid.Row="1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="300" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
+        <Grid x:Name="FormAreaRoot"
+              Grid.Column="1"
+              Margin="8,16,16,16"
+              Background="Transparent">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
 
-            <!-- 左侧车站列表 -->
-            <StackPanel Grid.Column="0" Margin="20">
-                <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                    <TextBox Text="{Binding SearchKeyword}" Width="200" />
-                    <Button Content="搜索" Command="{Binding SearchStationsCommand}"
-                            Style="{StaticResource StandardButtonStyle}" Margin="8,0,0,0" />
-                </StackPanel>
-                <ListBox ItemsSource="{Binding Stations}" DisplayMemberPath="StationName" SelectionMode="Single"
-                         Height="300">
-                    <ListBox.ContextMenu>
-                        <ContextMenu>
-                            <MenuItem Header="编辑" Command="{Binding EditStationCommand}"
-                                      CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
-                            <MenuItem Header="删除" Command="{Binding DeleteStationCommand}"
-                                      CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
-                        </ContextMenu>
-                    </ListBox.ContextMenu>
-                </ListBox>
-            </StackPanel>
+            <ScrollViewer Grid.Row="0"
+                          VerticalAlignment="Top"
+                          VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled"
+                          Padding="8,0,4,0">
+                <StackPanel>
+                    <TextBlock Text="{Binding FormTitle}" FontSize="{DynamicResource LargeFontSize}" FontWeight="Bold"
+                               Margin="0,0,0,16" />
 
-            <!-- 右侧车站信息编辑 -->
-            <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
-                <StackPanel Margin="20">
-                    <TextBlock Text="车站信息" FontSize="{DynamicResource LargeFontSize}" FontWeight="Bold"
-                               Margin="0,0,0,10" />
+                    <Grid Margin="0,0,0,16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="16" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="车站名称 *" Margin="0,0,0,6" />
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBox Text="{Binding StationName, UpdateSourceTrigger=PropertyChanged}"
+                                         Padding="8,6"
+                                         MinHeight="{DynamicResource StandardRowHeight}" />
+                                <TextBlock Grid.Column="1" Text="站" VerticalAlignment="Center" Margin="8,0,0,0" />
+                            </Grid>
+                            <TextBlock Text="本库唯一；保存时自动补「站」"
+                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                       FontSize="{DynamicResource SmallFontSize}"
+                                       Margin="0,4,0,0"
+                                       TextWrapping="Wrap" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="车站拼音 *" Margin="0,0,0,6" />
+                            <TextBox Text="{Binding StationPinyin, UpdateSourceTrigger=PropertyChanged}"
+                                     Padding="8,6"
+                                     MinHeight="{DynamicResource StandardRowHeight}" />
+                            <TextBlock Text="全拼小写、无音调；用于预览与检索"
+                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                       FontSize="{DynamicResource SmallFontSize}"
+                                       Margin="0,4,0,0"
+                                       TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid Margin="0,0,0,16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="16" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="16" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="电报码" Margin="0,0,0,6" />
+                            <TextBox Text="{Binding StationCode, UpdateSourceTrigger=PropertyChanged}"
+                                     Padding="8,6"
+                                     MinHeight="{DynamicResource StandardRowHeight}"
+                                     IsReadOnly="{Binding StationCodeReadOnly}" />
+                            <TextBlock Text="选填；留空按拼音生成本机码。已被行程引用时不可改"
+                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                       FontSize="{DynamicResource SmallFontSize}"
+                                       Margin="0,4,0,0"
+                                       TextWrapping="Wrap" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="车站等级" Margin="0,0,0,6" />
+                            <ComboBox ItemsSource="{Binding StationLevelOptions}"
+                                      SelectedValue="{Binding SelectedStationLevel}"
+                                      SelectedValuePath="Key"
+                                      DisplayMemberPath="Value"
+                                      Padding="8,6"
+                                      MinHeight="{DynamicResource StandardRowHeight}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="4">
+                            <TextBlock Text="所属路局" Margin="0,0,0,6" />
+                            <TextBox Text="{Binding RailwayBureau, UpdateSourceTrigger=PropertyChanged}"
+                                     Padding="8,6"
+                                     MinHeight="{DynamicResource StandardRowHeight}" />
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid Margin="0,0,0,16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="16" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="16" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="省份" Margin="0,0,0,6" />
+                            <TextBox Text="{Binding Province, UpdateSourceTrigger=PropertyChanged}"
+                                     Padding="8,6"
+                                     MinHeight="{DynamicResource StandardRowHeight}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="城市" Margin="0,0,0,6" />
+                            <TextBox Text="{Binding City, UpdateSourceTrigger=PropertyChanged}"
+                                     Padding="8,6"
+                                     MinHeight="{DynamicResource StandardRowHeight}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="4">
+                            <TextBlock Text="区县" Margin="0,0,0,6" />
+                            <TextBox Text="{Binding District, UpdateSourceTrigger=PropertyChanged}"
+                                     Padding="8,6"
+                                     MinHeight="{DynamicResource StandardRowHeight}" />
+                        </StackPanel>
+                    </Grid>
+
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="100" />
-                            <ColumnDefinition Width="200" />
-                            <ColumnDefinition Width="100" />
-                            <ColumnDefinition Width="200" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="16" />
+                            <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
-
-                        <TextBlock Text="车站名称:" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center"
-                                   Margin="0,0,0,10" />
-                        <TextBox Text="{Binding StationName}" Grid.Row="0" Grid.Column="1" Margin="0,0,0,10" />
-                        <TextBlock Text="车站代码:" Grid.Row="0" Grid.Column="2" VerticalAlignment="Center"
-                                   Margin="0,0,0,10" />
-                        <TextBox Text="{Binding StationCode}" Grid.Row="0" Grid.Column="3" Margin="0,0,0,10" />
-
-                        <TextBlock Text="省份:" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,0,10" />
-                        <TextBox Text="{Binding Province}" Grid.Row="1" Grid.Column="1" Margin="0,0,0,10" />
-                        <TextBlock Text="城市:" Grid.Row="1" Grid.Column="2" VerticalAlignment="Center" Margin="0,0,0,10" />
-                        <TextBox Text="{Binding City}" Grid.Row="1" Grid.Column="3" Margin="0,0,0,10" />
-
-                        <TextBlock Text="区县:" Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,0,10" />
-                        <TextBox Text="{Binding District}" Grid.Row="2" Grid.Column="1" Margin="0,0,0,10" />
-                        <TextBlock Text="车站拼音:" Grid.Row="2" Grid.Column="2" VerticalAlignment="Center"
-                                   Margin="0,0,0,10" />
-                        <TextBox Text="{Binding StationPinyin}" Grid.Row="2" Grid.Column="3" Margin="0,0,0,10" />
-
-                        <TextBlock Text="车站等级:" Grid.Row="3" Grid.Column="0" VerticalAlignment="Center"
-                                   Margin="0,0,0,10" />
-                        <TextBox Text="{Binding StationLevel}" Grid.Row="3" Grid.Column="1" Margin="0,0,0,10" />
-                        <TextBlock Text="所属路局:" Grid.Row="3" Grid.Column="2" VerticalAlignment="Center"
-                                   Margin="0,0,0,10" />
-                        <TextBox Text="{Binding RailwayBureau}" Grid.Row="3" Grid.Column="3" Margin="0,0,0,10" />
-
-                        <TextBlock Text="经度:" Grid.Row="4" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,0,10" />
-                        <TextBox Text="{Binding Longitude}" Grid.Row="4" Grid.Column="1" Margin="0,0,0,10" />
-                        <TextBlock Text="纬度:" Grid.Row="4" Grid.Column="2" VerticalAlignment="Center" Margin="0,0,0,10" />
-                        <TextBox Text="{Binding Latitude}" Grid.Row="4" Grid.Column="3" Margin="0,0,0,10" />
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="经度" Margin="0,0,0,6" />
+                            <TextBox Text="{Binding Longitude, UpdateSourceTrigger=PropertyChanged}"
+                                     Padding="8,6"
+                                     MinHeight="{DynamicResource StandardRowHeight}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="纬度" Margin="0,0,0,6" />
+                            <TextBox Text="{Binding Latitude, UpdateSourceTrigger=PropertyChanged}"
+                                     Padding="8,6"
+                                     MinHeight="{DynamicResource StandardRowHeight}" />
+                        </StackPanel>
                     </Grid>
                 </StackPanel>
             </ScrollViewer>
-        </Grid>
 
-        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="20">
-            <Button Content="保存" Command="{Binding SaveStationCommand}" Style="{StaticResource StandardButtonStyle}"
-                    Width="100" Margin="0,0,12,0" />
-            <Button Content="清空" Command="{Binding ClearFieldsCommand}" Style="{StaticResource StandardButtonStyle}"
-                    Width="100" />
-        </StackPanel>
+            <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="8,12,4,0">
+                <Button Content="删除" Command="{Binding DeleteStationCommand}"
+                        Style="{StaticResource StandardButtonStyle}"
+                        MinWidth="80" Margin="0,0,12,0"
+                        Visibility="{Binding IsAdding, Converter={StaticResource InverseBooleanToVisibilityConverter}}" />
+                <Button Content="{Binding SaveButtonText}" Command="{Binding SaveStationCommand}"
+                        Style="{StaticResource PrimaryButtonStyle}"
+                        MinWidth="80" Padding="15,6" />
+            </StackPanel>
+        </Grid>
     </Grid>
 </UserControl>
