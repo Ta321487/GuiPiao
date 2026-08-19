@@ -32,6 +32,7 @@ public partial class SyncSettingsViewModel : ObservableObject, ISettingsViewMode
     private string _plainCode = string.Empty;
     private bool _isRefreshingCode;
     private bool _suppressUrlSelection;
+    private bool _isDetached;
 
     [ObservableProperty] private string _displayCode = "— — — — — —";
 
@@ -125,6 +126,28 @@ public partial class SyncSettingsViewModel : ObservableObject, ISettingsViewMode
     {
         _countdownTimer.Stop();
         _statusResetTimer?.Stop();
+    }
+
+    /// <summary>
+    ///     窗口关闭后释放单例/静态事件订阅，避免 Settings 反复打开导致 VM 泄漏。
+    /// </summary>
+    public void Detach()
+    {
+        if (_isDetached)
+            return;
+
+        _isDetached = true;
+        OnWindowClosing();
+
+        _countdownTimer.Tick -= OnCountdownTick;
+        _httpServer.StateChanged -= OnHttpServerStateChanged;
+        SyncPairingService.PairingCodeConsumed -= OnPairingCodeConsumed;
+        SyncPairingService.DeviceRevoked -= OnDeviceRevoked;
+
+        ConnectionQrImage = null;
+        ActiveDevices.Clear();
+        CandidateUrls.Clear();
+        OpenConflicts.Clear();
     }
 
     private void LoadFromSettings()

@@ -113,6 +113,9 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         foreach (var chart in _dashboardCharts) chart.Dispose();
         _dashboardCharts.Clear();
 
+        _chartDataService?.ClearCache();
+        _chartDataService = null;
+
         WeakReferenceMessenger.Default.UnregisterAll(this);
     }
 
@@ -126,6 +129,12 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         // 订阅仪表盘配置保存事件
         DashboardSettingsViewModel.DashboardConfigSaved += OnDashboardConfigSaved;
         _dashboardSettingsService.ConfigSaved += OnDashboardConfigSavedFromService;
+
+        WeakReferenceMessenger.Default.Register<TicketSavedMessage>(this, (_, _) =>
+        {
+            if (!_isDisposed)
+                ChartDataService.ClearCache();
+        });
 
         Debug.WriteLine("[DashboardViewModel] 延迟初始化完成");
     }

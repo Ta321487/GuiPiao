@@ -68,6 +68,7 @@ public abstract partial class TrainTicketFormViewModelBase : ObservableObject
     private bool _isLoadingExistingData;
     private bool _isProcessingLinkedChanges;
     private bool _isSaving;
+    private bool _isCleanedUp;
 
     // 状态标记
     private bool _isUndoingOrRedoing;
@@ -185,138 +186,154 @@ public abstract partial class TrainTicketFormViewModelBase : ObservableObject
     /// </summary>
     private void SetupPropertyChangeHandlers()
     {
-        PropertyChanged += (s, e) =>
+        PropertyChanged += OnFormPropertyChanged;
+    }
+
+    /// <summary>
+    ///     窗口关闭后释放撤销重做与属性变更订阅。
+    /// </summary>
+    public void Cleanup()
+    {
+        if (_isCleanedUp)
+            return;
+
+        _isCleanedUp = true;
+        PropertyChanged -= OnFormPropertyChanged;
+        _undoRedoManager.StateRestored -= OnUndoRedoStateRestored;
+        _undoRedoManager.StateSaved -= OnUndoRedoStateSaved;
+    }
+
+    private void OnFormPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        // 保存撤销状态（在同步到FormData之前，保存当前状态）
+        if (!_isUndoingOrRedoing && !_isLoadingDefaults && !_isProcessingLinkedChanges && !_isLoadingExistingData
+            && _formFieldNames.Contains(e.PropertyName) && _generalSettingsService.Config.EnableUndo)
         {
-            // 保存撤销状态（在同步到FormData之前，保存当前状态）
-            if (!_isUndoingOrRedoing && !_isLoadingDefaults && !_isProcessingLinkedChanges && !_isLoadingExistingData
-                && _formFieldNames.Contains(e.PropertyName) && _generalSettingsService.Config.EnableUndo)
+            _undoRedoManager.BeginPropertyChange(e.PropertyName);
+            AddOperationHistory(e.PropertyName);
+        }
+
+        // 同步到FormData
+        SyncToFormData(e.PropertyName);
+
+        // 监听席别变化，更新座位号选项
+        if (e.PropertyName == nameof(SeatType)) UpdateSeatLetterOptions();
+
+        // 监听无座复选框变化
+        if (e.PropertyName == nameof(IsNoSeat))
+        {
+            IsSeatNoInputEnabled = !IsNoSeat;
+            IsSeatLetterEnabled = !IsNoSeat && _optionsProvider.IsSeatLetterVisible(SeatType);
+        }
+
+        // 监听附加信息变化，更新车票用途选项
+        if (e.PropertyName == nameof(AdditionalInfo) && !_isProcessingLinkedChanges)
+        {
+            _isProcessingLinkedChanges = true;
+            _optionsProvider.UpdateTicketPurposeOptions(AdditionalInfo, _optionsProvider.TicketPurposeOptions,
+                TicketPurpose);
+            _isProcessingLinkedChanges = false;
+        }
+
+        // 监听车票用途变化，更新附加信息选项
+        if (e.PropertyName == nameof(TicketPurpose) && !_isProcessingLinkedChanges)
+        {
+            _isProcessingLinkedChanges = true;
+            _optionsProvider.UpdateAdditionalInfoOptions(TicketPurpose, _optionsProvider.AdditionalInfoOptions,
+                AdditionalInfo);
+            _isProcessingLinkedChanges = false;
+        }
+
+        // 监听提示信息变化
+        if (e.PropertyName == nameof(SelectedHint))
+        {
+            if (SelectedHint == "自定义")
+                ShowCustomHintDialog();
+            else
+                Hint = SelectedHint;
+        }
+
+        // 监听出发车站变化，自动查询车站信息和联想
+        if (e.PropertyName == nameof(DepartStationInput))
+        {
+            _logService?.Info("TrainTicketFormViewModelBase",
+                $"[DEBUG] DepartStationInput 属性变更，新值: '{DepartStationInput}'");
+            _logService?.Info("TrainTicketFormViewModelBase",
+                $"[DEBUG] 状态检查: _isProcessingLinkedChanges={_isProcessingLinkedChanges}, _isUndoingOrRedoing={_isUndoingOrRedoing}, _isLoadingDefaults={_isLoadingDefaults}, _isLoadingExistingData={_isLoadingExistingData}, _isSaving={_isSaving}, _isApplyingRescheduleData={_isApplyingRescheduleData}");
+
+            if (!_isProcessingLinkedChanges && !_isUndoingOrRedoing && !_isLoadingDefaults &&
+                !_isLoadingExistingData && !_isSaving && !_isApplyingRescheduleData)
             {
-                _undoRedoManager.BeginPropertyChange(e.PropertyName);
-                AddOperationHistory(e.PropertyName);
+                _logService?.Info("TrainTicketFormViewModelBase", "[DEBUG] 条件满足，开始执行查询和联想搜索");
+                _ = QueryDepartStationInfoAsync();
+                _ = SearchDepartStationSuggestionsAsync();
             }
-
-            // 同步到FormData
-            SyncToFormData(e.PropertyName);
-
-            // 监听席别变化，更新座位号选项
-            if (e.PropertyName == nameof(SeatType)) UpdateSeatLetterOptions();
-
-            // 监听无座复选框变化
-            if (e.PropertyName == nameof(IsNoSeat))
+            else
             {
-                IsSeatNoInputEnabled = !IsNoSeat;
-                IsSeatLetterEnabled = !IsNoSeat && _optionsProvider.IsSeatLetterVisible(SeatType);
+                _logService?.Info("TrainTicketFormViewModelBase", "[DEBUG] 条件不满足，跳过查询和联想搜索");
             }
+        }
 
-            // 监听附加信息变化，更新车票用途选项
-            if (e.PropertyName == nameof(AdditionalInfo) && !_isProcessingLinkedChanges)
+        // 监听到达车站变化，自动查询车站信息和联想
+        if (e.PropertyName == nameof(ArriveStationInput))
+        {
+            _logService?.Info("TrainTicketFormViewModelBase",
+                $"[DEBUG] ArriveStationInput 属性变更，新值: '{ArriveStationInput}'");
+            _logService?.Info("TrainTicketFormViewModelBase",
+                $"[DEBUG] 状态检查: _isProcessingLinkedChanges={_isProcessingLinkedChanges}, _isUndoingOrRedoing={_isUndoingOrRedoing}, _isLoadingDefaults={_isLoadingDefaults}, _isLoadingExistingData={_isLoadingExistingData}, _isSaving={_isSaving}, _isApplyingRescheduleData={_isApplyingRescheduleData}");
+
+            if (!_isProcessingLinkedChanges && !_isUndoingOrRedoing && !_isLoadingDefaults &&
+                !_isLoadingExistingData && !_isSaving && !_isApplyingRescheduleData)
+            {
+                _logService?.Info("TrainTicketFormViewModelBase", "[DEBUG] 条件满足，开始执行查询和联想搜索");
+                _ = QueryArriveStationInfoAsync();
+                _ = SearchArriveStationSuggestionsAsync();
+            }
+            else
+            {
+                _logService?.Info("TrainTicketFormViewModelBase", "[DEBUG] 条件不满足，跳过查询和联想搜索");
+            }
+        }
+
+        // 处理票种类型互斥（学生票与儿童票）
+        if (e.PropertyName == nameof(IsStudentTicket) || e.PropertyName == nameof(IsChildTicket))
+            if (!_isProcessingLinkedChanges && !_isUndoingOrRedoing && !_isLoadingDefaults &&
+                !_isLoadingExistingData)
             {
                 _isProcessingLinkedChanges = true;
-                _optionsProvider.UpdateTicketPurposeOptions(AdditionalInfo, _optionsProvider.TicketPurposeOptions,
-                    TicketPurpose);
+                _businessRuleEngine.HandleTicketTypeMutex(_formData, e.PropertyName);
+                SyncFromFormData();
                 _isProcessingLinkedChanges = false;
             }
 
-            // 监听车票用途变化，更新附加信息选项
-            if (e.PropertyName == nameof(TicketPurpose) && !_isProcessingLinkedChanges)
-            {
-                _isProcessingLinkedChanges = true;
-                _optionsProvider.UpdateAdditionalInfoOptions(TicketPurpose, _optionsProvider.AdditionalInfoOptions,
-                    AdditionalInfo);
-                _isProcessingLinkedChanges = false;
-            }
-
-            // 监听提示信息变化
-            if (e.PropertyName == nameof(SelectedHint))
-            {
-                if (SelectedHint == "自定义")
-                    ShowCustomHintDialog();
-                else
-                    Hint = SelectedHint;
-            }
-
-            // 监听出发车站变化，自动查询车站信息和联想
-            if (e.PropertyName == nameof(DepartStationInput))
-            {
-                _logService?.Info("TrainTicketFormViewModelBase",
-                    $"[DEBUG] DepartStationInput 属性变更，新值: '{DepartStationInput}'");
-                _logService?.Info("TrainTicketFormViewModelBase",
-                    $"[DEBUG] 状态检查: _isProcessingLinkedChanges={_isProcessingLinkedChanges}, _isUndoingOrRedoing={_isUndoingOrRedoing}, _isLoadingDefaults={_isLoadingDefaults}, _isLoadingExistingData={_isLoadingExistingData}, _isSaving={_isSaving}, _isApplyingRescheduleData={_isApplyingRescheduleData}");
-
-                if (!_isProcessingLinkedChanges && !_isUndoingOrRedoing && !_isLoadingDefaults &&
-                    !_isLoadingExistingData && !_isSaving && !_isApplyingRescheduleData)
-                {
-                    _logService?.Info("TrainTicketFormViewModelBase", "[DEBUG] 条件满足，开始执行查询和联想搜索");
-                    _ = QueryDepartStationInfoAsync();
-                    _ = SearchDepartStationSuggestionsAsync();
-                }
-                else
-                {
-                    _logService?.Info("TrainTicketFormViewModelBase", "[DEBUG] 条件不满足，跳过查询和联想搜索");
-                }
-            }
-
-            // 监听到达车站变化，自动查询车站信息和联想
-            if (e.PropertyName == nameof(ArriveStationInput))
-            {
-                _logService?.Info("TrainTicketFormViewModelBase",
-                    $"[DEBUG] ArriveStationInput 属性变更，新值: '{ArriveStationInput}'");
-                _logService?.Info("TrainTicketFormViewModelBase",
-                    $"[DEBUG] 状态检查: _isProcessingLinkedChanges={_isProcessingLinkedChanges}, _isUndoingOrRedoing={_isUndoingOrRedoing}, _isLoadingDefaults={_isLoadingDefaults}, _isLoadingExistingData={_isLoadingExistingData}, _isSaving={_isSaving}, _isApplyingRescheduleData={_isApplyingRescheduleData}");
-
-                if (!_isProcessingLinkedChanges && !_isUndoingOrRedoing && !_isLoadingDefaults &&
-                    !_isLoadingExistingData && !_isSaving && !_isApplyingRescheduleData)
-                {
-                    _logService?.Info("TrainTicketFormViewModelBase", "[DEBUG] 条件满足，开始执行查询和联想搜索");
-                    _ = QueryArriveStationInfoAsync();
-                    _ = SearchArriveStationSuggestionsAsync();
-                }
-                else
-                {
-                    _logService?.Info("TrainTicketFormViewModelBase", "[DEBUG] 条件不满足，跳过查询和联想搜索");
-                }
-            }
-
-            // 处理票种类型互斥（学生票与儿童票）
-            if (e.PropertyName == nameof(IsStudentTicket) || e.PropertyName == nameof(IsChildTicket))
-                if (!_isProcessingLinkedChanges && !_isUndoingOrRedoing && !_isLoadingDefaults &&
-                    !_isLoadingExistingData)
-                {
-                    _isProcessingLinkedChanges = true;
-                    _businessRuleEngine.HandleTicketTypeMutex(_formData, e.PropertyName);
-                    SyncFromFormData();
-                    _isProcessingLinkedChanges = false;
-                }
-
-            // 处理支付渠道互斥
-            var paymentProperties = new[]
-            {
-                nameof(IsAlipay), nameof(IsWeChat), nameof(IsABC), nameof(IsCCB), nameof(IsICBC), nameof(IsBCOM),
-                nameof(IsCMB), nameof(IsPSBC), nameof(IsBOC)
-            };
-            if (paymentProperties.Contains(e.PropertyName))
-                if (!_isProcessingLinkedChanges && !_isUndoingOrRedoing && !_isLoadingDefaults &&
-                    !_isLoadingExistingData)
-                {
-                    _isProcessingLinkedChanges = true;
-                    _businessRuleEngine.HandlePaymentChannelMutex(_formData, e.PropertyName);
-                    SyncFromFormData();
-                    _isProcessingLinkedChanges = false;
-                }
-
-            // 执行业务规则
-            if (!_isProcessingLinkedChanges && !_isUndoingOrRedoing && !_isLoadingDefaults && !_isLoadingExistingData)
-            {
-                _isProcessingLinkedChanges = true;
-                var modified =
-                    _businessRuleEngine.Execute(_formData, e.PropertyName, _optionsProvider.TicketPurposeOptions);
-                if (modified) SyncFromFormData();
-                _isProcessingLinkedChanges = false;
-            }
-
-            CheckForChanges();
-            UpdateUndoRedoCommands();
+        // 处理支付渠道互斥
+        var paymentProperties = new[]
+        {
+            nameof(IsAlipay), nameof(IsWeChat), nameof(IsABC), nameof(IsCCB), nameof(IsICBC), nameof(IsBCOM),
+            nameof(IsCMB), nameof(IsPSBC), nameof(IsBOC)
         };
+        if (paymentProperties.Contains(e.PropertyName))
+            if (!_isProcessingLinkedChanges && !_isUndoingOrRedoing && !_isLoadingDefaults &&
+                !_isLoadingExistingData)
+            {
+                _isProcessingLinkedChanges = true;
+                _businessRuleEngine.HandlePaymentChannelMutex(_formData, e.PropertyName);
+                SyncFromFormData();
+                _isProcessingLinkedChanges = false;
+            }
+
+        // 执行业务规则
+        if (!_isProcessingLinkedChanges && !_isUndoingOrRedoing && !_isLoadingDefaults && !_isLoadingExistingData)
+        {
+            _isProcessingLinkedChanges = true;
+            var modified =
+                _businessRuleEngine.Execute(_formData, e.PropertyName, _optionsProvider.TicketPurposeOptions);
+            if (modified) SyncFromFormData();
+            _isProcessingLinkedChanges = false;
+        }
+
+        CheckForChanges();
+        UpdateUndoRedoCommands();
     }
 
     /// <summary>

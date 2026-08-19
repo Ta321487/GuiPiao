@@ -193,7 +193,11 @@ public partial class EditTrainTicketWindow : Window
     {
         base.OnClosed(e);
 
-        if (DataContext is TrainTicketFormViewModelBase vm) vm.PropertyChanged -= OnViewModelPropertyChanged;
+        if (DataContext is TrainTicketFormViewModelBase vm)
+        {
+            vm.PropertyChanged -= OnViewModelPropertyChanged;
+            vm.Cleanup();
+        }
         Closing -= OnWindowClosing;
 
         WeakReferenceMessenger.Default.UnregisterAll(this);

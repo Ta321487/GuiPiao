@@ -105,6 +105,18 @@ public partial class SettingsWindow : Window
         Loaded -= OnWindowLoaded;
     }
 
+    protected override void OnClosed(EventArgs e)
+    {
+        if (DataContext is SettingsViewModel vm)
+            vm.DetachAllResources();
+
+        Closing -= OnWindowClosing;
+        StateChanged -= OnWindowStateChanged;
+        DataContext = null;
+
+        base.OnClosed(e);
+    }
+
     /// <summary>
     ///     窗口关闭前检查是否有未保存的更改
     /// </summary>

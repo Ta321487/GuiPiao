@@ -27,6 +27,7 @@ public partial class OcrSettingsViewModel : ObservableObject, ISettingsViewModel
     private readonly OcrRecognitionService _recognitionService = null!;
     private readonly OcrSettingsService _settingsService = null!;
     private bool _isLoadingConfig;
+    private bool _isDetached;
     private OcrConfig _originalConfig = null!;
 
     public OcrSettingsViewModel()
@@ -1152,7 +1153,27 @@ public partial class OcrSettingsViewModel : ObservableObject, ISettingsViewModel
     /// </summary>
     public void OnWindowClosing()
     {
-        if (_downloadService.CurrentState == DownloadState.Downloading) _downloadService.PauseDownload();
+        if (_isDetached)
+            return;
+
+        if (_downloadService.CurrentState == DownloadState.Downloading)
+            _downloadService.PauseDownload();
+    }
+
+    /// <summary>
+    ///     窗口关闭后释放下载服务与事件订阅。
+    /// </summary>
+    public void Detach()
+    {
+        if (_isDetached)
+            return;
+
+        _isDetached = true;
+        OnWindowClosing();
+
+        _downloadService.StateChanged -= OnDownloadStateChanged;
+        _downloadService.ProgressChanged -= OnDownloadProgressChanged;
+        _downloadService.Dispose();
     }
 
     /// <summary>

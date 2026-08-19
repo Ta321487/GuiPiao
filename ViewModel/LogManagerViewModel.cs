@@ -17,6 +17,8 @@ public partial class LogManagerViewModel : ObservableObject
 {
     private readonly ConfirmationService _confirmationService;
     private readonly LogService _logService;
+    private EventHandler? _logsChangedHandler;
+    private bool _isDetached;
 
     [ObservableProperty] private DateTime? _endDate = DateTime.Today;
 
@@ -46,11 +48,35 @@ public partial class LogManagerViewModel : ObservableObject
             return;
 
         // 订阅日志变更事件
-        _logService.LogsChanged += async (sender, e) =>
+        _logsChangedHandler = async (_, _) =>
         {
-            // 在UI线程上刷新日志
-            await Application.Current.Dispatcher.InvokeAsync(async () => { await LoadLogsAsync(); });
+            if (_isDetached)
+                return;
+
+            await Application.Current.Dispatcher.InvokeAsync(async () =>
+            {
+                if (!_isDetached)
+                    await LoadLogsAsync();
+            });
         };
+        _logService.LogsChanged += _logsChangedHandler;
+    }
+
+    /// <summary>
+    ///     窗口关闭后释放单例日志服务的事件订阅与列表数据。
+    /// </summary>
+    public void Detach()
+    {
+        if (_isDetached)
+            return;
+
+        _isDetached = true;
+
+        if (_logsChangedHandler != null)
+            _logService.LogsChanged -= _logsChangedHandler;
+
+        LogItems.Clear();
+        SelectedLogItems.Clear();
     }
 
     [RelayCommand]

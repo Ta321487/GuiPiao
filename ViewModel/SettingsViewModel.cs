@@ -224,6 +224,29 @@ public partial class SettingsViewModel : ObservableObject
     }
 
     /// <summary>
+    ///     窗口关闭后释放子页 VM、视图缓存与单例事件订阅。
+    /// </summary>
+    public void DetachAllResources()
+    {
+        _ocrSettingsViewModel?.Detach();
+        _syncSettingsViewModel?.Detach();
+
+        _viewCache.Clear();
+        CurrentView = null;
+
+        _generalSettingsViewModel = null;
+        _logSettingsViewModel = null;
+        _databaseSettingsViewModel = null;
+        _uiSettingsViewModel = null;
+        _mapSettingsViewModel = null;
+        _dashboardSettingsViewModel = null;
+        _ocrSettingsViewModel = null;
+        _exportSettingsViewModel = null;
+        _shortcutSettingsViewModel = null;
+        _syncSettingsViewModel = null;
+    }
+
+    /// <summary>
     ///     导出设置命令
     /// </summary>
     [RelayCommand]

@@ -1,3 +1,4 @@
+using System;
 using System.ComponentModel;
 using System.Linq;
 using System.Windows;
@@ -50,5 +51,14 @@ public partial class LogManagerWindow : Window
         // 清除 Owner，防止关闭时 WPF 自动激活被隐藏的主窗口
         Owner = null;
         base.OnClosing(e);
+    }
+
+    protected override void OnClosed(EventArgs e)
+    {
+        if (DataContext is LogManagerViewModel vm)
+            vm.Detach();
+
+        DataContext = null;
+        base.OnClosed(e);
     }
 }

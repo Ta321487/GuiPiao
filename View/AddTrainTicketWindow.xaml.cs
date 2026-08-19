@@ -292,7 +292,11 @@ public partial class AddTrainTicketWindow : Window
         base.OnClosed(e);
 
         // 清理事件订阅
-        if (DataContext is TrainTicketFormViewModelBase vm) vm.PropertyChanged -= OnViewModelPropertyChanged;
+        if (DataContext is TrainTicketFormViewModelBase vm)
+        {
+            vm.PropertyChanged -= OnViewModelPropertyChanged;
+            vm.Cleanup();
+        }
         Closing -= OnWindowClosing;
 
         // 注销消息订阅
