@@ -142,8 +142,14 @@ function initMap() {
     });
 
     map.on('popupclose', function (e) {
-        currentPopup = null;
-        currentPopupTicket = null;
+        if (e.popup === currentPopup) {
+            currentPopup = null;
+            currentPopupTicket = null;
+        }
+        if (e.popup === hoverPopup) {
+            hoverPopup = null;
+            hoverPopupTicket = null;
+        }
     });
 
     map.on('dblclick', function (e) {
@@ -374,14 +380,12 @@ function updateHoverCards() {
         if (currentTheme.showHoverCard) {
             const popup = L.popup({
                 closeButton: false,
-                offset: [0, -5],
+                offset: [0, 0],
                 keepInView: false,
                 autoPan: false,
                 autoPanOnFocus: false,
                 className: 'hover-popup'
             });
-
-            item.layer.bindPopup(popup);
 
             item.layer.on('mouseover', function (e) {
                 this.setStyle({weight: weight * 2, opacity: 1});
@@ -399,7 +403,7 @@ function updateHoverCards() {
                 hoverPopupTicket = item.ticket;
                 popup.setContent(createPopupContent(item.ticket, true));
                 popup.setLatLng(e.latlng);
-                this.openPopup();
+                popup.openOn(map);
             });
 
             item.layer.on('mousemove', function (e) {
@@ -423,13 +427,14 @@ function updateHoverCards() {
                         }
                     }
                     if (hoverPopup === popup) {
-                        this.closePopup();
+                        map.closePopup(popup);
                         hoverPopup = null;
                     }
                 }, 500);
             });
 
             popup.on('add', function () {
+                wirePopupNavigation(popup);
                 const popupElement = popup.getElement();
                 if (popupElement && !popupElement._hoverEventsBound) {
                     popupElement._hoverEventsBound = true;
@@ -444,7 +449,7 @@ function updateHoverCards() {
                     popupElement.addEventListener('mouseleave', function () {
                         window.popupCloseTimer = setTimeout(() => {
                             if (hoverPopup === popup) {
-                                item.layer.closePopup();
+                                map.closePopup(popup);
                                 hoverPopup = null;
                             }
                         }, 100);
@@ -869,6 +874,12 @@ function drawTrip(ticket) {
     polyline.on('click', function (e) {
         L.DomEvent.stopPropagation(e);
 
+        if (hoverPopup) {
+            map.closePopup(hoverPopup);
+            hoverPopup = null;
+            hoverPopupTicket = null;
+        }
+
         const state = polylineClickStates.get(polylineId);
         if (!state) return;
 
@@ -914,43 +925,43 @@ function drawTrip(ticket) {
         }
 
         sendTripClick(ticket.id);
-        // 单击时不调整视野，只高亮
         highlightTrips([ticket.id], false);
 
+        if (hoverPopup) {
+            map.closePopup(hoverPopup);
+            hoverPopup = null;
+            hoverPopupTicket = null;
+        }
         if (currentPopup) {
-            map.closePopup();
+            map.closePopup(currentPopup);
         }
 
         currentPopupTicket = ticket;
 
-        const clickLatLng = e.latlng;
-        const bounds = map.getBounds();
-        let popupLatLng;
-
-        if (bounds.contains(clickLatLng)) {
-            popupLatLng = clickLatLng;
-        } else {
-            const midLat = (start[0] + end[0]) / 2;
-            const midLng = (start[1] + end[1]) / 2;
-            popupLatLng = L.latLng(midLat, midLng);
-        }
+        const popupLatLng = e.latlng || L.latLng(
+            (start[0] + end[0]) / 2,
+            (start[1] + end[1]) / 2
+        );
 
         const popup = L.popup({
             closeButton: true,
-            offset: [0, -10],
-            keepInView: true,
-            autoPan: true,
-            autoPanPadding: [50, 50]
+            offset: [0, 0],
+            keepInView: false,
+            autoPan: false,
+            autoPanOnFocus: false
         });
 
         popup.setContent(createPopupContent(ticket));
         popup.setLatLng(popupLatLng);
         popup.openOn(map);
         currentPopup = popup;
+        wirePopupNavigation(popup);
 
-        popup.on('popupclose', function () {
-            currentPopup = null;
-            currentPopupTicket = null;
+        popup.on('remove', function () {
+            if (currentPopup === popup) {
+                currentPopup = null;
+                currentPopupTicket = null;
+            }
         });
     }
 
@@ -1149,10 +1160,58 @@ function updatePopupContent(ticket) {
     if (currentPopup) {
         currentPopupTicket = ticket;
         currentPopup.setContent(createPopupContent(ticket));
+        wirePopupNavigation(currentPopup);
     } else if (hoverPopup) {
         hoverPopupTicket = ticket;
         hoverPopup.setContent(createPopupContent(ticket, true));
+        wirePopupNavigation(hoverPopup);
     }
+}
+
+// 叠在 Leaflet 上的 HTML（弹窗翻页、时间轴、警告）统一走 DomEvent：
+// 拦住穿透到地图；不用 innerHTML/标签上的 onclick（弹窗里会被吃掉）。
+function guardMapOverlay(el) {
+    if (!el || el._mapGuard) return;
+    el._mapGuard = true;
+    L.DomEvent.disableClickPropagation(el);
+    L.DomEvent.disableScrollPropagation(el);
+}
+
+function onMapOverlayActivate(el, handler) {
+    if (!el || el._overlayWired) return;
+    el._overlayWired = true;
+    guardMapOverlay(el);
+    L.DomEvent.on(el, 'dblclick mousedown pointerdown click', L.DomEvent.stop);
+    const run = function (ev) {
+        L.DomEvent.stop(ev);
+        const now = Date.now();
+        if (el._lastActivateAt && now - el._lastActivateAt < 250) return;
+        el._lastActivateAt = now;
+        handler();
+    };
+    L.DomEvent.on(el, 'pointerdown', run);
+    L.DomEvent.on(el, 'click', run);
+}
+
+function wireNavButton(el, handler) {
+    onMapOverlayActivate(el, handler);
+}
+
+function wirePopupNavigation(popup) {
+    if (!popup) return;
+    const root = popup.getElement();
+    if (!root) return;
+    guardMapOverlay(root);
+    wireNavButton(root.querySelector('.nav-btn-prev'), switchToPrevTicket);
+    wireNavButton(root.querySelector('.nav-btn-next'), switchToNextTicket);
+}
+
+function wireMapOverlays() {
+    guardMapOverlay(document.getElementById('timelineContainer'));
+    guardMapOverlay(document.getElementById('missingCoordsWarning'));
+    onMapOverlayActivate(document.getElementById('timelineToggle'), toggleTimelineDrawer);
+    onMapOverlayActivate(document.getElementById('timelineReset'), resetTimeline);
+    onMapOverlayActivate(document.getElementById('missingCoordsClose'), hideMissingCoordsWarning);
 }
 
 // 创建弹出内容
@@ -1165,10 +1224,10 @@ function createPopupContent(ticket, isHover = false) {
     let titleHtml = `<h3>${ticket.trainNo}</h3>`;
     if (ticket.routeTotal > 1) {
         titleHtml = `
-            <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
-                <button class="nav-btn" onclick="event.stopPropagation(); switchToPrevTicket();">◀</button>
-                <h3 style="margin: 0; flex: 1; text-align: center;">${ticket.trainNo} (${ticket.routeIndex + 1}/${ticket.routeTotal})</h3>
-                <button class="nav-btn" onclick="event.stopPropagation(); switchToNextTicket();">▶</button>
+            <div class="trip-popup-nav">
+                <button type="button" class="nav-btn nav-btn-prev" aria-label="上一条">◀</button>
+                <h3>${ticket.trainNo} (${ticket.routeIndex + 1}/${ticket.routeTotal})</h3>
+                <button type="button" class="nav-btn nav-btn-next" aria-label="下一条">▶</button>
             </div>
         `;
     }
@@ -1393,9 +1452,10 @@ function showTripInfoCardWithTicket(ticket, tripLayer) {
 
     const popup = L.popup({
         closeButton: true,
-        offset: [0, -10],
+        offset: [0, 0],
         keepInView: true,
         autoPan: true,
+        autoPanOnFocus: false,
         autoPanPadding: [50, 50]
     });
 
@@ -1403,10 +1463,13 @@ function showTripInfoCardWithTicket(ticket, tripLayer) {
     popup.setLatLng(popupLatLng);
     popup.openOn(map);
     currentPopup = popup;
+    wirePopupNavigation(popup);
 
-    popup.on('popupclose', function () {
-        currentPopup = null;
-        currentPopupTicket = null;
+    popup.on('remove', function () {
+        if (currentPopup === popup) {
+            currentPopup = null;
+            currentPopupTicket = null;
+        }
     });
 }
 
@@ -1582,6 +1645,14 @@ function fitAllTrips() {
 
 // 清除所有图层
 function clearLayers() {
+    polylineClickStates.forEach(state => {
+        if (state.clickTimer) {
+            clearTimeout(state.clickTimer);
+            state.clickTimer = null;
+        }
+    });
+    polylineClickStates.clear();
+
     tripLayers.forEach(item => {
         map.removeLayer(item.layer);
         if (item.dateLabelMarker) {
@@ -2081,6 +2152,7 @@ function setupClusterListener() {
 // 页面加载完成后初始化
 document.addEventListener('DOMContentLoaded', function () {
     initMap();
+    wireMapOverlays();
     setupClusterListener();
 
     if (currentTheme.isDarkMode) {

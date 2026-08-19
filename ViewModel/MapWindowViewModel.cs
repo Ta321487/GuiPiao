@@ -432,16 +432,16 @@ public partial class MapWindowViewModel : ObservableObject
     /// </summary>
     public void OnTripClick(string? tripId)
     {
-        if (string.IsNullOrEmpty(tripId)) return;
-
-        SelectTripById(tripId);
+        // 地图已在鼠标点击处打开信息卡，这里只同步状态栏和高亮，不要按线路中点再开一张。
+        SelectTripById(tripId, showInfoCard: false);
     }
 
     /// <summary>
     ///     根据行程ID选中行程（公共方法，供外部调用）
     /// </summary>
     /// <param name="tripId">行程ID</param>
-    public void SelectTripById(string? tripId)
+    /// <param name="showInfoCard">是否打开信息卡（列表选中为 true；地图点击为 false，卡片已在点击处）</param>
+    public void SelectTripById(string? tripId, bool showInfoCard = true)
     {
         if (string.IsNullOrEmpty(tripId)) return;
 
@@ -454,8 +454,10 @@ public partial class MapWindowViewModel : ObservableObject
             var token = _statusResetCts.Token;
 
             StatusMessage = $"选中行程：{ticket.DepartStation} → {ticket.ArriveStation} ({ticket.TrainNo})";
-            // 调用前端的 selectTrip 函数，高亮+信息卡片，不调整视野（避免单击时缩放）
-            SelectTripOnMap(tripId, false);
+            if (showInfoCard)
+                SelectTripOnMap(tripId, false);
+            else
+                HighlightTrips([tripId], false);
 
             // 延迟1秒后变为就绪
             _ = Task.Run(async () =>

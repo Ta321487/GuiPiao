@@ -51,13 +51,33 @@ body {
 }
 
 /* 导航按钮样式 */
+.trip-popup-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.trip-popup-nav h3 {
+    margin: 0;
+    flex: 1;
+    text-align: center;
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
 .nav-btn {
     cursor: pointer;
+    flex-shrink: 0;
+    min-width: 28px;
+    min-height: 28px;
     padding: 2px 8px;
     border: 1px solid #ccc;
     border-radius: 4px;
     background: white;
     color: #333;
+    pointer-events: auto;
 }
 
 .nav-btn:hover {

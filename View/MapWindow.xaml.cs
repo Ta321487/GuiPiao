@@ -123,6 +123,7 @@ public partial class MapWindow : Window
             Loaded -= MapWindow_Loaded;
 
             // 2. 取消 WebView2 事件订阅
+            MapWebView.NavigationCompleted -= MapWebView_NavigationCompleted;
             if (MapWebView?.CoreWebView2 != null)
             {
                 MapWebView.CoreWebView2.NavigationStarting -= CoreWebView2_NavigationStarting;
