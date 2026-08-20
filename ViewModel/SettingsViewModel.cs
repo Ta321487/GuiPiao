@@ -10,6 +10,7 @@ using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GuiPiao.Model;
+using GuiPiao.Messages;
 using GuiPiao.Services;
 using GuiPiao.Utils;
 using GuiPiao.View;
@@ -404,6 +405,9 @@ public partial class SettingsViewModel : ObservableObject
                             // 重新加载所有设置页面
                             DiscardAllChanges();
 
+                            // 同步主窗口界面与卡片布局
+                            ApplyImportedUiSettingsToMainWindow();
+
                             // 刷新当前页面
                             var currentPage = CurrentPage;
                             NavigateToPage(currentPage);
@@ -448,6 +452,21 @@ public partial class SettingsViewModel : ObservableObject
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
         }
+    }
+
+    /// <summary>
+    ///     设置导入后，将 uisettings.json 中的界面/卡片配置广播到主窗口。
+    /// </summary>
+    private static void ApplyImportedUiSettingsToMainWindow()
+    {
+        ConfigManager.Instance.RefreshUISettingsConfig();
+        var config = ConfigManager.Instance.UISettingsService.Config;
+        var tripListView = Application.Current.MainWindow?.DataContext is MainViewModel mainViewModel
+            ? mainViewModel.TripList.CurrentViewType
+            : config.DefaultTripListView;
+
+        UISettingsViewModel.BroadcastAllFromConfig(config, tripListView);
+        ThemeManager.ApplyDpiScaling(config.DpiScaling);
     }
 
     /// <summary>

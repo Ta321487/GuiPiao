@@ -104,6 +104,25 @@ public partial class MainWindow : Window
         InitializeShortcuts(viewModel);
         UpdateLogColumnsVisibility(viewModel);
         Dispatcher.BeginInvoke(viewModel.EnsureDashboardActivated, DispatcherPriority.Loaded);
+
+        WeakReferenceMessenger.Default.Register<CardViewSettingsChangedMessage>(this, (_, _) =>
+        {
+            Dispatcher.BeginInvoke(InvalidateCardViewLayout, DispatcherPriority.Loaded);
+        });
+
+        Closed += (_, _) => WeakReferenceMessenger.Default.Unregister<CardViewSettingsChangedMessage>(this);
+    }
+
+    /// <summary>
+    ///     卡片布局参数变更后，强制 ItemsControl / CardViewPanel 重新测量。
+    /// </summary>
+    private void InvalidateCardViewLayout()
+    {
+        if (CardTripItemsControl == null)
+            return;
+
+        CardTripItemsControl.InvalidateMeasure();
+        CardTripItemsControl.InvalidateArrange();
     }
 
     /// <summary>

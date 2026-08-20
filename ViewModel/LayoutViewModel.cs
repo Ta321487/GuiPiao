@@ -144,6 +144,8 @@ public partial class LayoutViewModel : ObservableObject, IDisposable
             CardHoverScale = message.CardHoverScale;
 
             OnPropertyChanged(nameof(CardsPerRow));
+            OnPropertyChanged(nameof(CardWidth));
+            OnPropertyChanged(nameof(CardSpacing));
             OnPropertyChanged(nameof(CardMargin));
             OnPropertyChanged(nameof(CardCornerRadiusValue));
             OnPropertyChanged(nameof(CardContentDensity));

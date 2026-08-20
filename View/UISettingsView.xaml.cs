@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Input;
 using GuiPiao.ViewModel;
 
@@ -52,7 +53,6 @@ public partial class UISettingsView : UserControl
     /// </summary>
     private void NumericTextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
     {
-        // 只允许输入数字
         e.Handled = !int.TryParse(e.Text, out _);
     }
 
@@ -61,47 +61,44 @@ public partial class UISettingsView : UserControl
     /// </summary>
     private void NumericTextBox_LostFocus(object sender, RoutedEventArgs e)
     {
-        if (sender is TextBox textBox && textBox.Tag is string tag)
+        if (sender is not TextBox textBox || textBox.Tag is not string tag)
+            return;
+
+        var parts = tag.Split(',');
+        if (parts.Length != 2 ||
+            !int.TryParse(parts[0], out var minValue) ||
+            !int.TryParse(parts[1], out var maxValue))
+            return;
+
+        var originalText = textBox.Text;
+        var needsAdjust = false;
+        int currentValue;
+
+        if (!int.TryParse(originalText, out currentValue))
         {
-            // 解析最小值和最大值 (格式: "min,max")
-            var parts = tag.Split(',');
-            if (parts.Length == 2 &&
-                int.TryParse(parts[0], out var minValue) &&
-                int.TryParse(parts[1], out var maxValue))
-            {
-                var originalText = textBox.Text;
-                var isValid = int.TryParse(originalText, out var currentValue) && currentValue >= 1;
-                var needsAdjust = false;
-
-                if (!isValid)
-                {
-                    // 输入无效，使用最小值
-                    currentValue = minValue;
-                    needsAdjust = true;
-                }
-                else if (currentValue < minValue)
-                {
-                    // 小于最小值
-                    currentValue = minValue;
-                    needsAdjust = true;
-                }
-                else if (currentValue > maxValue)
-                {
-                    // 大于最大值
-                    currentValue = maxValue;
-                    needsAdjust = true;
-                }
-
-                // 更新文本框显示
-                textBox.Text = currentValue.ToString();
-
-                // 如果需要调整且原始输入不正确，显示提示
-                if (needsAdjust && originalText != currentValue.ToString())
-                    MessageBoxWindow.Show(
-                        Window.GetWindow(this),
-                        $"输入值已自动调整为 {currentValue} px\n有效范围：{minValue} - {maxValue}px",
-                        "输入调整");
-            }
+            currentValue = minValue;
+            needsAdjust = true;
         }
+        else if (currentValue < minValue)
+        {
+            currentValue = minValue;
+            needsAdjust = true;
+        }
+        else if (currentValue > maxValue)
+        {
+            currentValue = maxValue;
+            needsAdjust = true;
+        }
+
+        if (needsAdjust && originalText != currentValue.ToString())
+        {
+            textBox.Text = currentValue.ToString();
+            MessageBoxWindow.Show(
+                Window.GetWindow(this),
+                $"输入值已自动调整为 {currentValue} px\n有效范围：{minValue} - {maxValue}px",
+                "输入调整");
+        }
+
+        textBox.GetBindingExpression(TextBox.TextProperty)?.UpdateSource();
     }
 }

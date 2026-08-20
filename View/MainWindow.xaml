@@ -1072,7 +1072,7 @@
                                       ClipToBounds="True"
                                       VerticalScrollBarVisibility="Auto"
                                       HorizontalScrollBarVisibility="Disabled">
-                            <ItemsControl ItemsSource="{Binding TripItemsView}">
+                            <ItemsControl x:Name="CardTripItemsControl" ItemsSource="{Binding TripItemsView}">
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
                                         <local:CardViewPanel
@@ -1234,16 +1234,17 @@
                                                                FontSize="{DynamicResource LargeFontSize}"
                                                                FontWeight="Bold"
                                                                Foreground="{DynamicResource TextPrimaryBrush}" />
-                                                    <Border Grid.Column="1"
-                                                            Background="{DynamicResource AccentBrush}"
+                                                    <!-- Grid.Column / HorizontalAlignment 放 Style，避免本地值压过 DataTrigger（顶部居中才会生效） -->
+                                                    <Border Background="{DynamicResource AccentBrush}"
                                                             CornerRadius="4"
                                                             Padding="6,2"
-                                                            HorizontalAlignment="Right"
                                                             VerticalAlignment="Center">
                                                         <Border.Style>
                                                             <Style TargetType="Border">
                                                                 <Setter Property="Visibility" Value="Visible" />
+                                                                <Setter Property="Grid.Column" Value="1" />
                                                                 <Setter Property="Grid.ColumnSpan" Value="1" />
+                                                                <Setter Property="HorizontalAlignment" Value="Right" />
                                                                 <Style.Triggers>
                                                                     <DataTrigger
                                                                         Binding="{Binding DataContext.Layout.CardContentDensity, RelativeSource={RelativeSource AncestorType=local:MainWindow}}"

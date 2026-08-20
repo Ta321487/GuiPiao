@@ -5,6 +5,7 @@
              xmlns:icons="clr-namespace:GuiPiao.Icons"
              xmlns:model="clr-namespace:GuiPiao.Model"
              xmlns:messages="clr-namespace:GuiPiao.Messages"
+             xmlns:sys="clr-namespace:System;assembly=System.Runtime"
              FontSize="{DynamicResource BaseFontSize}">
     <Grid>
         <Grid.RowDefinitions>
@@ -276,13 +277,35 @@
                         <WrapPanel Margin="0,0,0,8">
                             <TextBlock Text="每行卡片数：" VerticalAlignment="Center" Margin="0,0,5,5"
                                        Foreground="{DynamicResource TextPrimaryBrush}" />
-                            <ComboBox Width="80" SelectedValue="{Binding CardsPerRow}" SelectedValuePath="Tag"
+                            <ComboBox Width="80"
+                                      SelectedValue="{Binding CardsPerRow, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                      SelectedValuePath="Tag"
                                       Margin="0,0,20,5">
-                                <ComboBoxItem Content="自动" Tag="0" />
-                                <ComboBoxItem Content="2" Tag="2" />
-                                <ComboBoxItem Content="3" Tag="3" />
-                                <ComboBoxItem Content="4" Tag="4" />
-                                <ComboBoxItem Content="5" Tag="5" />
+                                <ComboBoxItem Content="自动">
+                                    <ComboBoxItem.Tag>
+                                        <sys:Int32>0</sys:Int32>
+                                    </ComboBoxItem.Tag>
+                                </ComboBoxItem>
+                                <ComboBoxItem Content="2">
+                                    <ComboBoxItem.Tag>
+                                        <sys:Int32>2</sys:Int32>
+                                    </ComboBoxItem.Tag>
+                                </ComboBoxItem>
+                                <ComboBoxItem Content="3">
+                                    <ComboBoxItem.Tag>
+                                        <sys:Int32>3</sys:Int32>
+                                    </ComboBoxItem.Tag>
+                                </ComboBoxItem>
+                                <ComboBoxItem Content="4">
+                                    <ComboBoxItem.Tag>
+                                        <sys:Int32>4</sys:Int32>
+                                    </ComboBoxItem.Tag>
+                                </ComboBoxItem>
+                                <ComboBoxItem Content="5">
+                                    <ComboBoxItem.Tag>
+                                        <sys:Int32>5</sys:Int32>
+                                    </ComboBoxItem.Tag>
+                                </ComboBoxItem>
                             </ComboBox>
                         </WrapPanel>
 
@@ -296,7 +319,9 @@
                                     Margin="0,0,10,5" />
                             <TextBox MinWidth="50"
                                      Text="{Binding CardWidth, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
-                                     Margin="0,0,5,5" VerticalAlignment="Center" Tag="240,320" />
+                                     Margin="0,0,5,5" VerticalAlignment="Center" Tag="240,320"
+                                     PreviewTextInput="NumericTextBox_PreviewTextInput"
+                                     LostFocus="NumericTextBox_LostFocus" />
                             <TextBlock Text="px" VerticalAlignment="Center" Margin="0,0,15,5"
                                        Foreground="{DynamicResource TextSecondaryBrush}" />
                         </WrapPanel>
@@ -316,7 +341,9 @@
                                     Margin="0,0,10,5" />
                             <TextBox MinWidth="50"
                                      Text="{Binding CardSpacing, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
-                                     Margin="0,0,5,5" VerticalAlignment="Center" Tag="4,16" />
+                                     Margin="0,0,5,5" VerticalAlignment="Center" Tag="4,16"
+                                     PreviewTextInput="NumericTextBox_PreviewTextInput"
+                                     LostFocus="NumericTextBox_LostFocus" />
                             <TextBlock Text="px" VerticalAlignment="Center" Margin="0,0,15,5"
                                        Foreground="{DynamicResource TextSecondaryBrush}" />
                         </WrapPanel>
@@ -329,7 +356,9 @@
                                     Margin="0,0,10,5" />
                             <TextBox MinWidth="50"
                                      Text="{Binding CardCornerRadius, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
-                                     Margin="0,0,5,5" VerticalAlignment="Center" Tag="0,16" />
+                                     Margin="0,0,5,5" VerticalAlignment="Center" Tag="0,16"
+                                     PreviewTextInput="NumericTextBox_PreviewTextInput"
+                                     LostFocus="NumericTextBox_LostFocus" />
                             <TextBlock Text="px" VerticalAlignment="Center" Margin="0,0,15,5"
                                        Foreground="{DynamicResource TextSecondaryBrush}" />
                         </WrapPanel>
@@ -393,7 +422,9 @@
                         <WrapPanel Margin="0,0,0,8">
                             <TextBlock Text="状态标签位置：" VerticalAlignment="Center" Margin="0,0,5,5"
                                        Foreground="{DynamicResource TextPrimaryBrush}" />
-                            <ComboBox Width="100" SelectedValue="{Binding CardStatusPosition}" SelectedValuePath="Tag"
+                            <ComboBox Width="100"
+                                      SelectedValue="{Binding CardStatusPosition, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                      SelectedValuePath="Tag"
                                       Margin="0,0,0,5">
                                 <ComboBoxItem Content="右上角" Tag="TopRight" />
                                 <ComboBoxItem Content="顶部居中" Tag="TopCenter" />

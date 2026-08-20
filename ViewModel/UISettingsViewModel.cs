@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -386,6 +387,8 @@ public partial class UISettingsViewModel : ObservableObject, ISettingsViewModel
 
         try
         {
+            CommitPendingTextBoxBindings();
+
             Debug.WriteLine($"[SaveSettingsInternal] START - DefaultGroup property: {DefaultGroup}");
             var config = GetCurrentConfig();
             Debug.WriteLine($"[SaveSettingsInternal] Config created - DefaultGroup: {config.DefaultGroup}");
@@ -393,66 +396,7 @@ public partial class UISettingsViewModel : ObservableObject, ISettingsViewModel
             Debug.WriteLine($"[SaveSettingsInternal] SAVED - DefaultGroup: {config.DefaultGroup}");
             _originalConfig = GetCurrentConfig();
 
-            // 发送布局变更消息，直接传递当前布局值，让主界面立即应用
-            WeakReferenceMessenger.Default.Send(new LayoutChangedMessage(
-                LeftPanelWidth,
-                LeftPanelLocked,
-                RightPanelWidth,
-                RightPanelLocked,
-                BottomPanelHeight,
-                BottomPanelLocked));
-
-            // 发送列配置变更消息，让主窗口更新列显示
-            WeakReferenceMessenger.Default.Send(new DataGridColumnsChangedMessage(DataGridColumns));
-
-            // 发送分组设置变更消息，让主窗口重新加载数据应用分组
-            WeakReferenceMessenger.Default.Send(new GroupSettingChangedMessage(DefaultGroup));
-
-            // 发送切换视图消息，让主窗口立即切换列表/卡片视图
-            WeakReferenceMessenger.Default.Send(new SwitchViewMessage(CurrentTripListView));
-
-            // 发送UI设置变更消息，让主窗口应用滚动条样式、操作按钮设置和日志面板显示设置
-            WeakReferenceMessenger.Default.Send(new UISettingsChangedMessage(
-                ScrollbarStyle,
-                ShowActionButtonsOnHover,
-                ShowViewButton,
-                ShowEditButton,
-                ShowRescheduleButton,
-                ShowRefundButton,
-                ShowDeleteButton,
-                IsTripListExpandedByDefault,
-                ShowTimestamp,
-                ShowModuleSource,
-                LogRowHeight));
-
-            // 发送卡片视图设置变更消息
-            WeakReferenceMessenger.Default.Send(new CardViewSettingsChangedMessage(
-                CardsPerRow,
-                CardWidth,
-                CardSpacing,
-                CardCornerRadius,
-                CardShowViewAction,
-                CardShowEditAction,
-                CardShowRescheduleAction,
-                CardShowRefundAction,
-                CardShowDeleteAction,
-                CardEnableMultiSelect,
-                CardBatchShowView,
-                CardBatchShowEdit,
-                CardBatchShowReschedule,
-                CardBatchShowRefund,
-                CardBatchShowDelete,
-                CardStatusPosition,
-                CardHoverHighlight,
-                CardShowShadow,
-                CardHoverScale));
-
-            // 发送日志颜色变更消息，通知所有使用日志的地方刷新显示
-            WeakReferenceMessenger.Default.Send(new LogColorsChangedMessage(InfoColor, WarningColor, ErrorColor,
-                FatalColor));
-
-            // 刷新ConfigManager中的UI设置配置，确保日志颜色等设置立即生效
-            ConfigManager.Instance.RefreshUISettingsConfig();
+            BroadcastAllAppliedSettingsToMainWindow();
 
             // 应用DPI缩放设置
             ThemeManager.ApplyDpiScaling(DpiScaling);
@@ -534,6 +478,27 @@ public partial class UISettingsViewModel : ObservableObject, ISettingsViewModel
         ShowDeleteButton = defaultConfig.ShowDeleteButton;
         IsTripListExpandedByDefault = defaultConfig.IsTripListExpandedByDefault;
 
+        // 卡片视图显示设置
+        CardsPerRow = defaultConfig.CardsPerRow;
+        CardWidth = defaultConfig.CardWidth;
+        CardSpacing = defaultConfig.CardSpacing;
+        CardCornerRadius = defaultConfig.CardCornerRadius;
+        CardShowViewAction = defaultConfig.CardShowViewAction;
+        CardShowEditAction = defaultConfig.CardShowEditAction;
+        CardShowRescheduleAction = defaultConfig.CardShowRescheduleAction;
+        CardShowRefundAction = defaultConfig.CardShowRefundAction;
+        CardShowDeleteAction = defaultConfig.CardShowDeleteAction;
+        CardEnableMultiSelect = defaultConfig.CardEnableMultiSelect;
+        CardBatchShowView = defaultConfig.CardBatchShowView;
+        CardBatchShowEdit = defaultConfig.CardBatchShowEdit;
+        CardBatchShowReschedule = defaultConfig.CardBatchShowReschedule;
+        CardBatchShowRefund = defaultConfig.CardBatchShowRefund;
+        CardBatchShowDelete = defaultConfig.CardBatchShowDelete;
+        CardStatusPosition = defaultConfig.CardStatusPosition;
+        CardHoverHighlight = defaultConfig.CardHoverHighlight;
+        CardShowShadow = defaultConfig.CardShowShadow;
+        CardHoverScale = defaultConfig.CardHoverScale;
+
         // 日志面板显示设置
         LogRowHeight = defaultConfig.LogRowHeight;
         InfoColor = defaultConfig.InfoColor;
@@ -569,20 +534,12 @@ public partial class UISettingsViewModel : ObservableObject, ISettingsViewModel
     {
         try
         {
-            // 只保存布局相关的配置
+            CommitPendingTextBoxBindings();
+
             var config = GetCurrentConfig();
             _settingsService.SaveConfig(config);
 
-            // 发送布局变更消息，直接传递当前布局值，让主界面立即应用
-            WeakReferenceMessenger.Default.Send(new LayoutChangedMessage(
-                LeftPanelWidth,
-                LeftPanelLocked,
-                RightPanelWidth,
-                RightPanelLocked,
-                BottomPanelHeight,
-                BottomPanelLocked));
-
-            ConfigManager.Instance.RefreshUISettingsConfig();
+            BroadcastLayoutAndCardSettingsToMainWindow();
 
             MessageBoxWindow.Show(Application.Current.MainWindow, "当前布局已保存", "成功");
         }
@@ -1007,6 +964,130 @@ public partial class UISettingsViewModel : ObservableObject, ISettingsViewModel
     ///     致命错误颜色画刷
     /// </summary>
     public Brush FatalColorBrush => CreateBrushFromHex(FatalColor);
+
+    /// <summary>
+    ///     将仍聚焦在 TextBox 上的 LostFocus 绑定提交到 ViewModel（保存前调用）。
+    /// </summary>
+    private static void CommitPendingTextBoxBindings()
+    {
+        Keyboard.ClearFocus();
+    }
+
+    /// <summary>
+    ///     保存/导入后，把当前 VM 中的界面设置广播到主窗口。
+    /// </summary>
+    public void BroadcastAllAppliedSettingsToMainWindow()
+    {
+        BroadcastAllFromConfig(GetCurrentConfig(), CurrentTripListView, DataGridColumns);
+    }
+
+    /// <summary>
+    ///     「保存当前布局」：同步面板布局与卡片布局到主窗口（不切换视图/分组等）。
+    /// </summary>
+    private void BroadcastLayoutAndCardSettingsToMainWindow()
+    {
+        WeakReferenceMessenger.Default.Send(new LayoutChangedMessage(
+            LeftPanelWidth,
+            LeftPanelLocked,
+            RightPanelWidth,
+            RightPanelLocked,
+            BottomPanelHeight,
+            BottomPanelLocked));
+
+        SendCardViewSettingsChangedMessage();
+
+        ConfigManager.Instance.RefreshUISettingsConfig();
+    }
+
+    /// <summary>
+    ///     从已落盘的配置广播全部界面设置（用于设置导入等场景）。
+    /// </summary>
+    public static void BroadcastAllFromConfig(
+        UISettingsConfig config,
+        ViewType tripListView,
+        List<DataGridColumnConfig>? dataGridColumns = null)
+    {
+        WeakReferenceMessenger.Default.Send(new LayoutChangedMessage(
+            config.LeftPanelWidth,
+            config.LeftPanelLocked,
+            config.RightPanelWidth,
+            config.RightPanelLocked,
+            config.BottomPanelHeight,
+            config.BottomPanelLocked));
+
+        WeakReferenceMessenger.Default.Send(new DataGridColumnsChangedMessage(
+            dataGridColumns ?? config.DataGridColumns ?? DataGridColumnConfig.GetDefaultColumns()));
+
+        WeakReferenceMessenger.Default.Send(new GroupSettingChangedMessage(config.DefaultGroup));
+
+        WeakReferenceMessenger.Default.Send(new SwitchViewMessage(tripListView));
+
+        WeakReferenceMessenger.Default.Send(new UISettingsChangedMessage(
+            config.ScrollbarStyle,
+            config.ShowActionButtonsOnHover,
+            config.ShowViewButton,
+            config.ShowEditButton,
+            config.ShowRescheduleButton,
+            config.ShowRefundButton,
+            config.ShowDeleteButton,
+            config.IsTripListExpandedByDefault,
+            config.ShowTimestamp,
+            config.ShowModuleSource,
+            config.LogRowHeight));
+
+        WeakReferenceMessenger.Default.Send(new CardViewSettingsChangedMessage(
+            config.CardsPerRow,
+            config.CardWidth,
+            config.CardSpacing,
+            config.CardCornerRadius,
+            config.CardShowViewAction,
+            config.CardShowEditAction,
+            config.CardShowRescheduleAction,
+            config.CardShowRefundAction,
+            config.CardShowDeleteAction,
+            config.CardEnableMultiSelect,
+            config.CardBatchShowView,
+            config.CardBatchShowEdit,
+            config.CardBatchShowReschedule,
+            config.CardBatchShowRefund,
+            config.CardBatchShowDelete,
+            config.CardStatusPosition,
+            config.CardHoverHighlight,
+            config.CardShowShadow,
+            config.CardHoverScale));
+
+        WeakReferenceMessenger.Default.Send(new LogColorsChangedMessage(
+            config.InfoColor,
+            config.WarningColor,
+            config.ErrorColor,
+            config.FatalColor));
+
+        ConfigManager.Instance.RefreshUISettingsConfig();
+    }
+
+    private void SendCardViewSettingsChangedMessage()
+    {
+        WeakReferenceMessenger.Default.Send(new CardViewSettingsChangedMessage(
+            CardsPerRow,
+            CardWidth,
+            CardSpacing,
+            CardCornerRadius,
+            CardShowViewAction,
+            CardShowEditAction,
+            CardShowRescheduleAction,
+            CardShowRefundAction,
+            CardShowDeleteAction,
+            CardEnableMultiSelect,
+            CardBatchShowView,
+            CardBatchShowEdit,
+            CardBatchShowReschedule,
+            CardBatchShowRefund,
+            CardBatchShowDelete,
+            CardStatusPosition,
+            CardHoverHighlight,
+            CardShowShadow,
+            CardHoverScale));
+    }
 
     #endregion
 }

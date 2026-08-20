@@ -148,12 +148,16 @@ public partial class TripListViewModel : ObservableObject, IDisposable
         });
 
         // 订阅切换视图消息
-        WeakReferenceMessenger.Default.Register<SwitchViewMessage>(this, (recipient, message) =>
+        WeakReferenceMessenger.Default.Register<SwitchViewMessage>(this, async (recipient, message) =>
         {
             Debug.WriteLine($"[SwitchViewMessage] Received, ViewType: {message.ViewType}");
+            var wasCard = CurrentViewType == ViewType.Card;
             CurrentViewType = message.ViewType;
             OnPropertyChanged(nameof(IsDataGridVisible));
             OnPropertyChanged(nameof(IsCardViewVisible));
+
+            if (message.ViewType == ViewType.Card && !wasCard)
+                await LoadTripItemsAsync();
         });
 
         // 订阅卡片选中状态变更消息
